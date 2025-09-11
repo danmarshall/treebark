@@ -171,59 +171,26 @@ function renderAttributes(
   return attrPairs.length > 0 ? ' ' + attrPairs.join(' ') : '';
 }
 
-function interpolate(template: string, data: any): string {
-  // Handle escaping: {{{ becomes {{
-  // Use a placeholder to temporarily mark escaped content
-  const PLACEHOLDER = '__TREEBARK_ESCAPED__';
-  let escapedCount = 0;
-  const escapedValues: string[] = [];
-  
-  // First pass: replace escaped interpolations with placeholders
-  let result = template.replace(/\{\{\{([^}]*)\}\}\}/g, (match, content) => {
-    const placeholder = `${PLACEHOLDER}${escapedCount++}${PLACEHOLDER}`;
-    escapedValues.push(`{{${content}}}`);
-    return placeholder;
+function interpolate(template: string, data: any, escape = true): string {
+  return template.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (match, open, expr, close) => {
+    const trimmed = expr.trim();
+
+    // Triple curlies → literal double curlies
+    if (open === "{{{" && close === "}}}") {
+      return `{{${trimmed}}}`;
+    }
+
+    // Normal double curlies → interpolate and conditionally escape
+    const value = getPropertyPath(data, trimmed);
+    if (value === undefined) return "";
+    
+    const stringValue = String(value);
+    return escape ? escapeHtml(stringValue) : stringValue;
   });
-  
-  // Second pass: handle regular interpolation 
-  result = result.replace(/\{\{([^}]*)\}\}/g, (match, content) => {
-    const value = getPropertyPath(data, content.trim());
-    return value !== undefined ? escapeHtml(String(value)) : '';
-  });
-  
-  // Third pass: restore escaped content
-  escapedValues.forEach((escaped, index) => {
-    result = result.replace(`${PLACEHOLDER}${index}${PLACEHOLDER}`, escaped);
-  });
-  
-  return result;
 }
 
 function interpolateAttribute(template: string, data: any): string {
-  // Same as interpolate but without HTML escaping for attribute values
-  const PLACEHOLDER = '__TREEBARK_ESCAPED__';
-  let escapedCount = 0;
-  const escapedValues: string[] = [];
-  
-  // First pass: replace escaped interpolations with placeholders
-  let result = template.replace(/\{\{\{([^}]*)\}\}\}/g, (match, content) => {
-    const placeholder = `${PLACEHOLDER}${escapedCount++}${PLACEHOLDER}`;
-    escapedValues.push(`{{${content}}}`);
-    return placeholder;
-  });
-  
-  // Second pass: handle regular interpolation (no escaping here)
-  result = result.replace(/\{\{([^}]*)\}\}/g, (match, content) => {
-    const value = getPropertyPath(data, content.trim());
-    return value !== undefined ? String(value) : '';
-  });
-  
-  // Third pass: restore escaped content
-  escapedValues.forEach((escaped, index) => {
-    result = result.replace(`${PLACEHOLDER}${index}${PLACEHOLDER}`, escaped);
-  });
-  
-  return result;
+  return interpolate(template, data, false);
 }
 
 function getPropertyPath(obj: any, path: string): any {
