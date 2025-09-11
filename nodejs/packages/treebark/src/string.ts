@@ -1,131 +1,58 @@
-import {
-  TreebarkNode,
-  TreebarkElement,
-  TreebarkTemplate,
-  RenderOptions,
-  DEFAULT_ALLOWED_TAGS,
-  DEFAULT_ALLOWED_ATTRIBUTES
-} from './index';
+import { TreebarkNode, TreebarkTemplate, RenderOptions, DEFAULT_ALLOWED_TAGS, DEFAULT_ALLOWED_ATTRIBUTES } from './index';
 
-/**
- * Renders a Treebark node to an HTML string
- */
-export function renderToString(node: TreebarkNode | TreebarkTemplate, options: RenderOptions = {}): string {
+export function renderToString(schema: TreebarkNode | TreebarkTemplate, options: RenderOptions = {}): string {
   const { data = {}, allowedTags = DEFAULT_ALLOWED_TAGS, allowedAttributes = DEFAULT_ALLOWED_ATTRIBUTES } = options;
   
-  // Handle self-contained template blocks
-  if (isTemplate(node)) {
-    return renderToString(node.$template, { ...options, data: node.$data });
+  if (schema && typeof schema === 'object' && '$template' in schema) {
+    return renderToString(schema.$template as TreebarkNode, { ...options, data: schema.$data });
   }
   
-  return render(node, data, allowedTags, allowedAttributes);
+  return render(schema as TreebarkNode, data, allowedTags, allowedAttributes);
 }
 
-function render(node: TreebarkNode, data: any, allowedTags: Set<string>, allowedAttributes: Set<string>): string {
-  // String → interpolate
-  if (typeof node === 'string') {
-    return interpolate(node, data);
-  }
+function render(schema: TreebarkNode, data: any, tags: Set<string>, attrs: Set<string>): string {
+  if (typeof schema === "string") return interpolate(schema, data);
+  if (Array.isArray(schema)) return schema.map(s => render(s, data, tags, attrs)).join("");
   
-  // Array → fragment
-  if (Array.isArray(node)) {
-    return node.map(child => render(child, data, allowedTags, allowedAttributes)).join('');
-  }
+  const [tag, rest] = Object.entries(schema)[0];
+  if (!tags.has(tag)) throw new Error(`Tag "${tag}" is not allowed`);
   
-  // Object → element
-  if (typeof node === 'object' && node !== null) {
-    return renderElement(node, data, allowedTags, allowedAttributes);
-  }
-  
-  return '';
-}
-
-function renderElement(element: TreebarkElement, data: any, allowedTags: Set<string>, allowedAttributes: Set<string>): string {
-  const [tag, content] = Object.entries(element)[0];
-  
-  // Security: whitelist tags
-  if (!allowedTags.has(tag)) {
-    throw new Error(`Tag "${tag}" is not allowed`);
-  }
-  
-  // Handle $bind directive
-  if (typeof content === 'object' && content && '$bind' in content) {
-    const boundData = get(data, content.$bind as string);
-    const template = { ...content };
-    delete template.$bind;
+  // Handle $bind
+  if (rest && typeof rest === 'object' && '$bind' in rest) {
+    const bound = get(data, rest.$bind as string);
+    const tmpl = { ...rest }; delete tmpl.$bind;
     
-    if (Array.isArray(boundData)) {
-      // Array binding: render template for each item
-      const { attrs, children } = parseContent(template);
-      const attrStr = renderAttrs(attrs, data, allowedAttributes);
-      const childrenHtml = boundData.map(item => 
-        children.map(child => render(child, item, allowedTags, allowedAttributes)).join('')
-      ).join('');
-      return `<${tag}${attrStr}>${childrenHtml}</${tag}>`;
-    } else {
-      // Object binding: use bound data as context
-      return renderElement({ [tag]: template }, boundData, allowedTags, allowedAttributes);
+    if (Array.isArray(bound)) {
+      const kids = (tmpl as any).$children || [];
+      const as = Object.fromEntries(Object.entries(tmpl).filter(([k]) => !k.startsWith('$')));
+      return `<${tag}${renderAttrs(as, data, attrs)}>${bound.map(item => 
+        kids.map((c: TreebarkNode) => render(c, item, tags, attrs)).join('')).join('')}</${tag}>`;
     }
+    return render({ [tag]: tmpl }, bound, tags, attrs);
   }
   
-  // Normal element rendering
-  const { attrs, children } = parseContent(content);
-  const attrStr = renderAttrs(attrs, data, allowedAttributes);
-  const childrenHtml = children.map(child => render(child, data, allowedTags, allowedAttributes)).join('');
-  
-  return `<${tag}${attrStr}>${childrenHtml}</${tag}>`;
-}
-
-function parseContent(content: any): { attrs: Record<string, string>; children: TreebarkNode[] } {
-  if (typeof content === 'string') return { attrs: {}, children: [content] };
-  if (Array.isArray(content)) return { attrs: {}, children: content };
-  if (!content || typeof content !== 'object') return { attrs: {}, children: [] };
-  
-  const attrs: Record<string, string> = {};
-  let children: TreebarkNode[] = [];
-  
-  Object.entries(content).forEach(([key, value]) => {
-    if (key === '$children') {
-      children = Array.isArray(value) ? value : [value];
-    } else if (!key.startsWith('$')) {
-      attrs[key] = String(value);
-    }
-  });
-  
-  return { attrs, children };
-}
-
-function renderAttrs(attrs: Record<string, string>, data: any, allowedAttributes: Set<string>): string {
-  const pairs = Object.entries(attrs)
-    .filter(([key]) => {
-      const allowed = allowedAttributes.has(key) || 
-                     [...allowedAttributes].some(p => p.endsWith('-') && key.startsWith(p));
-      if (!allowed) throw new Error(`Attribute "${key}" is not allowed`);
-      return true;
-    })
-    .map(([key, value]) => `${key}="${escape(interpolateAttr(value, data))}"`)
-    .join(' ');
-  
-  return pairs ? ' ' + pairs : '';
-}
-
-function interpolate(template: string, data: any): string {
-  return template.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
-    const trimmed = expr.trim();
-    if (open === '{{{' && close === '}}}') return `{{${trimmed}}}`;
+  const kids = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as any)?.$children || [];
+  const as = rest && typeof rest === "object" && !Array.isArray(rest) 
+    ? Object.fromEntries(Object.entries(rest).filter(([k]) => !k.startsWith('$'))) : {};
     
-    const value = get(data, trimmed);
-    return value != null ? escape(String(value)) : '';
-  });
+  return `<${tag}${renderAttrs(as, data, attrs)}>${kids.map((c: TreebarkNode) => render(c, data, tags, attrs)).join("")}</${tag}>`;
 }
 
-function interpolateAttr(template: string, data: any): string {
-  return template.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
+function renderAttrs(attrs: Record<string, any>, data: any, allowed: Set<string>): string {
+  const pairs = Object.entries(attrs).filter(([key]) => {
+    const ok = allowed.has(key) || [...allowed].some(p => p.endsWith('-') && key.startsWith(p));
+    if (!ok) throw new Error(`Attribute "${key}" is not allowed`);
+    return true;
+  }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
+  return pairs ? " " + pairs : "";
+}
+
+function interpolate(tpl: string, data: any, escapeHtml = true): string {
+  return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
-    if (open === '{{{' && close === '}}}') return `{{${trimmed}}}`;
-    
-    const value = get(data, trimmed);
-    return value != null ? String(value) : '';
+    if (open === '{{{') return `{{${trimmed}}}`;
+    const val = get(data, trimmed);
+    return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
 
@@ -135,8 +62,4 @@ function get(obj: any, path: string): any {
 
 function escape(s: string): string {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
-}
-
-function isTemplate(node: any): node is TreebarkTemplate {
-  return node && typeof node === 'object' && '$template' in node && '$data' in node;
 }
