@@ -1,99 +1,81 @@
-import { TreebarkNode, TreebarkTemplate, RenderOptions, DEFAULT_ALLOWED_TAGS, DEFAULT_ALLOWED_ATTRIBUTES } from './index';
+type Schema = string | Schema[] | { [tag: string]: any };
+type Data = Record<string, any>;
 
-export function renderToDOM(schema: TreebarkNode | TreebarkTemplate, options: RenderOptions = {}): DocumentFragment {
-  const { data = {}, allowedTags = DEFAULT_ALLOWED_TAGS, allowedAttributes = DEFAULT_ALLOWED_ATTRIBUTES } = options;
+const ALLOWED_TAGS = new Set(['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'img']);
+const ALLOWED_ATTRS = new Set(['id', 'class', 'style', 'title', 'href', 'src', 'alt', 'data-', 'aria-']);
 
-  if (schema && typeof schema === 'object' && '$template' in schema) {
-    return renderToDOM(schema.$template as TreebarkNode, { ...options, data: schema.$data });
-  }
-
-  const fragment = document.createDocumentFragment();
-  const elements = render(schema as TreebarkNode, data, allowedTags, allowedAttributes);
+export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): DocumentFragment {
+  const data = options.data || {};
   
-  if (Array.isArray(elements)) {
-    elements.forEach(el => fragment.appendChild(el));
-  } else {
-    fragment.appendChild(elements);
+  if (schema && typeof schema === 'object' && '$template' in schema) {
+    return renderToDOM(schema.$template, { data: schema.$data });
   }
-
+  
+  const fragment = document.createDocumentFragment();
+  const result = render(schema as Schema, data);
+  if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
+  else fragment.appendChild(result);
   return fragment;
 }
 
-function render(schema: TreebarkNode, data: any, tags: Set<string>, attrs: Set<string>): Node | Node[] {
+function render(schema: Schema, data: Data): Node | Node[] {
   if (typeof schema === "string") return document.createTextNode(interpolate(schema, data));
   if (Array.isArray(schema)) return schema.flatMap(s => {
-    const rendered = render(s, data, tags, attrs);
-    return Array.isArray(rendered) ? rendered : [rendered];
+    const r = render(s, data); return Array.isArray(r) ? r : [r];
   });
   
   const [tag, rest] = Object.entries(schema)[0];
-  if (!tags.has(tag)) throw new Error(`Tag "${tag}" is not allowed`);
+  if (!ALLOWED_TAGS.has(tag)) throw new Error(`Tag "${tag}" is not allowed`);
+  
+  const element = document.createElement(tag);
   
   // Handle $bind
   if (rest && typeof rest === 'object' && '$bind' in rest) {
-    const bound = get(data, rest.$bind as string);
-    const tmpl = { ...rest }; delete tmpl.$bind;
+    const bound = get(data, rest.$bind);
+    const { $bind, $children = [], ...attrs } = rest;
+    setAttrs(element, attrs, data);
     
     if (Array.isArray(bound)) {
-      const element = document.createElement(tag);
-      const kids = (tmpl as any).$children || [];
-      const as = Object.fromEntries(Object.entries(tmpl).filter(([k]) => !k.startsWith('$')));
-      setAttrs(element, as, data, attrs);
-      
-      bound.forEach(item => {
-        kids.forEach((child: TreebarkNode) => {
-          const childNodes = render(child, item, tags, attrs);
-          if (Array.isArray(childNodes)) {
-            childNodes.forEach(node => element.appendChild(node));
-          } else {
-            element.appendChild(childNodes);
-          }
-        });
-      });
+      bound.forEach(item => $children.forEach((c: Schema) => {
+        const nodes = render(c, item);
+        (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
+      }));
       return element;
     }
-    return render({ [tag]: tmpl }, bound, tags, attrs) as HTMLElement;
+    const childNodes = render({ [tag]: { ...attrs, $children } }, bound);
+    return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  const element = document.createElement(tag);
-  const kids = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as any)?.$children || [];
-  const as = rest && typeof rest === "object" && !Array.isArray(rest) 
-    ? Object.fromEntries(Object.entries(rest).filter(([k]) => !k.startsWith('$'))) : {};
-    
-  setAttrs(element, as, data, attrs);
-  kids.forEach((child: TreebarkNode) => {
-    const childNodes = render(child, data, tags, attrs);
-    if (Array.isArray(childNodes)) {
-      childNodes.forEach(node => element.appendChild(node));
-    } else {
-      element.appendChild(childNodes);
-    }
+  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
+  const attrs = rest && typeof rest === "object" && !Array.isArray(rest) 
+    ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
+  
+  setAttrs(element, attrs, data);
+  children.forEach((c: Schema) => {
+    const nodes = render(c, data);
+    (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
   
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: any, allowed: Set<string>): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    const ok = allowed.has(key) || [...allowed].some(p => p.endsWith('-') && key.startsWith(p));
+    const ok = ALLOWED_ATTRS.has(key) || [...ALLOWED_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
     if (!ok) throw new Error(`Attribute "${key}" is not allowed`);
     element.setAttribute(key, interpolate(String(value), data, false));
   });
 }
 
-function interpolate(tpl: string, data: any, escapeHtml = true): string {
+function interpolate(tpl: string, data: Data, escapeHtml = true): string {
   return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
     const val = get(data, trimmed);
-    return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
+    return val == null ? "" : String(val);
   });
 }
 
 function get(obj: any, path: string): any {
   return path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
-}
-
-function escape(s: string): string {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
 }
