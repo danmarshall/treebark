@@ -13,6 +13,13 @@ export function getProperty(obj: any, path: string): any {
 }
 
 /**
+ * HTML escape function for template interpolation
+ */
+export function escape(s: string): string {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
+}
+
+/**
  * Interpolate template variables in a string
  */
 export function interpolate(tpl: string, data: Data, escapeHtml = true): string {
@@ -20,7 +27,7 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true): string 
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
     const val = getProperty(data, trimmed);
-    return val == null ? "" : String(val);
+    return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
 

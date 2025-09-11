@@ -4,7 +4,8 @@ import {
   ALLOWED_TAGS, 
   ALLOWED_ATTRS, 
   getProperty, 
-  interpolate as baseInterpolate, 
+  interpolate,
+  escape,
   validateTag, 
   validateAttribute, 
   isTemplate, 
@@ -50,17 +51,4 @@ function renderAttrs(attrs: Record<string, any>, data: Data): string {
     return true;
   }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
   return pairs ? " " + pairs : "";
-}
-
-function interpolate(tpl: string, data: Data, escapeHtml = true): string {
-  return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
-    const trimmed = expr.trim();
-    if (open === '{{{') return `{{${trimmed}}}`;
-    const val = getProperty(data, trimmed);
-    return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
-  });
-}
-
-function escape(s: string): string {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] || c);
 }
