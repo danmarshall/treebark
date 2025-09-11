@@ -1,0 +1,20 @@
+{
+  "name": "treebark-workspace",
+  "version": "1.0.0",
+  "description": "Safe tree structures for Markdown and content-driven apps",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "clean": "npm run clean --workspaces"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
