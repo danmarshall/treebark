@@ -37,6 +37,26 @@
             padding: 1rem;
             margin: 1rem 0;
         }
+        .html-output {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .output-section {
+            margin: 0.5rem 0;
+        }
+        .output-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
         .card {
             border: 1px solid #ddd;
             padding: 1rem;
@@ -71,7 +91,14 @@
     <div class="demo-section">
         <h2 class="demo-title">Hello World</h2>
         <div class="schema">{ "div": "Hello world" }</div>
-        <div class="result" id="hello-world"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="hello-world"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="hello-world-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -84,7 +111,40 @@
   }
 }
         </div>
-        <div class="result" id="card-example"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="card-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="card-example-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2 class="demo-title">Shorthand Array Syntax</h2>
+        <div class="schema">
+{
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    { "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" },
+        { "li": "Item 3" }
+      ]
+    }
+  ]
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="shorthand-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="shorthand-example-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -101,7 +161,14 @@
 }
 Data: { "name": "Alice Johnson", "email": "alice@example.com" }
         </div>
-        <div class="result" id="data-binding"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="data-binding"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="data-binding-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -123,7 +190,44 @@ Data: {
   ]
 }
         </div>
-        <div class="result" id="array-binding"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="array-binding"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="array-binding-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2 class="demo-title">Shorthand Array with Data Binding</h2>
+        <div class="schema">
+{
+  "div": [
+    { "h2": "Profile: {{name}}" },
+    { "p": "Contact: {{email}}" },
+    { "div": [
+        "Skills: ",
+        { "strong": "{{skills}}" }
+      ]
+    }
+  ]
+}
+Data: { 
+  "name": "Bob Smith", 
+  "email": "bob@example.com",
+  "skills": "JavaScript, TypeScript, React"
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="shorthand-data-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="shorthand-data-example-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -145,7 +249,14 @@ Data: {
   }
 }
         </div>
-        <div class="result" id="self-contained"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="self-contained"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="self-contained-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -161,13 +272,23 @@ Data: {
   }
 }
         </div>
-        <div class="result" id="mixed-content"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="mixed-content"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="mixed-content-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
         <h2 class="demo-title">Security Demo</h2>
         <div class="schema">Trying to use disallowed tag: { "script": "alert('XSS')" }</div>
-        <div class="result" id="security-demo"></div>
+        <div class="output-section">
+            <div class="output-label">Result:</div>
+            <div class="result" id="security-demo"></div>
+        </div>
     </div>
 
     <script type="module">
@@ -339,65 +460,123 @@ Data: {
             }, obj);
         }
 
+        // Helper function to get HTML from DOM elements
+        function getHTMLFromFragment(fragment) {
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(fragment.cloneNode(true));
+            return tempDiv.innerHTML;
+        }
+
+        // Helper function to render and display both DOM and HTML for an example
+        function renderExample(containerId, htmlId, schema, options = {}) {
+            try {
+                const fragment = renderToDOM(schema, options);
+                document.getElementById(containerId).appendChild(fragment.cloneNode(true));
+                
+                if (htmlId) {
+                    const html = getHTMLFromFragment(fragment);
+                    document.getElementById(htmlId).textContent = html;
+                }
+            } catch (error) {
+                console.error(`Error in ${containerId}:`, error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = `Error: ${error.message}`;
+                document.getElementById(containerId).appendChild(errorDiv);
+            }
+        }
+
         // Demo examples
         try {
             // Hello World
-            document.getElementById('hello-world').appendChild(
-                renderToDOM({ div: "Hello world" })
+            renderExample('hello-world', 'hello-world-html', 
+                { div: "Hello world" }
             );
 
             // Card Example
-            document.getElementById('card-example').appendChild(
-                renderToDOM({
+            renderExample('card-example', 'card-example-html',
+                {
                     div: {
                         class: "card",
                         $children: ["Hello from a card!"]
                     }
-                })
+                }
+            );
+
+            // Shorthand Array Syntax
+            renderExample('shorthand-example', 'shorthand-example-html',
+                {
+                    div: [
+                        { h2: "Welcome" },
+                        { p: "This is much cleaner!" },
+                        { ul: [
+                            { li: "Item 1" },
+                            { li: "Item 2" },
+                            { li: "Item 3" }
+                        ]}
+                    ]
+                }
             );
 
             // Data Binding
-            document.getElementById('data-binding').appendChild(
-                renderToDOM(
-                    {
-                        div: {
-                            class: "user-card",
-                            $children: [
-                                { h2: "{{name}}" },
-                                { p: "{{email}}" }
-                            ]
-                        }
-                    },
-                    { data: { name: "Alice Johnson", email: "alice@example.com" } }
-                )
+            renderExample('data-binding', 'data-binding-html',
+                {
+                    div: {
+                        class: "user-card",
+                        $children: [
+                            { h2: "{{name}}" },
+                            { p: "{{email}}" }
+                        ]
+                    }
+                },
+                { data: { name: "Alice Johnson", email: "alice@example.com" } }
             );
 
             // Array Binding
-            document.getElementById('array-binding').appendChild(
-                renderToDOM(
-                    {
-                        ul: {
-                            $bind: "products",
-                            $children: [
-                                { li: "{{name}} — {{price}}" }
-                            ]
-                        }
-                    },
-                    {
-                        data: {
-                            products: [
-                                { name: "Laptop", price: "$999" },
-                                { name: "Phone", price: "$499" },
-                                { name: "Tablet", price: "$299" }
-                            ]
-                        }
+            renderExample('array-binding', 'array-binding-html',
+                {
+                    ul: {
+                        $bind: "products",
+                        $children: [
+                            { li: "{{name}} — {{price}}" }
+                        ]
                     }
-                )
+                },
+                {
+                    data: {
+                        products: [
+                            { name: "Laptop", price: "$999" },
+                            { name: "Phone", price: "$499" },
+                            { name: "Tablet", price: "$299" }
+                        ]
+                    }
+                }
+            );
+
+            // Shorthand Array with Data Binding
+            renderExample('shorthand-data-example', 'shorthand-data-example-html',
+                {
+                    div: [
+                        { h2: "Profile: {{name}}" },
+                        { p: "Contact: {{email}}" },
+                        { div: [
+                            "Skills: ",
+                            { strong: "{{skills}}" }
+                        ]}
+                    ]
+                },
+                { 
+                    data: { 
+                        name: "Bob Smith", 
+                        email: "bob@example.com",
+                        skills: "JavaScript, TypeScript, React"
+                    }
+                }
             );
 
             // Self-contained
-            document.getElementById('self-contained').appendChild(
-                renderToDOM({
+            renderExample('self-contained', 'self-contained-html',
+                {
                     $template: {
                         div: {
                             class: "product-card",
@@ -411,12 +590,12 @@ Data: {
                         name: "Gaming Laptop",
                         price: "$1299"
                     }
-                })
+                }
             );
 
             // Mixed Content
-            document.getElementById('mixed-content').appendChild(
-                renderToDOM({
+            renderExample('mixed-content', 'mixed-content-html',
+                {
                     div: {
                         $children: [
                             "Hello ",
@@ -424,7 +603,7 @@ Data: {
                             "!"
                         ]
                     }
-                })
+                }
             );
 
         } catch (error) {
