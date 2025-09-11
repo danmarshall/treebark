@@ -1,0 +1,196 @@
+# 🌳 Treebark  
+
+> Safe tree structures for Markdown content and apps.  
+
+---
+
+## 🚧 Problem  
+
+Markdown was originally designed as a **superset of HTML** — you could drop raw `<div>`s, `<table>`s, or even `<script>`s straight into your content.  
+
+But for **safety and consistency**, many Markdown parsers (especially in CMSs, wikis, and chat apps) **disallow raw HTML**. That means:  
+
+- Authors can’t use existing site CSS components (headers, footers, grids).  
+- Structured layouts like tables or cards are awkward or impossible.  
+- Allowing raw HTML invites XSS and security issues.  
+
+---
+
+## 🌳 Solution  
+
+**Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
+
+- Safe by default: only whitelisted tags/attrs are allowed.  
+- Fits naturally into Markdown fenced code blocks.  
+- Flexible enough for both **static content** and **data-bound apps**.  
+
+#### 💡 Key Insight  
+
+Templates don’t need a parser or compiler.  
+
+By using **object keys as tag names**, the schema is both natural and trivial to implement:  
+
+```json
+{ "div": "Hello world" }
+```  
+
+That’s it — a `div` with text, expressed as pure data. No angle brackets, no parser, just a structural walk of the object tree.  
+
+---
+
+## ✨ Examples  
+
+### Hello World  
+
+```yaml treebark
+div: "Hello world"
+```  
+
+→ `<div>Hello world</div>`  
+
+---
+
+### Bound to an Object  
+
+```yaml treebark
+div:
+  class: card
+  $children:
+    - h2: "{{title}}"
+    - p: "{{description}}"
+```  
+
+**Data:**  
+```json
+{ "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
+```  
+
+→  
+```html
+<div class="card">
+  <h2>Treebark Demo</h2>
+  <p>CMS-driven and data-bound!</p>
+</div>
+```  
+
+---
+
+### Bound to an Array  
+
+```yaml treebark
+ul:
+  $bind: products
+  - li: "{{name}} — {{price}}"
+```  
+
+**Data:**  
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone",  "price": "$499" }
+  ]
+}
+```  
+
+→  
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```  
+
+---
+
+### Self-Contained Block  
+
+```yaml treebark
+$template:
+  div:
+    class: product-card
+    $children:
+      - h2: "{{name}}"
+      - p: "Only {{price}}!"
+$data:
+  name: "Laptop"
+  price: "$999"
+```  
+
+---
+
+### Mixed Content  
+
+```yaml treebark
+div:
+  $children:
+    - "Hello "
+    - span: "World"
+    - "!"
+```  
+
+→ `<div>Hello <span>World</span>!</div>`  
+
+---
+
+## 🧩 Markdown Plugin  
+
+Treebark works naturally inside fenced code blocks:  
+
+````markdown
+# Product Catalog
+
+```yaml treebark
+ul:
+  $bind: products
+  - li: "{{name}} — {{price}}"
+```
+````  
+
+---
+
+## 🚀 Getting Started  
+
+```bash
+npm install treebark
+```  
+
+```js
+import { renderTreebark } from "treebark";
+import yaml from "js-yaml";
+
+const schema = yaml.load(`
+ul:
+  $bind: products
+  - li: "{{.}}"
+`);
+
+const html = renderTreebark(schema, ["One", "Two", "Three"]);
+```  
+
+---
+
+## 📦 Safe by Default  
+
+Treebark ships with a strict whitelist:  
+
+- **Allowed tags:**  
+  `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
+  `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
+  `ul`, `ol`, `li`,  
+  `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
+  `a`, `img`  
+
+- **Allowed attributes:**  
+  - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
+  - `a`: `href`, `target`, `rel`  
+  - `img`: `src`, `alt`, `width`, `height`  
+  - `table`: `summary`  
+  - `th`/`td`: `scope`, `colspan`, `rowspan`  
+  - `blockquote`: `cite`  
+
+- **Blocked by default:**  
+  `script`, `iframe`, `embed`, `object`, `applet`,  
+  `form`, `input`, `button`, `select`,  
+  `video`, `audio`,  
+  `style`, `link`, `meta`, `base`  
