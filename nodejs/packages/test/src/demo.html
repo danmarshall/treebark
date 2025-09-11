@@ -202,6 +202,81 @@ Data: {
     </div>
 
     <div class="demo-section">
+        <h2 class="demo-title">Nested Data: Customer Orders</h2>
+        <div class="schema">
+{
+  "div": {
+    "class": "user-card",
+    "$children": [
+      { "h2": "Customer: {{customer.name}}" },
+      { "p": "Email: {{customer.email}}" },
+      { "h3": "Orders:" },
+      { "div": {
+          "$bind": "customer.orders",
+          "$children": [
+            { "div": {
+                "class": "card",
+                "style": "margin: 1rem 0; padding: 1rem;",
+                "$children": [
+                  { "h4": "Order #{{orderNumber}} - {{date}}" },
+                  { "p": "Total: {{total}}" },
+                  { "h5": "Products:" },
+                  { "ul": {
+                      "$bind": "products",
+                      "$children": [
+                        { "li": "{{name}} × {{quantity}} - {{price}}" }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+Data: {
+  "customer": {
+    "name": "Sarah Wilson",
+    "email": "sarah@example.com",
+    "orders": [
+      {
+        "orderNumber": "1001",
+        "date": "2024-01-15",
+        "total": "$1,297",
+        "products": [
+          { "name": "Laptop", "quantity": "1", "price": "$999" },
+          { "name": "Mouse", "quantity": "2", "price": "$149" },
+          { "name": "USB Cable", "quantity": "3", "price": "$149" }
+        ]
+      },
+      {
+        "orderNumber": "1002", 
+        "date": "2024-02-03",
+        "total": "$599",
+        "products": [
+          { "name": "Monitor", "quantity": "1", "price": "$299" },
+          { "name": "Keyboard", "quantity": "1", "price": "$129" },
+          { "name": "Webcam", "quantity": "1", "price": "$171" }
+        ]
+      }
+    ]
+  }
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="nested-data-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="nested-data-example-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
         <h2 class="demo-title">Shorthand Array with Data Binding</h2>
         <div class="schema">
 {
@@ -385,6 +460,70 @@ Data: {
                             { name: "Phone", price: "$499" },
                             { name: "Tablet", price: "$299" }
                         ]
+                    }
+                }
+            );
+
+            // Nested Data: Customer Orders
+            renderExample('nested-data-example', 'nested-data-example-html',
+                {
+                    div: {
+                        class: "user-card",
+                        $children: [
+                            { h2: "Customer: {{customer.name}}" },
+                            { p: "Email: {{customer.email}}" },
+                            { h3: "Orders:" },
+                            { div: {
+                                $bind: "customer.orders",
+                                $children: [
+                                    { div: {
+                                        class: "card",
+                                        style: "margin: 1rem 0; padding: 1rem;",
+                                        $children: [
+                                            { h4: "Order #{{orderNumber}} - {{date}}" },
+                                            { p: "Total: {{total}}" },
+                                            { h5: "Products:" },
+                                            { ul: {
+                                                $bind: "products",
+                                                $children: [
+                                                    { li: "{{name}} × {{quantity}} - {{price}}" }
+                                                ]
+                                            }}
+                                        ]
+                                    }}
+                                ]
+                            }}
+                        ]
+                    }
+                },
+                {
+                    data: {
+                        customer: {
+                            name: "Sarah Wilson",
+                            email: "sarah@example.com",
+                            orders: [
+                                {
+                                    orderNumber: "1001",
+                                    date: "2024-01-15",
+                                    total: "$1,297",
+                                    products: [
+                                        { name: "Laptop", quantity: "1", price: "$999" },
+                                        { name: "Mouse", quantity: "2", price: "$149" },
+                                        { name: "USB Cable", quantity: "3", price: "$149" }
+                                    ]
+                                },
+                                {
+                                    orderNumber: "1002",
+                                    date: "2024-02-03", 
+                                    total: "$599",
+                                    products: [
+                                        { name: "Monitor", quantity: "1", price: "$299" },
+                                        { name: "Keyboard", quantity: "1", price: "$129" },
+                                        { name: "Webcam", quantity: "1", price: "$171" }
+                                    ]
+                                }
+                            ]
+                        }
                     }
                 }
             );
