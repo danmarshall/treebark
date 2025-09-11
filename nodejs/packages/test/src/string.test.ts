@@ -186,4 +186,89 @@ describe('String Renderer', () => {
     });
     expect(result).toBe('<div data-test="value" aria-label="Test">Content</div>');
   });
+
+  // Tests for shorthand array syntax feature
+  test('renders shorthand array syntax for nodes without attributes', () => {
+    const result = renderToString({
+      div: [
+        { h2: 'Title' },
+        { p: 'Content' }
+      ]
+    });
+    expect(result).toBe('<div><h2>Title</h2><p>Content</p></div>');
+  });
+
+  test('shorthand array syntax equivalent to $children', () => {
+    const shorthand = renderToString({
+      ul: [
+        { li: 'Item 1' },
+        { li: 'Item 2' },
+        { li: 'Item 3' }
+      ]
+    });
+    
+    const explicit = renderToString({
+      ul: {
+        $children: [
+          { li: 'Item 1' },
+          { li: 'Item 2' },
+          { li: 'Item 3' }
+        ]
+      }
+    });
+    
+    expect(shorthand).toBe(explicit);
+    expect(shorthand).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
+  });
+
+  test('shorthand array syntax with mixed content', () => {
+    const result = renderToString({
+      div: [
+        'Hello ',
+        { span: 'world' },
+        '!'
+      ]
+    });
+    expect(result).toBe('<div>Hello <span>world</span>!</div>');
+  });
+
+  test('shorthand array syntax with data interpolation', () => {
+    const result = renderToString(
+      {
+        div: [
+          { h1: '{{title}}' },
+          { p: '{{content}}' }
+        ]
+      },
+      { data: { title: 'Welcome', content: 'This is a test.' } }
+    );
+    expect(result).toBe('<div><h1>Welcome</h1><p>This is a test.</p></div>');
+  });
+
+  test('shorthand array syntax with nested structures', () => {
+    const result = renderToString({
+      div: [
+        { 
+          div: [
+            { h1: 'Article Title' },
+            { p: 'Published on 2024' }
+          ]
+        },
+        { 
+          div: [
+            { p: 'First paragraph' },
+            { p: 'Second paragraph' }
+          ]
+        }
+      ]
+    });
+    expect(result).toBe('<div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div>');
+  });
+
+  test('shorthand array syntax works with empty arrays', () => {
+    const result = renderToString({
+      div: []
+    });
+    expect(result).toBe('<div></div>');
+  });
 });
