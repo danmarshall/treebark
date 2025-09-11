@@ -2,7 +2,8 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
-  ALLOWED_ATTRS, 
+  GLOBAL_ATTRS, 
+  TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
   validateTag, 
@@ -41,7 +42,7 @@ function render(schema: Schema, data: Data): Node | Node[] {
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data);
+    setAttrs(element, bindAttrs, data, tag);
     
     if (Array.isArray(bound)) {
       bound.forEach(item => $children.forEach((c: Schema) => {
@@ -54,7 +55,7 @@ function render(schema: Schema, data: Data): Node | Node[] {
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  setAttrs(element, attrs, data);
+  setAttrs(element, attrs, data, tag);
   children.forEach((c: Schema) => {
     const nodes = render(c, data);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
@@ -63,9 +64,9 @@ function render(schema: Schema, data: Data): Node | Node[] {
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    validateAttribute(key);
+    validateAttribute(key, tag);
     element.setAttribute(key, interpolate(String(value), data, false));
   });
 }

@@ -2,7 +2,8 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
-  ALLOWED_ATTRS, 
+  GLOBAL_ATTRS, 
+  TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate,
   escape,
@@ -36,18 +37,18 @@ function render(schema: Schema, data: Data): string {
     const { $bind, $children = [], ...bindAttrs } = rest;
     
     if (Array.isArray(bound)) {
-      return `<${tag}${renderAttrs(bindAttrs, data)}>${bound.map(item => 
+      return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }
     return render({ [tag]: { ...bindAttrs, $children } }, bound);
   }
     
-  return `<${tag}${renderAttrs(attrs, data)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
+  return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
 }
 
-function renderAttrs(attrs: Record<string, any>, data: Data): string {
+function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {
   const pairs = Object.entries(attrs).filter(([key]) => {
-    validateAttribute(key);
+    validateAttribute(key, tag);
     return true;
   }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
   return pairs ? " " + pairs : "";

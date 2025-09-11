@@ -2,8 +2,26 @@
 export type Schema = string | Schema[] | { [tag: string]: any };
 export type Data = Record<string, any>;
 
-export const ALLOWED_TAGS = new Set(['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'ul', 'ol', 'li', 'a', 'img']);
-export const ALLOWED_ATTRS = new Set(['id', 'class', 'style', 'title', 'href', 'src', 'alt', 'data-', 'aria-']);
+export const ALLOWED_TAGS = new Set([
+  'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
+  'ul', 'ol', 'li',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td',
+  'a', 'img'
+]);
+
+// Global attributes allowed on all tags
+export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'data-', 'aria-']);
+
+// Tag-specific attributes
+export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
+  'a': new Set(['href', 'target', 'rel']),
+  'img': new Set(['src', 'alt', 'width', 'height']),
+  'table': new Set(['summary']),
+  'th': new Set(['scope', 'colspan', 'rowspan']),
+  'td': new Set(['scope', 'colspan', 'rowspan']),
+  'blockquote': new Set(['cite'])
+};
 
 /**
  * Get a nested property from an object using dot notation
@@ -41,12 +59,18 @@ export function validateTag(tag: string): void {
 }
 
 /**
- * Validate that an attribute is allowed
+ * Validate that an attribute is allowed for the given tag
  */
-export function validateAttribute(key: string): void {
-  const ok = ALLOWED_ATTRS.has(key) || [...ALLOWED_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
-  if (!ok) {
-    throw new Error(`Attribute "${key}" is not allowed`);
+export function validateAttribute(key: string, tag: string): void {
+  // Check global attributes first
+  const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
+  
+  // Check tag-specific attributes
+  const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
+  const isTagSpecific = tagAttrs && tagAttrs.has(key);
+  
+  if (!isGlobal && !isTagSpecific) {
+    throw new Error(`Attribute "${key}" is not allowed on tag "${tag}"`);
   }
 }
 

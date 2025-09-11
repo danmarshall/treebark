@@ -208,6 +208,137 @@ describe('DOM Renderer', () => {
     expect(div.getAttribute('aria-label')).toBe('Test');
   });
 
+  test('allows tag-specific attributes for img', () => {
+    const fragment = renderToDOM({
+      img: {
+        src: 'image.jpg',
+        alt: 'An image',
+        width: '100',
+        height: '200'
+      }
+    });
+    const img = fragment.firstChild as HTMLImageElement;
+    expect(img.src).toBe('http://localhost/image.jpg');
+    expect(img.alt).toBe('An image');
+    expect(img.getAttribute('width')).toBe('100');
+    expect(img.getAttribute('height')).toBe('200');
+  });
+
+  test('allows tag-specific attributes for a', () => {
+    const fragment = renderToDOM({
+      a: {
+        href: 'https://example.com',
+        target: '_blank',
+        rel: 'noopener',
+        $children: ['Link text']
+      }
+    });
+    const a = fragment.firstChild as HTMLAnchorElement;
+    expect(a.href).toBe('https://example.com/');
+    expect(a.target).toBe('_blank');
+    expect(a.rel).toBe('noopener');
+    expect(a.textContent).toBe('Link text');
+  });
+
+  test('throws error for tag-specific attribute on wrong tag', () => {
+    expect(() => {
+      renderToDOM({
+        div: {
+          src: 'image.jpg',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "src" is not allowed on tag "div"');
+  });
+
+  test('throws error for img-specific attribute on div', () => {
+    expect(() => {
+      renderToDOM({
+        div: {
+          width: '100',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "width" is not allowed on tag "div"');
+  });
+
+  test('throws error for a-specific attribute on div', () => {
+    expect(() => {
+      renderToDOM({
+        div: {
+          target: '_blank',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "target" is not allowed on tag "div"');
+  });
+
+  test('allows global attributes on any tag', () => {
+    const fragment = renderToDOM({
+      span: {
+        id: 'test-id',
+        class: 'test-class',
+        style: 'color: red',
+        title: 'Test title',
+        role: 'button',
+        $children: ['Content']
+      }
+    });
+    const span = fragment.firstChild as HTMLElement;
+    expect(span.id).toBe('test-id');
+    expect(span.className).toBe('test-class');
+    expect(span.getAttribute('style')).toBe('color: red');
+    expect(span.title).toBe('Test title');
+    expect(span.getAttribute('role')).toBe('button');
+    expect(span.textContent).toBe('Content');
+  });
+
+  test('allows tag-specific attributes for table elements', () => {
+    const fragment = renderToDOM({
+      table: {
+        summary: 'Test table',
+        $children: [
+          {
+            tr: [
+              {
+                th: {
+                  scope: 'col',
+                  colspan: '2',
+                  $children: ['Header']
+                }
+              },
+              {
+                td: {
+                  rowspan: '1',
+                  $children: ['Data']
+                }
+              }
+            ]
+          }
+        ]
+      }
+    });
+    const table = fragment.firstChild as HTMLTableElement;
+    expect(table.getAttribute('summary')).toBe('Test table');
+    const th = table.querySelector('th') as HTMLTableCellElement;
+    expect(th.getAttribute('scope')).toBe('col');
+    expect(th.getAttribute('colspan')).toBe('2');
+    const td = table.querySelector('td') as HTMLTableCellElement;
+    expect(td.getAttribute('rowspan')).toBe('1');
+  });
+
+  test('allows tag-specific attributes for blockquote', () => {
+    const fragment = renderToDOM({
+      blockquote: {
+        cite: 'https://example.com',
+        $children: ['Quote text']
+      }
+    });
+    const blockquote = fragment.firstChild as HTMLElement;
+    expect(blockquote.getAttribute('cite')).toBe('https://example.com');
+    expect(blockquote.textContent).toBe('Quote text');
+  });
+
   test('can be inserted into DOM', () => {
     document.body.innerHTML = '';
     const fragment = renderToDOM({

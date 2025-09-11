@@ -187,6 +187,115 @@ describe('String Renderer', () => {
     expect(result).toBe('<div data-test="value" aria-label="Test">Content</div>');
   });
 
+  test('allows tag-specific attributes for img', () => {
+    const result = renderToString({
+      img: {
+        src: 'image.jpg',
+        alt: 'An image',
+        width: '100',
+        height: '200'
+      }
+    });
+    expect(result).toBe('<img src="image.jpg" alt="An image" width="100" height="200"></img>');
+  });
+
+  test('allows tag-specific attributes for a', () => {
+    const result = renderToString({
+      a: {
+        href: 'https://example.com',
+        target: '_blank',
+        rel: 'noopener',
+        $children: ['Link text']
+      }
+    });
+    expect(result).toBe('<a href="https://example.com" target="_blank" rel="noopener">Link text</a>');
+  });
+
+  test('throws error for tag-specific attribute on wrong tag', () => {
+    expect(() => {
+      renderToString({
+        div: {
+          src: 'image.jpg',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "src" is not allowed on tag "div"');
+  });
+
+  test('throws error for img-specific attribute on div', () => {
+    expect(() => {
+      renderToString({
+        div: {
+          width: '100',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "width" is not allowed on tag "div"');
+  });
+
+  test('throws error for a-specific attribute on div', () => {
+    expect(() => {
+      renderToString({
+        div: {
+          target: '_blank',
+          $children: ['Content']
+        }
+      });
+    }).toThrow('Attribute "target" is not allowed on tag "div"');
+  });
+
+  test('allows global attributes on any tag', () => {
+    const result = renderToString({
+      span: {
+        id: 'test-id',
+        class: 'test-class',
+        style: 'color: red',
+        title: 'Test title',
+        role: 'button',
+        $children: ['Content']
+      }
+    });
+    expect(result).toBe('<span id="test-id" class="test-class" style="color: red" title="Test title" role="button">Content</span>');
+  });
+
+  test('allows tag-specific attributes for table elements', () => {
+    const result = renderToString({
+      table: {
+        summary: 'Test table',
+        $children: [
+          {
+            tr: [
+              {
+                th: {
+                  scope: 'col',
+                  colspan: '2',
+                  $children: ['Header']
+                }
+              },
+              {
+                td: {
+                  rowspan: '1',
+                  $children: ['Data']
+                }
+              }
+            ]
+          }
+        ]
+      }
+    });
+    expect(result).toBe('<table summary="Test table"><tr><th scope="col" colspan="2">Header</th><td rowspan="1">Data</td></tr></table>');
+  });
+
+  test('allows tag-specific attributes for blockquote', () => {
+    const result = renderToString({
+      blockquote: {
+        cite: 'https://example.com',
+        $children: ['Quote text']
+      }
+    });
+    expect(result).toBe('<blockquote cite="https://example.com">Quote text</blockquote>');
+  });
+
   // Tests for shorthand array syntax feature
   test('renders shorthand array syntax for nodes without attributes', () => {
     const result = renderToString({
