@@ -2,11 +2,16 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
-  ALLOWED_ATTRS, 
+  CONTAINER_TAGS,
+  VOID_TAGS,
+  GLOBAL_ATTRS, 
+  TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
   validateTag, 
   validateAttribute, 
+  validateChildren,
+  isVoidTag,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -35,13 +40,20 @@ function render(schema: Schema, data: Data): Node | Node[] {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
+  // Validate that void tags don't have children
+  const hasChildren = children.length > 0;
+  validateChildren(tag, hasChildren);
+  
   const element = document.createElement(tag);
   
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data);
+    setAttrs(element, bindAttrs, data, tag);
+    
+    // Validate children for bound elements
+    validateChildren(tag, $children.length > 0);
     
     if (Array.isArray(bound)) {
       bound.forEach(item => $children.forEach((c: Schema) => {
@@ -54,7 +66,7 @@ function render(schema: Schema, data: Data): Node | Node[] {
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  setAttrs(element, attrs, data);
+  setAttrs(element, attrs, data, tag);
   children.forEach((c: Schema) => {
     const nodes = render(c, data);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
@@ -63,9 +75,9 @@ function render(schema: Schema, data: Data): Node | Node[] {
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    validateAttribute(key);
+    validateAttribute(key, tag);
     element.setAttribute(key, interpolate(String(value), data, false));
   });
 }

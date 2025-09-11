@@ -2,12 +2,17 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
-  ALLOWED_ATTRS, 
+  CONTAINER_TAGS,
+  VOID_TAGS,
+  GLOBAL_ATTRS, 
+  TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate,
   escape,
   validateTag, 
   validateAttribute, 
+  validateChildren,
+  isVoidTag,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -30,24 +35,39 @@ function render(schema: Schema, data: Data): string {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
+  // Validate that void tags don't have children
+  const hasChildren = children.length > 0;
+  validateChildren(tag, hasChildren);
+  
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
     
+    // Validate children for bound elements
+    validateChildren(tag, $children.length > 0);
+    
     if (Array.isArray(bound)) {
-      return `<${tag}${renderAttrs(bindAttrs, data)}>${bound.map(item => 
+      if (isVoidTag(tag)) {
+        return `<${tag}${renderAttrs(bindAttrs, data, tag)}>`;
+      }
+      return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }
     return render({ [tag]: { ...bindAttrs, $children } }, bound);
   }
-    
-  return `<${tag}${renderAttrs(attrs, data)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
+  
+  // Render void tags without closing tag
+  if (isVoidTag(tag)) {
+    return `<${tag}${renderAttrs(attrs, data, tag)}>`;
+  }
+  
+  return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
 }
 
-function renderAttrs(attrs: Record<string, any>, data: Data): string {
+function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {
   const pairs = Object.entries(attrs).filter(([key]) => {
-    validateAttribute(key);
+    validateAttribute(key, tag);
     return true;
   }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
   return pairs ? " " + pairs : "";

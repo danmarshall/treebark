@@ -1,138 +1,91 @@
 const { renderToString } = require('treebark');
+import { 
+  basicRenderingTests, 
+  dataInterpolationTests, 
+  bindingTests, 
+  securityErrorTests, 
+  securityValidTests, 
+  tagSpecificAttributeTests, 
+  tagSpecificAttributeErrorTests, 
+  shorthandArrayTests, 
+  voidTagTests, 
+  voidTagErrorTests,
+  createTest,
+  createErrorTest,
+  TestCase 
+} from './common-tests';
 
 describe('String Renderer', () => {
-  test('renders simple text', () => {
-    const result = renderToString('Hello world');
-    expect(result).toBe('Hello world');
-  });
-
-  test('renders simple element', () => {
-    const result = renderToString({ div: 'Hello world' });
-    expect(result).toBe('<div>Hello world</div>');
-  });
-
-  test('renders element with attributes', () => {
-    const result = renderToString({
-      div: {
-        class: 'greeting',
-        id: 'hello',
-        $children: ['Hello world']
-      }
+  // Basic rendering tests
+  describe('Basic Rendering', () => {
+    basicRenderingTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders simple text':
+            expect(result).toBe('Hello world');
+            break;
+          case 'renders simple element':
+            expect(result).toBe('<div>Hello world</div>');
+            break;
+          case 'renders element with attributes':
+            expect(result).toBe('<div class="greeting" id="hello">Hello world</div>');
+            break;
+          case 'renders nested elements':
+            expect(result).toBe('<div><h1>Title</h1><p>Content</p></div>');
+            break;
+          case 'renders array as fragment':
+            expect(result).toBe('<h1>Title</h1><p>Content</p>');
+            break;
+          case 'renders mixed content':
+            expect(result).toBe('<div>Hello <span>world</span>!</div>');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div class="greeting" id="hello">Hello world</div>');
   });
 
-  test('renders nested elements', () => {
-    const result = renderToString({
-      div: {
-        $children: [
-          { h1: 'Title' },
-          { p: 'Content' }
-        ]
-      }
+  // Data interpolation tests
+  describe('Data Interpolation', () => {
+    dataInterpolationTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'interpolates data':
+            expect(result).toBe('<div>Hello Alice!</div>');
+            break;
+          case 'interpolates nested properties':
+            expect(result).toBe('<div>Price: $99</div>');
+            break;
+          case 'interpolates in attributes':
+            expect(result).toBe('<a href="/user/123">Alice</a>');
+            break;
+          case 'handles escaped interpolation':
+            expect(result).toBe('Hello {{name}}!');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div><h1>Title</h1><p>Content</p></div>');
   });
 
-  test('renders array as fragment', () => {
-    const result = renderToString([
-      { h1: 'Title' },
-      { p: 'Content' }
-    ]);
-    expect(result).toBe('<h1>Title</h1><p>Content</p>');
-  });
-
-  test('renders mixed content', () => {
-    const result = renderToString({
-      div: {
-        $children: [
-          'Hello ',
-          { span: 'world' },
-          '!'
-        ]
-      }
+  // Binding tests
+  describe('Data Binding', () => {
+    bindingTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'handles array binding':
+            expect(result).toBe('<ul><li>Apple - $1</li><li>Banana - $2</li></ul>');
+            break;
+          case 'handles object binding':
+            expect(result).toBe('<div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div>');
+            break;
+          case 'handles self-contained template':
+            expect(result).toBe('<p>Hello Alice!</p>');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div>Hello <span>world</span>!</div>');
   });
 
-  test('interpolates data', () => {
-    const result = renderToString(
-      { div: 'Hello {{name}}!' },
-      { data: { name: 'Alice' } }
-    );
-    expect(result).toBe('<div>Hello Alice!</div>');
-  });
-
-  test('interpolates nested properties', () => {
-    const result = renderToString(
-      { div: 'Price: {{product.price}}' },
-      { data: { product: { price: '$99' } } }
-    );
-    expect(result).toBe('<div>Price: $99</div>');
-  });
-
-  test('interpolates in attributes', () => {
-    const result = renderToString(
-      {
-        a: {
-          href: '/user/{{id}}',
-          $children: ['{{name}}']
-        }
-      },
-      { data: { id: '123', name: 'Alice' } }
-    );
-    expect(result).toBe('<a href="/user/123">Alice</a>');
-  });
-
-  test('handles array binding', () => {
-    const result = renderToString(
-      {
-        ul: {
-          $bind: 'items',
-          $children: [{ li: '{{name}} - {{price}}' }]
-        }
-      },
-      {
-        data: {
-          items: [
-            { name: 'Apple', price: '$1' },
-            { name: 'Banana', price: '$2' }
-          ]
-        }
-      }
-    );
-    expect(result).toBe('<ul><li>Apple - $1</li><li>Banana - $2</li></ul>');
-  });
-
-  test('handles object binding', () => {
-    const result = renderToString(
-      {
-        div: {
-          $bind: 'user',
-          class: 'user-card',
-          $children: [
-            { h2: '{{name}}' },
-            { p: '{{email}}' }
-          ]
-        }
-      },
-      {
-        data: {
-          user: { name: 'Alice', email: 'alice@example.com' }
-        }
-      }
-    );
-    expect(result).toBe('<div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div>');
-  });
-
-  test('handles self-contained template', () => {
-    const result = renderToString({
-      $template: { p: 'Hello {{name}}!' },
-      $data: { name: 'Alice' }
-    });
-    expect(result).toBe('<p>Hello Alice!</p>');
-  });
-
+  // String-specific tests (HTML escaping, etc.)
   test('escapes HTML in content', () => {
     const result = renderToString(
       { div: '{{content}}' },
@@ -154,121 +107,144 @@ describe('String Renderer', () => {
     expect(result).toBe('<div title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;">Content</div>');
   });
 
-  test('handles escaped interpolation', () => {
-    const result = renderToString('Hello {{{name}}}!', { data: { name: 'Alice' } });
-    expect(result).toBe('Hello {{name}}!');
-  });
+  // Security and validation tests
+  describe('Security and Validation', () => {
+    securityErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
+    });
 
-  test('throws error for disallowed tags', () => {
-    expect(() => {
-      renderToString({ script: 'alert("xss")' });
-    }).toThrow('Tag "script" is not allowed');
-  });
-
-  test('throws error for disallowed attributes', () => {
-    expect(() => {
-      renderToString({
-        div: {
-          onclick: 'alert("xss")',
-          $children: ['Content']
+    securityValidTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'allows data- and aria- attributes':
+            expect(result).toBe('<div data-test="value" aria-label="Test">Content</div>');
+            break;
         }
       });
-    }).toThrow('Attribute "onclick" is not allowed');
+    });
   });
 
-  test('allows data- and aria- attributes', () => {
-    const result = renderToString({
-      div: {
-        'data-test': 'value',
-        'aria-label': 'Test',
-        $children: ['Content']
-      }
+  // Tag-specific attribute tests
+  describe('Tag-specific Attributes', () => {
+    tagSpecificAttributeTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'allows tag-specific attributes for img':
+            expect(result).toBe('<img src="image.jpg" alt="An image" width="100" height="200">');
+            break;
+          case 'allows tag-specific attributes for a':
+            expect(result).toBe('<a href="https://example.com" target="_blank" rel="noopener">Link text</a>');
+            break;
+          case 'allows global attributes on any tag':
+            expect(result).toBe('<span id="test-id" class="test-class" style="color: red" title="Test title" role="button">Content</span>');
+            break;
+          case 'allows tag-specific attributes for table elements':
+            expect(result).toBe('<table summary="Test table"><tr><th scope="col" colspan="2">Header</th><td rowspan="1">Data</td></tr></table>');
+            break;
+          case 'allows tag-specific attributes for blockquote':
+            expect(result).toBe('<blockquote cite="https://example.com">Quote text</blockquote>');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div data-test="value" aria-label="Test">Content</div>');
+
+    tagSpecificAttributeErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
+    });
   });
 
-  // Tests for shorthand array syntax feature
-  test('renders shorthand array syntax for nodes without attributes', () => {
-    const result = renderToString({
-      div: [
-        { h2: 'Title' },
-        { p: 'Content' }
-      ]
+  // Shorthand array syntax tests
+  describe('Shorthand Array Syntax', () => {
+    shorthandArrayTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders shorthand array syntax for nodes without attributes':
+            expect(result).toBe('<div><h2>Title</h2><p>Content</p></div>');
+            break;
+          case 'shorthand array syntax with mixed content':
+            expect(result).toBe('<div>Hello <span>world</span>!</div>');
+            break;
+          case 'shorthand array syntax with data interpolation':
+            expect(result).toBe('<div><h1>Welcome</h1><p>This is a test.</p></div>');
+            break;
+          case 'shorthand array syntax works with empty arrays':
+            expect(result).toBe('<div></div>');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div><h2>Title</h2><p>Content</p></div>');
-  });
 
-  test('shorthand array syntax equivalent to $children', () => {
-    const shorthand = renderToString({
-      ul: [
-        { li: 'Item 1' },
-        { li: 'Item 2' },
-        { li: 'Item 3' }
-      ]
-    });
-    
-    const explicit = renderToString({
-      ul: {
-        $children: [
+    test('shorthand array syntax equivalent to $children', () => {
+      const shorthand = renderToString({
+        ul: [
           { li: 'Item 1' },
           { li: 'Item 2' },
           { li: 'Item 3' }
         ]
-      }
-    });
-    
-    expect(shorthand).toBe(explicit);
-    expect(shorthand).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
-  });
-
-  test('shorthand array syntax with mixed content', () => {
-    const result = renderToString({
-      div: [
-        'Hello ',
-        { span: 'world' },
-        '!'
-      ]
-    });
-    expect(result).toBe('<div>Hello <span>world</span>!</div>');
-  });
-
-  test('shorthand array syntax with data interpolation', () => {
-    const result = renderToString(
-      {
-        div: [
-          { h1: '{{title}}' },
-          { p: '{{content}}' }
-        ]
-      },
-      { data: { title: 'Welcome', content: 'This is a test.' } }
-    );
-    expect(result).toBe('<div><h1>Welcome</h1><p>This is a test.</p></div>');
-  });
-
-  test('shorthand array syntax with nested structures', () => {
-    const result = renderToString({
-      div: [
-        { 
-          div: [
-            { h1: 'Article Title' },
-            { p: 'Published on 2024' }
-          ]
-        },
-        { 
-          div: [
-            { p: 'First paragraph' },
-            { p: 'Second paragraph' }
+      });
+      
+      const explicit = renderToString({
+        ul: {
+          $children: [
+            { li: 'Item 1' },
+            { li: 'Item 2' },
+            { li: 'Item 3' }
           ]
         }
-      ]
+      });
+      
+      expect(shorthand).toBe(explicit);
+      expect(shorthand).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
     });
-    expect(result).toBe('<div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div>');
+
+    test('shorthand array syntax with nested structures', () => {
+      const result = renderToString({
+        div: [
+          { 
+            div: [
+              { h1: 'Article Title' },
+              { p: 'Published on 2024' }
+            ]
+          },
+          { 
+            div: [
+              { p: 'First paragraph' },
+              { p: 'Second paragraph' }
+            ]
+          }
+        ]
+      });
+      expect(result).toBe('<div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div>');
+    });
   });
 
-  test('shorthand array syntax works with empty arrays', () => {
-    const result = renderToString({
-      div: []
+  // Void tag tests
+  describe('Void Tag Validation', () => {
+    voidTagTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'allows void tags without children':
+            expect(result).toBe('<img src="image.jpg" alt="Test image">');
+            break;
+        }
+      });
     });
-    expect(result).toBe('<div></div>');
+
+    voidTagErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
+    });
+
+    test('void tags render without closing tags', () => {
+      const result = renderToString({
+        div: {
+          $children: [
+            { img: { src: 'image1.jpg', alt: 'First' } },
+            ' ',
+            { img: { src: 'image2.jpg', alt: 'Second' } }
+          ]
+        }
+      });
+      expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
+    });
   });
 });
