@@ -227,4 +227,89 @@ describe('DOM Renderer', () => {
     expect(container?.querySelector('h1')?.textContent).toBe('Test Title');
     expect(container?.querySelector('p')?.textContent).toBe('Test content');
   });
+
+  // Tests for shorthand array syntax feature
+  test('renders shorthand array syntax for nodes without attributes', () => {
+    const fragment = renderToDOM({
+      div: [
+        { h2: 'Title' },
+        { p: 'Content' }
+      ]
+    });
+    const div = fragment.firstChild as HTMLElement;
+    expect(div.tagName).toBe('DIV');
+    expect(div.children.length).toBe(2);
+    expect(div.children[0].tagName).toBe('H2');
+    expect(div.children[0].textContent).toBe('Title');
+    expect(div.children[1].tagName).toBe('P');
+    expect(div.children[1].textContent).toBe('Content');
+  });
+
+  test('shorthand array syntax equivalent to $children in DOM', () => {
+    const shorthand = renderToDOM({
+      ul: [
+        { li: 'Item 1' },
+        { li: 'Item 2' },
+        { li: 'Item 3' }
+      ]
+    });
+    
+    const explicit = renderToDOM({
+      ul: {
+        $children: [
+          { li: 'Item 1' },
+          { li: 'Item 2' },
+          { li: 'Item 3' }
+        ]
+      }
+    });
+    
+    const shorthandDiv = shorthand.firstChild as HTMLElement;
+    const explicitDiv = explicit.firstChild as HTMLElement;
+    
+    expect(shorthandDiv.tagName).toBe(explicitDiv.tagName);
+    expect(shorthandDiv.children.length).toBe(explicitDiv.children.length);
+    expect(shorthandDiv.outerHTML).toBe(explicitDiv.outerHTML);
+  });
+
+  test('shorthand array syntax with mixed content in DOM', () => {
+    const fragment = renderToDOM({
+      div: [
+        'Hello ',
+        { span: 'world' },
+        '!'
+      ]
+    });
+    const div = fragment.firstChild as HTMLElement;
+    expect(div.childNodes.length).toBe(3);
+    expect(div.childNodes[0].textContent).toBe('Hello ');
+    expect((div.childNodes[1] as HTMLElement).tagName).toBe('SPAN');
+    expect(div.childNodes[1].textContent).toBe('world');
+    expect(div.childNodes[2].textContent).toBe('!');
+  });
+
+  test('shorthand array syntax with data interpolation in DOM', () => {
+    const fragment = renderToDOM(
+      {
+        div: [
+          { h1: '{{title}}' },
+          { p: '{{content}}' }
+        ]
+      },
+      { data: { title: 'Welcome', content: 'This is a test.' } }
+    );
+    const div = fragment.firstChild as HTMLElement;
+    expect(div.querySelector('h1')?.textContent).toBe('Welcome');
+    expect(div.querySelector('p')?.textContent).toBe('This is a test.');
+  });
+
+  test('shorthand array syntax works with empty arrays in DOM', () => {
+    const fragment = renderToDOM({
+      div: []
+    });
+    const div = fragment.firstChild as HTMLElement;
+    expect(div.tagName).toBe('DIV');
+    expect(div.children.length).toBe(0);
+    expect(div.textContent).toBe('');
+  });
 });

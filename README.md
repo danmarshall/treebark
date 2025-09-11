@@ -75,6 +75,38 @@ div:
 
 ---
 
+### Shorthand Array Syntax  
+
+For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
+
+```yaml treebark
+div:
+  - h2: "Welcome"
+  - p: "This is much cleaner!"
+  - ul:
+    - li: "Item 1"
+    - li: "Item 2"
+```  
+
+→ `<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>`
+
+This is equivalent to:
+
+```yaml treebark
+div:
+  $children:
+    - h2: "Welcome" 
+    - p: "This is much cleaner!"
+    - ul:
+        $children:
+          - li: "Item 1"
+          - li: "Item 2"
+```
+
+**Note:** Shorthand syntax only works when the node has no attributes. If you need attributes, use the explicit `$children` syntax.
+
+---
+
 ### Bound to an Array  
 
 ```yaml treebark

@@ -17,7 +17,33 @@
 
 ---
 
-## 3. Interpolation  
+## 3. Shorthand Array Syntax
+
+For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
+
+```yaml
+div:
+  - h2: "Title"
+  - p: "Content"
+```
+
+This is equivalent to:
+
+```yaml  
+div:
+  $children:
+    - h2: "Title"
+    - p: "Content"
+```
+
+**Rules:**
+- Only works when the node has no attributes
+- If you need attributes (class, id, etc.), use explicit `$children` syntax
+- Mixing shorthand and attributes is not allowed
+
+---
+
+## 4. Interpolation  
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
@@ -28,7 +54,7 @@
 
 ---
 
-## 4. Mixed Content  
+## 5. Mixed Content  
 
 - `$children` can contain strings + nodes:  
   ```yaml
@@ -37,6 +63,15 @@
       - "Hello "
       - span: "World"
       - "!"
+  ```
+  → `<div>Hello <span>World</span>!</div>`
+
+- Shorthand array syntax also supports mixed content:
+  ```yaml
+  div:
+    - "Hello "
+    - span: "World"  
+    - "!"
   ```
   → `<div>Hello <span>World</span>!</div>`
 
@@ -49,7 +84,7 @@
 
 ---
 
-## 5. Attributes  
+## 6. Attributes  
 
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
@@ -64,7 +99,7 @@
 
 ---
 
-## 6. Self-Contained Blocks  
+## 7. Self-Contained Blocks  
 
 ```yaml
 $template:
@@ -77,7 +112,7 @@ If both `$template` and `$data` exist at the root, render `$template` with `$dat
 
 ---
 
-## 7. Tag Whitelist  
+## 8. Tag Whitelist  
 
 Allowed tags:  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
