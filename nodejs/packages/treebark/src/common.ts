@@ -8,7 +8,7 @@ export const ALLOWED_ATTRS = new Set(['id', 'class', 'style', 'title', 'href', '
 /**
  * Get a nested property from an object using dot notation
  */
-export function get(obj: any, path: string): any {
+export function getProperty(obj: any, path: string): any {
   return path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
 }
 
@@ -19,7 +19,7 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true): string 
   return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
-    const val = get(data, trimmed);
+    const val = getProperty(data, trimmed);
     return val == null ? "" : String(val);
   });
 }

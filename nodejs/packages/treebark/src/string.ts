@@ -3,7 +3,7 @@ import {
   Data, 
   ALLOWED_TAGS, 
   ALLOWED_ATTRS, 
-  get, 
+  getProperty, 
   interpolate as baseInterpolate, 
   validateTag, 
   validateAttribute, 
@@ -31,7 +31,7 @@ function render(schema: Schema, data: Data): string {
   
   // Handle $bind
   if (hasBinding(rest)) {
-    const bound = get(data, rest.$bind);
+    const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
     
     if (Array.isArray(bound)) {
@@ -56,7 +56,7 @@ function interpolate(tpl: string, data: Data, escapeHtml = true): string {
   return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
-    const val = get(data, trimmed);
+    const val = getProperty(data, trimmed);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }

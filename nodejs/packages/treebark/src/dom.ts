@@ -3,7 +3,7 @@ import {
   Data, 
   ALLOWED_TAGS, 
   ALLOWED_ATTRS, 
-  get, 
+  getProperty, 
   interpolate, 
   validateTag, 
   validateAttribute, 
@@ -39,7 +39,7 @@ function render(schema: Schema, data: Data): Node | Node[] {
   
   // Handle $bind
   if (hasBinding(rest)) {
-    const bound = get(data, rest.$bind);
+    const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data);
     
