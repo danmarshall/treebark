@@ -1,0 +1,43 @@
+{
+  "name": "treebark-test",
+  "version": "1.0.0",
+  "description": "Tests for treebark",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "build": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "treebark": "file:../treebark"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.0.0",
+    "@types/jsdom": "^21.0.0",
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "jsdom": "^22.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": ["<rootDir>/dist/"],
+    "projects": [
+      {
+        "displayName": "string",
+        "testMatch": ["<rootDir>/src/string.test.ts"],
+        "preset": "ts-jest",
+        "testEnvironment": "node"
+      },
+      {
+        "displayName": "dom",
+        "testMatch": ["<rootDir>/src/dom.test.ts"],
+        "preset": "ts-jest",
+        "testEnvironment": "jsdom"
+      }
+    ]
+  }
+}

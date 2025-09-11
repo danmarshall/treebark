@@ -1,0 +1,35 @@
+{
+  "name": "treebark",
+  "version": "1.0.0",
+  "description": "Safe tree structures for Markdown and content-driven apps",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "markdown",
+    "template",
+    "safe",
+    "html",
+    "tree",
+    "schema"
+  ],
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
