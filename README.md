@@ -117,6 +117,14 @@ $data:
   price: "$999"
 ```  
 
+→
+```html
+<div class="product-card">
+  <h2>Laptop</h2>
+  <p>Only $999!</p>
+</div>
+```
+
 ---
 
 ### Mixed Content  
