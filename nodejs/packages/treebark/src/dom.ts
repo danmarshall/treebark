@@ -2,12 +2,16 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
+  CONTAINER_TAGS,
+  VOID_TAGS,
   GLOBAL_ATTRS, 
   TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
   validateTag, 
   validateAttribute, 
+  validateChildren,
+  isVoidTag,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -36,6 +40,10 @@ function render(schema: Schema, data: Data): Node | Node[] {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
+  // Validate that void tags don't have children
+  const hasChildren = children.length > 0;
+  validateChildren(tag, hasChildren);
+  
   const element = document.createElement(tag);
   
   // Handle $bind
@@ -43,6 +51,9 @@ function render(schema: Schema, data: Data): Node | Node[] {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag);
+    
+    // Validate children for bound elements
+    validateChildren(tag, $children.length > 0);
     
     if (Array.isArray(bound)) {
       bound.forEach(item => $children.forEach((c: Schema) => {

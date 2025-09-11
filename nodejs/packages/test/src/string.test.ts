@@ -196,7 +196,7 @@ describe('String Renderer', () => {
         height: '200'
       }
     });
-    expect(result).toBe('<img src="image.jpg" alt="An image" width="100" height="200"></img>');
+    expect(result).toBe('<img src="image.jpg" alt="An image" width="100" height="200">');
   });
 
   test('allows tag-specific attributes for a', () => {
@@ -379,5 +379,48 @@ describe('String Renderer', () => {
       div: []
     });
     expect(result).toBe('<div></div>');
+  });
+
+  // Tests for void tag validation
+  test('prevents children on void tags', () => {
+    expect(() => {
+      renderToString({
+        img: {
+          src: 'image.jpg',
+          $children: ['This should not work']
+        }
+      });
+    }).toThrow('Tag "img" is a void element and cannot have children');
+  });
+
+  test('prevents children on void tags with shorthand syntax', () => {
+    expect(() => {
+      renderToString({
+        img: ['This should not work']
+      });
+    }).toThrow('Tag "img" is a void element and cannot have children');
+  });
+
+  test('allows void tags without children', () => {
+    const result = renderToString({
+      img: {
+        src: 'image.jpg',
+        alt: 'Test image'
+      }
+    });
+    expect(result).toBe('<img src="image.jpg" alt="Test image">');
+  });
+
+  test('void tags render without closing tags', () => {
+    const result = renderToString({
+      div: {
+        $children: [
+          { img: { src: 'image1.jpg', alt: 'First' } },
+          ' ',
+          { img: { src: 'image2.jpg', alt: 'Second' } }
+        ]
+      }
+    });
+    expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
   });
 });

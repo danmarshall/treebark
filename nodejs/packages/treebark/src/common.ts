@@ -2,13 +2,22 @@
 export type Schema = string | Schema[] | { [tag: string]: any };
 export type Data = Record<string, any>;
 
-export const ALLOWED_TAGS = new Set([
+// Container tags that can have children and require closing tags
+export const CONTAINER_TAGS = new Set([
   'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a', 'img'
+  'a'
 ]);
+
+// Void tags that cannot have children and are self-closing
+export const VOID_TAGS = new Set([
+  'img'
+]);
+
+// All allowed tags (union of container and void tags)
+export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...VOID_TAGS]);
 
 // Global attributes allowed on all tags
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'data-', 'aria-']);
@@ -55,6 +64,22 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true): string 
 export function validateTag(tag: string): void {
   if (!ALLOWED_TAGS.has(tag)) {
     throw new Error(`Tag "${tag}" is not allowed`);
+  }
+}
+
+/**
+ * Check if a tag is a void element (cannot have children)
+ */
+export function isVoidTag(tag: string): boolean {
+  return VOID_TAGS.has(tag);
+}
+
+/**
+ * Validate that children are only provided for container tags
+ */
+export function validateChildren(tag: string, hasChildren: boolean): void {
+  if (isVoidTag(tag) && hasChildren) {
+    throw new Error(`Tag "${tag}" is a void element and cannot have children`);
   }
 }
 

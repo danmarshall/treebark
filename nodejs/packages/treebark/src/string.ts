@@ -2,6 +2,8 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
+  CONTAINER_TAGS,
+  VOID_TAGS,
   GLOBAL_ATTRS, 
   TAG_SPECIFIC_ATTRS,
   getProperty, 
@@ -9,6 +11,8 @@ import {
   escape,
   validateTag, 
   validateAttribute, 
+  validateChildren,
+  isVoidTag,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -31,18 +35,33 @@ function render(schema: Schema, data: Data): string {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
+  // Validate that void tags don't have children
+  const hasChildren = children.length > 0;
+  validateChildren(tag, hasChildren);
+  
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
     
+    // Validate children for bound elements
+    validateChildren(tag, $children.length > 0);
+    
     if (Array.isArray(bound)) {
+      if (isVoidTag(tag)) {
+        return `<${tag}${renderAttrs(bindAttrs, data, tag)}>`;
+      }
       return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }
     return render({ [tag]: { ...bindAttrs, $children } }, bound);
   }
-    
+  
+  // Render void tags without closing tag
+  if (isVoidTag(tag)) {
+    return `<${tag}${renderAttrs(attrs, data, tag)}>`;
+  }
+  
   return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
 }
 

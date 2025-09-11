@@ -443,4 +443,55 @@ describe('DOM Renderer', () => {
     expect(div.children.length).toBe(0);
     expect(div.textContent).toBe('');
   });
+
+  // Tests for void tag validation
+  test('prevents children on void tags in DOM', () => {
+    expect(() => {
+      renderToDOM({
+        img: {
+          src: 'image.jpg',
+          $children: ['This should not work']
+        }
+      });
+    }).toThrow('Tag "img" is a void element and cannot have children');
+  });
+
+  test('prevents children on void tags with shorthand syntax in DOM', () => {
+    expect(() => {
+      renderToDOM({
+        img: ['This should not work']
+      });
+    }).toThrow('Tag "img" is a void element and cannot have children');
+  });
+
+  test('allows void tags without children in DOM', () => {
+    const fragment = renderToDOM({
+      img: {
+        src: 'image.jpg',
+        alt: 'Test image'
+      }
+    });
+    const img = fragment.firstChild as HTMLImageElement;
+    expect(img.tagName).toBe('IMG');
+    expect(img.src).toContain('image.jpg');
+    expect(img.alt).toBe('Test image');
+    expect(img.children.length).toBe(0);
+  });
+
+  test('void tags render correctly in DOM', () => {
+    const fragment = renderToDOM({
+      div: {
+        $children: [
+          { img: { src: 'image1.jpg', alt: 'First' } },
+          { img: { src: 'image2.jpg', alt: 'Second' } }
+        ]
+      }
+    });
+    const div = fragment.firstChild as HTMLElement;
+    expect(div.children.length).toBe(2);
+    expect((div.children[0] as HTMLImageElement).tagName).toBe('IMG');
+    expect((div.children[1] as HTMLImageElement).tagName).toBe('IMG');
+    expect((div.children[0] as HTMLImageElement).alt).toBe('First');
+    expect((div.children[1] as HTMLImageElement).alt).toBe('Second');
+  });
 });
