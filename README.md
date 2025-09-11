@@ -1,6 +1,6 @@
 # 🌳 Treebark  
 
-> Safe tree structures for Markdown content and apps.  
+> Safe tree structures for Markdown and content-driven apps.
 
 ---
 
