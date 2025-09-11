@@ -2,7 +2,6 @@ import {
   TreebarkNode,
   TreebarkElement,
   TreebarkTemplate,
-  TreebarkAttributes,
   RenderOptions,
   DEFAULT_ALLOWED_TAGS,
   DEFAULT_ALLOWED_ATTRIBUTES
@@ -15,11 +14,7 @@ export function renderToDOM(
   node: TreebarkNode | TreebarkTemplate, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  const {
-    data = {},
-    allowedTags = DEFAULT_ALLOWED_TAGS,
-    allowedAttributes = DEFAULT_ALLOWED_ATTRIBUTES
-  } = options;
+  const { data = {}, allowedTags = DEFAULT_ALLOWED_TAGS, allowedAttributes = DEFAULT_ALLOWED_ATTRIBUTES } = options;
 
   // Handle self-contained template blocks
   if (isTemplate(node)) {
@@ -27,7 +22,7 @@ export function renderToDOM(
   }
 
   const fragment = document.createDocumentFragment();
-  const elements = renderNode(node, data, allowedTags, allowedAttributes);
+  const elements = render(node, data, allowedTags, allowedAttributes);
   
   // Add all rendered elements to fragment
   if (Array.isArray(elements)) {
@@ -39,75 +34,51 @@ export function renderToDOM(
   return fragment;
 }
 
-function isTemplate(node: any): node is TreebarkTemplate {
-  return node && typeof node === 'object' && '$template' in node && '$data' in node;
-}
-
-function renderNode(
-  node: TreebarkNode,
-  data: any,
-  allowedTags: Set<string>,
-  allowedAttributes: Set<string>
-): Node | Node[] {
-  // Handle string nodes (text content)
+function render(node: TreebarkNode, data: any, allowedTags: Set<string>, allowedAttributes: Set<string>): Node | Node[] {
+  // String → text node
   if (typeof node === 'string') {
-    const interpolated = interpolate(node, data);
-    return document.createTextNode(interpolated);
+    return document.createTextNode(interpolate(node, data));
   }
-
-  // Handle arrays (fragments)
+  
+  // Array → fragment
   if (Array.isArray(node)) {
     return node.flatMap(child => {
-      const rendered = renderNode(child, data, allowedTags, allowedAttributes);
+      const rendered = render(child, data, allowedTags, allowedAttributes);
       return Array.isArray(rendered) ? rendered : [rendered];
     });
   }
-
-  // Handle element nodes
+  
+  // Object → element
   if (typeof node === 'object' && node !== null) {
     return renderElement(node, data, allowedTags, allowedAttributes);
   }
-
+  
   return document.createTextNode('');
 }
 
-function renderElement(
-  element: TreebarkElement,
-  data: any,
-  allowedTags: Set<string>,
-  allowedAttributes: Set<string>
-): HTMLElement | HTMLElement[] {
-  const entries = Object.entries(element);
-  if (entries.length !== 1) {
-    throw new Error('Element must have exactly one tag');
+function renderElement(element: TreebarkElement, data: any, allowedTags: Set<string>, allowedAttributes: Set<string>): HTMLElement {
+  const [tag, content] = Object.entries(element)[0];
+  
+  // Security: whitelist tags
+  if (!allowedTags.has(tag)) {
+    throw new Error(`Tag "${tag}" is not allowed`);
   }
-
-  const [tagName, content] = entries[0];
-
-  // Security check: only allow whitelisted tags
-  if (!allowedTags.has(tagName)) {
-    throw new Error(`Tag "${tagName}" is not allowed`);
-  }
-
-  // Handle binding
-  if (typeof content === 'object' && content !== null && !Array.isArray(content) && '$bind' in content) {
-    const bindPath = content.$bind as string;
-    const boundData = getPropertyPath(data, bindPath);
+  
+  // Handle $bind directive
+  if (typeof content === 'object' && content && '$bind' in content) {
+    const boundData = get(data, content.$bind as string);
+    const template = { ...content };
+    delete template.$bind;
     
     if (Array.isArray(boundData)) {
-      // Array binding - render children for each item within single parent
-      const template = { ...content };
-      delete template.$bind;
-      const domElement = document.createElement(tagName);
-      const { attributes, children } = parseContent(template);
+      // Array binding: render template for each item
+      const domElement = document.createElement(tag);
+      const { attrs, children } = parseContent(template);
+      setAttrs(domElement, attrs, data, allowedAttributes);
       
-      // Set attributes
-      setAttributes(domElement, attributes, data, allowedAttributes);
-      
-      // Render children for each array item
       boundData.forEach(item => {
         children.forEach(child => {
-          const childNodes = renderNode(child, item, allowedTags, allowedAttributes);
+          const childNodes = render(child, item, allowedTags, allowedAttributes);
           if (Array.isArray(childNodes)) {
             childNodes.forEach(node => domElement.appendChild(node));
           } else {
@@ -118,108 +89,72 @@ function renderElement(
       
       return domElement;
     } else {
-      // Object binding - use bound data as context
-      const template = { ...content };
-      delete template.$bind;
-      return renderElement({ [tagName]: template }, boundData, allowedTags, allowedAttributes) as HTMLElement;
+      // Object binding: use bound data as context
+      return renderElement({ [tag]: template }, boundData, allowedTags, allowedAttributes);
     }
   }
-
-  // Create the DOM element
-  const domElement = document.createElement(tagName);
-
-  // Parse content into attributes and children
-  const { attributes, children } = parseContent(content);
-
-  // Set attributes
-  setAttributes(domElement, attributes, data, allowedAttributes);
-
-  // Render and append children
+  
+  // Normal element rendering
+  const domElement = document.createElement(tag);
+  const { attrs, children } = parseContent(content);
+  
+  setAttrs(domElement, attrs, data, allowedAttributes);
+  
   children.forEach(child => {
-    const childNodes = renderNode(child, data, allowedTags, allowedAttributes);
+    const childNodes = render(child, data, allowedTags, allowedAttributes);
     if (Array.isArray(childNodes)) {
       childNodes.forEach(node => domElement.appendChild(node));
     } else {
       domElement.appendChild(childNodes);
     }
   });
-
+  
   return domElement;
 }
 
-function parseContent(content: any): { attributes: TreebarkAttributes; children: TreebarkNode[] } {
-  if (typeof content === 'string') {
-    return { attributes: {}, children: [content] };
-  }
-
-  if (Array.isArray(content)) {
-    return { attributes: {}, children: content };
-  }
-
-  if (typeof content === 'object' && content !== null) {
-    const attributes: TreebarkAttributes = {};
-    let children: TreebarkNode[] = [];
-
-    for (const [key, value] of Object.entries(content)) {
-      if (key === '$children') {
-        children = Array.isArray(value) ? value : [value];
-      } else if (!key.startsWith('$')) {
-        attributes[key] = value as string;
-      }
+function parseContent(content: any): { attrs: Record<string, string>; children: TreebarkNode[] } {
+  if (typeof content === 'string') return { attrs: {}, children: [content] };
+  if (Array.isArray(content)) return { attrs: {}, children: content };
+  if (!content || typeof content !== 'object') return { attrs: {}, children: [] };
+  
+  const attrs: Record<string, string> = {};
+  let children: TreebarkNode[] = [];
+  
+  Object.entries(content).forEach(([key, value]) => {
+    if (key === '$children') {
+      children = Array.isArray(value) ? value : [value];
+    } else if (!key.startsWith('$')) {
+      attrs[key] = String(value);
     }
-
-    return { attributes, children };
-  }
-
-  return { attributes: {}, children: [] };
+  });
+  
+  return { attrs, children };
 }
 
-function setAttributes(
-  element: HTMLElement,
-  attributes: TreebarkAttributes,
-  data: any,
-  allowedAttributes: Set<string>
-): void {
-  for (const [key, value] of Object.entries(attributes)) {
-    if (value === undefined || key.startsWith('$')) continue;
-
-    // Security check: only allow whitelisted attributes
-    const isAllowed = allowedAttributes.has(key) || 
-                     [...allowedAttributes].some(pattern => 
-                       pattern.endsWith('-') && key.startsWith(pattern)
-                     );
+function setAttrs(element: HTMLElement, attrs: Record<string, string>, data: any, allowedAttributes: Set<string>): void {
+  Object.entries(attrs).forEach(([key, value]) => {
+    const allowed = allowedAttributes.has(key) || 
+                   [...allowedAttributes].some(p => p.endsWith('-') && key.startsWith(p));
+    if (!allowed) throw new Error(`Attribute "${key}" is not allowed`);
     
-    if (!isAllowed) {
-      throw new Error(`Attribute "${key}" is not allowed`);
-    }
-
-    const interpolatedValue = typeof value === 'string' 
-      ? interpolate(value, data)
-      : String(value);
-    
-    element.setAttribute(key, interpolatedValue);
-  }
-}
-
-function interpolate(template: string, data: any): string {
-  return template.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (match, open, expr, close) => {
-    const trimmed = expr.trim();
-
-    // Triple curlies → literal double curlies
-    if (open === "{{{" && close === "}}}") {
-      return `{{${trimmed}}}`;
-    }
-
-    // Normal double curlies → interpolate (no HTML escaping for DOM)
-    const value = getPropertyPath(data, trimmed);
-    return value !== undefined ? String(value) : "";
+    element.setAttribute(key, interpolate(value, data));
   });
 }
 
-function getPropertyPath(obj: any, path: string): any {
-  if (!path) return obj;
-  
-  return path.split('.').reduce((current, key) => {
-    return current && typeof current === 'object' ? current[key] : undefined;
-  }, obj);
+function interpolate(template: string, data: any): string {
+  return template.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
+    const trimmed = expr.trim();
+    if (open === '{{{' && close === '}}}') return `{{${trimmed}}}`;
+    
+    const value = get(data, trimmed);
+    return value != null ? String(value) : '';
+  });
+}
+
+function get(obj: any, path: string): any {
+  return path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
+}
+
+function isTemplate(node: any): node is TreebarkTemplate {
+  return node && typeof node === 'object' && '$template' in node && '$data' in node;
 }
