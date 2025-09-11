@@ -194,3 +194,10 @@ Treebark ships with a strict whitelist:
   `form`, `input`, `button`, `select`,  
   `video`, `audio`,  
   `style`, `link`, `meta`, `base`  
+
+---
+
+## 📛 Name Origin
+
+Why "Treebark"?  
+It’s a blend of **trees** (for tree-structured data), **handlebars** (for templating), and **Markup/Markdown** (the content format).
