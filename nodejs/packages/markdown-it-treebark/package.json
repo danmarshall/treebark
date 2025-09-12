@@ -28,14 +28,14 @@
   "author": "Dan Marshall",
   "license": "MIT",
   "dependencies": {
-    "treebark": "file:../treebark",
-    "js-yaml": "^4.1.0"
+    "treebark": "file:../treebark"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
     "markdown-it": "^14.0.0",
     "@types/markdown-it": "^13.0.0",
     "@types/js-yaml": "^4.0.0",
+    "js-yaml": "^4.1.0",
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
     "@types/jest": "^29.0.0"

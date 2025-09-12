@@ -10,13 +10,28 @@ npm install markdown-it-treebark
 
 ## Usage
 
+For YAML and JSON support:
+```javascript
+import MarkdownIt from 'markdown-it';
+import treebarkPlugin from 'markdown-it-treebark';
+import yaml from 'js-yaml';
+
+const md = new MarkdownIt();
+md.use(treebarkPlugin, { yaml });
+```
+
+For JSON-only (smaller bundle):
 ```javascript
 import MarkdownIt from 'markdown-it';
 import treebarkPlugin from 'markdown-it-treebark';
 
 const md = new MarkdownIt();
-md.use(treebarkPlugin);
+md.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+```
 
+### Basic Example
+
+```javascript
 const markdown = `
 # Hello Treebark
 
@@ -38,6 +53,9 @@ The plugin accepts an options object:
 
 ```javascript
 md.use(treebarkPlugin, {
+  // YAML library instance (required when allowYaml is true)
+  yaml: yaml,  // Pass js-yaml or compatible library
+  
   // Default data context for all templates
   data: {
     siteName: 'My Website',
@@ -48,6 +66,26 @@ md.use(treebarkPlugin, {
   allowYaml: true,  // Enable YAML parsing
   allowJson: true   // Enable JSON parsing
 });
+```
+
+### Bundle Size Optimization
+
+To reduce bundle size when you only need JSON support:
+
+```javascript
+// JSON only - no YAML dependency needed
+md.use(treebarkPlugin, { 
+  allowYaml: false, 
+  allowJson: true 
+});
+
+// YAML only
+md.use(treebarkPlugin, { 
+  yaml: yaml,
+  allowYaml: true, 
+  allowJson: false 
+});
+```
 ```
 
 ### Format Support

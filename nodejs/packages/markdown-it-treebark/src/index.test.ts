@@ -1,12 +1,13 @@
 import MarkdownIt from 'markdown-it';
 import treebarkPlugin from './index';
+import yaml from 'js-yaml';
 
 describe('markdown-it-treebark plugin', () => {
   let md: MarkdownIt;
 
   beforeEach(() => {
     md = new MarkdownIt();
-    md.use(treebarkPlugin);
+    md.use(treebarkPlugin, { yaml });
   });
 
   describe('Basic functionality', () => {
@@ -82,6 +83,7 @@ $data:
     it('should render with default data context', () => {
       const mdWithData = new MarkdownIt();
       mdWithData.use(treebarkPlugin, {
+        yaml,
         data: { name: 'Alice', greeting: 'Hello' }
       });
 
@@ -138,7 +140,7 @@ div: "Hello YAML"
 
     it('should support YAML-only mode', () => {
       const mdYamlOnly = new MarkdownIt();
-      mdYamlOnly.use(treebarkPlugin, { allowYaml: true, allowJson: false });
+      mdYamlOnly.use(treebarkPlugin, { yaml, allowYaml: true, allowJson: false });
 
       const yamlMarkdown = `
 \`\`\`treebark
@@ -178,7 +180,7 @@ div: "Hello"
 
     it('should maintain backward compatibility with allowJson option', () => {
       const mdLegacy = new MarkdownIt();
-      mdLegacy.use(treebarkPlugin, { allowJson: true });
+      mdLegacy.use(treebarkPlugin, { yaml, allowJson: true });
 
       const yamlMarkdown = `
 \`\`\`treebark
@@ -201,7 +203,7 @@ div: "Hello YAML"
   describe('JSON support', () => {
     it('should parse JSON format when enabled', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowJson: true });
+      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
 
       const markdown = `
 \`\`\`treebark
@@ -219,7 +221,7 @@ div: "Hello YAML"
 
     it('should parse complex JSON template with data', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowJson: true });
+      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
 
       const markdown = `
 \`\`\`treebark
@@ -248,7 +250,7 @@ div: "Hello YAML"
 
     it('should parse JSON shorthand array syntax', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowJson: true });
+      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
 
       const markdown = `
 \`\`\`treebark
@@ -266,7 +268,7 @@ div: "Hello YAML"
 
     it('should not parse JSON when disabled', () => {
       const mdNoJson = new MarkdownIt();
-      mdNoJson.use(treebarkPlugin, { allowJson: false });
+      mdNoJson.use(treebarkPlugin, { yaml, allowJson: false });
 
       // Use JSON syntax that's not valid YAML to test the fallback
       const markdown = `
@@ -313,6 +315,13 @@ script: "alert('xss')"
       const result = md.render(markdown);
       expect(result).toContain('treebark-error');
       expect(result).toContain('Empty or invalid schema');
+    });
+
+    it('should error when YAML is enabled but no yaml library is provided', () => {
+      expect(() => {
+        const mdWithoutYaml = new MarkdownIt();
+        mdWithoutYaml.use(treebarkPlugin, { allowYaml: true });
+      }).toThrow('YAML library must be provided when allowYaml is true');
     });
   });
 

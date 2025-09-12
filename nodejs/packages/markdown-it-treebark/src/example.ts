@@ -1,9 +1,11 @@
 // Simple example demonstrating the markdown-it-treebark plugin
 import MarkdownIt from 'markdown-it';
 import treebarkPlugin from './index';
+import yaml from 'js-yaml';
 
 const md = new MarkdownIt();
 md.use(treebarkPlugin, {
+  yaml,
   data: {
     siteName: 'Treebark Demo',
     version: '1.0.0'

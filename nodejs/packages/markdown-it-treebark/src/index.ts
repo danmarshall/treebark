@@ -1,6 +1,5 @@
 import MarkdownIt from 'markdown-it';
 import { renderToString } from 'treebark';
-import yaml from 'js-yaml';
 
 export interface TreebarkPluginOptions {
   /**
@@ -17,13 +16,26 @@ export interface TreebarkPluginOptions {
    * Whether to support YAML format (default: true)
    */
   allowYaml?: boolean;
+  
+  /**
+   * YAML library instance (required when allowYaml is true)
+   * Pass js-yaml or compatible library to enable YAML parsing
+   */
+  yaml?: {
+    load: (content: string) => any;
+  };
 }
 
 /**
  * Markdown-it plugin for rendering treebark templates
  */
 export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOptions = {}) {
-  const { data = {}, allowJson = true, allowYaml = true } = options;
+  const { data = {}, allowJson = true, allowYaml = true, yaml } = options;
+
+  // Validate yaml dependency when YAML is enabled
+  if (allowYaml && !yaml) {
+    throw new Error('YAML library must be provided when allowYaml is true. Pass js-yaml or compatible library in options.yaml');
+  }
 
   // Store the original fence rule
   const originalFence = md.renderer.rules.fence;
@@ -35,7 +47,7 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, allowYaml, allowJson);
+        return renderTreebarkBlock(token.content, data, allowYaml, allowJson, yaml);
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -51,7 +63,13 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
 /**
  * Render a treebark block content
  */
-function renderTreebarkBlock(content: string, defaultData: Record<string, any>, allowYaml: boolean, allowJson: boolean): string {
+function renderTreebarkBlock(
+  content: string, 
+  defaultData: Record<string, any>, 
+  allowYaml: boolean, 
+  allowJson: boolean,
+  yaml?: { load: (content: string) => any }
+): string {
   let schema: any;
   let yamlError: Error | null = null;
   
@@ -67,6 +85,9 @@ function renderTreebarkBlock(content: string, defaultData: Record<string, any>, 
   
   // Try YAML first if enabled
   if (allowYaml) {
+    if (!yaml) {
+      throw new Error('YAML library not provided but YAML parsing is enabled');
+    }
     try {
       schema = yaml.load(content);
     } catch (error) {
