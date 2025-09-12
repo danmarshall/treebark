@@ -30,12 +30,33 @@
             margin: 1rem 0;
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 0.9rem;
+            white-space: pre-wrap;
         }
         .result {
             border: 1px solid #007acc;
             border-radius: 4px;
             padding: 1rem;
             margin: 1rem 0;
+        }
+        .html-output {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .output-section {
+            margin: 0.5rem 0;
+        }
+        .output-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
         }
         .card {
             border: 1px solid #ddd;
@@ -71,7 +92,14 @@
     <div class="demo-section">
         <h2 class="demo-title">Hello World</h2>
         <div class="schema">{ "div": "Hello world" }</div>
-        <div class="result" id="hello-world"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="hello-world"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="hello-world-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -84,7 +112,40 @@
   }
 }
         </div>
-        <div class="result" id="card-example"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="card-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="card-example-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2 class="demo-title">Shorthand Array Syntax</h2>
+        <div class="schema">
+{
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    { "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" },
+        { "li": "Item 3" }
+      ]
+    }
+  ]
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="shorthand-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="shorthand-example-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -101,7 +162,14 @@
 }
 Data: { "name": "Alice Johnson", "email": "alice@example.com" }
         </div>
-        <div class="result" id="data-binding"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="data-binding"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="data-binding-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -123,7 +191,129 @@ Data: {
   ]
 }
         </div>
-        <div class="result" id="array-binding"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="array-binding"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="array-binding-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2 class="demo-title">Nested Data: Customer Orders</h2>
+        <div class="schema">
+{
+  "div": {
+    "class": "user-card",
+    "$children": [
+      { "h2": "Customer: {{name}}" },
+      { "p": "Email: {{email}}" },
+      { "h3": "Orders:" },
+      { "div": {
+          "$bind": "orders",
+          "$children": [
+            { "div": {
+                "class": "card",
+                "style": "margin: 1rem 0; padding: 1rem;",
+                "$children": [
+                  { "h4": "Order #{{orderNumber}} - {{date}}" },
+                  { "p": "Total: {{total}}" },
+                  { "h5": "Products:" },
+                  { "ul": {
+                      "$bind": "products",
+                      "$children": [
+                        { "li": {
+                            "class": "product-item",
+                            "$children": [
+                              { "strong": "{{name}}" },
+                              " × {{quantity}} - ",
+                              { "span": { 
+                                  "style": "color: #28a745; font-weight: bold;",
+                                  "$children": ["{{price}}"]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+Data: {
+  "name": "Sarah Wilson",
+  "email": "sarah@example.com",
+  "orders": [
+    {
+      "orderNumber": "1001",
+      "date": "2024-01-15",
+      "total": "$1,297",
+      "products": [
+        { "name": "Laptop", "quantity": "1", "price": "$999" },
+        { "name": "Mouse", "quantity": "2", "price": "$149" },
+        { "name": "USB Cable", "quantity": "3", "price": "$149" }
+      ]
+    },
+    {
+      "orderNumber": "1002", 
+      "date": "2024-02-03",
+      "total": "$599",
+      "products": [
+        { "name": "Monitor", "quantity": "1", "price": "$299" },
+        { "name": "Keyboard", "quantity": "1", "price": "$129" },
+        { "name": "Webcam", "quantity": "1", "price": "$171" }
+      ]
+    }
+  ]
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="nested-data-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="nested-data-example-html"></div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2 class="demo-title">Shorthand Array with Data Binding</h2>
+        <div class="schema">
+{
+  "div": [
+    { "h2": "Profile: {{name}}" },
+    { "p": "Contact: {{email}}" },
+    { "div": [
+        "Skills: ",
+        { "strong": "{{skills}}" }
+      ]
+    }
+  ]
+}
+Data: { 
+  "name": "Bob Smith", 
+  "email": "bob@example.com",
+  "skills": "JavaScript, TypeScript, React"
+}
+        </div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="shorthand-data-example"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="shorthand-data-example-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -145,7 +335,14 @@ Data: {
   }
 }
         </div>
-        <div class="result" id="self-contained"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="self-contained"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="self-contained-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
@@ -161,243 +358,218 @@ Data: {
   }
 }
         </div>
-        <div class="result" id="mixed-content"></div>
+        <div class="output-section">
+            <div class="output-label">Rendered Output:</div>
+            <div class="result" id="mixed-content"></div>
+        </div>
+        <div class="output-section">
+            <div class="output-label">Generated HTML:</div>
+            <div class="html-output" id="mixed-content-html"></div>
+        </div>
     </div>
 
     <div class="demo-section">
         <h2 class="demo-title">Security Demo</h2>
         <div class="schema">Trying to use disallowed tag: { "script": "alert('XSS')" }</div>
-        <div class="result" id="security-demo"></div>
+        <div class="output-section">
+            <div class="output-label">Result:</div>
+            <div class="result" id="security-demo"></div>
+        </div>
     </div>
 
     <script type="module">
-        // This would normally import from 'treebark' but for the demo we'll inline a simplified version
-        
-        // Simplified treebark implementation for demo
-        const DEFAULT_ALLOWED_TAGS = new Set([
-            'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
-            'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img'
-        ]);
+        // Import the actual treebark library (browser bundle)
+        import { renderToDOM } from '../../treebark/dist/treebark-browser.js';
 
-        const DEFAULT_ALLOWED_ATTRIBUTES = new Set([
-            'id', 'class', 'style', 'title', 'role', 'data-', 'aria-',
-            'href', 'target', 'rel', 'src', 'alt', 'width', 'height',
-            'summary', 'scope', 'colspan', 'rowspan', 'cite'
-        ]);
-
-        function renderToDOM(node, options = {}) {
-            const { data = {}, allowedTags = DEFAULT_ALLOWED_TAGS, allowedAttributes = DEFAULT_ALLOWED_ATTRIBUTES } = options;
-            
-            if (node && typeof node === 'object' && '$template' in node && '$data' in node) {
-                return renderToDOM(node.$template, { ...options, data: node.$data });
-            }
-
-            const fragment = document.createDocumentFragment();
-            const elements = renderNode(node, data, allowedTags, allowedAttributes);
-            
-            if (Array.isArray(elements)) {
-                elements.forEach(el => fragment.appendChild(el));
-            } else {
-                fragment.appendChild(elements);
-            }
-
-            return fragment;
+        // Helper function to get HTML from DOM elements
+        function getHTMLFromFragment(fragment) {
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(fragment.cloneNode(true));
+            return tempDiv.innerHTML;
         }
 
-        function renderNode(node, data, allowedTags, allowedAttributes) {
-            if (typeof node === 'string') {
-                const interpolated = interpolate(node, data);
-                return document.createTextNode(interpolated);
-            }
-
-            if (Array.isArray(node)) {
-                return node.flatMap(child => {
-                    const rendered = renderNode(child, data, allowedTags, allowedAttributes);
-                    return Array.isArray(rendered) ? rendered : [rendered];
-                });
-            }
-
-            if (typeof node === 'object' && node !== null) {
-                return renderElement(node, data, allowedTags, allowedAttributes);
-            }
-
-            return document.createTextNode('');
-        }
-
-        function renderElement(element, data, allowedTags, allowedAttributes) {
-            const entries = Object.entries(element);
-            if (entries.length !== 1) {
-                throw new Error('Element must have exactly one tag');
-            }
-
-            const [tagName, content] = entries[0];
-
-            if (!allowedTags.has(tagName)) {
-                throw new Error(`Tag "${tagName}" is not allowed`);
-            }
-
-            if (typeof content === 'object' && content !== null && !Array.isArray(content) && '$bind' in content) {
-                const bindPath = content.$bind;
-                const boundData = getPropertyPath(data, bindPath);
+        // Helper function to render and display both DOM and HTML for an example
+        function renderExample(containerId, htmlId, schema, options = {}) {
+            try {
+                const fragment = renderToDOM(schema, options);
+                document.getElementById(containerId).appendChild(fragment.cloneNode(true));
                 
-                if (Array.isArray(boundData)) {
-                    const template = { ...content };
-                    delete template.$bind;
-                    return boundData.map(item => 
-                        renderElement({ [tagName]: template }, item, allowedTags, allowedAttributes)
-                    );
-                } else {
-                    const template = { ...content };
-                    delete template.$bind;
-                    return renderElement({ [tagName]: template }, boundData, allowedTags, allowedAttributes);
+                if (htmlId) {
+                    const html = getHTMLFromFragment(fragment);
+                    document.getElementById(htmlId).textContent = html;
                 }
+            } catch (error) {
+                console.error(`Error in ${containerId}:`, error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = `Error: ${error.message}`;
+                document.getElementById(containerId).appendChild(errorDiv);
             }
-
-            const domElement = document.createElement(tagName);
-            const { attributes, children } = parseContent(content);
-
-            setAttributes(domElement, attributes, data, allowedAttributes);
-
-            children.forEach(child => {
-                const childNodes = renderNode(child, data, allowedTags, allowedAttributes);
-                if (Array.isArray(childNodes)) {
-                    childNodes.forEach(node => domElement.appendChild(node));
-                } else {
-                    domElement.appendChild(childNodes);
-                }
-            });
-
-            return domElement;
-        }
-
-        function parseContent(content) {
-            if (typeof content === 'string') {
-                return { attributes: {}, children: [content] };
-            }
-
-            if (Array.isArray(content)) {
-                return { attributes: {}, children: content };
-            }
-
-            if (typeof content === 'object' && content !== null) {
-                const attributes = {};
-                let children = [];
-
-                for (const [key, value] of Object.entries(content)) {
-                    if (key === '$children') {
-                        children = Array.isArray(value) ? value : [value];
-                    } else if (!key.startsWith('$')) {
-                        attributes[key] = value;
-                    }
-                }
-
-                return { attributes, children };
-            }
-
-            return { attributes: {}, children: [] };
-        }
-
-        function setAttributes(element, attributes, data, allowedAttributes) {
-            for (const [key, value] of Object.entries(attributes)) {
-                if (value === undefined || key.startsWith('$')) continue;
-
-                const isAllowed = allowedAttributes.has(key) || 
-                                 [...allowedAttributes].some(pattern => 
-                                   pattern.endsWith('-') && key.startsWith(pattern)
-                                 );
-                
-                if (!isAllowed) {
-                    throw new Error(`Attribute "${key}" is not allowed`);
-                }
-
-                const interpolatedValue = typeof value === 'string' 
-                    ? interpolate(value, data)
-                    : String(value);
-                
-                element.setAttribute(key, interpolatedValue);
-            }
-        }
-
-        function interpolate(template, data) {
-            return template.replace(/\{\{(\{*)(.*?)\}(\}*)\}\}/g, (match, openBraces, content, closeBraces) => {
-                const braceCount = openBraces.length;
-                
-                if (braceCount > 0) {
-                    return `{{${openBraces.slice(1)}${content}}${closeBraces.slice(1)}}`;
-                } else {
-                    const value = getPropertyPath(data, content.trim());
-                    return value !== undefined ? String(value) : '';
-                }
-            });
-        }
-
-        function getPropertyPath(obj, path) {
-            if (!path) return obj;
-            return path.split('.').reduce((current, key) => {
-                return current && typeof current === 'object' ? current[key] : undefined;
-            }, obj);
         }
 
         // Demo examples
         try {
             // Hello World
-            document.getElementById('hello-world').appendChild(
-                renderToDOM({ div: "Hello world" })
+            renderExample('hello-world', 'hello-world-html', 
+                { div: "Hello world" }
             );
 
             // Card Example
-            document.getElementById('card-example').appendChild(
-                renderToDOM({
+            renderExample('card-example', 'card-example-html',
+                {
                     div: {
                         class: "card",
                         $children: ["Hello from a card!"]
                     }
-                })
+                }
+            );
+
+            // Shorthand Array Syntax
+            renderExample('shorthand-example', 'shorthand-example-html',
+                {
+                    div: [
+                        { h2: "Welcome" },
+                        { p: "This is much cleaner!" },
+                        { ul: [
+                            { li: "Item 1" },
+                            { li: "Item 2" },
+                            { li: "Item 3" }
+                        ]}
+                    ]
+                }
             );
 
             // Data Binding
-            document.getElementById('data-binding').appendChild(
-                renderToDOM(
-                    {
-                        div: {
-                            class: "user-card",
-                            $children: [
-                                { h2: "{{name}}" },
-                                { p: "{{email}}" }
-                            ]
-                        }
-                    },
-                    { data: { name: "Alice Johnson", email: "alice@example.com" } }
-                )
+            renderExample('data-binding', 'data-binding-html',
+                {
+                    div: {
+                        class: "user-card",
+                        $children: [
+                            { h2: "{{name}}" },
+                            { p: "{{email}}" }
+                        ]
+                    }
+                },
+                { data: { name: "Alice Johnson", email: "alice@example.com" } }
             );
 
             // Array Binding
-            document.getElementById('array-binding').appendChild(
-                renderToDOM(
-                    {
-                        ul: {
-                            $bind: "products",
-                            $children: [
-                                { li: "{{name}} — {{price}}" }
-                            ]
-                        }
-                    },
-                    {
-                        data: {
-                            products: [
-                                { name: "Laptop", price: "$999" },
-                                { name: "Phone", price: "$499" },
-                                { name: "Tablet", price: "$299" }
-                            ]
-                        }
+            renderExample('array-binding', 'array-binding-html',
+                {
+                    ul: {
+                        $bind: "products",
+                        $children: [
+                            { li: "{{name}} — {{price}}" }
+                        ]
                     }
-                )
+                },
+                {
+                    data: {
+                        products: [
+                            { name: "Laptop", price: "$999" },
+                            { name: "Phone", price: "$499" },
+                            { name: "Tablet", price: "$299" }
+                        ]
+                    }
+                }
+            );
+
+            // Nested Data: Customer Orders
+            renderExample('nested-data-example', 'nested-data-example-html',
+                {
+                    div: {
+                        class: "user-card",
+                        $children: [
+                            { h2: "Customer: {{name}}" },
+                            { p: "Email: {{email}}" },
+                            { h3: "Orders:" },
+                            { div: {
+                                $bind: "orders",
+                                $children: [
+                                    { div: {
+                                        class: "card",
+                                        style: "margin: 1rem 0; padding: 1rem;",
+                                        $children: [
+                                            { h4: "Order #{{orderNumber}} - {{date}}" },
+                                            { p: "Total: {{total}}" },
+                                            { h5: "Products:" },
+                                            { ul: {
+                                                $bind: "products",
+                                                $children: [
+                                                    { li: {
+                                                        class: "product-item",
+                                                        $children: [
+                                                            { strong: "{{name}}" },
+                                                            " × {{quantity}} - ",
+                                                            { span: { 
+                                                                style: "color: #28a745; font-weight: bold;",
+                                                                $children: ["{{price}}"]
+                                                            }}
+                                                        ]
+                                                    }}
+                                                ]
+                                            }}
+                                        ]
+                                    }}
+                                ]
+                            }}
+                        ]
+                    }
+                },
+                {
+                    data: {
+                        name: "Sarah Wilson",
+                        email: "sarah@example.com",
+                        orders: [
+                            {
+                                orderNumber: "1001",
+                                date: "2024-01-15",
+                                total: "$1,297",
+                                products: [
+                                    { name: "Laptop", quantity: "1", price: "$999" },
+                                    { name: "Mouse", quantity: "2", price: "$149" },
+                                    { name: "USB Cable", quantity: "3", price: "$149" }
+                                ]
+                            },
+                            {
+                                orderNumber: "1002",
+                                date: "2024-02-03", 
+                                total: "$599",
+                                products: [
+                                    { name: "Monitor", quantity: "1", price: "$299" },
+                                    { name: "Keyboard", quantity: "1", price: "$129" },
+                                    { name: "Webcam", quantity: "1", price: "$171" }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            );
+
+            // Shorthand Array with Data Binding
+            renderExample('shorthand-data-example', 'shorthand-data-example-html',
+                {
+                    div: [
+                        { h2: "Profile: {{name}}" },
+                        { p: "Contact: {{email}}" },
+                        { div: [
+                            "Skills: ",
+                            { strong: "{{skills}}" }
+                        ]}
+                    ]
+                },
+                { 
+                    data: { 
+                        name: "Bob Smith", 
+                        email: "bob@example.com",
+                        skills: "JavaScript, TypeScript, React"
+                    }
+                }
             );
 
             // Self-contained
-            document.getElementById('self-contained').appendChild(
-                renderToDOM({
+            renderExample('self-contained', 'self-contained-html',
+                {
                     $template: {
                         div: {
                             class: "product-card",
@@ -411,12 +583,12 @@ Data: {
                         name: "Gaming Laptop",
                         price: "$1299"
                     }
-                })
+                }
             );
 
             // Mixed Content
-            document.getElementById('mixed-content').appendChild(
-                renderToDOM({
+            renderExample('mixed-content', 'mixed-content-html',
+                {
                     div: {
                         $children: [
                             "Hello ",
@@ -424,7 +596,7 @@ Data: {
                             "!"
                         ]
                     }
-                })
+                }
             );
 
         } catch (error) {
