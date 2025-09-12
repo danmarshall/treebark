@@ -44,14 +44,42 @@ md.use(treebarkPlugin, {
     user: { name: 'Alice' }
   },
   
-  // Whether to allow JSON in addition to YAML (default: true)
-  allowJson: true
+  // Format support (both default to true)
+  allowYaml: true,  // Enable YAML parsing
+  allowJson: true   // Enable JSON parsing
 });
 ```
 
+### Format Support
+
+The plugin supports both YAML and JSON formats with flexible configuration:
+
+- **YAML**: Clean, readable syntax ideal for templates
+- **JSON**: Structured format that's great for data-heavy templates  
+
+You can configure format support independently:
+
+```javascript
+// Support both YAML and JSON (default)
+md.use(treebarkPlugin, { allowYaml: true, allowJson: true });
+
+// YAML only
+md.use(treebarkPlugin, { allowYaml: true, allowJson: false });
+
+// JSON only 
+md.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+
+// Legacy option (still supported for backward compatibility)
+md.use(treebarkPlugin, { allowJson: true });
+```
+
+**Parsing Strategy**: When both formats are enabled, the plugin tries YAML first, then falls back to JSON. This provides maximum compatibility while maintaining performance.
+
+**Future Considerations**: In future versions, YAML dependency could be made optional for JSON-only workflows, reducing bundle size for applications that only need JSON support.
+
 ## Examples
 
-### Basic Template
+### Basic Template (YAML)
 
 ````markdown
 ```treebark
@@ -63,7 +91,23 @@ div:
 ```
 ````
 
-Renders to:
+### Basic Template (JSON)
+
+````markdown
+```treebark
+{
+  "div": {
+    "class": "card",
+    "$children": [
+      { "h2": "Product Card" },
+      { "p": "A simple card component" }
+    ]
+  }
+}
+```
+````
+
+Both render to:
 ```html
 <div class="card">
   <h2>Product Card</h2>
@@ -71,7 +115,7 @@ Renders to:
 </div>
 ```
 
-### Template with Data
+### Template with Data (YAML)
 
 ````markdown
 ```treebark
@@ -91,7 +135,36 @@ $data:
 ```
 ````
 
-### List Binding
+### Template with Data (JSON)
+
+````markdown
+```treebark
+{
+  "$template": {
+    "div": {
+      "class": "user-profile",
+      "$children": [
+        {
+          "img": {
+            "src": "{{avatar}}",
+            "alt": "{{name}}'s avatar"
+          }
+        },
+        { "h3": "{{name}}" },
+        { "p": "{{bio}}" }
+      ]
+    }
+  },
+  "$data": {
+    "name": "Alice Johnson",
+    "avatar": "/avatars/alice.jpg",
+    "bio": "Software engineer and treebark enthusiast"
+  }
+}
+```
+````
+
+### List Binding (YAML)
 
 ````markdown
 ```treebark
@@ -110,7 +183,31 @@ $data:
 ```
 ````
 
-### Shorthand Array Syntax
+### List Binding (JSON)
+
+````markdown
+```treebark
+{
+  "$template": {
+    "ul": {
+      "class": "product-list",
+      "$bind": "products",
+      "$children": [
+        { "li": "{{name}} - {{price}}" }
+      ]
+    }
+  },
+  "$data": {
+    "products": [
+      { "name": "Laptop", "price": "$999" },
+      { "name": "Phone", "price": "$499" }
+    ]
+  }
+}
+```
+````
+
+### Shorthand Array Syntax (YAML)
 
 ````markdown
 ```treebark
@@ -120,6 +217,25 @@ div:
   - ul:
     - li: "Item 1"
     - li: "Item 2"
+```
+````
+
+### Shorthand Array Syntax (JSON)
+
+````markdown
+```treebark
+{
+  "div": [
+    { "h1": "Quick Layout" },
+    { "p": "Using shorthand syntax" },
+    {
+      "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" }
+      ]
+    }
+  ]
+}
 ```
 ````
 

@@ -134,6 +134,37 @@ div:
 
     <div class="demo-container">
         <div class="input">
+            <h3>JSON Format Example</h3>
+            <pre><code>```treebark
+{
+  "div": {
+    "class": "welcome-card",
+    "$children": [
+      { "h2": "Hello JSON!" },
+      { "p": "Safe template rendering with JSON syntax" },
+      {
+        "a": {
+          "href": "#features",
+          "$children": ["Learn more →"]
+        }
+      }
+    ]
+  }
+}
+```</code></pre>
+        </div>
+        <div class="output">
+            <h3>HTML Output</h3>
+            <div class="welcome-card">
+                <h2>Hello JSON!</h2>
+                <p>Safe template rendering with JSON syntax</p>
+                <a href="#features">Learn more →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <div class="input">
             <h3>Template with Data</h3>
             <pre><code>```treebark
 $template:
@@ -185,6 +216,71 @@ $data:
 
     <div class="demo-container">
         <div class="input">
+            <h3>Template with Data (JSON)</h3>
+            <pre><code>```treebark
+{
+  "$template": {
+    "div": {
+      "class": "product-grid",
+      "$children": [
+        { "h3": "Products" },
+        {
+          "div": {
+            "class": "products",
+            "$bind": "items",
+            "$children": [
+              {
+                "div": {
+                  "class": "product-card",
+                  "$children": [
+                    { "h4": "{{name}}" },
+                    { "p": "{{desc}}" },
+                    {
+                      "div": {
+                        "class": "price",
+                        "$children": ["{{price}}"]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "$data": {
+    "items": [
+      { "name": "Core", "desc": "Basic features", "price": "Free" },
+      { "name": "Pro", "desc": "Advanced features", "price": "$29/mo" }
+    ]
+  }
+}
+```</code></pre>
+        </div>
+        <div class="output">
+            <h3>Same Result</h3>
+            <div class="product-grid">
+                <h3>Products</h3>
+                <div class="products">
+                    <div class="product-card">
+                        <h4>Core</h4>
+                        <p>Basic features</p>
+                        <div class="price">Free</div>
+                    </div>
+                    <div class="product-card">
+                        <h4>Pro</h4>
+                        <p>Advanced features</p>
+                        <div class="price">$29/mo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <div class="input">
             <h3>Layout Fragment</h3>
             <pre><code>```treebark
 - div:
@@ -209,7 +305,7 @@ $data:
     <h2>Key Features</h2>
     <ul>
         <li>✅ <strong>Safe by default</strong> - Only whitelisted HTML tags and attributes</li>
-        <li>✅ <strong>YAML/JSON support</strong> - Flexible schema format</li>
+        <li>✅ <strong>YAML/JSON support</strong> - Flexible schema format with both YAML and JSON syntax</li>
         <li>✅ <strong>Template interpolation</strong> - Data binding with <code>{{...}}</code> syntax</li>
         <li>✅ <strong>List binding</strong> - Repeat templates over arrays</li>
         <li>✅ <strong>Shorthand syntax</strong> - Cleaner array notation</li>

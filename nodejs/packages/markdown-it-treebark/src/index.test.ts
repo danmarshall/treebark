@@ -117,6 +117,87 @@ $data:
     });
   });
 
+  describe('Format configuration', () => {
+    it('should support both YAML and JSON by default', () => {
+      const markdown = `
+\`\`\`treebark
+div: "Hello YAML"
+\`\`\`
+`;
+      const result = md.render(markdown);
+      expect(result).toContain('<div>Hello YAML</div>');
+      
+      const jsonMarkdown = `
+\`\`\`treebark
+{"div": "Hello JSON"}
+\`\`\`
+`;
+      const jsonResult = md.render(jsonMarkdown);
+      expect(jsonResult).toContain('<div>Hello JSON</div>');
+    });
+
+    it('should support YAML-only mode', () => {
+      const mdYamlOnly = new MarkdownIt();
+      mdYamlOnly.use(treebarkPlugin, { allowYaml: true, allowJson: false });
+
+      const yamlMarkdown = `
+\`\`\`treebark
+div: "Hello YAML"
+\`\`\`
+`;
+      const result = mdYamlOnly.render(yamlMarkdown);
+      expect(result).toContain('<div>Hello YAML</div>');
+    });
+
+    it('should support JSON-only mode', () => {
+      const mdJsonOnly = new MarkdownIt();
+      mdJsonOnly.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+
+      const jsonMarkdown = `
+\`\`\`treebark
+{"div": "Hello JSON"}
+\`\`\`
+`;
+      const result = mdJsonOnly.render(jsonMarkdown);
+      expect(result).toContain('<div>Hello JSON</div>');
+    });
+
+    it('should error when both formats are disabled', () => {
+      const mdDisabled = new MarkdownIt();
+      mdDisabled.use(treebarkPlugin, { allowYaml: false, allowJson: false });
+
+      const markdown = `
+\`\`\`treebark
+div: "Hello"
+\`\`\`
+`;
+      const result = mdDisabled.render(markdown);
+      expect(result).toContain('treebark-error');
+      expect(result).toContain('At least one format');
+    });
+
+    it('should maintain backward compatibility with allowJson option', () => {
+      const mdLegacy = new MarkdownIt();
+      mdLegacy.use(treebarkPlugin, { allowJson: true });
+
+      const yamlMarkdown = `
+\`\`\`treebark
+div: "Hello YAML"
+\`\`\`
+`;
+      const yamlResult = mdLegacy.render(yamlMarkdown);
+      expect(yamlResult).toContain('<div>Hello YAML</div>');
+
+      const jsonMarkdown = `
+\`\`\`treebark
+{"div": "Hello JSON"}
+\`\`\`
+`;
+      const jsonResult = mdLegacy.render(jsonMarkdown);
+      expect(jsonResult).toContain('<div>Hello JSON</div>');
+    });
+  });
+
   describe('JSON support', () => {
     it('should parse JSON format when enabled', () => {
       const mdWithJson = new MarkdownIt();
@@ -134,6 +215,53 @@ $data:
 `;
       const result = mdWithJson.render(markdown);
       expect(result).toContain('<div class="json-block">Hello from JSON</div>');
+    });
+
+    it('should parse complex JSON template with data', () => {
+      const mdWithJson = new MarkdownIt();
+      mdWithJson.use(treebarkPlugin, { allowJson: true });
+
+      const markdown = `
+\`\`\`treebark
+{
+  "$template": {
+    "ul": {
+      "class": "product-list",
+      "$bind": "products",
+      "$children": [
+        { "li": "{{name}} - {{price}}" }
+      ]
+    }
+  },
+  "$data": {
+    "products": [
+      { "name": "Laptop", "price": "$999" },
+      { "name": "Phone", "price": "$499" }
+    ]
+  }
+}
+\`\`\`
+`;
+      const result = mdWithJson.render(markdown);
+      expect(result).toContain('<ul class="product-list"><li>Laptop - $999</li><li>Phone - $499</li></ul>');
+    });
+
+    it('should parse JSON shorthand array syntax', () => {
+      const mdWithJson = new MarkdownIt();
+      mdWithJson.use(treebarkPlugin, { allowJson: true });
+
+      const markdown = `
+\`\`\`treebark
+{
+  "div": [
+    { "h1": "Quick Layout" },
+    { "p": "Using JSON shorthand syntax" }
+  ]
+}
+\`\`\`
+`;
+      const result = mdWithJson.render(markdown);
+      expect(result).toContain('<div><h1>Quick Layout</h1><p>Using JSON shorthand syntax</p></div>');
     });
 
     it('should not parse JSON when disabled', () => {

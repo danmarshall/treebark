@@ -9,16 +9,21 @@ export interface TreebarkPluginOptions {
   data?: Record<string, any>;
   
   /**
-   * Whether to support JSON in addition to YAML
+   * Whether to support JSON format (default: true)
    */
   allowJson?: boolean;
+  
+  /**
+   * Whether to support YAML format (default: true)
+   */
+  allowYaml?: boolean;
 }
 
 /**
  * Markdown-it plugin for rendering treebark templates
  */
 export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOptions = {}) {
-  const { data = {}, allowJson = true } = options;
+  const { data = {}, allowJson = true, allowYaml = true } = options;
 
   // Store the original fence rule
   const originalFence = md.renderer.rules.fence;
@@ -30,7 +35,7 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, allowJson);
+        return renderTreebarkBlock(token.content, data, allowYaml, allowJson);
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -46,23 +51,46 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
 /**
  * Render a treebark block content
  */
-function renderTreebarkBlock(content: string, defaultData: Record<string, any>, allowJson: boolean): string {
+function renderTreebarkBlock(content: string, defaultData: Record<string, any>, allowYaml: boolean, allowJson: boolean): string {
   let schema: any;
+  let yamlError: Error | null = null;
   
-  try {
-    // First try to parse as YAML
-    schema = yaml.load(content);
-  } catch (yamlError) {
-    if (allowJson) {
-      try {
-        // If YAML fails and JSON is allowed, try JSON
-        schema = JSON.parse(content);
-      } catch (jsonError) {
-        throw new Error(`Failed to parse as YAML or JSON: ${yamlError instanceof Error ? yamlError.message : 'Invalid format'}`);
-      }
-    } else {
-      throw new Error(`Failed to parse as YAML: ${yamlError instanceof Error ? yamlError.message : 'Invalid format'}`);
+  // Validate that at least one format is enabled
+  if (!allowYaml && !allowJson) {
+    throw new Error('At least one format (YAML or JSON) must be enabled');
+  }
+  
+  // Check for empty content first
+  if (!content.trim()) {
+    throw new Error('Empty or invalid schema');
+  }
+  
+  // Try YAML first if enabled
+  if (allowYaml) {
+    try {
+      schema = yaml.load(content);
+    } catch (error) {
+      yamlError = error instanceof Error ? error : new Error('YAML parsing failed');
     }
+  }
+  
+  // If YAML failed or wasn't enabled, try JSON if enabled
+  if (!schema && allowJson) {
+    try {
+      schema = JSON.parse(content);
+    } catch (jsonError) {
+      // If both failed, provide a helpful error message
+      if (allowYaml && yamlError) {
+        throw new Error(`Failed to parse as YAML or JSON. YAML error: ${yamlError.message}`);
+      } else {
+        throw new Error(`Failed to parse as JSON: ${jsonError instanceof Error ? jsonError.message : 'Invalid format'}`);
+      }
+    }
+  }
+  
+  // If YAML succeeded but JSON wasn't tried, check that schema is valid
+  if (!schema && allowYaml && yamlError) {
+    throw new Error(`Failed to parse as YAML: ${yamlError.message}`);
   }
   
   if (!schema) {
