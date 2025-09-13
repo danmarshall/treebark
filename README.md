@@ -43,8 +43,8 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### Hello World  
 
-```yaml treebark
-div: "Hello world"
+```json treebark
+{ "div": "Hello world" }
 ```  
 
 → `<div>Hello world</div>`  
@@ -53,12 +53,16 @@ div: "Hello world"
 
 ### Bound to an Object  
 
-```yaml treebark
-div:
-  class: card
-  $children:
-    - h2: "{{title}}"
-    - p: "{{description}}"
+```json treebark
+{
+  "div": {
+    "class": "card",
+    "$children": [
+      { "h2": "{{title}}" },
+      { "p": "{{description}}" }
+    ]
+  }
+}
 ```  
 
 **Data:**  
@@ -80,28 +84,42 @@ div:
 
 For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
-```yaml treebark
-div:
-  - h2: "Welcome"
-  - p: "This is much cleaner!"
-  - ul:
-    - li: "Item 1"
-    - li: "Item 2"
+```json treebark
+{
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    {
+      "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" }
+      ]
+    }
+  ]
+}
 ```  
 
 → `<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>`
 
 This is equivalent to:
 
-```yaml treebark
-div:
-  $children:
-    - h2: "Welcome" 
-    - p: "This is much cleaner!"
-    - ul:
-        $children:
-          - li: "Item 1"
-          - li: "Item 2"
+```json treebark
+{
+  "div": {
+    "$children": [
+      { "h2": "Welcome" }, 
+      { "p": "This is much cleaner!" },
+      {
+        "ul": {
+          "$children": [
+            { "li": "Item 1" },
+            { "li": "Item 2" }
+          ]
+        }
+      }
+    ]
+  }
+}
 ```
 
 **Note:** Shorthand syntax only works when the node has no attributes. If you need attributes, use the explicit `$children` syntax.
@@ -110,10 +128,15 @@ div:
 
 ### Bound to an Array  
 
-```yaml treebark
-ul:
-  $bind: products
-  - li: "{{name}} — {{price}}"
+```json treebark
+{
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
 ```  
 
 **Data:**  
@@ -138,16 +161,22 @@ ul:
 
 ### Self-Contained Block  
 
-```yaml treebark
-$template:
-  div:
-    class: product-card
-    $children:
-      - h2: "{{name}}"
-      - p: "Only {{price}}!"
-$data:
-  name: "Laptop"
-  price: "$999"
+```json treebark
+{
+  "$template": {
+    "div": {
+      "class": "product-card",
+      "$children": [
+        { "h2": "{{name}}" },
+        { "p": "Only {{price}}!" }
+      ]
+    }
+  },
+  "$data": {
+    "name": "Laptop",
+    "price": "$999"
+  }
+}
 ```  
 
 →
@@ -162,52 +191,92 @@ $data:
 
 ### Mixed Content  
 
-```yaml treebark
-div:
-  $children:
-    - "Hello "
-    - span: "World"
-    - "!"
+```json treebark
+{
+  "div": {
+    "$children": [
+      "Hello ",
+      { "span": "World" },
+      "!"
+    ]
+  }
+}
 ```  
 
 → `<div>Hello <span>World</span>!</div>`  
 
 ---
 
-## 🧩 Markdown Plugin  
+### YAML Format (Much Cleaner!)
 
-Treebark works naturally inside fenced code blocks:  
+When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
 
-````markdown
-# Product Catalog
+**JSON Format:**
+```json treebark
+{
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
 
+**YAML Format (Much Cleaner!):**
 ```yaml treebark
 ul:
   $bind: products
-  - li: "{{name}} — {{price}}"
+  $children:
+    - li: "{{name}} — {{price}}"
 ```
-````  
+
+---
+
+## 📦 Available Libraries
+
+### Node.js
+
+- **`treebark`** - Core library with two renderers:
+  - **String renderer** - Convert treebark schemas to HTML strings
+  - **DOM renderer** - Generate DOM nodes (browser or jsdom environments)
+- **[markdown-it-treebark](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark)** - Plugin for markdown-it parser
+
+### Other Languages
+
+Other language implementations are not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
 
 ---
 
 ## 🚀 Getting Started  
+
+### Core Library
 
 ```bash
 npm install treebark
 ```  
 
 ```js
-import { renderTreebark } from "treebark";
-import yaml from "js-yaml";
+import { renderToString } from "treebark";
 
-const schema = yaml.load(`
-ul:
-  $bind: products
-  - li: "{{.}}"
-`);
+const schema = {
+  ul: {
+    $bind: "products",
+    $children: [
+      { li: "{{name}} — {{price}}" }
+    ]
+  }
+};
 
-const html = renderTreebark(schema, ["One", "Two", "Three"]);
-```  
+const data = {
+  products: [
+    { name: "Laptop", price: "$999" },
+    { name: "Phone", price: "$499" }
+  ]
+};
+
+const html = renderToString(schema, { data });
+```
 
 ---
 
