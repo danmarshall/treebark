@@ -284,45 +284,7 @@ const html = renderToString(schema, { data });
 
 ### Markdown-it Plugin
 
-```bash
-npm install markdown-it-treebark js-yaml
-```  
-
-```js
-import MarkdownIt from 'markdown-it';
-import treebarkPlugin from 'markdown-it-treebark';
-import yaml from 'js-yaml';
-
-const md = new MarkdownIt();
-md.use(treebarkPlugin, { yaml });
-
-const markdown = `
-# Product Catalog
-
-\`\`\`treebark
-{
-  "$template": {
-    "ul": {
-      "$bind": "products",
-      "$children": [
-        { "li": "{{name}} — {{price}}" }
-      ]
-    }
-  },
-  "$data": {
-    "products": [
-      { "name": "Laptop", "price": "$999" },
-      { "name": "Phone", "price": "$499" }
-    ]
-  }
-}
-\`\`\`
-`;
-
-const html = md.render(markdown);
-```
-
-**Note:** The `js-yaml` library is optional but highly recommended as it allows you to use much cleaner YAML syntax instead of verbose JSON. When provided, the plugin will automatically detect and parse YAML format.  
+See the [markdown-it-treebark plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark) for setup and usage details.  
 
 ---
 
