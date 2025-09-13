@@ -207,10 +207,6 @@ This is equivalent to:
 
 ---
 
-## 🧩 Markdown-it Plugin  
-
-Treebark works naturally inside fenced code blocks with the [markdown-it-treebark](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark) plugin.
-
 ### YAML Format (Much Cleaner!)
 
 When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
@@ -244,7 +240,7 @@ ul:
 - **`treebark`** - Core library with two renderers:
   - **String renderer** - Convert treebark schemas to HTML strings
   - **DOM renderer** - Generate DOM nodes (browser or jsdom environments)
-- **`markdown-it-treebark`** - Plugin for markdown-it parser
+- **[markdown-it-treebark](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark)** - Plugin for markdown-it parser
 
 ### Other Languages
 
@@ -281,10 +277,6 @@ const data = {
 
 const html = renderToString(schema, { data });
 ```
-
-### Markdown-it Plugin
-
-See the [markdown-it-treebark plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark) for setup and usage details.  
 
 ---
 
