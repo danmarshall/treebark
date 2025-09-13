@@ -5,6 +5,7 @@
 ---
 
 ## 🚧 Problem  
+You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
 Markdown was originally designed as a **superset of HTML** — you could drop raw `<div>`s, `<table>`s, or even `<script>`s straight into your content.  
 
