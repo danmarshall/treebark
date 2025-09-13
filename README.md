@@ -174,39 +174,108 @@ div:
 
 ---
 
-## 🧩 Markdown Plugin  
+## 🧩 Markdown-it Plugin  
 
-Treebark works naturally inside fenced code blocks:  
+Treebark works naturally inside fenced code blocks with the markdown-it plugin:  
 
 ````markdown
 # Product Catalog
 
-```yaml treebark
-ul:
-  $bind: products
-  - li: "{{name}} — {{price}}"
+```treebark
+$template:
+  ul:
+    $bind: products
+    $children:
+      - li: "{{name}} — {{price}}"
+$data:
+  products:
+    - name: "Laptop"
+      price: "$999"
+    - name: "Phone"  
+      price: "$499"
 ```
 ````  
 
 ---
 
+## 📦 Available Libraries
+
+### Node.js
+
+- **`treebark`** - Core library with string and DOM renderers
+- **`markdown-it-treebark`** - Plugin for markdown-it parser
+- **String renderer** - Convert treebark schemas to HTML strings
+- **DOM renderer** - Generate DOM nodes for browser environments
+
+### Other Languages
+
+Other language implementations are not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
+
+---
+
 ## 🚀 Getting Started  
+
+### Core Library
 
 ```bash
 npm install treebark
 ```  
 
 ```js
-import { renderTreebark } from "treebark";
-import yaml from "js-yaml";
+import { renderToString } from "treebark";
 
-const schema = yaml.load(`
-ul:
-  $bind: products
-  - li: "{{.}}"
-`);
+const schema = {
+  ul: {
+    $bind: "products",
+    $children: [
+      { li: "{{name}} — {{price}}" }
+    ]
+  }
+};
 
-const html = renderTreebark(schema, ["One", "Two", "Three"]);
+const data = {
+  products: [
+    { name: "Laptop", price: "$999" },
+    { name: "Phone", price: "$499" }
+  ]
+};
+
+const html = renderToString(schema, { data });
+```
+
+### Markdown-it Plugin
+
+```bash
+npm install markdown-it-treebark js-yaml
+```  
+
+```js
+import MarkdownIt from 'markdown-it';
+import treebarkPlugin from 'markdown-it-treebark';
+import yaml from 'js-yaml';
+
+const md = new MarkdownIt();
+md.use(treebarkPlugin, { yaml });
+
+const markdown = `
+# Product Catalog
+
+\`\`\`treebark
+$template:
+  ul:
+    $bind: products
+    $children:
+      - li: "{{name}} — {{price}}"
+$data:
+  products:
+    - name: "Laptop"
+      price: "$999"
+    - name: "Phone"  
+      price: "$499"
+\`\`\`
+`;
+
+const html = md.render(markdown);
 ```  
 
 ---
