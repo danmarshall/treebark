@@ -209,54 +209,31 @@ This is equivalent to:
 
 ## 🧩 Markdown-it Plugin  
 
-Treebark works naturally inside fenced code blocks with the markdown-it plugin. The plugin supports both JSON and YAML formats when used with the js-yaml library.
+Treebark works naturally inside fenced code blocks with the [markdown-it-treebark](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark) plugin.
 
-### JSON Format
+### YAML Format (Much Cleaner!)
 
-````markdown
-# Product Catalog
+When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
 
-```treebark
+**JSON Format:**
+```json treebark
 {
-  "$template": {
-    "ul": {
-      "$bind": "products",
-      "$children": [
-        { "li": "{{name}} — {{price}}" }
-      ]
-    }
-  },
-  "$data": {
-    "products": [
-      { "name": "Laptop", "price": "$999" },
-      { "name": "Phone", "price": "$499" }
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
     ]
   }
 }
 ```
-````
 
-### YAML Format (Much Cleaner!)
-
-When using the js-yaml library, you can write much cleaner YAML syntax:
-
-````markdown
-# Product Catalog
-
-```treebark
-$template:
-  ul:
-    $bind: products
-    $children:
-      - li: "{{name}} — {{price}}"
-$data:
-  products:
-    - name: "Laptop"
-      price: "$999"
-    - name: "Phone"  
-      price: "$499"
+**YAML Format (Much Cleaner!):**
+```yaml treebark
+ul:
+  $bind: products
+  $children:
+    - li: "{{name}} — {{price}}"
 ```
-````  
 
 ---
 
@@ -264,10 +241,10 @@ $data:
 
 ### Node.js
 
-- **`treebark`** - Core library with string and DOM renderers
+- **`treebark`** - Core library with two renderers:
+  - **String renderer** - Convert treebark schemas to HTML strings
+  - **DOM renderer** - Generate DOM nodes (browser or jsdom environments)
 - **`markdown-it-treebark`** - Plugin for markdown-it parser
-- **String renderer** - Convert treebark schemas to HTML strings
-- **DOM renderer** - Generate DOM nodes for browser environments
 
 ### Other Languages
 
