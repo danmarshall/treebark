@@ -421,34 +421,6 @@ export const commentTagTests: TestCase[] = [
   }
 ];
 
-export const commentTagErrorTests: ErrorTestCase[] = [
-  {
-    name: 'prevents nested comments',
-    input: {
-      comment: {
-        $children: [
-          'Outer comment ',
-          { comment: 'nested comment' }
-        ]
-      }
-    },
-    expectedError: 'Nested comments are not allowed'
-  },
-  {
-    name: 'prevents nested comments in complex structure',
-    input: {
-      comment: {
-        $children: [
-          'Start',
-          { div: [{ comment: 'nested in div' }] },
-          'End'
-        ]
-      }
-    },
-    expectedError: 'Nested comments are not allowed'
-  }
-];
-
 // Comment jailbreak security test cases
 export const commentJailbreakTests: TestCase[] = [
   {

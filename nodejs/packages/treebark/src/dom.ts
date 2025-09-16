@@ -8,13 +8,10 @@ import {
   TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
-  escape,
   validateTag, 
   validateAttribute, 
   validateChildren,
   isVoidTag,
-  isCommentTag,
-  validateNoNestedComments,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -47,23 +44,14 @@ function render(schema: Schema, data: Data): Node | Node[] {
   const hasChildren = children.length > 0;
   validateChildren(tag, hasChildren);
   
-  // Validate no nested comments
-  validateNoNestedComments(tag, children);
-  
   // Handle comment tags specially
-  if (isCommentTag(tag)) {
-    // For comments, render all children as text and create a comment node
-    const commentContent = children.map((c: Schema) => {
-      if (typeof c === "string") {
-        // For strings in comments, escape everything including literal text
-        const interpolated = interpolate(c, data, false);
-        return escape(interpolated);
-      }
-      if (Array.isArray(c)) return c.map(s => escape(renderToString(s, data))).join("");
-      // For object children, render them as HTML string and escape
-      return escape(renderToString(c, data));
-    }).join("");
-    return document.createComment(commentContent);
+  if (tag === 'comment') {
+    const content = children.map((c: Schema) => {
+      if (typeof c === "string") return interpolate(c, data);
+      if (Array.isArray(c)) return c.map(s => renderToString(s, data)).join("");
+      return renderToString(c, data);
+    }).join("").replace(/-->/g, '--&gt;');
+    return document.createComment(content);
   }
   
   const element = document.createElement(tag);
@@ -77,25 +65,17 @@ function render(schema: Schema, data: Data): Node | Node[] {
     // Validate children for bound elements
     validateChildren(tag, $children.length > 0);
     
-    // Validate no nested comments for bound elements
-    validateNoNestedComments(tag, $children);
-    
     if (Array.isArray(bound)) {
-      if (isCommentTag(tag)) {
-        // Handle comment tags in binding - return array of comment nodes
+      if (tag === 'comment') {
         return bound.map(item => {
-          const commentContent = $children.map((c: Schema) => {
-            if (typeof c === "string") {
-              const interpolated = interpolate(c, item, false);
-              return escape(interpolated);
-            }
-            if (Array.isArray(c)) return c.map(s => escape(renderToString(s, item))).join("");
-            return escape(renderToString(c, item));
-          }).join("");
-          return document.createComment(commentContent);
+          const content = $children.map((c: Schema) => {
+            if (typeof c === "string") return interpolate(c, item);
+            if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
+            return renderToString(c, item);
+          }).join("").replace(/-->/g, '--&gt;');
+          return document.createComment(content);
         });
       }
-      
       bound.forEach(item => $children.forEach((c: Schema) => {
         const nodes = render(c, item);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
@@ -115,6 +95,13 @@ function render(schema: Schema, data: Data): Node | Node[] {
   return element;
 }
 
+function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
+  Object.entries(attrs).forEach(([key, value]) => {
+    validateAttribute(key, tag);
+    element.setAttribute(key, interpolate(String(value), data, false));
+  });
+}
+
 // Helper function to render schema to string (needed for comment content)
 function renderToString(schema: Schema, data: Data): string {
   if (typeof schema === "string") return interpolate(schema, data);
@@ -122,25 +109,16 @@ function renderToString(schema: Schema, data: Data): string {
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   
-  if (isCommentTag(tag)) {
-    const commentContent = children.map((c: Schema) => {
-      if (typeof c === "string") {
-        const interpolated = interpolate(c, data, false);
-        return escape(interpolated);
-      }
-      return escape(renderToString(c, data));
-    }).join("");
-    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+  if (tag === 'comment') {
+    const content = children.map((c: Schema) => {
+      if (typeof c === "string") return interpolate(c, data);
+      return renderToString(c, data);
+    }).join("").replace(/-->/g, '--&gt;');
+    return `<!-- ${content} -->`;
   }
   
+  const attrsStr = Object.entries(attrs).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
   const renderedChildren = children.map((c: Schema) => renderToString(c, data)).join("");
-  return `<${tag}>${renderedChildren}</${tag}>`;
-}
-
-function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
-  Object.entries(attrs).forEach(([key, value]) => {
-    validateAttribute(key, tag);
-    element.setAttribute(key, interpolate(String(value), data, false));
-  });
+  return `<${tag}${attrsStr ? ' ' + attrsStr : ''}>${renderedChildren}</${tag}>`;
 }
 

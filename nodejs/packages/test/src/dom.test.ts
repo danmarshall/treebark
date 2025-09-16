@@ -14,7 +14,6 @@ import {
   voidTagTests, 
   voidTagErrorTests,
   commentTagTests,
-  commentTagErrorTests,
   commentJailbreakTests,
   createTest,
   createErrorTest,
@@ -340,7 +339,7 @@ describe('DOM Renderer', () => {
           case 'renders comment tag with HTML content':
             const htmlComment = fragment.childNodes[0] as Comment;
             expect(htmlComment.nodeType).toBe(Node.COMMENT_NODE);
-            expect(htmlComment.textContent).toBe('Start &lt;span&gt;middle&lt;/span&gt; end');
+            expect(htmlComment.textContent).toBe('Start <span>middle</span> end');
             break;
           case 'renders comment tag in mixed content':
             const div = fragment.firstChild as HTMLElement;
@@ -379,10 +378,6 @@ describe('DOM Renderer', () => {
             break;
         }
       });
-    });
-
-    commentTagErrorTests.forEach(testCase => {
-      createErrorTest(testCase, renderToDOM);
     });
 
     test('comment tags handle escaped interpolation correctly in DOM', () => {
@@ -494,7 +489,7 @@ describe('DOM Renderer', () => {
               break;
             case 'prevents comment jailbreak with --> in child elements':
               expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
-              expect(fragment.childNodes[0].textContent).toBe('Start &lt;span&gt;content --&gt; evil&lt;/span&gt; end');
+              expect(fragment.childNodes[0].textContent).toBe('Start <span>content --&gt; evil</span> end');
               break;
             case 'prevents comment jailbreak with multiple --> sequences':
               expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);

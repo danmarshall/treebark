@@ -13,8 +13,6 @@ import {
   validateAttribute, 
   validateChildren,
   isVoidTag,
-  isCommentTag,
-  validateNoNestedComments,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -41,15 +39,6 @@ function render(schema: Schema, data: Data): string {
   const hasChildren = children.length > 0;
   validateChildren(tag, hasChildren);
   
-  // Validate no nested comments
-  validateNoNestedComments(tag, children);
-  
-  // Handle comment tags specially
-  if (isCommentTag(tag)) {
-    const commentContent = children.map((c: Schema) => renderForComment(c, data)).join("");
-    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
-  }
-  
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
@@ -58,22 +47,16 @@ function render(schema: Schema, data: Data): string {
     // Validate children for bound elements
     validateChildren(tag, $children.length > 0);
     
-    // Validate no nested comments for bound elements
-    validateNoNestedComments(tag, $children);
-    
     if (Array.isArray(bound)) {
       if (isVoidTag(tag)) {
         return `<${tag}${renderAttrs(bindAttrs, data, tag)}>`;
       }
-      
-      // Handle comment tags in binding
-      if (isCommentTag(tag)) {
+      if (tag === 'comment') {
         return bound.map(item => {
-          const commentContent = $children.map((c: Schema) => renderForComment(c, item)).join('');
-          return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+          const content = $children.map((c: Schema) => render(c, item)).join('').replace(/-->/g, '--&gt;');
+          return content ? `<!-- ${content} -->` : `<!-- -->`;
         }).join('');
       }
-      
       return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }
@@ -85,22 +68,13 @@ function render(schema: Schema, data: Data): string {
     return `<${tag}${renderAttrs(attrs, data, tag)}>`;
   }
   
-  return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
-}
-
-// Special render function for comment content that ensures escaping
-function renderForComment(schema: Schema, data: Data): string {
-  if (typeof schema === "string") {
-    // For strings in comments, we need to escape everything including literal text
-    // We use interpolate with escapeHtml=false to avoid double-escaping, then escape the whole result
-    const interpolated = interpolate(schema, data, false);
-    return escape(interpolated);
+  // Render comment tags with HTML comment syntax
+  if (tag === 'comment') {
+    const content = children.map((c: Schema) => render(c, data)).join("").replace(/-->/g, '--&gt;');
+    return content ? `<!-- ${content} -->` : `<!-- -->`;
   }
-  if (Array.isArray(schema)) return schema.map(s => renderForComment(s, data)).join("");
   
-  // For objects in comments, render normally but escape the result
-  const normalRender = render(schema, data);
-  return escape(normalRender);
+  return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
 }
 
 function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {

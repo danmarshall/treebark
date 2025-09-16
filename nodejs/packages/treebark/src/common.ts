@@ -114,39 +114,6 @@ export function hasBinding(rest: any): rest is { $bind: string; $children?: Sche
 }
 
 /**
- * Check if a tag is a comment element
- */
-export function isCommentTag(tag: string): boolean {
-  return tag === 'comment';
-}
-
-/**
- * Validate that comments don't contain nested comments
- */
-export function validateNoNestedComments(tag: string, children: Schema[]): void {
-  if (tag === 'comment') {
-    const hasNestedComment = (schema: Schema): boolean => {
-      if (typeof schema === 'string') return false;
-      if (Array.isArray(schema)) return schema.some(hasNestedComment);
-      
-      const entries = Object.entries(schema);
-      if (entries.length === 0) return false;
-      
-      const [childTag, rest] = entries[0];
-      if (childTag === 'comment') return true;
-      
-      // Check children recursively
-      const childChildren = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
-      return childChildren.some(hasNestedComment);
-    };
-
-    if (children.some(hasNestedComment)) {
-      throw new Error('Nested comments are not allowed');
-    }
-  }
-}
-
-/**
  * Parse schema object structure to extract tag, attributes, and children
  */
 export function parseSchemaObject(schema: { [tag: string]: any }): {
