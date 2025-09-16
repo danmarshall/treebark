@@ -263,7 +263,7 @@ describe('String Renderer', () => {
             expect(result).toBe('<!-- User: Alice -->');
             break;
           case 'renders comment tag with HTML content':
-            expect(result).toBe('<!-- Start <span>middle</span> end -->');
+            expect(result).toBe('<!-- Start &lt;span&gt;middle&lt;/span&gt; end -->');
             break;
           case 'renders comment tag in mixed content':
             expect(result).toBe('<div>Before comment<!-- This is a comment -->After comment</div>');
@@ -358,7 +358,7 @@ describe('String Renderer', () => {
               expect(result).toBe('<!-- User: --&gt; &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &lt;!-- -->');
               break;
             case 'prevents comment jailbreak with --> in child elements':
-              expect(result).toBe('<!-- Start <span>content --&gt; evil</span> end -->');
+              expect(result).toBe('<!-- Start &lt;span&gt;content --&gt; evil&lt;/span&gt; end -->');
               break;
             case 'prevents comment jailbreak with multiple --> sequences':
               expect(result).toBe('<!-- Test --&gt; attack --&gt; more --&gt; -->');

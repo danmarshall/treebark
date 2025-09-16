@@ -340,7 +340,7 @@ describe('DOM Renderer', () => {
           case 'renders comment tag with HTML content':
             const htmlComment = fragment.childNodes[0] as Comment;
             expect(htmlComment.nodeType).toBe(Node.COMMENT_NODE);
-            expect(htmlComment.textContent).toBe('Start <span>middle</span> end');
+            expect(htmlComment.textContent).toBe('Start &lt;span&gt;middle&lt;/span&gt; end');
             break;
           case 'renders comment tag in mixed content':
             const div = fragment.firstChild as HTMLElement;
@@ -494,7 +494,7 @@ describe('DOM Renderer', () => {
               break;
             case 'prevents comment jailbreak with --> in child elements':
               expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
-              expect(fragment.childNodes[0].textContent).toBe('Start <span>content --&gt; evil</span> end');
+              expect(fragment.childNodes[0].textContent).toBe('Start &lt;span&gt;content --&gt; evil&lt;/span&gt; end');
               break;
             case 'prevents comment jailbreak with multiple --> sequences':
               expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);

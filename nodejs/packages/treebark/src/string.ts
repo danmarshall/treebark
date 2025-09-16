@@ -9,7 +9,6 @@ import {
   getProperty, 
   interpolate,
   escape,
-  escapeComment,
   validateTag, 
   validateAttribute, 
   validateChildren,
@@ -47,9 +46,8 @@ function render(schema: Schema, data: Data): string {
   
   // Handle comment tags specially
   if (isCommentTag(tag)) {
-    const commentContent = children.map((c: Schema) => render(c, data)).join("");
-    const escapedContent = escapeComment(commentContent);
-    return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
+    const commentContent = children.map((c: Schema) => renderForComment(c, data)).join("");
+    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
   }
   
   // Handle $bind
@@ -71,9 +69,8 @@ function render(schema: Schema, data: Data): string {
       // Handle comment tags in binding
       if (isCommentTag(tag)) {
         return bound.map(item => {
-          const commentContent = $children.map((c: Schema) => render(c, item)).join('');
-          const escapedContent = escapeComment(commentContent);
-          return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
+          const commentContent = $children.map((c: Schema) => renderForComment(c, item)).join('');
+          return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
         }).join('');
       }
       
@@ -89,6 +86,21 @@ function render(schema: Schema, data: Data): string {
   }
   
   return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
+}
+
+// Special render function for comment content that ensures escaping
+function renderForComment(schema: Schema, data: Data): string {
+  if (typeof schema === "string") {
+    // For strings in comments, we need to escape everything including literal text
+    // We use interpolate with escapeHtml=false to avoid double-escaping, then escape the whole result
+    const interpolated = interpolate(schema, data, false);
+    return escape(interpolated);
+  }
+  if (Array.isArray(schema)) return schema.map(s => renderForComment(s, data)).join("");
+  
+  // For objects in comments, render normally but escape the result
+  const normalRender = render(schema, data);
+  return escape(normalRender);
 }
 
 function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {

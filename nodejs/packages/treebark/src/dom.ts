@@ -8,7 +8,7 @@ import {
   TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
-  escapeComment,
+  escape,
   validateTag, 
   validateAttribute, 
   validateChildren,
@@ -54,13 +54,16 @@ function render(schema: Schema, data: Data): Node | Node[] {
   if (isCommentTag(tag)) {
     // For comments, render all children as text and create a comment node
     const commentContent = children.map((c: Schema) => {
-      if (typeof c === "string") return interpolate(c, data);
-      if (Array.isArray(c)) return c.map(s => renderToString(s, data)).join("");
-      // For object children, render them as HTML string
-      return renderToString(c, data);
+      if (typeof c === "string") {
+        // For strings in comments, escape everything including literal text
+        const interpolated = interpolate(c, data, false);
+        return escape(interpolated);
+      }
+      if (Array.isArray(c)) return c.map(s => escape(renderToString(s, data))).join("");
+      // For object children, render them as HTML string and escape
+      return escape(renderToString(c, data));
     }).join("");
-    const escapedContent = escapeComment(commentContent);
-    return document.createComment(escapedContent);
+    return document.createComment(commentContent);
   }
   
   const element = document.createElement(tag);
@@ -82,12 +85,14 @@ function render(schema: Schema, data: Data): Node | Node[] {
         // Handle comment tags in binding - return array of comment nodes
         return bound.map(item => {
           const commentContent = $children.map((c: Schema) => {
-            if (typeof c === "string") return interpolate(c, item);
-            if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
-            return renderToString(c, item);
+            if (typeof c === "string") {
+              const interpolated = interpolate(c, item, false);
+              return escape(interpolated);
+            }
+            if (Array.isArray(c)) return c.map(s => escape(renderToString(s, item))).join("");
+            return escape(renderToString(c, item));
           }).join("");
-          const escapedContent = escapeComment(commentContent);
-          return document.createComment(escapedContent);
+          return document.createComment(commentContent);
         });
       }
       
@@ -118,9 +123,14 @@ function renderToString(schema: Schema, data: Data): string {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   
   if (isCommentTag(tag)) {
-    const commentContent = children.map((c: Schema) => renderToString(c, data)).join("");
-    const escapedContent = escapeComment(commentContent);
-    return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
+    const commentContent = children.map((c: Schema) => {
+      if (typeof c === "string") {
+        const interpolated = interpolate(c, data, false);
+        return escape(interpolated);
+      }
+      return escape(renderToString(c, data));
+    }).join("");
+    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
   }
   
   const renderedChildren = children.map((c: Schema) => renderToString(c, data)).join("");
