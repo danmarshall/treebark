@@ -14,7 +14,6 @@
 - **`$bind`** → bind current node to an array or object property in data  
 - **`$template`** → top-level template in a self-contained block  
 - **`$data`** → top-level data in a self-contained block  
-- **`$comment`** → HTML comment node (renders as `<!-- content -->`)  
 
 ---
 
@@ -113,46 +112,48 @@ If both `$template` and `$data` exist at the root, render `$template` with `$dat
 
 ---
 
-## 9. HTML Comments  
+## 8. HTML Comments  
 
-HTML comments can be expressed using the special `$comment` key:
+HTML comments are supported using the `comment` tag:
 
 ```yaml
-$comment: "This is a comment"
+comment: "This is a simple comment"
 ```
 
-→ `<!-- This is a comment -->`
+→ `<!-- This is a simple comment -->`
+
+Comments can enclose other tags and content:
+
+```yaml
+comment:
+  $children:
+    - "Section: "
+    - strong: "Important"
+    - " content"
+```
+
+→ `<!-- Section: <strong>Important</strong> content -->`
 
 Comments support data interpolation:
 
 ```yaml
-$comment: "Debug: {{user.id}}"
+comment: "Debug: {{user.id}} - {{user.name}}"
 ```
 
-Comments can be used in mixed content:
-
-```yaml
-div:
-  $children:
-    - "Before comment"
-    - $comment: "This is a comment"
-    - "After comment"
-```
-
-→ `<div>Before comment<!-- This is a comment -->After comment</div>`
-
-Comments are safe by default - content is interpolated but not HTML-escaped as it's not displayed content.
+**Restrictions:**
+- Nested comments are not allowed (HTML specification)
+- Comments render their children as HTML strings within the comment syntax
 
 ---
 
-## 10. Tag Whitelist  
+## 9. Tag Whitelist  
 
 Allowed tags:  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`  
+`a`, `img`, `comment`  
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  

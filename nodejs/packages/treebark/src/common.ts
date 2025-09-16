@@ -1,5 +1,5 @@
 // Common types, constants, and utilities shared between string and DOM renderers
-export type Schema = string | Schema[] | { [tag: string]: any } | { $comment: string };
+export type Schema = string | Schema[] | { [tag: string]: any };
 export type Data = Record<string, any>;
 
 // Container tags that can have children and require closing tags
@@ -8,7 +8,7 @@ export const CONTAINER_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a'
+  'a', 'comment'
 ]);
 
 // Void tags that cannot have children and are self-closing
@@ -114,10 +114,36 @@ export function hasBinding(rest: any): rest is { $bind: string; $children?: Sche
 }
 
 /**
- * Check if a schema object represents a comment
+ * Check if a tag is a comment element
  */
-export function isComment(schema: any): schema is { $comment: string } {
-  return schema && typeof schema === 'object' && '$comment' in schema && Object.keys(schema).length === 1;
+export function isCommentTag(tag: string): boolean {
+  return tag === 'comment';
+}
+
+/**
+ * Validate that comments don't contain nested comments
+ */
+export function validateNoNestedComments(tag: string, children: Schema[]): void {
+  if (tag === 'comment') {
+    const hasNestedComment = (schema: Schema): boolean => {
+      if (typeof schema === 'string') return false;
+      if (Array.isArray(schema)) return schema.some(hasNestedComment);
+      
+      const entries = Object.entries(schema);
+      if (entries.length === 0) return false;
+      
+      const [childTag, rest] = entries[0];
+      if (childTag === 'comment') return true;
+      
+      // Check children recursively
+      const childChildren = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
+      return childChildren.some(hasNestedComment);
+    };
+
+    if (children.some(hasNestedComment)) {
+      throw new Error('Nested comments are not allowed');
+    }
+  }
 }
 
 /**

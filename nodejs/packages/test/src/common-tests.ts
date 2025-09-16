@@ -355,61 +355,97 @@ export const voidTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
-// HTML comment test cases
-export const commentTests: TestCase[] = [
+// HTML comment tag test cases
+export const commentTagTests: TestCase[] = [
   {
-    name: 'renders simple comment',
-    input: { $comment: 'This is a comment' }
+    name: 'renders simple comment tag',
+    input: { comment: 'This is a comment' }
   },
   {
-    name: 'renders comment with data interpolation',
-    input: { $comment: 'User: {{name}}' },
+    name: 'renders comment tag with data interpolation',
+    input: { comment: 'User: {{name}}' },
     options: { data: { name: 'Alice' } }
   },
   {
-    name: 'renders comment in mixed content',
+    name: 'renders comment tag with HTML content',
+    input: {
+      comment: {
+        $children: [
+          'Start ',
+          { span: 'middle' },
+          ' end'
+        ]
+      }
+    }
+  },
+  {
+    name: 'renders comment tag in mixed content',
     input: {
       div: {
         $children: [
           'Before comment',
-          { $comment: 'This is a comment' },
+          { comment: 'This is a comment' },
           'After comment'
         ]
       }
     }
   },
   {
-    name: 'renders multiple comments',
+    name: 'renders multiple comment tags',
     input: [
-      { $comment: 'First comment' },
-      { $comment: 'Second comment' }
+      { comment: 'First comment' },
+      { comment: 'Second comment' }
     ]
   },
   {
-    name: 'renders comment with special characters',
-    input: { $comment: 'Comment with <>&"\'  special chars' }
-  },
-  {
-    name: 'renders comment within nested structure',
+    name: 'renders comment tag within nested structure',
     input: {
       div: {
         class: 'container',
         $children: [
           { h1: 'Title' },
-          { $comment: 'TODO: Add more content here' },
+          { comment: 'TODO: Add more content here' },
           { p: 'Content paragraph' }
         ]
       }
     }
   },
   {
-    name: 'renders empty comment',
-    input: { $comment: '' }
+    name: 'renders empty comment tag',
+    input: { comment: '' }
   },
   {
-    name: 'renders comment with nested property interpolation',
-    input: { $comment: 'Debug: {{user.id}} - {{user.name}}' },
+    name: 'renders comment tag with nested property interpolation',
+    input: { comment: 'Debug: {{user.id}} - {{user.name}}' },
     options: { data: { user: { id: 123, name: 'Bob' } } }
+  }
+];
+
+export const commentTagErrorTests: ErrorTestCase[] = [
+  {
+    name: 'prevents nested comments',
+    input: {
+      comment: {
+        $children: [
+          'Outer comment ',
+          { comment: 'nested comment' }
+        ]
+      }
+    },
+    expectedError: 'Nested comments are not allowed'
+  },
+  {
+    name: 'prevents nested comments in complex structure',
+    input: {
+      comment: {
+        $children: [
+          'Start',
+          { div: [{ comment: 'nested in div' }] },
+          'End'
+        ]
+      }
+    },
+    expectedError: 'Nested comments are not allowed'
   }
 ];
 

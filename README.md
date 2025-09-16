@@ -211,32 +211,42 @@ This is equivalent to:
 
 ```json treebark
 {
-  "div": {
+  "comment": "This is a simple comment"
+}
+```  
+
+→ `<!-- This is a simple comment -->`  
+
+Comments can enclose other tags and content:
+
+```json treebark
+{
+  "comment": {
     "$children": [
-      "Content before comment",
-      { "$comment": "TODO: Add more content here" },
-      "Content after comment"
+      "Section: ",
+      { "strong": "Important" },
+      " content"
     ]
   }
 }
 ```  
 
-→ `<div>Content before comment<!-- TODO: Add more content here -->Content after comment</div>`  
+→ `<!-- Section: <strong>Important</strong> content -->`  
 
 Comments support data interpolation:
 
 ```json treebark
 {
-  "$comment": "Debug: User ID {{user.id}}"
+  "comment": "Debug: User {{user.name}} (ID: {{user.id}})"
 }
 ```
 
 **Data:**  
 ```json
-{ "user": { "id": 123 } }
+{ "user": { "name": "Alice", "id": 123 } }
 ```  
 
-→ `<!-- Debug: User ID 123 -->`  
+→ `<!-- Debug: User Alice (ID: 123) -->`  
 
 ---
 

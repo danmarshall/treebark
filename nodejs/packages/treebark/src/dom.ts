@@ -12,9 +12,10 @@ import {
   validateAttribute, 
   validateChildren,
   isVoidTag,
+  isCommentTag,
+  validateNoNestedComments,
   isTemplate, 
   hasBinding, 
-  isComment,
   parseSchemaObject 
 } from './common';
 
@@ -38,18 +39,27 @@ function render(schema: Schema, data: Data): Node | Node[] {
     const r = render(s, data); return Array.isArray(r) ? r : [r];
   });
   
-  // Handle HTML comments
-  if (isComment(schema)) {
-    const commentText = interpolate(schema.$comment, data);
-    return document.createComment(commentText);
-  }
-  
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
   // Validate that void tags don't have children
   const hasChildren = children.length > 0;
   validateChildren(tag, hasChildren);
+  
+  // Validate no nested comments
+  validateNoNestedComments(tag, children);
+  
+  // Handle comment tags specially
+  if (isCommentTag(tag)) {
+    // For comments, render all children as text and create a comment node
+    const commentContent = children.map((c: Schema) => {
+      if (typeof c === "string") return interpolate(c, data);
+      if (Array.isArray(c)) return c.map(s => renderToString(s, data)).join("");
+      // For object children, render them as HTML string
+      return renderToString(c, data);
+    }).join("");
+    return document.createComment(commentContent);
+  }
   
   const element = document.createElement(tag);
   
@@ -62,7 +72,22 @@ function render(schema: Schema, data: Data): Node | Node[] {
     // Validate children for bound elements
     validateChildren(tag, $children.length > 0);
     
+    // Validate no nested comments for bound elements
+    validateNoNestedComments(tag, $children);
+    
     if (Array.isArray(bound)) {
+      if (isCommentTag(tag)) {
+        // Handle comment tags in binding - return array of comment nodes
+        return bound.map(item => {
+          const commentContent = $children.map((c: Schema) => {
+            if (typeof c === "string") return interpolate(c, item);
+            if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
+            return renderToString(c, item);
+          }).join("");
+          return document.createComment(commentContent);
+        });
+      }
+      
       bound.forEach(item => $children.forEach((c: Schema) => {
         const nodes = render(c, item);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
@@ -80,6 +105,22 @@ function render(schema: Schema, data: Data): Node | Node[] {
   });
   
   return element;
+}
+
+// Helper function to render schema to string (needed for comment content)
+function renderToString(schema: Schema, data: Data): string {
+  if (typeof schema === "string") return interpolate(schema, data);
+  if (Array.isArray(schema)) return schema.map(s => renderToString(s, data)).join("");
+  
+  const { tag, rest, children, attrs } = parseSchemaObject(schema);
+  
+  if (isCommentTag(tag)) {
+    const commentContent = children.map((c: Schema) => renderToString(c, data)).join("");
+    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+  }
+  
+  const renderedChildren = children.map((c: Schema) => renderToString(c, data)).join("");
+  return `<${tag}>${renderedChildren}</${tag}>`;
 }
 
 function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {

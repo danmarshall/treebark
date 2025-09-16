@@ -13,9 +13,10 @@ import {
   validateAttribute, 
   validateChildren,
   isVoidTag,
+  isCommentTag,
+  validateNoNestedComments,
   isTemplate, 
   hasBinding, 
-  isComment,
   parseSchemaObject 
 } from './common';
 
@@ -33,19 +34,21 @@ function render(schema: Schema, data: Data): string {
   if (typeof schema === "string") return interpolate(schema, data);
   if (Array.isArray(schema)) return schema.map(s => render(s, data)).join("");
   
-  // Handle HTML comments
-  if (isComment(schema)) {
-    const commentText = interpolate(schema.$comment, data);
-    // Add spaces around non-empty content for readability
-    return commentText ? `<!-- ${commentText} -->` : `<!-- -->`;
-  }
-  
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
   // Validate that void tags don't have children
   const hasChildren = children.length > 0;
   validateChildren(tag, hasChildren);
+  
+  // Validate no nested comments
+  validateNoNestedComments(tag, children);
+  
+  // Handle comment tags specially
+  if (isCommentTag(tag)) {
+    const commentContent = children.map((c: Schema) => render(c, data)).join("");
+    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+  }
   
   // Handle $bind
   if (hasBinding(rest)) {
@@ -55,10 +58,22 @@ function render(schema: Schema, data: Data): string {
     // Validate children for bound elements
     validateChildren(tag, $children.length > 0);
     
+    // Validate no nested comments for bound elements
+    validateNoNestedComments(tag, $children);
+    
     if (Array.isArray(bound)) {
       if (isVoidTag(tag)) {
         return `<${tag}${renderAttrs(bindAttrs, data, tag)}>`;
       }
+      
+      // Handle comment tags in binding
+      if (isCommentTag(tag)) {
+        return bound.map(item => {
+          const commentContent = $children.map((c: Schema) => render(c, item)).join('');
+          return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+        }).join('');
+      }
+      
       return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }

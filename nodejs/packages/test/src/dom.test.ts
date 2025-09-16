@@ -13,7 +13,8 @@ import {
   shorthandArrayTests, 
   voidTagTests, 
   voidTagErrorTests,
-  commentTests,
+  commentTagTests,
+  commentTagErrorTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -320,22 +321,27 @@ describe('DOM Renderer', () => {
     });
   });
 
-  // HTML comment tests
-  describe('HTML Comments', () => {
-    commentTests.forEach(testCase => {
+  // HTML comment tag tests
+  describe('HTML Comment Tags', () => {
+    commentTagTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
-          case 'renders simple comment':
+          case 'renders simple comment tag':
             expect(fragment.childNodes.length).toBe(1);
             expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
             expect(fragment.childNodes[0].textContent).toBe('This is a comment');
             break;
-          case 'renders comment with data interpolation':
+          case 'renders comment tag with data interpolation':
             const comment = fragment.childNodes[0] as Comment;
             expect(comment.nodeType).toBe(Node.COMMENT_NODE);
             expect(comment.textContent).toBe('User: Alice');
             break;
-          case 'renders comment in mixed content':
+          case 'renders comment tag with HTML content':
+            const htmlComment = fragment.childNodes[0] as Comment;
+            expect(htmlComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(htmlComment.textContent).toBe('Start <span>middle</span> end');
+            break;
+          case 'renders comment tag in mixed content':
             const div = fragment.firstChild as HTMLElement;
             expect(div.childNodes.length).toBe(3);
             expect(div.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
@@ -345,19 +351,14 @@ describe('DOM Renderer', () => {
             expect(div.childNodes[2].nodeType).toBe(Node.TEXT_NODE);
             expect(div.childNodes[2].textContent).toBe('After comment');
             break;
-          case 'renders multiple comments':
+          case 'renders multiple comment tags':
             expect(fragment.childNodes.length).toBe(2);
             expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
             expect(fragment.childNodes[0].textContent).toBe('First comment');
             expect(fragment.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
             expect(fragment.childNodes[1].textContent).toBe('Second comment');
             break;
-          case 'renders comment with special characters':
-            const specialComment = fragment.childNodes[0] as Comment;
-            expect(specialComment.nodeType).toBe(Node.COMMENT_NODE);
-            expect(specialComment.textContent).toBe('Comment with <>&"\'  special chars');
-            break;
-          case 'renders comment within nested structure':
+          case 'renders comment tag within nested structure':
             const nestedDiv = fragment.firstChild as HTMLElement;
             expect(nestedDiv.childNodes.length).toBe(3);
             expect(nestedDiv.childNodes[0].nodeName).toBe('H1');
@@ -365,12 +366,12 @@ describe('DOM Renderer', () => {
             expect(nestedDiv.childNodes[1].textContent).toBe('TODO: Add more content here');
             expect(nestedDiv.childNodes[2].nodeName).toBe('P');
             break;
-          case 'renders empty comment':
+          case 'renders empty comment tag':
             const emptyComment = fragment.childNodes[0] as Comment;
             expect(emptyComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(emptyComment.textContent).toBe('');
             break;
-          case 'renders comment with nested property interpolation':
+          case 'renders comment tag with nested property interpolation':
             const nestedComment = fragment.childNodes[0] as Comment;
             expect(nestedComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(nestedComment.textContent).toBe('Debug: 123 - Bob');
@@ -379,9 +380,13 @@ describe('DOM Renderer', () => {
       });
     });
 
-    test('comments handle escaped interpolation correctly in DOM', () => {
+    commentTagErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToDOM);
+    });
+
+    test('comment tags handle escaped interpolation correctly in DOM', () => {
       const fragment = renderToDOM(
-        { $comment: 'Comment with {{{escaped}}} content' },
+        { comment: 'Comment with {{{escaped}}} content' },
         { data: { escaped: 'test' } }
       );
       const comment = fragment.childNodes[0] as Comment;
@@ -389,12 +394,12 @@ describe('DOM Renderer', () => {
       expect(comment.textContent).toBe('Comment with {{escaped}} content');
     });
 
-    test('comments in self-contained templates in DOM', () => {
+    test('comment tags in self-contained templates in DOM', () => {
       const fragment = renderToDOM({
         $template: {
           div: {
             $children: [
-              { $comment: 'Template comment for {{title}}' },
+              { comment: 'Template comment for {{title}}' },
               { h1: '{{title}}' }
             ]
           }
@@ -409,12 +414,12 @@ describe('DOM Renderer', () => {
       expect(div.childNodes[1].textContent).toBe('Test Page');
     });
 
-    test('comments with array binding in DOM', () => {
+    test('comment tags with array binding in DOM', () => {
       const fragment = renderToDOM({
         ul: {
           $bind: 'items',
           $children: [
-            { $comment: 'Item: {{name}}' },
+            { comment: 'Item: {{name}}' },
             { li: '{{name}} - {{price}}' }
           ]
         }
@@ -438,13 +443,13 @@ describe('DOM Renderer', () => {
       expect(ul.childNodes[3].textContent).toBe('Banana - $2');
     });
 
-    test('comment nodes can be inserted into actual DOM', () => {
+    test('comment tag nodes can be inserted into actual DOM', () => {
       document.body.innerHTML = '';
       const fragment = renderToDOM({
         div: {
           id: 'comment-test',
           $children: [
-            { $comment: 'This is a test comment' },
+            { comment: 'This is a test comment' },
             { p: 'Content after comment' }
           ]
         }
