@@ -60,7 +60,6 @@ function render(schema: Schema, data: Data): Node | Node[] {
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data, tag);
     
     // Validate children for bound elements
     validateChildren(tag, $children.length > 0);
@@ -76,10 +75,10 @@ function render(schema: Schema, data: Data): Node | Node[] {
           return document.createComment(content);
         });
       }
-      bound.forEach(item => $children.forEach((c: Schema) => {
-        const nodes = render(c, item);
-        (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
-      }));
+      // For array binding, create one element and append all bound children to it
+      const element = document.createElement(tag);
+      setAttrs(element, bindAttrs, data, tag);
+      bound.forEach(item => appendChildrenToElement(element, $children, item));
       return element;
     }
     const childNodes = render({ [tag]: { ...bindAttrs, $children } }, bound);
@@ -87,12 +86,17 @@ function render(schema: Schema, data: Data): Node | Node[] {
   }
   
   setAttrs(element, attrs, data, tag);
+  appendChildrenToElement(element, children, data);
+  
+  return element;
+}
+
+// Common function to append children to an element
+function appendChildrenToElement(element: HTMLElement, children: Schema[], data: Data): void {
   children.forEach((c: Schema) => {
     const nodes = render(c, data);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
-  
-  return element;
 }
 
 function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
