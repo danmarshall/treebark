@@ -15,6 +15,7 @@ import {
   isVoidTag,
   isTemplate, 
   hasBinding, 
+  isComment,
   parseSchemaObject 
 } from './common';
 
@@ -31,6 +32,13 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
 function render(schema: Schema, data: Data): string {
   if (typeof schema === "string") return interpolate(schema, data);
   if (Array.isArray(schema)) return schema.map(s => render(s, data)).join("");
+  
+  // Handle HTML comments
+  if (isComment(schema)) {
+    const commentText = interpolate(schema.$comment, data);
+    // Add spaces around non-empty content for readability
+    return commentText ? `<!-- ${commentText} -->` : `<!-- -->`;
+  }
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);

@@ -14,6 +14,7 @@
 - **`$bind`** → bind current node to an array or object property in data  
 - **`$template`** → top-level template in a self-contained block  
 - **`$data`** → top-level data in a self-contained block  
+- **`$comment`** → HTML comment node (renders as `<!-- content -->`)  
 
 ---
 
@@ -112,7 +113,39 @@ If both `$template` and `$data` exist at the root, render `$template` with `$dat
 
 ---
 
-## 8. Tag Whitelist  
+## 9. HTML Comments  
+
+HTML comments can be expressed using the special `$comment` key:
+
+```yaml
+$comment: "This is a comment"
+```
+
+→ `<!-- This is a comment -->`
+
+Comments support data interpolation:
+
+```yaml
+$comment: "Debug: {{user.id}}"
+```
+
+Comments can be used in mixed content:
+
+```yaml
+div:
+  $children:
+    - "Before comment"
+    - $comment: "This is a comment"
+    - "After comment"
+```
+
+→ `<div>Before comment<!-- This is a comment -->After comment</div>`
+
+Comments are safe by default - content is interpolated but not HTML-escaped as it's not displayed content.
+
+---
+
+## 10. Tag Whitelist  
 
 Allowed tags:  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  

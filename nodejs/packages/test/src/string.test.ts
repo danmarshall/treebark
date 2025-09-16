@@ -10,6 +10,7 @@ import {
   shorthandArrayTests, 
   voidTagTests, 
   voidTagErrorTests,
+  commentTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -245,6 +246,83 @@ describe('String Renderer', () => {
         }
       });
       expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
+    });
+  });
+
+  // HTML comment tests
+  describe('HTML Comments', () => {
+    commentTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders simple comment':
+            expect(result).toBe('<!-- This is a comment -->');
+            break;
+          case 'renders comment with data interpolation':
+            expect(result).toBe('<!-- User: Alice -->');
+            break;
+          case 'renders comment in mixed content':
+            expect(result).toBe('<div>Before comment<!-- This is a comment -->After comment</div>');
+            break;
+          case 'renders multiple comments':
+            expect(result).toBe('<!-- First comment --><!-- Second comment -->');
+            break;
+          case 'renders comment with special characters':
+            expect(result).toBe('<!-- Comment with <>&"\'  special chars -->');
+            break;
+          case 'renders comment within nested structure':
+            expect(result).toBe('<div class="container"><h1>Title</h1><!-- TODO: Add more content here --><p>Content paragraph</p></div>');
+            break;
+          case 'renders empty comment':
+            expect(result).toBe('<!-- -->');
+            break;
+          case 'renders comment with nested property interpolation':
+            expect(result).toBe('<!-- Debug: 123 - Bob -->');
+            break;
+        }
+      });
+    });
+
+    test('comments handle escaped interpolation correctly', () => {
+      const result = renderToString(
+        { $comment: 'Comment with {{{escaped}}} content' },
+        { data: { escaped: 'test' } }
+      );
+      expect(result).toBe('<!-- Comment with {{escaped}} content -->');
+    });
+
+    test('comments in self-contained templates', () => {
+      const result = renderToString({
+        $template: {
+          div: {
+            $children: [
+              { $comment: 'Template comment for {{title}}' },
+              { h1: '{{title}}' }
+            ]
+          }
+        },
+        $data: { title: 'Test Page' }
+      });
+      expect(result).toBe('<div><!-- Template comment for Test Page --><h1>Test Page</h1></div>');
+    });
+
+    test('comments with array binding', () => {
+      const result = renderToString({
+        ul: {
+          $bind: 'items',
+          $children: [
+            { $comment: 'Item: {{name}}' },
+            { li: '{{name}} - {{price}}' }
+          ]
+        }
+      }, {
+        data: {
+          items: [
+            { name: 'Apple', price: '$1' },
+            { name: 'Banana', price: '$2' }
+          ]
+        }
+      });
+      expect(result).toBe('<ul><!-- Item: Apple --><li>Apple - $1</li><!-- Item: Banana --><li>Banana - $2</li></ul>');
     });
   });
 });

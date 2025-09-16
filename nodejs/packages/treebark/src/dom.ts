@@ -14,6 +14,7 @@ import {
   isVoidTag,
   isTemplate, 
   hasBinding, 
+  isComment,
   parseSchemaObject 
 } from './common';
 
@@ -36,6 +37,12 @@ function render(schema: Schema, data: Data): Node | Node[] {
   if (Array.isArray(schema)) return schema.flatMap(s => {
     const r = render(s, data); return Array.isArray(r) ? r : [r];
   });
+  
+  // Handle HTML comments
+  if (isComment(schema)) {
+    const commentText = interpolate(schema.$comment, data);
+    return document.createComment(commentText);
+  }
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);

@@ -355,6 +355,64 @@ export const voidTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
+// HTML comment test cases
+export const commentTests: TestCase[] = [
+  {
+    name: 'renders simple comment',
+    input: { $comment: 'This is a comment' }
+  },
+  {
+    name: 'renders comment with data interpolation',
+    input: { $comment: 'User: {{name}}' },
+    options: { data: { name: 'Alice' } }
+  },
+  {
+    name: 'renders comment in mixed content',
+    input: {
+      div: {
+        $children: [
+          'Before comment',
+          { $comment: 'This is a comment' },
+          'After comment'
+        ]
+      }
+    }
+  },
+  {
+    name: 'renders multiple comments',
+    input: [
+      { $comment: 'First comment' },
+      { $comment: 'Second comment' }
+    ]
+  },
+  {
+    name: 'renders comment with special characters',
+    input: { $comment: 'Comment with <>&"\'  special chars' }
+  },
+  {
+    name: 'renders comment within nested structure',
+    input: {
+      div: {
+        class: 'container',
+        $children: [
+          { h1: 'Title' },
+          { $comment: 'TODO: Add more content here' },
+          { p: 'Content paragraph' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'renders empty comment',
+    input: { $comment: '' }
+  },
+  {
+    name: 'renders comment with nested property interpolation',
+    input: { $comment: 'Debug: {{user.id}} - {{user.name}}' },
+    options: { data: { user: { id: 123, name: 'Bob' } } }
+  }
+];
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {

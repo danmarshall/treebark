@@ -207,6 +207,39 @@ This is equivalent to:
 
 ---
 
+### HTML Comments  
+
+```json treebark
+{
+  "div": {
+    "$children": [
+      "Content before comment",
+      { "$comment": "TODO: Add more content here" },
+      "Content after comment"
+    ]
+  }
+}
+```  
+
+→ `<div>Content before comment<!-- TODO: Add more content here -->Content after comment</div>`  
+
+Comments support data interpolation:
+
+```json treebark
+{
+  "$comment": "Debug: User ID {{user.id}}"
+}
+```
+
+**Data:**  
+```json
+{ "user": { "id": 123 } }
+```  
+
+→ `<!-- Debug: User ID 123 -->`  
+
+---
+
 ### YAML Format (Much Cleaner!)
 
 When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:

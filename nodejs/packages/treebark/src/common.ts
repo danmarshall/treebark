@@ -1,5 +1,5 @@
 // Common types, constants, and utilities shared between string and DOM renderers
-export type Schema = string | Schema[] | { [tag: string]: any };
+export type Schema = string | Schema[] | { [tag: string]: any } | { $comment: string };
 export type Data = Record<string, any>;
 
 // Container tags that can have children and require closing tags
@@ -111,6 +111,13 @@ export function isTemplate(schema: any): schema is { $template: Schema; $data: D
  */
 export function hasBinding(rest: any): rest is { $bind: string; $children?: Schema[]; [key: string]: any } {
   return rest && typeof rest === 'object' && '$bind' in rest;
+}
+
+/**
+ * Check if a schema object represents a comment
+ */
+export function isComment(schema: any): schema is { $comment: string } {
+  return schema && typeof schema === 'object' && '$comment' in schema && Object.keys(schema).length === 1;
 }
 
 /**

@@ -13,6 +13,7 @@ import {
   shorthandArrayTests, 
   voidTagTests, 
   voidTagErrorTests,
+  commentTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -316,6 +317,147 @@ describe('DOM Renderer', () => {
       expect((div.children[1] as HTMLImageElement).tagName).toBe('IMG');
       expect((div.children[0] as HTMLImageElement).alt).toBe('First');
       expect((div.children[1] as HTMLImageElement).alt).toBe('Second');
+    });
+  });
+
+  // HTML comment tests
+  describe('HTML Comments', () => {
+    commentTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        switch (tc.name) {
+          case 'renders simple comment':
+            expect(fragment.childNodes.length).toBe(1);
+            expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+            expect(fragment.childNodes[0].textContent).toBe('This is a comment');
+            break;
+          case 'renders comment with data interpolation':
+            const comment = fragment.childNodes[0] as Comment;
+            expect(comment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(comment.textContent).toBe('User: Alice');
+            break;
+          case 'renders comment in mixed content':
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.childNodes.length).toBe(3);
+            expect(div.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+            expect(div.childNodes[0].textContent).toBe('Before comment');
+            expect(div.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
+            expect(div.childNodes[1].textContent).toBe('This is a comment');
+            expect(div.childNodes[2].nodeType).toBe(Node.TEXT_NODE);
+            expect(div.childNodes[2].textContent).toBe('After comment');
+            break;
+          case 'renders multiple comments':
+            expect(fragment.childNodes.length).toBe(2);
+            expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+            expect(fragment.childNodes[0].textContent).toBe('First comment');
+            expect(fragment.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
+            expect(fragment.childNodes[1].textContent).toBe('Second comment');
+            break;
+          case 'renders comment with special characters':
+            const specialComment = fragment.childNodes[0] as Comment;
+            expect(specialComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(specialComment.textContent).toBe('Comment with <>&"\'  special chars');
+            break;
+          case 'renders comment within nested structure':
+            const nestedDiv = fragment.firstChild as HTMLElement;
+            expect(nestedDiv.childNodes.length).toBe(3);
+            expect(nestedDiv.childNodes[0].nodeName).toBe('H1');
+            expect(nestedDiv.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
+            expect(nestedDiv.childNodes[1].textContent).toBe('TODO: Add more content here');
+            expect(nestedDiv.childNodes[2].nodeName).toBe('P');
+            break;
+          case 'renders empty comment':
+            const emptyComment = fragment.childNodes[0] as Comment;
+            expect(emptyComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(emptyComment.textContent).toBe('');
+            break;
+          case 'renders comment with nested property interpolation':
+            const nestedComment = fragment.childNodes[0] as Comment;
+            expect(nestedComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(nestedComment.textContent).toBe('Debug: 123 - Bob');
+            break;
+        }
+      });
+    });
+
+    test('comments handle escaped interpolation correctly in DOM', () => {
+      const fragment = renderToDOM(
+        { $comment: 'Comment with {{{escaped}}} content' },
+        { data: { escaped: 'test' } }
+      );
+      const comment = fragment.childNodes[0] as Comment;
+      expect(comment.nodeType).toBe(Node.COMMENT_NODE);
+      expect(comment.textContent).toBe('Comment with {{escaped}} content');
+    });
+
+    test('comments in self-contained templates in DOM', () => {
+      const fragment = renderToDOM({
+        $template: {
+          div: {
+            $children: [
+              { $comment: 'Template comment for {{title}}' },
+              { h1: '{{title}}' }
+            ]
+          }
+        },
+        $data: { title: 'Test Page' }
+      });
+      const div = fragment.firstChild as HTMLElement;
+      expect(div.childNodes.length).toBe(2);
+      expect(div.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+      expect(div.childNodes[0].textContent).toBe('Template comment for Test Page');
+      expect(div.childNodes[1].nodeName).toBe('H1');
+      expect(div.childNodes[1].textContent).toBe('Test Page');
+    });
+
+    test('comments with array binding in DOM', () => {
+      const fragment = renderToDOM({
+        ul: {
+          $bind: 'items',
+          $children: [
+            { $comment: 'Item: {{name}}' },
+            { li: '{{name}} - {{price}}' }
+          ]
+        }
+      }, {
+        data: {
+          items: [
+            { name: 'Apple', price: '$1' },
+            { name: 'Banana', price: '$2' }
+          ]
+        }
+      });
+      const ul = fragment.firstChild as HTMLElement;
+      expect(ul.childNodes.length).toBe(4); // 2 comments + 2 li elements
+      expect(ul.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+      expect(ul.childNodes[0].textContent).toBe('Item: Apple');
+      expect(ul.childNodes[1].nodeName).toBe('LI');
+      expect(ul.childNodes[1].textContent).toBe('Apple - $1');
+      expect(ul.childNodes[2].nodeType).toBe(Node.COMMENT_NODE);
+      expect(ul.childNodes[2].textContent).toBe('Item: Banana');
+      expect(ul.childNodes[3].nodeName).toBe('LI');
+      expect(ul.childNodes[3].textContent).toBe('Banana - $2');
+    });
+
+    test('comment nodes can be inserted into actual DOM', () => {
+      document.body.innerHTML = '';
+      const fragment = renderToDOM({
+        div: {
+          id: 'comment-test',
+          $children: [
+            { $comment: 'This is a test comment' },
+            { p: 'Content after comment' }
+          ]
+        }
+      });
+      
+      document.body.appendChild(fragment);
+      
+      const container = document.getElementById('comment-test');
+      expect(container).toBeTruthy();
+      expect(container?.childNodes.length).toBe(2);
+      expect(container?.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+      expect(container?.childNodes[0].textContent).toBe('This is a test comment');
+      expect(container?.childNodes[1].nodeName).toBe('P');
     });
   });
 });
