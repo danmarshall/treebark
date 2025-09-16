@@ -117,7 +117,7 @@ function renderToString(schema: Schema, data: Data): string {
     const content = children.map((c: Schema) => {
       if (typeof c === "string") return interpolate(c, data);
       return renderToString(c, data);
-    }).join("").replace(/-->/g, '--&gt;');
+    }).join("");
     return `<!-- ${content} -->`;
   }
   
