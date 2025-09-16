@@ -12,6 +12,7 @@ import {
   voidTagErrorTests,
   commentTagTests,
   commentTagErrorTests,
+  commentJailbreakTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -328,6 +329,54 @@ describe('String Renderer', () => {
         }
       });
       expect(result).toBe('<ul><!-- Item: Apple --><li>Apple - $1</li><!-- Item: Banana --><li>Banana - $2</li></ul>');
+    });
+
+    // Comment jailbreak security tests
+    describe('Comment Jailbreak Security', () => {
+      commentJailbreakTests.forEach(testCase => {
+        createTest(testCase, renderToString, (result, tc) => {
+          // Check that comment content (between <!-- and -->) has --> escaped as --&gt;
+          const commentMatch = result.match(/<!--\s*(.*?)\s*-->/g);
+          if (commentMatch) {
+            commentMatch.forEach((comment: string) => {
+              const content = comment.replace(/^<!--\s*/, '').replace(/\s*-->$/, '');
+              if (content.includes('--')) {
+                // If there's a double dash, it should be --&gt; not -->
+                expect(content).not.toMatch(/-->/);
+                if (content.includes('--&gt;')) {
+                  expect(content).toMatch(/--&gt;/);
+                }
+              }
+            });
+          }
+          
+          switch (tc.name) {
+            case 'prevents comment jailbreak with direct --> text':
+              expect(result).toBe('<!-- Test --&gt; evil content -->');
+              break;
+            case 'prevents comment jailbreak with --> in data interpolation':
+              expect(result).toBe('<!-- User: --&gt; &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &lt;!-- -->');
+              break;
+            case 'prevents comment jailbreak with --> in child elements':
+              expect(result).toBe('<!-- Start <span>content --&gt; evil</span> end -->');
+              break;
+            case 'prevents comment jailbreak with multiple --> sequences':
+              expect(result).toBe('<!-- Test --&gt; attack --&gt; more --&gt; -->');
+              break;
+            case 'prevents comment jailbreak in complex nested structure':
+              expect(result).toContain('<!-- Safe comment -->');
+              expect(result).toContain('<!-- Dangerous --&gt; content -->');
+              expect(result).toContain('<p>Normal content</p>');
+              break;
+            case 'prevents comment jailbreak with --> in array binding':
+              expect(result).toContain('<!-- Item: Safe item -->');
+              expect(result).toContain('<!-- Item: Evil --&gt; item -->');
+              expect(result).toContain('<li>Safe item</li>');
+              expect(result).toContain('<li>Evil --&gt; item</li>');
+              break;
+          }
+        });
+      });
     });
   });
 });

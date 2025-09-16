@@ -15,6 +15,7 @@ import {
   voidTagErrorTests,
   commentTagTests,
   commentTagErrorTests,
+  commentJailbreakTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -463,6 +464,59 @@ describe('DOM Renderer', () => {
       expect(container?.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
       expect(container?.childNodes[0].textContent).toBe('This is a test comment');
       expect(container?.childNodes[1].nodeName).toBe('P');
+    });
+
+    // Comment jailbreak security tests
+    describe('Comment Jailbreak Security', () => {
+      commentJailbreakTests.forEach(testCase => {
+        createTest(testCase, renderToDOM, (fragment, tc) => {
+          // Check that all comment nodes have --> escaped as --&gt;
+          const checkCommentNodes = (node: Node) => {
+            if (node.nodeType === Node.COMMENT_NODE) {
+              expect(node.textContent).not.toContain('-->');
+              if (node.textContent?.includes('--&gt;')) {
+                expect(node.textContent).toMatch(/--&gt;/);
+              }
+            }
+            node.childNodes.forEach(checkCommentNodes);
+          };
+          
+          fragment.childNodes.forEach(checkCommentNodes);
+          
+          switch (tc.name) {
+            case 'prevents comment jailbreak with direct --> text':
+              expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(fragment.childNodes[0].textContent).toBe('Test --&gt; evil content');
+              break;
+            case 'prevents comment jailbreak with --> in data interpolation':
+              expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(fragment.childNodes[0].textContent).toBe('User: --&gt; &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &lt;!--');
+              break;
+            case 'prevents comment jailbreak with --> in child elements':
+              expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(fragment.childNodes[0].textContent).toBe('Start <span>content --&gt; evil</span> end');
+              break;
+            case 'prevents comment jailbreak with multiple --> sequences':
+              expect(fragment.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(fragment.childNodes[0].textContent).toBe('Test --&gt; attack --&gt; more --&gt;');
+              break;
+            case 'prevents comment jailbreak in complex nested structure':
+              const div = fragment.firstChild as HTMLElement;
+              expect(div.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(div.childNodes[0].textContent).toBe('Safe comment');
+              expect(div.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
+              expect(div.childNodes[1].textContent).toBe('Dangerous --&gt; content');
+              break;
+            case 'prevents comment jailbreak with --> in array binding':
+              const ul = fragment.firstChild as HTMLElement;
+              expect(ul.childNodes[0].nodeType).toBe(Node.COMMENT_NODE);
+              expect(ul.childNodes[0].textContent).toBe('Item: Safe item');
+              expect(ul.childNodes[2].nodeType).toBe(Node.COMMENT_NODE);
+              expect(ul.childNodes[2].textContent).toBe('Item: Evil --&gt; item');
+              break;
+          }
+        });
+      });
     });
   });
 });

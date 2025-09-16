@@ -9,6 +9,7 @@ import {
   getProperty, 
   interpolate,
   escape,
+  escapeComment,
   validateTag, 
   validateAttribute, 
   validateChildren,
@@ -47,7 +48,8 @@ function render(schema: Schema, data: Data): string {
   // Handle comment tags specially
   if (isCommentTag(tag)) {
     const commentContent = children.map((c: Schema) => render(c, data)).join("");
-    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+    const escapedContent = escapeComment(commentContent);
+    return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
   }
   
   // Handle $bind
@@ -70,7 +72,8 @@ function render(schema: Schema, data: Data): string {
       if (isCommentTag(tag)) {
         return bound.map(item => {
           const commentContent = $children.map((c: Schema) => render(c, item)).join('');
-          return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+          const escapedContent = escapeComment(commentContent);
+          return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
         }).join('');
       }
       

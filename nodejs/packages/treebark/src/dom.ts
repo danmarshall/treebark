@@ -8,6 +8,7 @@ import {
   TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
+  escapeComment,
   validateTag, 
   validateAttribute, 
   validateChildren,
@@ -58,7 +59,8 @@ function render(schema: Schema, data: Data): Node | Node[] {
       // For object children, render them as HTML string
       return renderToString(c, data);
     }).join("");
-    return document.createComment(commentContent);
+    const escapedContent = escapeComment(commentContent);
+    return document.createComment(escapedContent);
   }
   
   const element = document.createElement(tag);
@@ -84,7 +86,8 @@ function render(schema: Schema, data: Data): Node | Node[] {
             if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
             return renderToString(c, item);
           }).join("");
-          return document.createComment(commentContent);
+          const escapedContent = escapeComment(commentContent);
+          return document.createComment(escapedContent);
         });
       }
       
@@ -116,7 +119,8 @@ function renderToString(schema: Schema, data: Data): string {
   
   if (isCommentTag(tag)) {
     const commentContent = children.map((c: Schema) => renderToString(c, data)).join("");
-    return commentContent ? `<!-- ${commentContent} -->` : `<!-- -->`;
+    const escapedContent = escapeComment(commentContent);
+    return escapedContent ? `<!-- ${escapedContent} -->` : `<!-- -->`;
   }
   
   const renderedChildren = children.map((c: Schema) => renderToString(c, data)).join("");

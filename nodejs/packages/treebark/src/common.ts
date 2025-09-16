@@ -47,6 +47,14 @@ export function escape(s: string): string {
 }
 
 /**
+ * Escape comment content to prevent comment jailbreaking
+ */
+export function escapeComment(s: string): string {
+  // Replace --> with --&gt; to prevent breaking out of comments
+  return s.replace(/-->/g, '--&gt;');
+}
+
+/**
  * Interpolate template variables in a string
  */
 export function interpolate(tpl: string, data: Data, escapeHtml = true): string {

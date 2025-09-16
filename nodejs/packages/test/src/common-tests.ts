@@ -449,6 +449,67 @@ export const commentTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
+// Comment jailbreak security test cases
+export const commentJailbreakTests: TestCase[] = [
+  {
+    name: 'prevents comment jailbreak with direct --> text',
+    input: { comment: 'Test --> evil content' }
+  },
+  {
+    name: 'prevents comment jailbreak with --> in data interpolation',
+    input: { comment: 'User: {{name}}' },
+    options: { data: { name: '--> <script>alert("xss")</script> <!--' } }
+  },
+  {
+    name: 'prevents comment jailbreak with --> in child elements',
+    input: {
+      comment: {
+        $children: [
+          'Start ',
+          { span: 'content --> evil' },
+          ' end'
+        ]
+      }
+    }
+  },
+  {
+    name: 'prevents comment jailbreak with multiple --> sequences',
+    input: { comment: 'Test --> attack --> more -->' }
+  },
+  {
+    name: 'prevents comment jailbreak in complex nested structure',
+    input: {
+      div: {
+        $children: [
+          { comment: 'Safe comment' },
+          { comment: 'Dangerous --> content' },
+          { p: 'Normal content' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'prevents comment jailbreak with --> in array binding',
+    input: {
+      ul: {
+        $bind: 'items',
+        $children: [
+          { comment: 'Item: {{name}}' },
+          { li: '{{name}}' }
+        ]
+      }
+    },
+    options: {
+      data: {
+        items: [
+          { name: 'Safe item' },
+          { name: 'Evil --> item' }
+        ]
+      }
+    }
+  }
+];
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {
