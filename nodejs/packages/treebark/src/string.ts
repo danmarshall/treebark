@@ -15,7 +15,8 @@ import {
   isVoidTag,
   isTemplate, 
   hasBinding, 
-  parseSchemaObject 
+  parseSchemaObject,
+  sanitizeCommentContent
 } from './common';
 
 export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): string {
@@ -53,7 +54,7 @@ function render(schema: Schema, data: Data): string {
       }
       if (tag === 'comment') {
         return bound.map(item => {
-          const content = $children.map((c: Schema) => render(c, item)).join('').replace(/-->/g, '--&gt;');
+          const content = sanitizeCommentContent($children.map((c: Schema) => render(c, item)).join(''));
           return content ? `<!-- ${content} -->` : `<!-- -->`;
         }).join('');
       }
@@ -73,7 +74,7 @@ function render(schema: Schema, data: Data): string {
   
   // Render comment tags with HTML comment syntax
   if (tag === 'comment') {
-    const content = children.map((c: Schema) => render(c, data)).join("").replace(/-->/g, '--&gt;');
+    const content = sanitizeCommentContent(children.map((c: Schema) => render(c, data)).join(""));
     return content ? `<!-- ${content} -->` : `<!-- -->`;
   }
   

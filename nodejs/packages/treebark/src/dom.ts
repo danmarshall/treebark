@@ -7,14 +7,16 @@ import {
   GLOBAL_ATTRS, 
   TAG_SPECIFIC_ATTRS,
   getProperty, 
-  interpolate, 
+  interpolate,
+  escape, 
   validateTag, 
   validateAttribute, 
   validateChildren,
   isVoidTag,
   isTemplate, 
   hasBinding, 
-  parseSchemaObject 
+  parseSchemaObject,
+  sanitizeCommentContent
 } from './common';
 
 export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): DocumentFragment {
@@ -46,11 +48,11 @@ function render(schema: Schema, data: Data): Node | Node[] {
   
   // Handle comment tags specially
   if (tag === 'comment') {
-    const content = children.map((c: Schema) => {
+    const content = sanitizeCommentContent(children.map((c: Schema) => {
       if (typeof c === "string") return interpolate(c, data);
       if (Array.isArray(c)) return c.map(s => renderToString(s, data)).join("");
       return renderToString(c, data);
-    }).join("").replace(/-->/g, '--&gt;');
+    }).join(""));
     return document.createComment(content);
   }
   
@@ -67,11 +69,11 @@ function render(schema: Schema, data: Data): Node | Node[] {
     if (Array.isArray(bound)) {
       if (tag === 'comment') {
         return bound.map(item => {
-          const content = $children.map((c: Schema) => {
+          const content = sanitizeCommentContent($children.map((c: Schema) => {
             if (typeof c === "string") return interpolate(c, item);
             if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
             return renderToString(c, item);
-          }).join("").replace(/-->/g, '--&gt;');
+          }).join(""));
           return document.createComment(content);
         });
       }
