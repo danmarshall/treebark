@@ -2,16 +2,10 @@ import {
   Schema, 
   Data, 
   ALLOWED_TAGS, 
-  CONTAINER_TAGS,
   VOID_TAGS,
-  GLOBAL_ATTRS, 
-  TAG_SPECIFIC_ATTRS,
   getProperty, 
   interpolate, 
-  validateTag, 
   validateAttribute, 
-  validateChildren,
-  isVoidTag,
   isTemplate, 
   hasBinding, 
   parseSchemaObject 
@@ -38,11 +32,18 @@ function render(schema: Schema, data: Data): Node | Node[] {
   });
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
-  validateTag(tag);
   
-  // Validate that void tags don't have children
+  // Inline validateTag: Validate that a tag is allowed
+  if (!ALLOWED_TAGS.has(tag)) {
+    throw new Error(`Tag "${tag}" is not allowed`);
+  }
+  
+  // Inline validateChildren: Validate that void tags don't have children
   const hasChildren = children.length > 0;
-  validateChildren(tag, hasChildren);
+  const isVoid = VOID_TAGS.has(tag);
+  if (isVoid && hasChildren) {
+    throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+  }
   
   const element = document.createElement(tag);
   
@@ -53,7 +54,9 @@ function render(schema: Schema, data: Data): Node | Node[] {
     setAttrs(element, bindAttrs, data, tag);
     
     // Validate children for bound elements
-    validateChildren(tag, $children.length > 0);
+    if (isVoid && $children.length > 0) {
+      throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+    }
     
     if (Array.isArray(bound)) {
       bound.forEach(item => $children.forEach((c: Schema) => {
