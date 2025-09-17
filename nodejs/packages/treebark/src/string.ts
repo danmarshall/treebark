@@ -15,8 +15,7 @@ import {
   isVoidTag,
   isTemplate, 
   hasBinding, 
-  parseSchemaObject,
-  sanitizeCommentContent
+  parseSchemaObject 
 } from './common';
 
 export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): string {
@@ -54,15 +53,12 @@ function render(schema: Schema, data: Data): string {
       }
       if (tag === 'comment') {
         return bound.map(item => {
-          const content = sanitizeCommentContent($children.map((c: Schema) => render(c, item)).join(''));
+          const content = $children.map((c: Schema) => render(c, item)).join('').replace(/-->/g, '--&gt;');
           return content ? `<!-- ${content} -->` : `<!-- -->`;
         }).join('');
       }
-      // For array binding, create one element and append all bound children to it
-      const childrenContent = bound.map(item => 
-        $children.map((c: Schema) => render(c, item)).join('')
-      ).join('');
-      return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${childrenContent}</${tag}>`;
+      return `<${tag}${renderAttrs(bindAttrs, data, tag)}>${bound.map(item => 
+        $children.map((c: Schema) => render(c, item)).join('')).join('')}</${tag}>`;
     }
     return render({ [tag]: { ...bindAttrs, $children } }, bound);
   }
@@ -72,17 +68,12 @@ function render(schema: Schema, data: Data): string {
     return `<${tag}${renderAttrs(attrs, data, tag)}>`;
   }
   
-  // Render comment tags with HTML comment syntax
+  // Handle comment tags with HTML comment syntax  
   if (tag === 'comment') {
-    const content = sanitizeCommentContent(children.map((c: Schema) => render(c, data)).join(""));
+    const content = children.map((c: Schema) => render(c, data)).join("").replace(/-->/g, '--&gt;');
     return content ? `<!-- ${content} -->` : `<!-- -->`;
   }
   
-  return renderTag(tag, children, attrs, data);
-}
-
-// Common function to render regular HTML tags
-function renderTag(tag: string, children: Schema[], attrs: Record<string, any>, data: Data): string {
   return `<${tag}${renderAttrs(attrs, data, tag)}>${children.map((c: Schema) => render(c, data)).join("")}</${tag}>`;
 }
 

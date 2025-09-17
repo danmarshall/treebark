@@ -130,10 +130,3 @@ export function parseSchemaObject(schema: { [tag: string]: any }): {
     
   return { tag, rest, children, attrs };
 }
-
-/**
- * Sanitize comment content by replacing --> sequences to prevent comment jailbreaking
- */
-export function sanitizeCommentContent(content: string): string {
-  return content.replace(/-->/g, '--&gt;');
-}

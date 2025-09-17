@@ -7,16 +7,14 @@ import {
   GLOBAL_ATTRS, 
   TAG_SPECIFIC_ATTRS,
   getProperty, 
-  interpolate,
-  escape, 
+  interpolate, 
   validateTag, 
   validateAttribute, 
   validateChildren,
   isVoidTag,
   isTemplate, 
   hasBinding, 
-  parseSchemaObject,
-  sanitizeCommentContent
+  parseSchemaObject 
 } from './common';
 
 export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): DocumentFragment {
@@ -42,19 +40,22 @@ function render(schema: Schema, data: Data): Node | Node[] {
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   validateTag(tag);
   
+  // Handle comment tags specially
+  if (tag === 'comment') {
+    const content = children.map((c: Schema) => {
+      if (typeof c === "string") return interpolate(c, data);
+      // For complex content, render to string and extract text content
+      const tempDiv = document.createElement('div');
+      const nodes = render(c, data);
+      (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => tempDiv.appendChild(n));
+      return tempDiv.innerHTML;
+    }).join("").replace(/-->/g, '--&gt;');
+    return document.createComment(content);
+  }
+  
   // Validate that void tags don't have children
   const hasChildren = children.length > 0;
   validateChildren(tag, hasChildren);
-  
-  // Handle comment tags specially
-  if (tag === 'comment') {
-    const content = sanitizeCommentContent(children.map((c: Schema) => {
-      if (typeof c === "string") return interpolate(c, data);
-      if (Array.isArray(c)) return c.map(s => renderToString(s, data)).join("");
-      return renderToString(c, data);
-    }).join(""));
-    return document.createComment(content);
-  }
   
   const element = document.createElement(tag);
   
@@ -69,18 +70,22 @@ function render(schema: Schema, data: Data): Node | Node[] {
     if (Array.isArray(bound)) {
       if (tag === 'comment') {
         return bound.map(item => {
-          const content = sanitizeCommentContent($children.map((c: Schema) => {
+          const content = $children.map((c: Schema) => {
             if (typeof c === "string") return interpolate(c, item);
-            if (Array.isArray(c)) return c.map(s => renderToString(s, item)).join("");
-            return renderToString(c, item);
-          }).join(""));
+            // For complex content, render to string and extract text content
+            const tempDiv = document.createElement('div');
+            const nodes = render(c, item);
+            (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => tempDiv.appendChild(n));
+            return tempDiv.innerHTML;
+          }).join("").replace(/-->/g, '--&gt;');
           return document.createComment(content);
         });
       }
-      // For array binding, create one element and append all bound children to it
-      const element = document.createElement(tag);
       setAttrs(element, bindAttrs, data, tag);
-      bound.forEach(item => appendChildrenToElement(element, $children, item));
+      bound.forEach(item => $children.forEach((c: Schema) => {
+        const nodes = render(c, item);
+        (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
+      }));
       return element;
     }
     const childNodes = render({ [tag]: { ...bindAttrs, $children } }, bound);
@@ -88,17 +93,12 @@ function render(schema: Schema, data: Data): Node | Node[] {
   }
   
   setAttrs(element, attrs, data, tag);
-  appendChildrenToElement(element, children, data);
-  
-  return element;
-}
-
-// Common function to append children to an element
-function appendChildrenToElement(element: HTMLElement, children: Schema[], data: Data): void {
   children.forEach((c: Schema) => {
     const nodes = render(c, data);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
+  
+  return element;
 }
 
 function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
@@ -106,25 +106,5 @@ function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, 
     validateAttribute(key, tag);
     element.setAttribute(key, interpolate(String(value), data, false));
   });
-}
-
-// Helper function to render schema to string (needed for comment content)
-function renderToString(schema: Schema, data: Data): string {
-  if (typeof schema === "string") return interpolate(schema, data);
-  if (Array.isArray(schema)) return schema.map(s => renderToString(s, data)).join("");
-  
-  const { tag, rest, children, attrs } = parseSchemaObject(schema);
-  
-  if (tag === 'comment') {
-    const content = children.map((c: Schema) => {
-      if (typeof c === "string") return interpolate(c, data);
-      return renderToString(c, data);
-    }).join("");
-    return `<!-- ${content} -->`;
-  }
-  
-  const attrsStr = Object.entries(attrs).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
-  const renderedChildren = children.map((c: Schema) => renderToString(c, data)).join("");
-  return `<${tag}${attrsStr ? ' ' + attrsStr : ''}>${renderedChildren}</${tag}>`;
 }
 
