@@ -22,14 +22,18 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
   return render(schema as Schema, data);
 }
 
-// Helper function to render opening tag with attributes
-function renderOpenTag(tag: string, attrs: Record<string, any>, data: Data): string {
-  return `<${tag}${renderAttrs(attrs, data, tag)}>`;
-}
-
-// Helper function to render complete tag with content
-function renderCompleteTag(tag: string, attrs: Record<string, any>, content: string, data: Data): string {
-  return `${renderOpenTag(tag, attrs, data)}${content}</${tag}>`;
+// Helper function to render tag, deciding internally whether to close or not
+function renderTag(tag: string, attrs: Record<string, any>, data: Data, content?: string): string {
+  const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
+  const isVoid = VOID_TAGS.has(tag);
+  
+  // Void tags are never closed, regardless of content
+  if (isVoid) {
+    return openTag;
+  }
+  
+  // Non-void tags get content (even if empty) and closing tag
+  return `${openTag}${content || ""}</${tag}>`;
 }
 
 function render(schema: Schema, data: Data): string {
@@ -64,14 +68,14 @@ function render(schema: Schema, data: Data): string {
       const content = bound.map(item => 
         $children.map((c: Schema) => render(c, item)).join('')).join('');
       
-      return isVoid ? renderOpenTag(tag, bindAttrs, data) : renderCompleteTag(tag, bindAttrs, content, data);
+      return renderTag(tag, bindAttrs, data, content);
     }
     return render({ [tag]: { ...bindAttrs, $children } }, bound);
   }
   
   // Render void tags without closing tag or complete tags with content
   const content = children.map((c: Schema) => render(c, data)).join("");
-  return isVoid ? renderOpenTag(tag, attrs, data) : renderCompleteTag(tag, attrs, content, data);
+  return renderTag(tag, attrs, data, content);
 }
 
 function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {
