@@ -19,11 +19,16 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
     return renderToString(schema.$template, { data: schema.$data });
   }
   
-  return render(schema as Schema, data);
+  return render(schema as Schema, data, {});
 }
 
 // Helper function to render tag, deciding internally whether to close or not
 function renderTag(tag: string, attrs: Record<string, any>, data: Data, content?: string): string {
+  // Special handling for comment tags
+  if (tag === 'comment') {
+    return `<!--${content || ""}-->`;
+  }
+  
   const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
   const isVoid = VOID_TAGS.has(tag);
   
@@ -36,15 +41,20 @@ function renderTag(tag: string, attrs: Record<string, any>, data: Data, content?
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(schema: Schema, data: Data): string {
+function render(schema: Schema, data: Data, context: { insideComment?: boolean } = {}): string {
   if (typeof schema === "string") return interpolate(schema, data);
-  if (Array.isArray(schema)) return schema.map(s => render(s, data)).join("");
+  if (Array.isArray(schema)) return schema.map(s => render(s, data, context)).join("");
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
     throw new Error(`Tag "${tag}" is not allowed`);
+  }
+  
+  // Prevent nested comments
+  if (tag === 'comment' && context.insideComment) {
+    throw new Error('Nested comments are not allowed');
   }
   
   // Inline validateChildren: Validate that void tags don't have children
@@ -65,16 +75,18 @@ function render(schema: Schema, data: Data): string {
     }
     
     if (Array.isArray(bound)) {
+      const newContext = tag === 'comment' ? { ...context, insideComment: true } : context;
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item)).join('')).join('');
+        $children.map((c: Schema) => render(c, item, newContext)).join('')).join('');
       
       return renderTag(tag, bindAttrs, data, content);
     }
-    return render({ [tag]: { ...bindAttrs, $children } }, bound);
+    return render({ [tag]: { ...bindAttrs, $children } }, bound, context);
   }
   
   // Render void tags without closing tag or complete tags with content
-  const content = children.map((c: Schema) => render(c, data)).join("");
+  const newContext = tag === 'comment' ? { ...context, insideComment: true } : context;
+  const content = children.map((c: Schema) => render(c, data, newContext)).join("");
   return renderTag(tag, attrs, data, content);
 }
 

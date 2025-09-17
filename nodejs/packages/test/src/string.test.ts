@@ -10,6 +10,8 @@ import {
   shorthandArrayTests, 
   voidTagTests, 
   voidTagErrorTests,
+  commentTests,
+  commentErrorTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -245,6 +247,38 @@ describe('String Renderer', () => {
         }
       });
       expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
+    });
+  });
+
+  // Comment tests
+  describe('Comment Rendering', () => {
+    commentTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders basic comment':
+            expect(result).toBe('<!--This is a comment-->');
+            break;
+          case 'renders comment with interpolation':
+            expect(result).toBe('<!--User: Alice-->');
+            break;
+          case 'renders comment containing other tags':
+            expect(result).toBe('<!--Start: <span>highlighted text</span> :End-->');
+            break;
+          case 'renders empty comment':
+            expect(result).toBe('<!---->');
+            break;
+          case 'renders comment with special characters':
+            expect(result).toBe('<!--Special chars: & < > " \'-->');
+            break;
+          case 'safely handles malicious interpolation':
+            expect(result).toBe('<!--User input: evil --&gt; &lt;script&gt;alert(1)&lt;/script&gt;-->');
+            break;
+        }
+      });
+    });
+
+    commentErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
     });
   });
 });
