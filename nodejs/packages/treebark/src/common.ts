@@ -58,30 +58,6 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true): string 
   });
 }
 
-/**
- * Validate that a tag is allowed
- */
-export function validateTag(tag: string): void {
-  if (!ALLOWED_TAGS.has(tag)) {
-    throw new Error(`Tag "${tag}" is not allowed`);
-  }
-}
-
-/**
- * Check if a tag is a void element (cannot have children)
- */
-export function isVoidTag(tag: string): boolean {
-  return VOID_TAGS.has(tag);
-}
-
-/**
- * Validate that children are only provided for container tags
- */
-export function validateChildren(tag: string, hasChildren: boolean): void {
-  if (isVoidTag(tag) && hasChildren) {
-    throw new Error(`Tag "${tag}" is a void element and cannot have children`);
-  }
-}
 
 /**
  * Validate that an attribute is allowed for the given tag
