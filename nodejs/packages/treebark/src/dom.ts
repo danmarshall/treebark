@@ -8,11 +8,12 @@ import {
   validateAttribute, 
   isTemplate, 
   hasBinding, 
-  parseSchemaObject 
+  parseSchemaObject,
+  RenderOptions
 } from './common';
 import { renderToString } from './string';
 
-export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): DocumentFragment {
+export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: RenderOptions = {}): DocumentFragment {
   const data = options.data || {};
   
   if (isTemplate(schema)) {
@@ -74,12 +75,15 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     
     if (Array.isArray(bound)) {
       bound.forEach(item => $children.forEach((c: Schema) => {
-        const nodes = render(c, item, context);
+        const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
       return element;
     }
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } }, bound, context);
+    
+    // For object binding, bound should be a Data object
+    const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
@@ -92,7 +96,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, any>, data: Data, tag: string): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string): void {
   Object.entries(attrs).forEach(([key, value]) => {
     validateAttribute(key, tag);
     element.setAttribute(key, interpolate(String(value), data, false));

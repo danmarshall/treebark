@@ -9,10 +9,11 @@ import {
   validateAttribute, 
   isTemplate, 
   hasBinding, 
-  parseSchemaObject 
+  parseSchemaObject,
+  RenderOptions
 } from './common';
 
-export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): string {
+export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: RenderOptions = {}): string {
   const data = options.data || {};
   
   if (isTemplate(schema)) {
@@ -23,7 +24,7 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, any>, data: Data, content?: string): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string): string {
   // Special handling for comment tags
   if (tag === 'comment') {
     return `<!--${content || ""}-->`;
@@ -77,11 +78,14 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     if (Array.isArray(bound)) {
       const newContext = tag === 'comment' ? { ...context, insideComment: true } : context;
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item, newContext)).join('')).join('');
+        $children.map((c: Schema) => render(c, item as Data, newContext)).join('')).join('');
       
       return renderTag(tag, bindAttrs, data, content);
     }
-    return render({ [tag]: { ...bindAttrs, $children } }, bound, context);
+    
+    // For object binding, bound should be a Data object
+    const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
+    return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
   }
   
   // Render void tags without closing tag or complete tags with content
@@ -90,7 +94,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
   return renderTag(tag, attrs, data, content);
 }
 
-function renderAttrs(attrs: Record<string, any>, data: Data, tag: string): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string): string {
   const pairs = Object.entries(attrs).filter(([key]) => {
     validateAttribute(key, tag);
     return true;
