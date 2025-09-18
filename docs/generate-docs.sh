@@ -20,7 +20,7 @@ cat > "$INDEX_PATH" << 'EOF'
 ---
 layout: default
 title: Home
-description: Safe tree structures for Markdown and content-driven apps
+description: Safe HTML tree structures for Markdown and content-driven apps
 ---
 
 EOF

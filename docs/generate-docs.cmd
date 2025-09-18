@@ -20,7 +20,7 @@ REM Create front matter
 echo ---
 echo layout: default
 echo title: Home
-echo description: Safe tree structures for Markdown and content-driven apps
+echo description: Safe HTML tree structures for Markdown and content-driven apps
 echo ---
 echo.
 ) > "%INDEX_PATH%"
