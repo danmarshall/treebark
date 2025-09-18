@@ -47,7 +47,9 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 { "div": "Hello world" }
 ```  
 
-output: `<div>Hello world</div>`  
+```
+output: <div>Hello world</div>
+```  
 
 ---
 
@@ -70,8 +72,8 @@ output: `<div>Hello world</div>`
 { "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
 ```  
 
-output:  
 ```html
+output:  
 <div class="card">
   <h2>Treebark Demo</h2>
   <p>CMS-driven and data-bound!</p>
@@ -99,7 +101,9 @@ For nodes without attributes, you can use a shorthand array syntax instead of `$
 }
 ```  
 
-output: `<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>`
+```
+output: <div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+```
 
 This is equivalent to:
 
@@ -149,8 +153,8 @@ This is equivalent to:
 }
 ```  
 
-output:  
 ```html
+output:  
 <ul>
   <li>Laptop — $999</li>
   <li>Phone — $499</li>
@@ -179,8 +183,8 @@ output:
 }
 ```  
 
-output:
 ```html
+output:
 <div class="product-card">
   <h2>Laptop</h2>
   <p>Only $999!</p>
@@ -203,7 +207,9 @@ output:
 }
 ```  
 
-output: `<div>Hello <span>World</span>!</div>`  
+```
+output: <div>Hello <span>World</span>!</div>
+```  
 
 ---
 
@@ -250,7 +256,7 @@ Other language implementations are not yet available. If you need treebark suppo
 
 ## 🚀 Getting Started  
 
-### Core Library
+### Node.js
 
 ```bash
 npm install treebark
