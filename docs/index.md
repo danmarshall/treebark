@@ -49,7 +49,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### Hello World  
 
-```json treebark
+```json
 { "div": "Hello world" }
 ```  
 
@@ -59,7 +59,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### Bound to an Object  
 
-```json treebark
+```json
 {
   "div": {
     "class": "card",
@@ -90,7 +90,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
-```json treebark
+```json
 {
   "div": [
     { "h2": "Welcome" },
@@ -109,7 +109,7 @@ For nodes without attributes, you can use a shorthand array syntax instead of `$
 
 This is equivalent to:
 
-```json treebark
+```json
 {
   "div": {
     "$children": [
@@ -134,7 +134,7 @@ This is equivalent to:
 
 ### Bound to an Array  
 
-```json treebark
+```json
 {
   "ul": {
     "$bind": "products",
@@ -167,7 +167,7 @@ This is equivalent to:
 
 ### Self-Contained Block  
 
-```json treebark
+```json
 {
   "$template": {
     "div": {
@@ -197,7 +197,7 @@ This is equivalent to:
 
 ### Mixed Content  
 
-```json treebark
+```json
 {
   "div": {
     "$children": [
@@ -218,7 +218,7 @@ This is equivalent to:
 When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
 
 **JSON Format:**
-```json treebark
+```json
 {
   "ul": {
     "$bind": "products",
@@ -230,7 +230,7 @@ When using the js-yaml library, you can write much cleaner YAML syntax. Here's t
 ```
 
 **YAML Format (Much Cleaner!):**
-```yaml treebark
+```yaml
 ul:
   $bind: products
   $children:
