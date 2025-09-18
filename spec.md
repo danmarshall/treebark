@@ -119,10 +119,48 @@ Allowed tags:
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`  
+`a`, `img`, `comment`  
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
 `form`, `input`, `button`, `select`,  
 `video`, `audio`,  
-`style`, `link`, `meta`, `base`  
+`style`, `link`, `meta`, `base`
+
+---
+
+## 9. Comments
+
+HTML comments are generated using the `comment` tag:
+
+```yaml
+comment: "This is a comment"
+```
+
+→ `<!--This is a comment-->`
+
+**Features:**
+- Support interpolation: `comment: "Generated on {{date}}"`
+- Support mixed content with `$children`
+- Cannot be nested (attempting to place a `comment` inside another `comment` throws an error)
+
+**Examples:**
+
+Basic comment:
+```yaml
+comment: "This is a comment"
+```
+
+Comment with interpolation:
+```yaml
+comment: "User: {{name}}"
+```
+
+Comment with mixed content:
+```yaml
+comment:
+  $children:
+    - "Start: "
+    - span: "highlighted text"
+    - " :End"
+```  
