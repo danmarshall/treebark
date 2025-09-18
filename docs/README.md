@@ -8,13 +8,13 @@ To generate the documentation:
 
 ```bash
 # From the docs directory
-node generate-docs.js
+./generate-docs.sh        # Unix/Linux/macOS
+generate-docs.cmd         # Windows
 ```
 
-Or on Windows:
-```cmd
-generate-docs.cmd
-```
+## Language-Agnostic Design
+
+The generation scripts use simple shell commands (concatenation) that work across all platforms and don't require any specific programming language runtime. This allows developers from any language ecosystem (Python, Go, Rust, etc.) to easily update the documentation.
 
 ## Jekyll Development
 
@@ -30,13 +30,13 @@ The site will be available at `http://localhost:4000/treebark/`
 
 ## How It Works
 
-The `generate-docs.js` script:
+The generation scripts:
 
-1. Reads the main `README.md` from the repository root (one level up)
-2. Prepends Jekyll front matter for proper layout and metadata
-3. Outputs the combined content to `index.md` in the current directory
+1. Read the main `README.md` from the repository root (one level up)
+2. Prepend Jekyll front matter for proper layout and metadata
+3. Output the combined content to `index.md` in the current directory
 
-This ensures the documentation site always reflects the latest README content while maintaining proper Jekyll formatting.
+This uses simple file concatenation available in all shell environments.
 
 ## Files
 
@@ -44,8 +44,8 @@ This ensures the documentation site always reflects the latest README content wh
 - `_layouts/default.html` - Main page layout with Treebark branding
 - `Gemfile` - Ruby dependencies for Jekyll
 - `index.md` - Generated from README.md (don't edit directly)
-- `generate-docs.js` - Cross-platform Node.js script to generate documentation
-- `generate-docs.cmd` - Windows batch wrapper (optional)
+- `generate-docs.sh` - Unix/Linux/macOS shell script
+- `generate-docs.cmd` - Windows batch script
 
 ## GitHub Pages
 
