@@ -86,7 +86,6 @@ md.use(treebarkPlugin, {
   allowJson: false 
 });
 ```
-```
 
 ### Format Support
 
