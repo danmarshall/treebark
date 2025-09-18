@@ -1,0 +1,10 @@
+services:
+  jekyll:
+    build:
+      context: ..
+      dockerfile: docker-jekyll-local/Dockerfile
+    ports:
+      - "4001:4001"
+    volumes:
+      - ../docs:/srv/jekyll
+    command: bundle exec jekyll serve --host 0.0.0.0 --port 4001 --force_polling
