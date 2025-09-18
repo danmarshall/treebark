@@ -355,6 +355,60 @@ export const voidTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
+// Comment test cases
+export const commentTests: TestCase[] = [
+  {
+    name: 'renders basic comment',
+    input: { comment: 'This is a comment' }
+  },
+  {
+    name: 'renders comment with interpolation',
+    input: { comment: 'User: {{name}}' },
+    options: { data: { name: 'Alice' } }
+  },
+  {
+    name: 'renders comment containing other tags',
+    input: {
+      comment: {
+        $children: [
+          'Start: ',
+          { span: 'highlighted text' },
+          ' :End'
+        ]
+      }
+    }
+  },
+  {
+    name: 'renders empty comment',
+    input: { comment: '' }
+  },
+  {
+    name: 'renders comment with special characters',
+    input: { comment: 'Special chars: & < > " \'' }
+  },
+  {
+    name: 'safely handles malicious interpolation',
+    input: { comment: 'User input: {{input}}' },
+    options: { data: { input: 'evil --> <script>alert(1)</script>' } }
+  }
+];
+
+export const commentErrorTests: ErrorTestCase[] = [
+  {
+    name: 'prevents nested comments',
+    input: {
+      comment: {
+        $children: [
+          'Outer comment with ',
+          { comment: 'nested comment' },
+          ' inside'
+        ]
+      }
+    },
+    expectedError: 'Nested comments are not allowed'
+  }
+];
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {

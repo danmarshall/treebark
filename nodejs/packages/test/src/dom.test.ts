@@ -13,6 +13,8 @@ import {
   shorthandArrayTests, 
   voidTagTests, 
   voidTagErrorTests,
+  commentTests,
+  commentErrorTests,
   createTest,
   createErrorTest,
   TestCase 
@@ -316,6 +318,50 @@ describe('DOM Renderer', () => {
       expect((div.children[1] as HTMLImageElement).tagName).toBe('IMG');
       expect((div.children[0] as HTMLImageElement).alt).toBe('First');
       expect((div.children[1] as HTMLImageElement).alt).toBe('Second');
+    });
+  });
+
+  // Comment tests
+  describe('Comment Rendering', () => {
+    commentTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        switch (tc.name) {
+          case 'renders basic comment':
+            const basicComment = fragment.firstChild as Comment;
+            expect(basicComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(basicComment.textContent).toBe('This is a comment');
+            break;
+          case 'renders comment with interpolation':
+            const interpolatedComment = fragment.firstChild as Comment;
+            expect(interpolatedComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(interpolatedComment.textContent).toBe('User: Alice');
+            break;
+          case 'renders comment containing other tags':
+            const tagComment = fragment.firstChild as Comment;
+            expect(tagComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(tagComment.textContent).toBe('Start: <span>highlighted text</span> :End');
+            break;
+          case 'renders empty comment':
+            const emptyComment = fragment.firstChild as Comment;
+            expect(emptyComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(emptyComment.textContent).toBe('');
+            break;
+          case 'renders comment with special characters':
+            const specialComment = fragment.firstChild as Comment;
+            expect(specialComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(specialComment.textContent).toBe('Special chars: & < > " \'');
+            break;
+          case 'safely handles malicious interpolation':
+            const secureComment = fragment.firstChild as Comment;
+            expect(secureComment.nodeType).toBe(Node.COMMENT_NODE);
+            expect(secureComment.textContent).toBe('User input: evil --&gt; &lt;script&gt;alert(1)&lt;/script&gt;');
+            break;
+        }
+      });
+    });
+
+    commentErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToDOM);
     });
   });
 });

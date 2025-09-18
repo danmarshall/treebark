@@ -8,7 +8,8 @@ export const CONTAINER_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a'
+  'a',
+  'comment'
 ]);
 
 // Void tags that cannot have children and are self-closing
