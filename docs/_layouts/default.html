@@ -7,7 +7,6 @@
     <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
     
     <!-- GitHub Pages default CSS -->
-    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     
     <!-- Custom styles -->
     <style>
@@ -17,7 +16,7 @@
             color: #333;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 0 2rem;
         }
         
         .header {
@@ -39,7 +38,6 @@
         .header h1 {
             font-size: 1.5rem;
             margin: 0;
-            color: #007acc;
         }
         
         .header .tagline {
@@ -121,7 +119,7 @@
             color: #666;
             font-size: 0.9rem;
         }
-        
+
         /* Responsive design for smaller screens */
         @media (max-width: 768px) {
             .header {
@@ -147,7 +145,7 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <h1>🌳 {{ site.title }}</h1>
+            <h1>🌳 Treebark</h1>
             <span class="tagline">{{ site.description }}</span>
         </div>
         <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
