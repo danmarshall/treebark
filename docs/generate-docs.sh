@@ -25,8 +25,9 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 
 EOF
 
-# Append README content
-cat "$README_PATH" >> "$INDEX_PATH"
+# Append README content with handlebars escaped for Jekyll
+# Use sed to wrap {{...}} with {% raw %}...{% endraw %} to prevent Jekyll processing
+sed 's/{{/{% raw %}{{/g; s/}}/}}{% endraw %}/g' "$README_PATH" >> "$INDEX_PATH"
 
 echo "✅ Successfully generated docs/index.md"
 echo "📄 Combined front matter with README.md"

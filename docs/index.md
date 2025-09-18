@@ -64,8 +64,8 @@ output: `<div>Hello world</div>`
   "div": {
     "class": "card",
     "$children": [
-      { "h2": "{{title}}" },
-      { "p": "{{description}}" }
+      { "h2": "{% raw %}{{title}}{% endraw %}" },
+      { "p": "{% raw %}{{description}}{% endraw %}" }
     ]
   }
 }
@@ -139,7 +139,7 @@ This is equivalent to:
   "ul": {
     "$bind": "products",
     "$children": [
-      { "li": "{{name}} — {{price}}" }
+      { "li": "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}" }
     ]
   }
 }
@@ -173,8 +173,8 @@ output:
     "div": {
       "class": "product-card",
       "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Only {{price}}!" }
+        { "h2": "{% raw %}{{name}}{% endraw %}" },
+        { "p": "Only {% raw %}{{price}}{% endraw %}!" }
       ]
     }
   },
@@ -223,7 +223,7 @@ When using the js-yaml library, you can write much cleaner YAML syntax. Here's t
   "ul": {
     "$bind": "products",
     "$children": [
-      { "li": "{{name}} — {{price}}" }
+      { "li": "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}" }
     ]
   }
 }
@@ -234,7 +234,7 @@ When using the js-yaml library, you can write much cleaner YAML syntax. Here's t
 ul:
   $bind: products
   $children:
-    - li: "{{name}} — {{price}}"
+    - li: "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}"
 ```
 
 ---
@@ -269,7 +269,7 @@ const schema = {
   ul: {
     $bind: "products",
     $children: [
-      { li: "{{name}} — {{price}}" }
+      { li: "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}" }
     ]
   }
 };

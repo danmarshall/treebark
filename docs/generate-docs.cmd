@@ -25,8 +25,9 @@ echo ---
 echo.
 ) > "%INDEX_PATH%"
 
-REM Append README content
-type "%README_PATH%" >> "%INDEX_PATH%"
+REM Append README content with handlebars escaped for Jekyll
+REM Use PowerShell to wrap {{...}} with {% raw %}...{% endraw %} to prevent Jekyll processing
+powershell -Command "(Get-Content '%README_PATH%') -replace '{{', '{%% raw %%}{{' -replace '}}', '}}{%% endraw %%}' | Add-Content '%INDEX_PATH%'"
 
 echo ✅ Successfully generated docs/index.md
 echo 📄 Combined front matter with README.md
