@@ -299,12 +299,6 @@ Treebark ships with a strict whitelist:
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
   - `blockquote`: `cite`  
 
-- **Blocked by default:**  
-  `script`, `iframe`, `embed`, `object`, `applet`,  
-  `form`, `input`, `button`, `select`,  
-  `video`, `audio`,  
-  `style`, `link`, `meta`, `base`  
-
 ---
 
 ## 📛 Name Origin
