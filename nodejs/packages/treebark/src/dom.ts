@@ -10,6 +10,7 @@ import {
   hasBinding, 
   parseSchemaObject 
 } from './common';
+import { renderToString } from './string';
 
 export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: any = {}): DocumentFragment {
   const data = options.data || {};
@@ -52,23 +53,10 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
   
   // Special handling for comment tags
   if (tag === 'comment') {
-    const newContext = { ...context, insideComment: true };
-    const childNodes = children.flatMap(c => {
-      const nodes = render(c, data, newContext);
-      return Array.isArray(nodes) ? nodes : [nodes];
-    });
-    
-    // Create comment content by collecting all text content from child nodes
-    let commentText = '';
-    childNodes.forEach(node => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        commentText += node.textContent || '';
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        commentText += (node as Element).outerHTML;
-      }
-    });
-    
-    return document.createComment(commentText);
+    // Use string renderer and extract content between <!-- and -->
+    const stringResult = renderToString(schema, { data });
+    const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
+    return document.createComment(commentContent);
   }
   
   const element = document.createElement(tag);
