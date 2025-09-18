@@ -1,0 +1,34 @@
+# Site configuration for Treebark documentation
+title: "Treebark"
+description: "Safe tree structures for Markdown and content-driven apps"
+url: "https://danmarshall.github.io"
+baseurl: "/treebark"
+
+# GitHub repository
+repository: "danmarshall/treebark"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - LICENSE
+  - nodejs/
+  - spec.md
+  - .gitignore
+  - .git/
+
+# Plugins
+plugins:
+  - jekyll-github-metadata
+  - jekyll-feed
+
+# Default front matter
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
