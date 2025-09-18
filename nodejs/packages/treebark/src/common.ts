@@ -1,6 +1,27 @@
 // Common types, constants, and utilities shared between string and DOM renderers
-export type Schema = string | Schema[] | { [tag: string]: any };
-export type Data = Record<string, any>;
+export type Schema = string | Schema[] | { [tag: string]: unknown };
+export type Data = Record<string, unknown>;
+
+// Options for rendering functions
+export interface RenderOptions {
+  data?: Data;
+}
+
+// Type for schema objects with tag as key
+export type SchemaObject = { [tag: string]: unknown };
+
+// Type for objects with binding structure
+export interface BindingObject {
+  $bind: string;
+  $children?: Schema[];
+  [key: string]: unknown;
+}
+
+// Type for template structure
+export interface TemplateObject {
+  $template: Schema;
+  $data: Data;
+}
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([
@@ -36,8 +57,8 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 /**
  * Get a nested property from an object using dot notation
  */
-export function getProperty(obj: any, path: string): any {
-  return path.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
+export function getProperty(obj: unknown, path: string): unknown {
+  return path.split('.').reduce((o, k) => (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), obj);
 }
 
 /**
@@ -79,30 +100,30 @@ export function validateAttribute(key: string, tag: string): void {
 /**
  * Check if a schema object has a template structure
  */
-export function isTemplate(schema: any): schema is { $template: Schema; $data: Data } {
-  return schema && typeof schema === 'object' && '$template' in schema;
+export function isTemplate(schema: unknown): schema is TemplateObject {
+  return schema !== null && typeof schema === 'object' && '$template' in schema;
 }
 
 /**
  * Check if a schema object has a binding structure
  */
-export function hasBinding(rest: any): rest is { $bind: string; $children?: Schema[]; [key: string]: any } {
-  return rest && typeof rest === 'object' && '$bind' in rest;
+export function hasBinding(rest: unknown): rest is BindingObject {
+  return rest !== null && typeof rest === 'object' && '$bind' in rest;
 }
 
 /**
  * Parse schema object structure to extract tag, attributes, and children
  */
-export function parseSchemaObject(schema: { [tag: string]: any }): {
+export function parseSchemaObject(schema: SchemaObject): {
   tag: string;
-  rest: any;
+  rest: unknown;
   children: Schema[];
-  attrs: Record<string, any>;
+  attrs: Record<string, unknown>;
 } {
   const [tag, rest] = Object.entries(schema)[0];
   
-  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
-  const attrs = rest && typeof rest === "object" && !Array.isArray(rest) 
+  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest && typeof rest === 'object' && rest !== null && '$children' in rest ? (rest as { $children?: Schema[] }).$children || [] : []);
+  const attrs = rest && typeof rest === "object" && rest !== null && !Array.isArray(rest) 
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
     
   return { tag, rest, children, attrs };
