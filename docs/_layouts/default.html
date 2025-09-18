@@ -78,7 +78,8 @@
             font-family: 'Monaco', 'Courier New', monospace;
         }
         
-        pre {
+        /* Basic pre elements (not inside highlight containers) */
+        pre:not(.highlight) {
             background: #f8f8f8;
             padding: 1rem;
             border-radius: 4px;
@@ -86,12 +87,22 @@
             border-left: 4px solid #007acc;
         }
         
+        /* Jekyll syntax highlighting containers */
         .highlight {
             background: #f8f8f8;
             padding: 1rem;
             border-radius: 4px;
             overflow-x: auto;
             border-left: 4px solid #007acc;
+        }
+        
+        /* Remove styling from pre inside highlight to avoid conflicts */
+        .highlight pre {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            border-left: none;
+            margin: 0;
         }
         
         blockquote {
