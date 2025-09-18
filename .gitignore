@@ -144,3 +144,7 @@ docs/.sass-cache/
 docs/.jekyll-cache/
 docs/.jekyll-metadata
 docs/Gemfile.lock
+
+# Documentation generation scripts (can be ignored)
+docs/generate-docs.js
+docs/generate-docs.cmd

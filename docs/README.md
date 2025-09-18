@@ -7,20 +7,13 @@ This directory contains the Jekyll-based documentation site for Treebark.
 To generate the documentation:
 
 ```bash
-# From the repository root
-npm run docs:generate
+# From the docs directory
+node generate-docs.js
 ```
 
-Or directly:
-```bash
-# Unix/Linux/macOS
-./generate-docs.js
-
-# Windows
+Or on Windows:
+```cmd
 generate-docs.cmd
-
-# Or using Node directly
-node generate-docs.js
 ```
 
 ## Jekyll Development
@@ -39,9 +32,9 @@ The site will be available at `http://localhost:4000/treebark/`
 
 The `generate-docs.js` script:
 
-1. Reads the main `README.md` from the repository root
+1. Reads the main `README.md` from the repository root (one level up)
 2. Prepends Jekyll front matter for proper layout and metadata
-3. Outputs the combined content to `docs/index.md`
+3. Outputs the combined content to `index.md` in the current directory
 
 This ensures the documentation site always reflects the latest README content while maintaining proper Jekyll formatting.
 
@@ -51,6 +44,8 @@ This ensures the documentation site always reflects the latest README content wh
 - `_layouts/default.html` - Main page layout with Treebark branding
 - `Gemfile` - Ruby dependencies for Jekyll
 - `index.md` - Generated from README.md (don't edit directly)
+- `generate-docs.js` - Cross-platform Node.js script to generate documentation
+- `generate-docs.cmd` - Windows batch wrapper (optional)
 
 ## GitHub Pages
 
