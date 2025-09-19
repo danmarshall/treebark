@@ -47,7 +47,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 { "div": "Hello world" }
 ```  
 
-**output:**
+**Output:**
 ```
 <div>Hello world</div>
 ```  
@@ -73,7 +73,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 { "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
 ```  
 
-**output:**  
+**Output:**  
 ```html
 <div class="card">
   <h2>Treebark Demo</h2>
@@ -102,7 +102,7 @@ For nodes without attributes, you can use a shorthand array syntax instead of `$
 }
 ```  
 
-**output:**
+**Output:**
 ```
 <div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
 ```
@@ -155,7 +155,7 @@ This is equivalent to:
 }
 ```  
 
-**output:**  
+**Output:**  
 ```html
 <ul>
   <li>Laptop — $999</li>
@@ -185,7 +185,7 @@ This is equivalent to:
 }
 ```  
 
-**output:**
+**Output:**
 ```html
 <div class="product-card">
   <h2>Laptop</h2>
@@ -209,7 +209,7 @@ This is equivalent to:
 }
 ```  
 
-**output:**
+**Output:**
 ```
 <div>Hello <span>World</span>!</div>
 ```  
