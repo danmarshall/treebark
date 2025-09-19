@@ -1,7 +1,6 @@
 {
   "name": "treebark-workspace",
   "version": "1.0.0",
-  "description": "Safe tree structures for Markdown and content-driven apps",
   "private": true,
   "workspaces": [
     "packages/*"
