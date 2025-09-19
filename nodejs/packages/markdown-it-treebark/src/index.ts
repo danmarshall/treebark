@@ -24,13 +24,22 @@ export interface TreebarkPluginOptions {
   yaml?: {
     load: (content: string) => any;
   };
+  
+  /**
+   * Optional indentation for HTML output
+   * - true: use 2 spaces (default)
+   * - number: use that many spaces
+   * - string: use the string as indentation (e.g., '\t' for tabs)
+   * - false/undefined: no indentation (default)
+   */
+  indent?: string | number | boolean;
 }
 
 /**
  * Markdown-it plugin for rendering treebark templates
  */
 export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOptions = {}) {
-  const { data = {}, allowJson = true, allowYaml = true, yaml } = options;
+  const { data = {}, allowJson = true, allowYaml = true, yaml, indent } = options;
 
   // Validate yaml dependency when YAML is enabled
   if (allowYaml && !yaml) {
@@ -47,7 +56,7 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, allowYaml, allowJson, yaml);
+        return renderTreebarkBlock(token.content, data, allowYaml, allowJson, yaml, indent);
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -68,7 +77,8 @@ function renderTreebarkBlock(
   defaultData: Record<string, any>, 
   allowYaml: boolean, 
   allowJson: boolean,
-  yaml?: { load: (content: string) => any }
+  yaml?: { load: (content: string) => any },
+  indent?: string | number | boolean
 ): string {
   let schema: any;
   let yamlError: Error | null = null;
@@ -119,7 +129,7 @@ function renderTreebarkBlock(
   }
   
   // Render using treebark
-  return renderToString(schema, { data: defaultData });
+  return renderToString(schema, { data: defaultData, indent });
 }
 
 /**
