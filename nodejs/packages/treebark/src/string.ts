@@ -17,10 +17,77 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
   const data = options.data || {};
   
   if (isTemplate(schema)) {
-    return renderToString(schema.$template, { data: schema.$data });
+    return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
   }
   
-  return render(schema as Schema, data, {});
+  // Process indent option
+  let indentStr = '';
+  if (options.indent) {
+    if (typeof options.indent === 'number') {
+      indentStr = ' '.repeat(options.indent);
+    } else if (typeof options.indent === 'string') {
+      indentStr = options.indent;
+    } else if (options.indent === true) {
+      indentStr = '  '; // Default to 2 spaces
+    }
+  }
+  
+  const result = render(schema as Schema, data, { indentStr });
+  return indentStr ? addIndentation(result, indentStr) : result;
+}
+
+// Helper function to add proper indentation to HTML
+function addIndentation(html: string, indentStr: string): string {
+  if (!html.includes('<')) return html;
+  
+  // Split by tags while preserving the tags
+  const parts = html.split(/(<[^>]+>)/);
+  const result: string[] = [];
+  let depth = 0;
+  let lastWasTag = false;
+  
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    if (!part) continue;
+    
+    if (part.startsWith('<')) {
+      // This is a tag
+      if (part.startsWith('</')) {
+        // Closing tag
+        depth--;
+        if (lastWasTag) {
+          result.push('\n' + indentStr.repeat(depth) + part);
+        } else {
+          result.push(part);
+        }
+      } else if (part.endsWith('/>') || VOID_TAGS.has(part.match(/<(\w+)/)?.[1] || '')) {
+        // Self-closing or void tag
+        if (lastWasTag) {
+          result.push('\n' + indentStr.repeat(depth) + part);
+        } else {
+          result.push(part);
+        }
+      } else {
+        // Opening tag
+        if (lastWasTag) {
+          result.push('\n' + indentStr.repeat(depth) + part);
+        } else {
+          result.push(part);
+        }
+        depth++;
+      }
+      lastWasTag = true;
+    } else {
+      // This is text content
+      const trimmed = part.trim();
+      if (trimmed) {
+        result.push(trimmed);
+        lastWasTag = false;
+      }
+    }
+  }
+  
+  return result.join('').replace(/^\n/, ''); // Remove leading newline
 }
 
 // Helper function to render tag, deciding internally whether to close or not
@@ -42,7 +109,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(schema: Schema, data: Data, context: { insideComment?: boolean } = {}): string {
+function render(schema: Schema, data: Data, context: { insideComment?: boolean; indentStr?: string } = {}): string {
   if (typeof schema === "string") return interpolate(schema, data);
   if (Array.isArray(schema)) return schema.map(s => render(s, data, context)).join("");
   
