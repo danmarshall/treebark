@@ -20,20 +20,18 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
     return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
   }
   
-  const html = render(schema as Schema, data, {});
-  
-  // Ultra-simple indentation - just break at tags and add basic indenting  
+  // Pass indent parameters to render function
   if (options.indent) {
-    const indent = typeof options.indent === 'number' ? ' '.repeat(options.indent) :
-                   typeof options.indent === 'string' ? options.indent : '  ';
-    return html.replace(/><(?!\/)/g, '>\n' + indent + '<').replace(/><\//g, '>\n</');
+    const indentStr = typeof options.indent === 'number' ? ' '.repeat(options.indent) :
+                      typeof options.indent === 'string' ? options.indent : '  ';
+    return render(schema as Schema, data, { indentStr, level: 0 });
   }
   
-  return html;
+  return render(schema as Schema, data, {});
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string, indentStr?: string, level?: number): string {
   // Special handling for comment tags
   if (tag === 'comment') {
     return `<!--${content || ""}-->`;
@@ -47,13 +45,21 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
     return openTag;
   }
   
+  // Apply indentation if enabled and content has child elements
+  if (indentStr && content && content.includes('<')) {
+    const currentIndent = indentStr.repeat(level || 0);
+    return `${openTag}\n${content}\n${currentIndent}</${tag}>`;
+  }
+  
   // Non-void tags get content (even if empty) and closing tag
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(schema: Schema, data: Data, context: { insideComment?: boolean } = {}): string {
+function render(schema: Schema, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
   if (typeof schema === "string") return interpolate(schema, data);
-  if (Array.isArray(schema)) return schema.map(s => render(s, data, context)).join("");
+  if (Array.isArray(schema)) {
+    return schema.map(s => render(s, data, context)).join(context.indentStr ? '\n' : '');
+  }
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
   
@@ -74,6 +80,13 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     throw new Error(`Tag "${tag}" is a void element and cannot have children`);
   }
   
+  // Prepare child context with incremented level
+  const childContext = { 
+    ...context, 
+    insideComment: tag === 'comment' || context.insideComment,
+    level: (context.level || 0) + 1
+  };
+  
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
@@ -85,11 +98,11 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     }
     
     if (Array.isArray(bound)) {
-      const newContext = tag === 'comment' ? { ...context, insideComment: true } : context;
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item as Data, newContext)).join('')).join('');
+        $children.map((c: Schema) => render(c, item as Data, childContext)).join(context.indentStr ? '\n' : '')
+      ).join(context.indentStr ? '\n' : '');
       
-      return renderTag(tag, bindAttrs, data, content);
+      return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
     }
     
     // For object binding, bound should be a Data object
@@ -97,10 +110,17 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
   }
   
-  // Render void tags without closing tag or complete tags with content
-  const newContext = tag === 'comment' ? { ...context, insideComment: true } : context;
-  const content = children.map((c: Schema) => render(c, data, newContext)).join("");
-  return renderTag(tag, attrs, data, content);
+  // Render children with indentation
+  const content = children.map((c: Schema) => {
+    const result = render(c, data, childContext);
+    // Add indentation to child tags
+    if (context.indentStr && result.startsWith('<')) {
+      return context.indentStr.repeat(childContext.level) + result;
+    }
+    return result;
+  }).join(context.indentStr ? '\n' : '');
+  
+  return renderTag(tag, attrs, data, content, context.indentStr, context.level);
 }
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string): string {
