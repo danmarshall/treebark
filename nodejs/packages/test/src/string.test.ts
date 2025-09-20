@@ -426,5 +426,57 @@ describe('String Renderer', () => {
       const result = renderToString(schema, { indent: true });
       expect(result).toBe('<div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div>');
     });
+
+    test('renders comment surrounding nested content', () => {
+      const schema = {
+        comment: {
+          $children: [
+            'Before content',
+            {
+              div: {
+                $children: [
+                  { h1: 'Nested Title' },
+                  { p: 'Nested paragraph' }
+                ]
+              }
+            },
+            'After content'
+          ]
+        }
+      };
+      const result = renderToString(schema, { indent: true });
+      expect(result).toBe('<!--Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content-->');
+    });
+
+    test('renders complex nested structure with comments at multiple levels', () => {
+      const schema = {
+        div: {
+          class: 'container',
+          $children: [
+            { comment: 'Container start' },
+            {
+              section: {
+                $children: [
+                  { comment: 'Section content' },
+                  {
+                    article: {
+                      $children: [
+                        { comment: 'Article metadata' },
+                        { h1: 'Title' },
+                        { p: 'Content' },
+                        { comment: 'Article end' }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            { comment: 'Container end' }
+          ]
+        }
+      };
+      const result = renderToString(schema, { indent: true });
+      expect(result).toBe('<div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div>');
+    });
   });
 });
