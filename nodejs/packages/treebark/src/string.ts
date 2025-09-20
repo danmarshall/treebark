@@ -20,14 +20,14 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
     return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
   }
   
-  // Pass indent parameters to render function
-  if (options.indent) {
-    const indentStr = typeof options.indent === 'number' ? ' '.repeat(options.indent) :
-                      typeof options.indent === 'string' ? options.indent : '  ';
-    return render(schema as Schema, data, { indentStr, level: 0 });
-  }
+  // Conditionally set indent context
+  const context = options.indent ? {
+    indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
+               typeof options.indent === 'string' ? options.indent : '  ',
+    level: 0
+  } : {};
   
-  return render(schema as Schema, data, {});
+  return render(schema as Schema, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
