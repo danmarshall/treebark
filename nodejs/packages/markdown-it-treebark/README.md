@@ -64,7 +64,13 @@ md.use(treebarkPlugin, {
   
   // Format support (both default to true)
   allowYaml: true,  // Enable YAML parsing
-  allowJson: true   // Enable JSON parsing
+  allowJson: true,  // Enable JSON parsing
+  
+  // HTML output indentation (optional)
+  indent: true      // Enable indentation with 2 spaces (default)
+  // indent: 4      // Use 4 spaces for indentation
+  // indent: '\t'   // Use tabs for indentation
+  // indent: false  // No indentation (default)
 });
 ```
 
@@ -113,6 +119,37 @@ md.use(treebarkPlugin, { allowJson: true });
 **Parsing Strategy**: When both formats are enabled, the plugin tries YAML first, then falls back to JSON. This provides maximum compatibility while maintaining performance.
 
 **Future Considerations**: In future versions, YAML dependency could be made optional for JSON-only workflows, reducing bundle size for applications that only need JSON support.
+
+### HTML Indentation
+
+By default, treebark outputs HTML on a single line for compact output. You can enable indentation for more readable HTML:
+
+```javascript
+// Enable indentation with 2 spaces (default)
+md.use(treebarkPlugin, { indent: true });
+
+// Custom number of spaces
+md.use(treebarkPlugin, { indent: 4 });
+
+// Use tabs for indentation
+md.use(treebarkPlugin, { indent: '\t' });
+
+// No indentation (default)
+md.use(treebarkPlugin, { indent: false });
+```
+
+**Without indentation** (default):
+```html
+<div class="card"><h2>Product Card</h2><p>A simple card component</p></div>
+```
+
+**With indentation** (indent: true):
+```html
+<div class="card">
+  <h2>Product Card</h2>
+  <p>A simple card component</p>
+</div>
+```
 
 ## Examples
 

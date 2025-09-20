@@ -16,6 +16,7 @@ export type Schema = string | Schema[] | SchemaObject;
 // Options interface for render functions
 export interface RenderOptions {
   data?: Data;
+  indent?: string | number | boolean;
 }
 
 // Container tags that can have children and require closing tags

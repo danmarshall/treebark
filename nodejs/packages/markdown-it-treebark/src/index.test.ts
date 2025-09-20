@@ -350,4 +350,51 @@ plain code block
       expect(result).not.toContain('treebark-error');
     });
   });
+
+  describe('Indent functionality', () => {
+    it('should render with indentation when indent option is provided', () => {
+      const mdWithIndent = new MarkdownIt();
+      mdWithIndent.use(treebarkPlugin, { yaml, indent: true });
+
+      const markdown = `
+\`\`\`treebark
+div:
+  class: card
+  $children:
+    - h2: "Product Card"
+    - p: "A simple card component"
+\`\`\`
+`;
+      const result = mdWithIndent.render(markdown);
+      expect(result).toContain('<div class="card">\n  <h2>Product Card</h2>\n  <p>A simple card component</p>\n</div>');
+    });
+
+    it('should render with custom indentation', () => {
+      const mdWithCustomIndent = new MarkdownIt();
+      mdWithCustomIndent.use(treebarkPlugin, { yaml, indent: 4 });
+
+      const markdown = `
+\`\`\`treebark
+div:
+  $children:
+    - h1: "Header"
+\`\`\`
+`;
+      const result = mdWithCustomIndent.render(markdown);
+      expect(result).toContain('<div>\n    <h1>Header</h1>\n</div>');
+    });
+
+    it('should render without indentation by default', () => {
+      const markdown = `
+\`\`\`treebark
+div:
+  class: card
+  $children:
+    - h2: "Product Card"
+\`\`\`
+`;
+      const result = md.render(markdown);
+      expect(result).toContain('<div class="card"><h2>Product Card</h2></div>');
+    });
+  });
 });
