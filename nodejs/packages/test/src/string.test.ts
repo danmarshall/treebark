@@ -280,6 +280,40 @@ describe('String Renderer', () => {
     commentErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToString);
     });
+
+    test('renders comments with indentation', () => {
+      const schema = {
+        div: {
+          $children: [
+            { comment: 'Start of content' },
+            { h1: 'Title' },
+            { comment: 'End of content' }
+          ]
+        }
+      };
+      const result = renderToString(schema, { indent: true });
+      expect(result).toBe('<div>\n  <!--Start of content-->\n  <h1>Title</h1>\n  <!--End of content-->\n</div>');
+    });
+
+    test('renders nested comments with proper indentation', () => {
+      const schema = {
+        div: {
+          $children: [
+            { comment: 'Outer comment' },
+            {
+              section: {
+                $children: [
+                  { comment: 'Inner comment' },
+                  { p: 'Content' }
+                ]
+              }
+            }
+          ]
+        }
+      };
+      const result = renderToString(schema, { indent: true });
+      expect(result).toBe('<div>\n  <!--Outer comment-->\n  <section>\n    <!--Inner comment-->\n    <p>Content</p>\n  </section>\n</div>');
+    });
   });
 
   // Indent functionality tests
@@ -371,7 +405,7 @@ describe('String Renderer', () => {
       };
       const data = { items: [{ name: 'Item 1' }, { name: 'Item 2' }] };
       const result = renderToString(schema, { data, indent: true });
-      expect(result).toBe('<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>');
+      expect(result).toBe('<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>');
     });
 
     test('preserves template functionality with indentation', () => {
