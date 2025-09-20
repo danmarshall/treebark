@@ -57,8 +57,11 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
 
 function render(schema: Schema, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
   if (typeof schema === "string") return interpolate(schema, data);
+  
+  const separator = context.indentStr ? '\n' : '';
+  
   if (Array.isArray(schema)) {
-    return schema.map(s => render(s, data, context)).join(context.indentStr ? '\n' : '');
+    return schema.map(s => render(s, data, context)).join(separator);
   }
   
   const { tag, rest, children, attrs } = parseSchemaObject(schema);
@@ -99,8 +102,8 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item as Data, childContext)).join(context.indentStr ? '\n' : '')
-      ).join(context.indentStr ? '\n' : '');
+        $children.map((c: Schema) => render(c, item as Data, childContext)).join(separator)
+      ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
     }
@@ -118,7 +121,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
       return context.indentStr.repeat(childContext.level) + result;
     }
     return result;
-  }).join(context.indentStr ? '\n' : '');
+  }).join(separator);
   
   return renderTag(tag, attrs, data, content, context.indentStr, context.level);
 }
