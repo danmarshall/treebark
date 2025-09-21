@@ -125,7 +125,15 @@ function renderStringInternal(schema, data, context = {}) {
             throw new Error(`Tag "${tag}" is a void element and cannot have children`);
         }
         if (Array.isArray(bound)) {
-            const content = bound.map(item => $children.map((c) => renderStringInternal(c, item, childContext)).join(separator)).join(separator);
+            const content = bound.map(item => 
+      $children.map((c) => {
+        const result = renderStringInternal(c, item, childContext);
+        if (context.indentStr && result.startsWith('<')) {
+          return context.indentStr.repeat(childContext.level) + result;
+        }
+        return result;
+      }).join(separator)
+    ).join(separator);
             return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
         }
         const boundData = bound && typeof bound === 'object' && bound !== null ? bound : {};

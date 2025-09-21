@@ -17,7 +17,20 @@ const stringCode = stringJs
   .replace(/^export /gm, '')
   .replace(/\/\/# sourceMappingURL=.*$/gm, '')
   .replace(/function render\(/g, 'function renderStringInternal(') // Rename function definition
-  .replace(/ render\(/g, ' renderStringInternal('); // Replace all calls to render
+  .replace(/ render\(/g, ' renderStringInternal(') // Replace all calls to render
+  // Fix indentation for bound children
+  .replace(
+    /const content = bound\.map\(item => \$children\.map\(\(c\) => renderStringInternal\(c, item, childContext\)\)\.join\(separator\)\)\.join\(separator\);/g,
+    `const content = bound.map(item => 
+      $children.map((c) => {
+        const result = renderStringInternal(c, item, childContext);
+        if (context.indentStr && result.startsWith('<')) {
+          return context.indentStr.repeat(childContext.level) + result;
+        }
+        return result;
+      }).join(separator)
+    ).join(separator);`
+  );
 
 const domCode = domJs
   .replace(/^import .+;$/gm, '')
