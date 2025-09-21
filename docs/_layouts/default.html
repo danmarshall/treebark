@@ -35,6 +35,32 @@
             gap: 1rem;
         }
         
+        .navbar {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s, color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            background: #f0f8ff;
+            color: #007acc;
+            text-decoration: none;
+        }
+        
+        .nav-link.active {
+            background: #007acc;
+            color: white;
+        }
+        
         .header h1 {
             font-size: 1.5rem;
             margin: 0;
@@ -136,6 +162,11 @@
                 gap: 0.25rem;
             }
             
+            .navbar {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
             .github-link {
                 align-self: flex-start;
             }
@@ -148,7 +179,11 @@
             <h1>🌳 Treebark</h1>
             <span class="tagline">{{ site.description }}</span>
         </div>
-        <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
+        <div class="navbar">
+            <a href="{{ '/' | relative_url }}" class="nav-link{% if page.url == '/' %} active{% endif %}">Home</a>
+            <a href="{{ '/playground' | relative_url }}" class="nav-link{% if page.url contains 'playground' %} active{% endif %}">Playground</a>
+            <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
+        </div>
     </div>
     
     <div class="content">

@@ -13,13 +13,16 @@ const commonCode = commonJs
 
 const domCode = domJs
   .replace(/^import .+;$/gm, '')
-  .replace(/^export /gm, 'export ')
+  .replace(/^export /gm, '')
   .replace(/\/\/# sourceMappingURL=.*$/gm, '');
 
 const bundle = `// Treebark browser bundle - generated from actual treebark library
 ${commonCode}
 
 ${domCode}
+
+// Export the renderToDOM function globally
+window.renderToDOM = renderToDOM;
 `;
 
 // Write the bundle
