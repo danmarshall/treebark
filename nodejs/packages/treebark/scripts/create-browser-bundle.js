@@ -3,6 +3,7 @@ const path = require('path');
 
 // Read the ES module files
 const commonJs = fs.readFileSync(path.join(__dirname, '../dist/browser/common.js'), 'utf8');
+const stringJs = fs.readFileSync(path.join(__dirname, '../dist/browser/string.js'), 'utf8');
 const domJs = fs.readFileSync(path.join(__dirname, '../dist/browser/dom.js'), 'utf8');
 
 // Remove import statements and create a single bundle
@@ -11,18 +12,30 @@ const commonCode = commonJs
   .replace(/^import .+;$/gm, '')
   .replace(/\/\/# sourceMappingURL=.*$/gm, '');
 
+const stringCode = stringJs
+  .replace(/^import .+;$/gm, '')
+  .replace(/^export /gm, '')
+  .replace(/\/\/# sourceMappingURL=.*$/gm, '')
+  .replace(/function render\(/g, 'function renderStringInternal(') // Rename function definition
+  .replace(/ render\(/g, ' renderStringInternal('); // Replace all calls to render
+
 const domCode = domJs
   .replace(/^import .+;$/gm, '')
   .replace(/^export /gm, '')
-  .replace(/\/\/# sourceMappingURL=.*$/gm, '');
+  .replace(/\/\/# sourceMappingURL=.*$/gm, '')
+  .replace(/function render\(/g, 'function renderDOMInternal(') // Rename function definition
+  .replace(/ render\(/g, ' renderDOMInternal('); // Replace all calls to render
 
 const bundle = `// Treebark browser bundle - generated from actual treebark library
 ${commonCode}
 
+${stringCode}
+
 ${domCode}
 
-// Export the renderToDOM function globally
+// Export the functions globally
 window.renderToDOM = renderToDOM;
+window.renderToString = renderToString;
 `;
 
 // Write the bundle

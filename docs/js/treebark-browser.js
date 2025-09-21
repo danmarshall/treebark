@@ -67,6 +67,89 @@ function parseSchemaObject(schema) {
 
 
 
+function renderToString(schema, options = {}) {
+    const data = options.data || {};
+    if (isTemplate(schema)) {
+        return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
+    }
+    const context = options.indent ? {
+        indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
+            typeof options.indent === 'string' ? options.indent : '  ',
+        level: 0
+    } : {};
+    return renderStringInternal(schema, data, context);
+}
+function renderTag(tag, attrs, data, content, indentStr, level) {
+    if (tag === 'comment') {
+        return `<!--${content || ""}-->`;
+    }
+    const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
+    const isVoid = VOID_TAGS.has(tag);
+    if (isVoid) {
+        return openTag;
+    }
+    if (indentStr && content && content.includes('<')) {
+        const currentIndent = indentStr.repeat(level || 0);
+        return `${openTag}\n${content}\n${currentIndent}</${tag}>`;
+    }
+    return `${openTag}${content || ""}</${tag}>`;
+}
+function renderStringInternal(schema, data, context = {}) {
+    if (typeof schema === "string")
+        return interpolate(schema, data);
+    const separator = context.indentStr ? '\n' : '';
+    if (Array.isArray(schema)) {
+        return schema.map(s => renderStringInternal(s, data, context)).join(separator);
+    }
+    const { tag, rest, children, attrs } = parseSchemaObject(schema);
+    if (!ALLOWED_TAGS.has(tag)) {
+        throw new Error(`Tag "${tag}" is not allowed`);
+    }
+    if (tag === 'comment' && context.insideComment) {
+        throw new Error('Nested comments are not allowed');
+    }
+    const hasChildren = children.length > 0;
+    const isVoid = VOID_TAGS.has(tag);
+    if (isVoid && hasChildren) {
+        throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+    }
+    const childContext = {
+        ...context,
+        insideComment: tag === 'comment' || context.insideComment,
+        level: (context.level || 0) + 1
+    };
+    if (hasBinding(rest)) {
+        const bound = getProperty(data, rest.$bind);
+        const { $bind, $children = [], ...bindAttrs } = rest;
+        if (isVoid && $children.length > 0) {
+            throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+        }
+        if (Array.isArray(bound)) {
+            const content = bound.map(item => $children.map((c) => renderStringInternal(c, item, childContext)).join(separator)).join(separator);
+            return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
+        }
+        const boundData = bound && typeof bound === 'object' && bound !== null ? bound : {};
+        return renderStringInternal({ [tag]: { ...bindAttrs, $children } }, boundData, context);
+    }
+    const content = children.map((c) => {
+        const result = renderStringInternal(c, data, childContext);
+        if (context.indentStr && result.startsWith('<')) {
+            return context.indentStr.repeat(childContext.level) + result;
+        }
+        return result;
+    }).join(separator);
+    return renderTag(tag, attrs, data, content, context.indentStr, context.level);
+}
+function renderAttrs(attrs, data, tag) {
+    const pairs = Object.entries(attrs).filter(([key]) => {
+        validateAttribute(key, tag);
+        return true;
+    }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
+    return pairs ? " " + pairs : "";
+}
+
+
+
 
 function renderToDOM(schema, options = {}) {
     const data = options.data || {};
@@ -74,19 +157,19 @@ function renderToDOM(schema, options = {}) {
         return renderToDOM(schema.$template, { data: schema.$data });
     }
     const fragment = document.createDocumentFragment();
-    const result = render(schema, data, {});
+    const result = renderDOMInternal(schema, data, {});
     if (Array.isArray(result))
         result.forEach(n => fragment.appendChild(n));
     else
         fragment.appendChild(result);
     return fragment;
 }
-function render(schema, data, context = {}) {
+function renderDOMInternal(schema, data, context = {}) {
     if (typeof schema === "string")
         return document.createTextNode(interpolate(schema, data));
     if (Array.isArray(schema))
         return schema.flatMap(s => {
-            const r = render(s, data, context);
+            const r = renderDOMInternal(s, data, context);
             return Array.isArray(r) ? r : [r];
         });
     const { tag, rest, children, attrs } = parseSchemaObject(schema);
@@ -116,18 +199,18 @@ function render(schema, data, context = {}) {
         }
         if (Array.isArray(bound)) {
             bound.forEach(item => $children.forEach((c) => {
-                const nodes = render(c, item, context);
+                const nodes = renderDOMInternal(c, item, context);
                 (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
             }));
             return element;
         }
         const boundData = bound && typeof bound === 'object' && bound !== null ? bound : {};
-        const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
+        const childNodes = renderDOMInternal({ [tag]: { ...bindAttrs, $children } }, boundData, context);
         return Array.isArray(childNodes) ? childNodes : [childNodes];
     }
     setAttrs(element, attrs, data, tag);
     children.forEach((c) => {
-        const nodes = render(c, data, context);
+        const nodes = renderDOMInternal(c, data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
     });
     return element;
@@ -140,5 +223,6 @@ function setAttrs(element, attrs, data, tag) {
 }
 
 
-// Export the renderToDOM function globally
+// Export the functions globally
 window.renderToDOM = renderToDOM;
+window.renderToString = renderToString;
