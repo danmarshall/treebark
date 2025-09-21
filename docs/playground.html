@@ -344,7 +344,7 @@
     
     <div class="content">
         <h1>🎮 Treebark Playground</h1>
-        <p>Try out Treebark schemas interactively! Edit the schema on the left and see the rendered output on the right.</p>
+        <p>Try out Treebark schemas interactively! Edit the template on the left and data on the right to see the generated HTML below.</p>
 
         <div class="format-toggle">
             <label><input type="radio" name="format" value="json" checked> JSON Format</label>
@@ -368,12 +368,12 @@
 
         <div class="playground-container">
             <div class="playground-panel">
-                <div class="panel-header">Schema Editor</div>
-                <textarea class="editor" id="schema-editor" placeholder="Enter your Treebark schema here..."></textarea>
+                <div class="panel-header">Template Editor</div>
+                <textarea class="editor" id="template-editor" placeholder="Enter your Treebark template here..."></textarea>
             </div>
             <div class="playground-panel">
-                <div class="panel-header">Live Preview</div>
-                <div class="output" id="output"></div>
+                <div class="panel-header">Data Editor</div>
+                <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
             </div>
         </div>
 
@@ -403,8 +403,8 @@
     <script>
         // Wait for the page to load
         window.addEventListener('load', function() {
-            const editor = document.getElementById('schema-editor');
-            const output = document.getElementById('output');
+            const templateEditor = document.getElementById('template-editor');
+            const dataEditor = document.getElementById('data-editor');
             const htmlOutput = document.getElementById('html-output');
             const formatRadios = document.querySelectorAll('input[name="format"]');
             const indentType = document.getElementById('indent-type');
@@ -414,20 +414,27 @@
             
             // Check if treebark is available
             if (typeof window.renderToDOM === 'undefined' || typeof window.renderToString === 'undefined') {
-                output.innerHTML = '<div class="error">Treebark library not loaded. Please check the console for errors.</div>';
+                htmlOutput.textContent = 'Treebark library not loaded. Please check the console for errors.';
                 return;
             }
             
             // Example schemas
             const examples = {
                 hello: {
-                    json: `{
+                    template: {
+                        json: `{
   "div": "Hello world"
 }`,
-                    yaml: `div: "Hello world"`
+                        yaml: `div: "Hello world"`
+                    },
+                    data: {
+                        json: `{}`,
+                        yaml: `{}`
+                    }
                 },
                 card: {
-                    json: `{
+                    template: {
+                        json: `{
   "div": {
     "class": "card",
     "$children": [
@@ -436,69 +443,79 @@
     ]
   }
 }`,
-                    yaml: `div:
+                        yaml: `div:
   class: card
   $children:
     - h2: "{{title}}"
     - p: "{{description}}"`
+                    },
+                    data: {
+                        json: `{
+  "title": "Product Title",
+  "description": "This is a great product!"
+}`,
+                        yaml: `title: "Product Title"
+description: "This is a great product!"`
+                    }
                 },
                 list: {
-                    json: `{
-  "$template": {
-    "ul": {
-      "$bind": "items",
-      "$children": [
-        { "li": "{{name}} - {{price}}" }
-      ]
-    }
-  },
-  "$data": {
-    "items": [
-      { "name": "Laptop", "price": "$999" },
-      { "name": "Phone", "price": "$499" }
+                    template: {
+                        json: `{
+  "ul": {
+    "$bind": "items",
+    "$children": [
+      { "li": "{{name}} - {{price}}" }
     ]
   }
 }`,
-                    yaml: `$template:
-  ul:
-    $bind: items
-    $children:
-      - li: "{{name}} - {{price}}"
-$data:
-  items:
-    - name: "Laptop"
-      price: "$999"
-    - name: "Phone"
-      price: "$499"`
+                        yaml: `ul:
+  $bind: items
+  $children:
+    - li: "{{name}} - {{price}}"`
+                    },
+                    data: {
+                        json: `{
+  "items": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone", "price": "$499" }
+  ]
+}`,
+                        yaml: `items:
+  - name: "Laptop"
+    price: "$999"
+  - name: "Phone"
+    price: "$499"`
+                    }
                 },
                 template: {
-                    json: `{
-  "$template": {
-    "div": {
-      "class": "product-card",
-      "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Only {{price}}!" }
-      ]
-    }
-  },
-  "$data": {
-    "name": "Gaming Laptop",
-    "price": "$1299"
+                    template: {
+                        json: `{
+  "div": {
+    "class": "product-card",
+    "$children": [
+      { "h2": "{{name}}" },
+      { "p": "Only {{price}}!" }
+    ]
   }
 }`,
-                    yaml: `$template:
-  div:
-    class: product-card
-    $children:
-      - h2: "{{name}}"
-      - p: "Only {{price}}!"
-$data:
-  name: "Gaming Laptop"
-  price: "$1299"`
+                        yaml: `div:
+  class: product-card
+  $children:
+    - h2: "{{name}}"
+    - p: "Only {{price}}!"`
+                    },
+                    data: {
+                        json: `{
+  "name": "Gaming Laptop",
+  "price": "$1299"
+}`,
+                        yaml: `name: "Gaming Laptop"
+price: "$1299"`
+                    }
                 },
                 shorthand: {
-                    json: `{
+                    template: {
+                        json: `{
   "div": [
     { "h2": "Welcome" },
     { "p": "This is much cleaner!" },
@@ -511,16 +528,22 @@ $data:
     }
   ]
 }`,
-                    yaml: `div:
+                        yaml: `div:
   - h2: "Welcome"
   - p: "This is much cleaner!"
   - ul:
       - li: "Item 1"
       - li: "Item 2"
       - li: "Item 3"`
+                    },
+                    data: {
+                        json: `{}`,
+                        yaml: `{}`
+                    }
                 },
                 mixed: {
-                    json: `{
+                    template: {
+                        json: `{
   "div": {
     "$children": [
       "Hello ",
@@ -529,13 +552,18 @@ $data:
     ]
   }
 }`,
-                    yaml: `div:
+                        yaml: `div:
   $children:
     - "Hello "
     - span:
         style: "color: blue;"
         $children: ["World"]
     - "!"`
+                    },
+                    data: {
+                        json: `{}`,
+                        yaml: `{}`
+                    }
                 }
             };
             
@@ -557,7 +585,8 @@ $data:
             window.loadExample = function(exampleKey) {
                 const example = examples[exampleKey];
                 if (example) {
-                    editor.value = example[currentFormat];
+                    templateEditor.value = example.template[currentFormat];
+                    dataEditor.value = example.data[currentFormat];
                     renderSchema();
                 }
             };
@@ -566,9 +595,9 @@ $data:
             formatRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     currentFormat = this.value;
-                    // Clear editor when switching formats
-                    editor.value = '';
-                    output.innerHTML = '';
+                    // Clear editors when switching formats
+                    templateEditor.value = '';
+                    dataEditor.value = '';
                     htmlOutput.textContent = '';
                 });
             });
@@ -580,49 +609,46 @@ $data:
             
             // Render function
             function renderSchema() {
-                const schemaText = editor.value.trim();
-                if (!schemaText) {
-                    output.innerHTML = '<div style="color: #666; font-style: italic;">Enter a schema to see the preview</div>';
-                    htmlOutput.textContent = '';
+                const templateText = templateEditor.value.trim();
+                const dataText = dataEditor.value.trim();
+                
+                if (!templateText) {
+                    htmlOutput.textContent = 'Enter a template to see the HTML output';
                     return;
                 }
                 
                 try {
-                    let schema;
+                    let template, data = {};
                     
                     if (currentFormat === 'yaml') {
                         // For now, show a message that YAML requires a parser
-                        output.innerHTML = '<div class="error">YAML parsing requires the js-yaml library. Please use JSON format in this playground.</div>';
-                        htmlOutput.textContent = '';
+                        htmlOutput.textContent = 'YAML parsing requires the js-yaml library. Please use JSON format in this playground.';
                         return;
                     } else {
-                        schema = JSON.parse(schemaText);
+                        template = JSON.parse(templateText);
+                        if (dataText) {
+                            data = JSON.parse(dataText);
+                        }
                     }
                     
                     // Get indent options
                     const indentOptions = getIndentOptions();
                     
-                    // Render with treebark DOM
-                    const fragment = window.renderToDOM(schema);
-                    
-                    // Clear and append result
-                    output.innerHTML = '';
-                    output.appendChild(fragment.cloneNode(true));
-                    
                     // Generate HTML string with indentation
-                    const htmlString = window.renderToString(schema, { 
+                    const htmlString = window.renderToString(template, { 
+                        data: data,
                         indent: indentOptions 
                     });
                     htmlOutput.textContent = htmlString;
                     
                 } catch (error) {
-                    output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-                    htmlOutput.textContent = '';
+                    htmlOutput.textContent = `Error: ${error.message}`;
                 }
             }
             
-            // Editor input handler
-            editor.addEventListener('input', renderSchema);
+            // Editor input handlers
+            templateEditor.addEventListener('input', renderSchema);
+            dataEditor.addEventListener('input', renderSchema);
             
             // Load initial example
             loadExample('hello');
