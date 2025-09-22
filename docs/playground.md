@@ -15,7 +15,7 @@ description: Interactive playground for experimenting with Treebark schemas
     height: 600px;
 }
 
-.playground-left {
+.playground-right {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -29,10 +29,24 @@ description: Interactive playground for experimenting with Treebark schemas
     flex-direction: column;
 }
 
+.input-panel {
+    background: #fff;
+    border: 2px solid #007acc;
+    box-shadow: 0 2px 4px rgba(0, 123, 204, 0.1);
+}
+
+.input-panel .panel-header {
+    background: linear-gradient(135deg, #007acc, #0056b3);
+    color: white;
+    font-weight: 600;
+}
+
 .html-output-panel {
     grid-row: 1 / 3;
     display: flex;
     flex-direction: column;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
 }
 
 .panel-header {
@@ -49,9 +63,16 @@ description: Interactive playground for experimenting with Treebark schemas
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 14px;
     border: none;
-    resize: none;
+    resize: both;
     outline: none;
-    background: #fafafa;
+    background: #fff;
+    min-height: 120px;
+    transition: all 0.2s ease;
+}
+
+.editor:focus {
+    background: #fafffe;
+    box-shadow: inset 0 0 0 2px rgba(0, 123, 204, 0.2);
 }
 
 .error {
@@ -126,7 +147,7 @@ description: Interactive playground for experimenting with Treebark schemas
 }
 
 .html-output {
-    background: #f8f8f8;
+    background: #f8f9fa;
     border: none;
     border-radius: 0 0 8px 8px;
     padding: 1rem;
@@ -136,14 +157,15 @@ description: Interactive playground for experimenting with Treebark schemas
     white-space: pre;
     overflow: auto;
     margin: 0;
+    color: #495057;
 }
 
 .html-output-header {
-    background: #f5f5f5;
+    background: #e9ecef;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #dee2e6;
     font-weight: 600;
-    color: #333;
+    color: #495057;
     margin: 0;
     border-radius: 8px 8px 0 0;
 }
@@ -155,12 +177,13 @@ description: Interactive playground for experimenting with Treebark schemas
         height: auto;
     }
     
-    .playground-left {
+    .playground-right {
         display: contents;
     }
     
     .html-output-panel {
         grid-row: auto;
+        order: 3;
     }
     
     .playground-panel {
@@ -200,19 +223,19 @@ Try out Treebark schemas interactively! Edit the template on the left and data o
 </div>
 
 <div class="playground-container">
-    <div class="playground-left">
-        <div class="playground-panel">
-            <div class="panel-header">Template Editor</div>
-            <textarea class="editor" id="template-editor" placeholder="Enter your Treebark template here..."></textarea>
-        </div>
-        <div class="playground-panel">
-            <div class="panel-header">Data Editor</div>
-            <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
-        </div>
-    </div>
     <div class="html-output-panel playground-panel">
         <div class="html-output-header">Generated HTML</div>
         <pre class="html-output" id="html-output"></pre>
+    </div>
+    <div class="playground-right">
+        <div class="playground-panel input-panel">
+            <div class="panel-header">Template Editor</div>
+            <textarea class="editor" id="template-editor" placeholder="Enter your Treebark template here..."></textarea>
+        </div>
+        <div class="playground-panel input-panel">
+            <div class="panel-header">Data Editor</div>
+            <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
+        </div>
     </div>
 </div>
 
