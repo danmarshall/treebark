@@ -102,7 +102,14 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: Schema) => {
+          const result = render(c, item as Data, childContext);
+          // Add indentation to bound child tags
+          if (context.indentStr && result.startsWith('<')) {
+            return context.indentStr.repeat(childContext.level) + result;
+          }
+          return result;
+        }).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
