@@ -9,15 +9,28 @@ description: Interactive playground for experimenting with Treebark schemas
 .playground-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 1rem;
     margin: 1rem 0;
-    height: 400px;
+    height: 600px;
+}
+
+.playground-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .playground-panel {
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.html-output-panel {
+    grid-row: 1 / 3;
     display: flex;
     flex-direction: column;
 }
@@ -114,37 +127,44 @@ description: Interactive playground for experimenting with Treebark schemas
 
 .html-output {
     background: #f8f8f8;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: none;
+    border-radius: 0 0 8px 8px;
     padding: 1rem;
-    margin-top: 1rem;
+    flex: 1;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
     white-space: pre;
-    overflow-x: auto;
-    border-left: 4px solid #007acc;
+    overflow: auto;
+    margin: 0;
 }
 
 .html-output-header {
     background: #f5f5f5;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid #ddd;
     font-weight: 600;
     color: #333;
-    margin: 1rem 0 0 0;
-    border-radius: 4px 4px 0 0;
-    border: 1px solid #ddd;
-    border-bottom: none;
+    margin: 0;
+    border-radius: 8px 8px 0 0;
 }
 
 @media (max-width: 768px) {
     .playground-container {
         grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
         height: auto;
     }
     
+    .playground-left {
+        display: contents;
+    }
+    
+    .html-output-panel {
+        grid-row: auto;
+    }
+    
     .playground-panel {
-        height: 300px;
+        height: 250px;
     }
     
     .controls {
@@ -180,18 +200,21 @@ Try out Treebark schemas interactively! Edit the template on the left and data o
 </div>
 
 <div class="playground-container">
-    <div class="playground-panel">
-        <div class="panel-header">Template Editor</div>
-        <textarea class="editor" id="template-editor" placeholder="Enter your Treebark template here..."></textarea>
+    <div class="playground-left">
+        <div class="playground-panel">
+            <div class="panel-header">Template Editor</div>
+            <textarea class="editor" id="template-editor" placeholder="Enter your Treebark template here..."></textarea>
+        </div>
+        <div class="playground-panel">
+            <div class="panel-header">Data Editor</div>
+            <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
+        </div>
     </div>
-    <div class="playground-panel">
-        <div class="panel-header">Data Editor</div>
-        <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
+    <div class="html-output-panel playground-panel">
+        <div class="html-output-header">Generated HTML</div>
+        <pre class="html-output" id="html-output"></pre>
     </div>
 </div>
-
-<div class="html-output-header">Generated HTML</div>
-<pre class="html-output" id="html-output"></pre>
 
 <div class="examples">
     <h3>📚 Try These Examples:</h3>
