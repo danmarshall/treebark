@@ -223,10 +223,6 @@ Try out Treebark schemas interactively! Edit the template on the left and data o
 </div>
 
 <div class="playground-container">
-    <div class="html-output-panel playground-panel">
-        <div class="html-output-header">Generated HTML</div>
-        <pre class="html-output" id="html-output"></pre>
-    </div>
     <div class="playground-right">
         <div class="playground-panel input-panel">
             <div class="panel-header">Template Editor</div>
@@ -236,6 +232,10 @@ Try out Treebark schemas interactively! Edit the template on the left and data o
             <div class="panel-header">Data Editor</div>
             <textarea class="editor" id="data-editor" placeholder="Enter JSON data here (optional)..."></textarea>
         </div>
+    </div>
+    <div class="html-output-panel playground-panel">
+        <div class="html-output-header">Generated HTML</div>
+        <pre class="html-output" id="html-output"></pre>
     </div>
 </div>
 
