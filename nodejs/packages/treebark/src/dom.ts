@@ -1,5 +1,4 @@
 import { 
-  TemplateItem,
   TemplateElement,
   TemplateString,
   TemplateObject,
@@ -29,7 +28,7 @@ export function renderToDOM(
   return fragment;
 }
 
-function render(template: TemplateItem, data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
   if (typeof template === "string") return document.createTextNode(interpolate(template, data));
   if (Array.isArray(template)) return template.flatMap(t => {
     const r = render(t, data, context); return Array.isArray(r) ? r : [r];

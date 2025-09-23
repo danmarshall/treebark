@@ -17,12 +17,9 @@ export type TemplateObject = { [tag: string]: TemplateString | (TemplateString |
 // Template element is either a string or an object (defined after TemplateObject)
 export type TemplateElement = TemplateString | TemplateObject;
 
-// Top-level template item can be a single element or array of elements
-export type TemplateItem = TemplateElement | TemplateElement[];
-
 // API input types (clean external interface without $ prefixes)
 export interface TreebarkInput {
-  template: TemplateItem;
+  template: TemplateElement | TemplateElement[];
   data?: Data;
 }
 

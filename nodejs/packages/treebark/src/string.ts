@@ -1,5 +1,4 @@
 import { 
-  TemplateItem,
   TemplateElement,
   TemplateString,
   TemplateObject,
@@ -57,7 +56,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(template: TemplateItem, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
   if (typeof template === "string") return interpolate(template, data);
   
   const separator = context.indentStr ? '\n' : '';
