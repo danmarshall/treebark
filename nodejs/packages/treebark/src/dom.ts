@@ -1,5 +1,6 @@
 import { 
   TemplateItem,
+  TemplateElement,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -75,7 +76,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: TemplateItem) => {
+      bound.forEach(item => $children.forEach((c: TemplateElement) => {
         const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
@@ -89,7 +90,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: TemplateItem) => {
+  children.forEach((c: TemplateElement) => {
     const nodes = render(c, data, context);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });

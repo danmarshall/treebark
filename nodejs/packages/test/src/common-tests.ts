@@ -247,36 +247,40 @@ export const tagSpecificAttributeTests: TestCase[] = [
   {
     name: 'allows tag-specific attributes for table elements',
     input: {
-      table: {
-        summary: 'Test table',
-        $children: [
-          {
-            tr: [
-              {
-                th: {
-                  scope: 'col',
-                  colspan: '2',
-                  $children: ['Header']
+      template: {
+        table: {
+          summary: 'Test table',
+          $children: [
+            {
+              tr: [
+                {
+                  th: {
+                    scope: 'col',
+                    colspan: '2',
+                    $children: ['Header']
+                  }
+                },
+                {
+                  td: {
+                    rowspan: '1',
+                    $children: ['Data']
+                  }
                 }
-              },
-              {
-                td: {
-                  rowspan: '1',
-                  $children: ['Data']
-                }
-              }
-            ]
-          }
-        ]
+              ]
+            }
+          ]
+        }
       }
     }
   },
   {
     name: 'allows tag-specific attributes for blockquote',
     input: {
-      blockquote: {
-        cite: 'https://example.com',
-        $children: ['Quote text']
+      template: {
+        blockquote: {
+          cite: 'https://example.com',
+          $children: ['Quote text']
+        }
       }
     }
   }
@@ -286,9 +290,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for tag-specific attribute on wrong tag',
     input: {
-      div: {
-        src: 'image.jpg',
-        $children: ['Content']
+      template: {
+        div: {
+          src: 'image.jpg',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "src" is not allowed on tag "div"'
@@ -296,9 +302,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for img-specific attribute on div',
     input: {
-      div: {
-        width: '100',
-        $children: ['Content']
+      template: {
+        div: {
+          width: '100',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "width" is not allowed on tag "div"'
@@ -306,9 +314,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for a-specific attribute on div',
     input: {
-      div: {
-        target: '_blank',
-        $children: ['Content']
+      template: {
+        div: {
+          target: '_blank',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "target" is not allowed on tag "div"'

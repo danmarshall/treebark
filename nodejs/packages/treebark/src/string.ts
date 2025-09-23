@@ -1,5 +1,6 @@
 import { 
   TemplateItem,
+  TemplateElement,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -103,7 +104,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: TemplateItem) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: TemplateElement) => render(c, item as Data, childContext)).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
@@ -115,7 +116,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
   }
   
   // Render children with indentation
-  const content = children.map((c: TemplateItem) => {
+  const content = children.map((c: TemplateElement) => {
     const result = render(c, data, childContext);
     // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {

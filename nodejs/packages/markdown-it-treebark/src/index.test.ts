@@ -295,7 +295,7 @@ div: [
       expect(result).toContain('Treebark Error:');
     });
 
-    it('should handle invalid treebark schema', () => {
+    it('should handle invalid treebark template', () => {
       const markdown = `
 \`\`\`treebark
 script: "alert('xss')"
@@ -314,7 +314,7 @@ script: "alert('xss')"
 `;
       const result = md.render(markdown);
       expect(result).toContain('treebark-error');
-      expect(result).toContain('Empty or invalid schema');
+      expect(result).toContain('Empty or invalid template');
     });
 
     it('should error when YAML is enabled but no yaml library is provided', () => {

@@ -1,15 +1,24 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// Strictly defined template structure types (using $ prefixes for internal differentiation)
+// Non-recursive template structure types (using $ prefixes for internal differentiation)
 export type TemplateString = string;
+
+// Template element is either a string or an object with tag properties
+export type TemplateElement = TemplateString | TemplateObject;
+
+// Template attributes can contain children arrays but limited to one level to avoid infinite recursion
 export type TemplateAttributes = {
   $bind?: string;
-  $children?: TemplateItem[];
+  $children?: TemplateElement[];
   [key: string]: unknown;
 };
-export type TemplateObject = { [tag: string]: TemplateString | TemplateItem[] | TemplateAttributes };
-export type TemplateItem = TemplateString | TemplateItem[] | TemplateObject;
+
+// Template object maps tag names to content
+export type TemplateObject = { [tag: string]: TemplateString | TemplateElement[] | TemplateAttributes };
+
+// Top-level template item can be a single element or array of elements
+export type TemplateItem = TemplateElement | TemplateElement[];
 
 // API input types (clean external interface without $ prefixes)
 export interface TreebarkInput {
@@ -108,7 +117,7 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 /**
  * Check if a template object has a binding structure
  */
-export function hasBinding(rest: TemplateString | TemplateItem[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
+export function hasBinding(rest: TemplateString | TemplateElement[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
 }
 
@@ -125,8 +134,8 @@ export function normalizeInput(input: TreebarkInput): { template: TemplateItem; 
  */
 export function parseTemplateObject(templateObj: TemplateObject): {
   tag: string;
-  rest: TemplateString | TemplateItem[] | TemplateAttributes;
-  children: TemplateItem[];
+  rest: TemplateString | TemplateElement[] | TemplateAttributes;
+  children: TemplateElement[];
   attrs: Record<string, unknown>;
 } {
   const entries = Object.entries(templateObj);
