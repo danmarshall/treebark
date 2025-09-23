@@ -10,14 +10,12 @@ import {
   normalizeInput,
   hasBinding, 
   parseSchemaObject,
-  RenderOptions,
-  // Legacy types for backward compatibility
-  Schema
+  RenderOptions
 } from './common';
 import { renderToString } from './string';
 
 export function renderToDOM(
-  input: Template | TreebarkInput | { $template: Template; $data: Data }, 
+  input: Template | TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
   const { template, data: inputData } = normalizeInput(input);

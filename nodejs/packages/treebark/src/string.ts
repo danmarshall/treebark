@@ -11,13 +11,11 @@ import {
   normalizeInput,
   hasBinding, 
   parseSchemaObject,
-  RenderOptions,
-  // Legacy types for backward compatibility
-  Schema
+  RenderOptions
 } from './common';
 
 export function renderToString(
-  input: Template | TreebarkInput | { $template: Template; $data: Data }, 
+  input: Template | TreebarkInput, 
   options: RenderOptions = {}
 ): string {
   const { template, data: inputData } = normalizeInput(input);

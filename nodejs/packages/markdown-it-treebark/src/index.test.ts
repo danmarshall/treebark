@@ -65,13 +65,13 @@ div:
     it('should render self-contained template with data', () => {
       const markdown = `
 \`\`\`treebark
-$template:
+template:
   div:
     class: greeting
     $children:
       - h1: "{{title}}"
       - p: "{{message}}"
-$data:
+data:
   title: "Welcome"
   message: "Hello treebark!"
 \`\`\`
@@ -101,12 +101,12 @@ div: "{{greeting}} {{name}}!"
     it('should render list binding', () => {
       const markdown = `
 \`\`\`treebark
-$template:
+template:
   ul:
     $bind: items
     $children:
       - li: "{{name}} - {{price}}"
-$data:
+data:
   items:
     - name: "Laptop"
       price: "$999"
@@ -226,7 +226,7 @@ div: "Hello YAML"
       const markdown = `
 \`\`\`treebark
 {
-  "$template": {
+  "template": {
     "ul": {
       "class": "product-list",
       "$bind": "products",
@@ -235,7 +235,7 @@ div: "Hello YAML"
       ]
     }
   },
-  "$data": {
+  "data": {
     "products": [
       { "name": "Laptop", "price": "$999" },
       { "name": "Phone", "price": "$499" }

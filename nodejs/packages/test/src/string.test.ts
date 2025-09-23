@@ -79,9 +79,6 @@ describe('String Renderer', () => {
           case 'handles object binding':
             expect(result).toBe('<div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div>');
             break;
-          case 'handles self-contained template':
-            expect(result).toBe('<p>Hello Alice!</p>');
-            break;
           case 'handles new API format':
             expect(result).toBe('<p>Hello Bob!</p>');
             break;
@@ -415,8 +412,8 @@ describe('String Renderer', () => {
     });
 
     test('preserves template functionality with indentation', () => {
-      const schema = {
-        $template: {
+      const input = {
+        template: {
           div: {
             $children: [
               { h1: '{{title}}' },
@@ -424,12 +421,12 @@ describe('String Renderer', () => {
             ]
           }
         },
-        $data: {
+        data: {
           title: 'Test Title',
           content: 'Test Content'
         }
       };
-      const result = renderToString(schema, { indent: true });
+      const result = renderToString(input, { indent: true });
       expect(result).toBe('<div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div>');
     });
 

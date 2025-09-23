@@ -117,11 +117,6 @@ describe('DOM Renderer', () => {
             expect(div.querySelector('h2')?.textContent).toBe('Alice');
             expect(div.querySelector('p')?.textContent).toBe('alice@example.com');
             break;
-          case 'handles self-contained template':
-            const p = fragment.firstChild as HTMLElement;
-            expect(p.tagName).toBe('P');
-            expect(p.textContent).toBe('Hello Alice!');
-            break;
           case 'handles new API format':
             const pNew = fragment.firstChild as HTMLElement;
             expect(pNew.tagName).toBe('P');

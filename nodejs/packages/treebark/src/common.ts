@@ -1,25 +1,17 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// Internal template structure types (using $ prefixes for internal differentiation)
+// Template structure types (using $ prefixes for internal differentiation)
 export type TemplateObject = { [tag: string]: TemplateContent };
 export type TemplateContent = string | Template[] | TemplateAttributes;
 export type TemplateAttributes = {
   $bind?: string;
   $children?: Template[];
-  $template?: Template; // For nested self-contained blocks
-  $data?: Data; // For nested self-contained blocks
   [key: string]: unknown;
 };
 export type Template = string | Template[] | TemplateObject;
 
-// Legacy schema types (for backward compatibility)
-export type SchemaObject = TemplateObject;
-export type SchemaContent = TemplateContent;
-export type SchemaAttributes = TemplateAttributes;
-export type Schema = Template;
-
-// API input types (clear external interface without $ prefixes)
+// API input types (clean external interface without $ prefixes)
 export interface TreebarkInput {
   template: Template;
   data?: Data;
@@ -114,21 +106,7 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 }
 
 /**
- * Check if a schema object has a legacy template structure (for backward compatibility)
- */
-export function isLegacyTemplate(schema: unknown): schema is { $template: Template; $data: Data } {
-  return schema !== null && typeof schema === 'object' && '$template' in schema;
-}
-
-/**
- * Check if input has either new or legacy template structure
- */
-export function isTemplate(input: unknown): input is TreebarkInput | { $template: Template; $data: Data } {
-  return isTreebarkInput(input) || isLegacyTemplate(input);
-}
-
-/**
- * Check if a schema object has a binding structure
+ * Check if a template object has a binding structure
  */
 export function hasBinding(rest: TemplateContent): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
@@ -136,19 +114,15 @@ export function hasBinding(rest: TemplateContent): rest is TemplateAttributes & 
 
 /**
  * Normalize input to internal template format
- * Supports new TreebarkInput format, legacy $template format, and direct templates
+ * Supports TreebarkInput format and direct templates
  */
-export function normalizeInput(input: Template | TreebarkInput | { $template: Template; $data: Data }): { template: Template; data: Data } {
+export function normalizeInput(input: Template | TreebarkInput): { template: Template; data: Data } {
   if (isTreebarkInput(input)) {
     return { template: input.template, data: input.data || {} };
   }
   
-  if (isLegacyTemplate(input)) {
-    return { template: input.$template, data: input.$data || {} };
-  }
-  
   // Direct template input
-  return { template: input as Template, data: {} };
+  return { template: input, data: {} };
 }
 
 /**

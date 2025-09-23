@@ -135,13 +135,6 @@ export const bindingTests: TestCase[] = [
     }
   },
   {
-    name: 'handles self-contained template',
-    input: {
-      $template: { p: 'Hello {{name}}!' },
-      $data: { name: 'Alice' }
-    }
-  },
-  {
     name: 'handles new API format',
     input: {
       template: { p: 'Hello {{name}}!' },
