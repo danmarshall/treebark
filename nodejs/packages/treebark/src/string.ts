@@ -1,6 +1,8 @@
 import { 
   TemplateItem,
   TemplateElement,
+  TemplateString,
+  TemplateObject,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -9,7 +11,6 @@ import {
   interpolate,
   escape,
   validateAttribute, 
-  normalizeInput,
   hasBinding, 
   parseTemplateObject,
   RenderOptions
@@ -19,8 +20,7 @@ export function renderToString(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): string {
-  const { template, data: inputData } = normalizeInput(input);
-  const data = { ...inputData, ...options.data };
+  const data = { ...input.data, ...options.data };
   
   // Conditionally set indent context
   const context = options.indent ? {
@@ -29,7 +29,7 @@ export function renderToString(
     level: 0
   } : {};
   
-  return render(template, data, context);
+  return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
@@ -104,7 +104,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: TemplateElement) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: TemplateString | TemplateObject) => render(c, item as Data, childContext)).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
@@ -116,7 +116,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
   }
   
   // Render children with indentation
-  const content = children.map((c: TemplateElement) => {
+  const content = children.map((c: TemplateString | TemplateObject) => {
     const result = render(c, data, childContext);
     // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {

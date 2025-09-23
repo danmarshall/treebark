@@ -4,18 +4,18 @@ export type Data = Record<string, unknown>;
 // Non-recursive template structure types (using $ prefixes for internal differentiation)
 export type TemplateString = string;
 
-// Template element is either a string or an object with tag properties
-export type TemplateElement = TemplateString | TemplateObject;
-
-// Template attributes can contain children arrays but limited to one level to avoid infinite recursion
+// Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
-  $children?: TemplateElement[];
+  $children?: (TemplateString | TemplateObject)[];
   [key: string]: unknown;
 };
 
-// Template object maps tag names to content
-export type TemplateObject = { [tag: string]: TemplateString | TemplateElement[] | TemplateAttributes };
+// Template object maps tag names to content (no circular reference to TemplateElement)
+export type TemplateObject = { [tag: string]: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes };
+
+// Template element is either a string or an object (defined after TemplateObject)
+export type TemplateElement = TemplateString | TemplateObject;
 
 // Top-level template item can be a single element or array of elements
 export type TemplateItem = TemplateElement | TemplateElement[];
@@ -117,16 +117,8 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 /**
  * Check if a template object has a binding structure
  */
-export function hasBinding(rest: TemplateString | TemplateElement[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
+export function hasBinding(rest: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
-}
-
-/**
- * Normalize input to internal template format
- * Only supports TreebarkInput format
- */
-export function normalizeInput(input: TreebarkInput): { template: TemplateItem; data: Data } {
-  return { template: input.template, data: input.data || {} };
 }
 
 /**
@@ -134,8 +126,8 @@ export function normalizeInput(input: TreebarkInput): { template: TemplateItem; 
  */
 export function parseTemplateObject(templateObj: TemplateObject): {
   tag: string;
-  rest: TemplateString | TemplateElement[] | TemplateAttributes;
-  children: TemplateElement[];
+  rest: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes;
+  children: (TemplateString | TemplateObject)[];
   attrs: Record<string, unknown>;
 } {
   const entries = Object.entries(templateObj);

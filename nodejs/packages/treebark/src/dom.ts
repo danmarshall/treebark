@@ -1,6 +1,8 @@
 import { 
   TemplateItem,
   TemplateElement,
+  TemplateString,
+  TemplateObject,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -8,7 +10,6 @@ import {
   getProperty, 
   interpolate, 
   validateAttribute, 
-  normalizeInput,
   hasBinding, 
   parseTemplateObject,
   RenderOptions
@@ -19,11 +20,10 @@ export function renderToDOM(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  const { template, data: inputData } = normalizeInput(input);
-  const data = { ...inputData, ...options.data };
+  const data = { ...input.data, ...options.data };
   
   const fragment = document.createDocumentFragment();
-  const result = render(template, data, {});
+  const result = render(input.template, data, {});
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
@@ -76,7 +76,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: TemplateElement) => {
+      bound.forEach(item => $children.forEach((c: TemplateString | TemplateObject) => {
         const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
@@ -90,7 +90,7 @@ function render(template: TemplateItem, data: Data, context: { insideComment?: b
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: TemplateElement) => {
+  children.forEach((c: TemplateString | TemplateObject) => {
     const nodes = render(c, data, context);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
