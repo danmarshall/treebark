@@ -2,20 +2,18 @@
 export type Data = Record<string, unknown>;
 
 // Non-recursive template structure types (using $ prefixes for internal differentiation)
-export type TemplateString = string;
-
 // Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
-  $children?: (TemplateString | TemplateObject)[];
+  $children?: (string | TemplateObject)[];
   [key: string]: unknown;
 };
 
 // Template object maps tag names to content (no circular reference to TemplateElement)
-export type TemplateObject = { [tag: string]: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes };
+export type TemplateObject = { [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes };
 
 // Template element is either a string or an object (defined after TemplateObject)
-export type TemplateElement = TemplateString | TemplateObject;
+export type TemplateElement = string | TemplateObject;
 
 // API input types (clean external interface without $ prefixes)
 export interface TreebarkInput {
@@ -114,7 +112,7 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 /**
  * Check if a template object has a binding structure
  */
-export function hasBinding(rest: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
+export function hasBinding(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
 }
 
@@ -123,8 +121,8 @@ export function hasBinding(rest: TemplateString | (TemplateString | TemplateObje
  */
 export function parseTemplateObject(templateObj: TemplateObject): {
   tag: string;
-  rest: TemplateString | (TemplateString | TemplateObject)[] | TemplateAttributes;
-  children: (TemplateString | TemplateObject)[];
+  rest: string | (string | TemplateObject)[] | TemplateAttributes;
+  children: (string | TemplateObject)[];
   attrs: Record<string, unknown>;
 } {
   const entries = Object.entries(templateObj);

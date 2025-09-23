@@ -1,6 +1,5 @@
 import { 
   TemplateElement,
-  TemplateString,
   TemplateObject,
   TreebarkInput,
   Data, 
@@ -75,7 +74,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: TemplateString | TemplateObject) => {
+      bound.forEach(item => $children.forEach((c: string | TemplateObject) => {
         const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
@@ -89,7 +88,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: TemplateString | TemplateObject) => {
+  children.forEach((c: string | TemplateObject) => {
     const nodes = render(c, data, context);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
