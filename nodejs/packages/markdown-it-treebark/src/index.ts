@@ -128,8 +128,15 @@ function renderTreebarkBlock(
     throw new Error('Empty or invalid schema');
   }
   
-  // Render using treebark
-  return renderToString(schema, { data: defaultData, indent });
+  // Check if schema is already in TreebarkInput format
+  if (schema && typeof schema === 'object' && 'template' in schema) {
+    // Already in TreebarkInput format, merge with default data
+    const mergedData = { ...defaultData, ...schema.data };
+    return renderToString({ template: schema.template, data: mergedData }, { indent });
+  }
+  
+  // Schema is a direct template, wrap it in TreebarkInput format
+  return renderToString({ template: schema, data: defaultData }, { indent });
 }
 
 /**

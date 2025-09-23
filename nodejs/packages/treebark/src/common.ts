@@ -1,19 +1,19 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// Template structure types (using $ prefixes for internal differentiation)
-export type TemplateObject = { [tag: string]: TemplateContent };
-export type TemplateContent = string | Template[] | TemplateAttributes;
+// Strictly defined template structure types (using $ prefixes for internal differentiation)
+export type TemplateString = string;
 export type TemplateAttributes = {
   $bind?: string;
-  $children?: Template[];
+  $children?: TemplateItem[];
   [key: string]: unknown;
 };
-export type Template = string | Template[] | TemplateObject;
+export type TemplateObject = { [tag: string]: TemplateString | TemplateItem[] | TemplateAttributes };
+export type TemplateItem = TemplateString | TemplateItem[] | TemplateObject;
 
 // API input types (clean external interface without $ prefixes)
 export interface TreebarkInput {
-  template: Template;
+  template: TemplateItem;
   data?: Data;
 }
 
@@ -108,39 +108,34 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 /**
  * Check if a template object has a binding structure
  */
-export function hasBinding(rest: TemplateContent): rest is TemplateAttributes & { $bind: string } {
+export function hasBinding(rest: TemplateString | TemplateItem[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
 }
 
 /**
  * Normalize input to internal template format
- * Supports TreebarkInput format and direct templates
+ * Only supports TreebarkInput format
  */
-export function normalizeInput(input: Template | TreebarkInput): { template: Template; data: Data } {
-  if (isTreebarkInput(input)) {
-    return { template: input.template, data: input.data || {} };
-  }
-  
-  // Direct template input
-  return { template: input, data: {} };
+export function normalizeInput(input: TreebarkInput): { template: TemplateItem; data: Data } {
+  return { template: input.template, data: input.data || {} };
 }
 
 /**
- * Parse schema object structure to extract tag, attributes, and children
+ * Parse template object structure to extract tag, attributes, and children
  */
-export function parseSchemaObject(schema: TemplateObject): {
+export function parseTemplateObject(templateObj: TemplateObject): {
   tag: string;
-  rest: TemplateContent;
-  children: Template[];
+  rest: TemplateString | TemplateItem[] | TemplateAttributes;
+  children: TemplateItem[];
   attrs: Record<string, unknown>;
 } {
-  const entries = Object.entries(schema);
+  const entries = Object.entries(templateObj);
   if (entries.length === 0) {
-    throw new Error('Schema object must have at least one tag');
+    throw new Error('Template object must have at least one tag');
   }
   const firstEntry = entries[0];
   if (!firstEntry) {
-    throw new Error('Schema object must have at least one tag');
+    throw new Error('Template object must have at least one tag');
   }
   const [tag, rest] = firstEntry;
   

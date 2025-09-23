@@ -117,12 +117,12 @@ describe('DOM Renderer', () => {
             expect(div.querySelector('h2')?.textContent).toBe('Alice');
             expect(div.querySelector('p')?.textContent).toBe('alice@example.com');
             break;
-          case 'handles new API format':
+          case 'handles TreebarkInput format':
             const pNew = fragment.firstChild as HTMLElement;
             expect(pNew.tagName).toBe('P');
             expect(pNew.textContent).toBe('Hello Bob!');
             break;
-          case 'handles new API format without data':
+          case 'handles TreebarkInput format without data':
             const divNew = fragment.firstChild as HTMLElement;
             expect(divNew.tagName).toBe('DIV');
             expect(divNew.textContent).toBe('Static content');

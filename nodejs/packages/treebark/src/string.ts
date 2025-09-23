@@ -1,5 +1,5 @@
 import { 
-  Template,
+  TemplateItem,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -10,12 +10,12 @@ import {
   validateAttribute, 
   normalizeInput,
   hasBinding, 
-  parseSchemaObject,
+  parseTemplateObject,
   RenderOptions
 } from './common';
 
 export function renderToString(
-  input: Template | TreebarkInput, 
+  input: TreebarkInput, 
   options: RenderOptions = {}
 ): string {
   const { template, data: inputData } = normalizeInput(input);
@@ -56,7 +56,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(template: Template, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
+function render(template: TemplateItem, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
   if (typeof template === "string") return interpolate(template, data);
   
   const separator = context.indentStr ? '\n' : '';
@@ -65,7 +65,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
     return template.map(t => render(t, data, context)).join(separator);
   }
   
-  const { tag, rest, children, attrs } = parseSchemaObject(template);
+  const { tag, rest, children, attrs } = parseTemplateObject(template);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
@@ -103,7 +103,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: Template) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: TemplateItem) => render(c, item as Data, childContext)).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
@@ -115,7 +115,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
   }
   
   // Render children with indentation
-  const content = children.map((c: Template) => {
+  const content = children.map((c: TemplateItem) => {
     const result = render(c, data, childContext);
     // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {

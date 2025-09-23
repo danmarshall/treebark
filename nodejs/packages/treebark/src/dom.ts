@@ -1,5 +1,5 @@
 import { 
-  Template,
+  TemplateItem,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -9,13 +9,13 @@ import {
   validateAttribute, 
   normalizeInput,
   hasBinding, 
-  parseSchemaObject,
+  parseTemplateObject,
   RenderOptions
 } from './common';
 import { renderToString } from './string';
 
 export function renderToDOM(
-  input: Template | TreebarkInput, 
+  input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
   const { template, data: inputData } = normalizeInput(input);
@@ -28,13 +28,13 @@ export function renderToDOM(
   return fragment;
 }
 
-function render(template: Template, data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
+function render(template: TemplateItem, data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
   if (typeof template === "string") return document.createTextNode(interpolate(template, data));
   if (Array.isArray(template)) return template.flatMap(t => {
     const r = render(t, data, context); return Array.isArray(r) ? r : [r];
   });
   
-  const { tag, rest, children, attrs } = parseSchemaObject(template);
+  const { tag, rest, children, attrs } = parseTemplateObject(template);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
@@ -56,7 +56,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
   // Special handling for comment tags
   if (tag === 'comment') {
     // Use string renderer and extract content between <!-- and -->
-    const stringResult = renderToString(template, { data });
+    const stringResult = renderToString({ template, data });
     const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
     return document.createComment(commentContent);
   }
@@ -75,7 +75,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: Template) => {
+      bound.forEach(item => $children.forEach((c: TemplateItem) => {
         const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
@@ -89,7 +89,7 @@ function render(template: Template, data: Data, context: { insideComment?: boole
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: Template) => {
+  children.forEach((c: TemplateItem) => {
     const nodes = render(c, data, context);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });
