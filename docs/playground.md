@@ -244,6 +244,7 @@ Try out Treebark schemas interactively! Edit the template on the left and data o
     <button class="example-button" onclick="loadExample('hello')">Hello World</button>
     <button class="example-button" onclick="loadExample('card')">Card Layout</button>
     <button class="example-button" onclick="loadExample('list')">List Binding</button>
+    <button class="example-button" onclick="loadExample('cards')">Stack of Cards</button>
     <button class="example-button" onclick="loadExample('template')">Self-Contained</button>
     <button class="example-button" onclick="loadExample('shorthand')">Shorthand Syntax</button>
     <button class="example-button" onclick="loadExample('mixed')">Mixed Content</button>
@@ -335,6 +336,71 @@ description: "This is a great product!"`
     price: "$999"
   - name: "Phone"
     price: "$499"`
+            }
+        },
+        cards: {
+            template: {
+                json: `{
+  "div": {
+    "class": "card-container",
+    "$bind": "products",
+    "$children": [
+      {
+        "div": {
+          "class": "card",
+          "$children": [
+            { "h3": "{{name}}" },
+            { "p": "{{description}}" },
+            { "div": { "class": "price", "$children": ["{{price}}"] } }
+          ]
+        }
+      }
+    ]
+  }
+}`,
+                yaml: `div:
+  class: card-container
+  $bind: products
+  $children:
+    - div:
+        class: card
+        $children:
+          - h3: "{{name}}"
+          - p: "{{description}}"
+          - div:
+              class: price
+              $children: ["{{price}}"]`
+            },
+            data: {
+                json: `{
+  "products": [
+    {
+      "name": "Gaming Laptop",
+      "description": "High-performance laptop for gaming",
+      "price": "$1299"
+    },
+    {
+      "name": "Smartphone",
+      "description": "Latest model with great camera",
+      "price": "$799"
+    },
+    {
+      "name": "Tablet",
+      "description": "Lightweight tablet for productivity",
+      "price": "$399"
+    }
+  ]
+}`,
+                yaml: `products:
+  - name: "Gaming Laptop"
+    description: "High-performance laptop for gaming"
+    price: "$1299"
+  - name: "Smartphone"
+    description: "Latest model with great camera"
+    price: "$799"
+  - name: "Tablet"
+    description: "Lightweight tablet for productivity"
+    price: "$399"`
             }
         },
         template: {
