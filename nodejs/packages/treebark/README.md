@@ -5,7 +5,16 @@
 [![npm version](https://badge.fury.io/js/treebark.svg)](https://www.npmjs.com/package/treebark)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Treebark is a lightweight library for safely generating HTML from declarative schemas. It provides template rendering with variable substitution and array binding while maintaining security by restricting to safe HTML elements.
+Treebark is a lightweight library for safely generating HTML from declarative schemas. It cleanly separates schemas (structure definitions) from templates (schemas with variable placeholders) while maintaining security by restricting to safe HTML elements.
+
+## Core Concepts
+
+Treebark distinguishes between two fundamental concepts:
+
+1. **Schema**: Direct HTML structure definition
+2. **Template**: Schema with variable placeholders that can be filled with data
+
+This separation eliminates confusion and provides a clean API where dollar-prefixed properties (`$bind`, `$children`) are only used inside templates for special directives, not for top-level structure organization.
 
 ## Features
 
@@ -25,11 +34,12 @@ npm install treebark
 
 ## Quick Start
 
-### Basic Usage
+### Schemas (Direct Structure)
 
 ```javascript
 import { renderToString } from 'treebark';
 
+// Pure schema - direct HTML structure, no variables
 const schema = {
   div: {
     class: "greeting",
@@ -45,12 +55,13 @@ console.log(html);
 // Output: <div class="greeting"><h1>Hello World!</h1><p>Welcome to Treebark</p></div>
 ```
 
-### Template Variables
+### Templates with Data
 
 ```javascript
 import { renderToString } from 'treebark';
 
-const schema = {
+// Template with variable placeholders
+const template = {
   div: {
     class: "product-card",
     $children: [
@@ -60,12 +71,13 @@ const schema = {
   }
 };
 
+// Separate data object
 const data = {
   name: "Gaming Laptop",
   price: "$1299"
 };
 
-const html = renderToString(schema, { data });
+const html = renderToString(template, { data });
 console.log(html);
 // Output: <div class="product-card"><h2>Gaming Laptop</h2><p>Only $1299!</p></div>
 ```
