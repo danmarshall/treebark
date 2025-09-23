@@ -82,6 +82,12 @@ describe('String Renderer', () => {
           case 'handles self-contained template':
             expect(result).toBe('<p>Hello Alice!</p>');
             break;
+          case 'handles new API format':
+            expect(result).toBe('<p>Hello Bob!</p>');
+            break;
+          case 'handles new API format without data':
+            expect(result).toBe('<div>Static content</div>');
+            break;
         }
       });
     });

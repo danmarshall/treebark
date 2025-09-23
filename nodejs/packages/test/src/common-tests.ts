@@ -140,6 +140,19 @@ export const bindingTests: TestCase[] = [
       $template: { p: 'Hello {{name}}!' },
       $data: { name: 'Alice' }
     }
+  },
+  {
+    name: 'handles new API format',
+    input: {
+      template: { p: 'Hello {{name}}!' },
+      data: { name: 'Bob' }
+    }
+  },
+  {
+    name: 'handles new API format without data',
+    input: {
+      template: { div: 'Static content' }
+    }
   }
 ];
 

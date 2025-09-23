@@ -1,17 +1,29 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// More specific types for schema structure
-export type SchemaObject = { [tag: string]: SchemaContent };
-export type SchemaContent = string | Schema[] | SchemaAttributes;
-export type SchemaAttributes = {
+// Internal template structure types (using $ prefixes for internal differentiation)
+export type TemplateObject = { [tag: string]: TemplateContent };
+export type TemplateContent = string | Template[] | TemplateAttributes;
+export type TemplateAttributes = {
   $bind?: string;
-  $children?: Schema[];
-  $template?: Schema;
-  $data?: Data;
+  $children?: Template[];
+  $template?: Template; // For nested self-contained blocks
+  $data?: Data; // For nested self-contained blocks
   [key: string]: unknown;
 };
-export type Schema = string | Schema[] | SchemaObject;
+export type Template = string | Template[] | TemplateObject;
+
+// Legacy schema types (for backward compatibility)
+export type SchemaObject = TemplateObject;
+export type SchemaContent = TemplateContent;
+export type SchemaAttributes = TemplateAttributes;
+export type Schema = Template;
+
+// API input types (clear external interface without $ prefixes)
+export interface TreebarkInput {
+  template: Template;
+  data?: Data;
+}
 
 // Options interface for render functions
 export interface RenderOptions {
@@ -95,26 +107,57 @@ export function validateAttribute(key: string, tag: string): void {
 }
 
 /**
- * Check if a schema object has a template structure
+ * Check if input is a TreebarkInput object
  */
-export function isTemplate(schema: unknown): schema is { $template: Schema; $data: Data } {
+export function isTreebarkInput(input: unknown): input is TreebarkInput {
+  return input !== null && typeof input === 'object' && 'template' in input;
+}
+
+/**
+ * Check if a schema object has a legacy template structure (for backward compatibility)
+ */
+export function isLegacyTemplate(schema: unknown): schema is { $template: Template; $data: Data } {
   return schema !== null && typeof schema === 'object' && '$template' in schema;
+}
+
+/**
+ * Check if input has either new or legacy template structure
+ */
+export function isTemplate(input: unknown): input is TreebarkInput | { $template: Template; $data: Data } {
+  return isTreebarkInput(input) || isLegacyTemplate(input);
 }
 
 /**
  * Check if a schema object has a binding structure
  */
-export function hasBinding(rest: SchemaContent): rest is SchemaAttributes & { $bind: string } {
+export function hasBinding(rest: TemplateContent): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
+}
+
+/**
+ * Normalize input to internal template format
+ * Supports new TreebarkInput format, legacy $template format, and direct templates
+ */
+export function normalizeInput(input: Template | TreebarkInput | { $template: Template; $data: Data }): { template: Template; data: Data } {
+  if (isTreebarkInput(input)) {
+    return { template: input.template, data: input.data || {} };
+  }
+  
+  if (isLegacyTemplate(input)) {
+    return { template: input.$template, data: input.$data || {} };
+  }
+  
+  // Direct template input
+  return { template: input as Template, data: {} };
 }
 
 /**
  * Parse schema object structure to extract tag, attributes, and children
  */
-export function parseSchemaObject(schema: SchemaObject): {
+export function parseSchemaObject(schema: TemplateObject): {
   tag: string;
-  rest: SchemaContent;
-  children: Schema[];
+  rest: TemplateContent;
+  children: Template[];
   attrs: Record<string, unknown>;
 } {
   const entries = Object.entries(schema);
@@ -127,7 +170,7 @@ export function parseSchemaObject(schema: SchemaObject): {
   }
   const [tag, rest] = firstEntry;
   
-  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as SchemaAttributes)?.$children || [];
+  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as TemplateAttributes)?.$children || [];
   const attrs = rest && typeof rest === "object" && !Array.isArray(rest) 
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
     

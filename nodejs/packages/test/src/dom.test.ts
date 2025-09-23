@@ -122,6 +122,16 @@ describe('DOM Renderer', () => {
             expect(p.tagName).toBe('P');
             expect(p.textContent).toBe('Hello Alice!');
             break;
+          case 'handles new API format':
+            const pNew = fragment.firstChild as HTMLElement;
+            expect(pNew.tagName).toBe('P');
+            expect(pNew.textContent).toBe('Hello Bob!');
+            break;
+          case 'handles new API format without data':
+            const divNew = fragment.firstChild as HTMLElement;
+            expect(divNew.tagName).toBe('DIV');
+            expect(divNew.textContent).toBe('Static content');
+            break;
         }
       });
     });

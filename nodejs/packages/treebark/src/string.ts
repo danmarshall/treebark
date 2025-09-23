@@ -1,5 +1,6 @@
 import { 
-  Schema, 
+  Template,
+  TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
   VOID_TAGS,
@@ -7,18 +8,20 @@ import {
   interpolate,
   escape,
   validateAttribute, 
-  isTemplate, 
+  normalizeInput,
   hasBinding, 
   parseSchemaObject,
-  RenderOptions
+  RenderOptions,
+  // Legacy types for backward compatibility
+  Schema
 } from './common';
 
-export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: RenderOptions = {}): string {
-  const data = options.data || {};
-  
-  if (isTemplate(schema)) {
-    return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
-  }
+export function renderToString(
+  input: Template | TreebarkInput | { $template: Template; $data: Data }, 
+  options: RenderOptions = {}
+): string {
+  const { template, data: inputData } = normalizeInput(input);
+  const data = { ...inputData, ...options.data };
   
   // Conditionally set indent context
   const context = options.indent ? {
@@ -27,7 +30,7 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
     level: 0
   } : {};
   
-  return render(schema as Schema, data, context);
+  return render(template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
@@ -55,16 +58,16 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(schema: Schema, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
-  if (typeof schema === "string") return interpolate(schema, data);
+function render(template: Template, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
+  if (typeof template === "string") return interpolate(template, data);
   
   const separator = context.indentStr ? '\n' : '';
   
-  if (Array.isArray(schema)) {
-    return schema.map(s => render(s, data, context)).join(separator);
+  if (Array.isArray(template)) {
+    return template.map(t => render(t, data, context)).join(separator);
   }
   
-  const { tag, rest, children, attrs } = parseSchemaObject(schema);
+  const { tag, rest, children, attrs } = parseSchemaObject(template);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
@@ -102,7 +105,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: Template) => render(c, item as Data, childContext)).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
@@ -114,7 +117,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
   }
   
   // Render children with indentation
-  const content = children.map((c: Schema) => {
+  const content = children.map((c: Template) => {
     const result = render(c, data, childContext);
     // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {
