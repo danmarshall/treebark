@@ -407,7 +407,6 @@ description: "This is a great product!"`
         rootarray: {
             template: {
                 json: `{
-  "$bind": ".",
   "div": {
     "class": "card",
     "$children": [
@@ -417,8 +416,7 @@ description: "This is a great product!"`
     ]
   }
 }`,
-                yaml: `$bind: "."
-div:
+                yaml: `div:
   class: card
   $children:
     - h3: "{{name}}"
@@ -603,11 +601,26 @@ price: "$1299"`
             // Get indent options
             const indentOptions = getIndentOptions();
             
-            // Generate HTML string with indentation
-            const htmlString = window.Treebark.renderToString(template, { 
-                data: data,
-                indent: indentOptions 
-            });
+            // Smart array detection: if data is an array, use it as the schema directly
+            // and apply the template to each item in the array
+            let htmlString;
+            if (Array.isArray(data) && data.length > 0) {
+                // When data is an array, apply the template to each item
+                const results = data.map(item => {
+                    return window.Treebark.renderToString(template, { 
+                        data: item,
+                        indent: indentOptions 
+                    });
+                });
+                htmlString = results.join('\n');
+            } else {
+                // Standard template + data rendering
+                htmlString = window.Treebark.renderToString(template, { 
+                    data: data,
+                    indent: indentOptions 
+                });
+            }
+            
             htmlOutput.textContent = htmlString;
             
         } catch (error) {
