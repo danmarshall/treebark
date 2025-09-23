@@ -85,6 +85,9 @@ describe('String Renderer', () => {
           case 'handles TreebarkInput format without data':
             expect(result).toBe('<div>Static content</div>');
             break;
+          case 'handles single template with array data':
+            expect(result).toBe('<div class="card"><h3>Laptop</h3><p>Price: $999</p></div><div class="card"><h3>Mouse</h3><p>Price: $25</p></div>');
+            break;
         }
       });
     });

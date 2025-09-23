@@ -162,6 +162,24 @@ export const bindingTests: TestCase[] = [
     input: {
       template: { div: 'Static content' }
     }
+  },
+  {
+    name: 'handles single template with array data',
+    input: {
+      template: {
+        div: {
+          class: 'card',
+          $children: [
+            { h3: '{{name}}' },
+            { p: 'Price: {{price}}' }
+          ]
+        }
+      },
+      data: [
+        { name: 'Laptop', price: '$999' },
+        { name: 'Mouse', price: '$25' }
+      ]
+    }
   }
 ];
 

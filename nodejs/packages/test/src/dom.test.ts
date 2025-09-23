@@ -127,6 +127,17 @@ describe('DOM Renderer', () => {
             expect(divNew.tagName).toBe('DIV');
             expect(divNew.textContent).toBe('Static content');
             break;
+          case 'handles single template with array data':
+            expect(fragment.children.length).toBe(2);
+            const firstCard = fragment.children[0] as HTMLElement;
+            const secondCard = fragment.children[1] as HTMLElement;
+            expect(firstCard.className).toBe('card');
+            expect(firstCard.querySelector('h3')?.textContent).toBe('Laptop');
+            expect(firstCard.querySelector('p')?.textContent).toBe('Price: $999');
+            expect(secondCard.className).toBe('card');
+            expect(secondCard.querySelector('h3')?.textContent).toBe('Mouse');
+            expect(secondCard.querySelector('p')?.textContent).toBe('Price: $25');
+            break;
         }
       });
     });

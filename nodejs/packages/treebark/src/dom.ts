@@ -21,6 +21,17 @@ export function renderToDOM(
   const data = { ...input.data, ...options.data };
   
   const fragment = document.createDocumentFragment();
+  
+  // If template is a single element and data is an array, render template for each data item
+  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+    input.data.forEach(item => {
+      const result = render(input.template, { ...item, ...options.data }, {});
+      if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
+      else fragment.appendChild(result);
+    });
+    return fragment;
+  }
+  
   const result = render(input.template, data, {});
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);

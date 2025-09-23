@@ -27,6 +27,14 @@ export function renderToString(
     level: 0
   } : {};
   
+  // If template is a single element and data is an array, render template for each data item
+  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+    const separator = context.indentStr ? '\n' : '';
+    return input.data.map(item => 
+      render(input.template, { ...item, ...options.data }, context)
+    ).join(separator);
+  }
+  
   return render(input.template, data, context);
 }
 
