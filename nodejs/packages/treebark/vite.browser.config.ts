@@ -1,18 +1,12 @@
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 export default defineConfig({
-  plugins: [
-    dts({
-      insertTypesEntry: true,
-    })
-  ],
   build: {
     lib: {
-      entry: 'src/index.ts',
+      entry: 'src/browser.ts',
       name: 'Treebark',
-      formats: ['es', 'cjs'],
-      fileName: (format) => `treebark.${format}.js`
+      formats: ['umd'],
+      fileName: () => 'treebark-browser.js'
     },
     rollupOptions: {
       external: [],
@@ -21,6 +15,6 @@ export default defineConfig({
       }
     },
     sourcemap: true,
-    minify: 'terser'
+    minify: false
   }
 });

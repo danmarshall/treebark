@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "build:browser": "tsc -p tsconfig.browser.json && node scripts/create-browser-bundle.js",
+    "build:browser": "vite build --config vite.browser.config.ts",
     "build:vite": "vite build",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
