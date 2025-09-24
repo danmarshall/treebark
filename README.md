@@ -294,50 +294,7 @@ ul:
 
 ## 🚀 Getting Started  
 
-### Node.js
-
-See the **[Node.js package documentation](nodejs/packages/treebark/)** for installation instructions and quick start guide.
-
-**Quick install:**
-```bash
-npm install treebark
-```  
-
-```js
-import { renderToString } from "treebark";
-
-// Simple template with data
-const html = renderToString({
-  template: {
-    ul: {
-      $bind: "products",
-      $children: [
-        { li: "{{name}} — {{price}}" }
-      ]
-    }
-  },
-  data: {
-    products: [
-      { name: "Laptop", price: "$999" },
-      { name: "Phone", price: "$499" }
-    ]
-  }
-});
-
-// Or use automatic array iteration
-const cards = renderToString({
-  template: {
-    div: {
-      class: "card",
-      $children: [{ h2: "{{name}}" }]
-    }
-  },
-  data: [
-    { name: "Product 1" },
-    { name: "Product 2" }
-  ]
-});
-```
+See the platform-specific documentation above for installation and usage instructions.
 
 ---
 
