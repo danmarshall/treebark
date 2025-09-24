@@ -5,7 +5,6 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      rollupTypes: true
     })
   ],
   build: {
@@ -18,15 +17,10 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        globals: {
-          // Add any global dependencies here if needed
-        }
+        globals: {}
       }
     },
     sourcemap: true,
     minify: 'terser'
-  },
-  define: {
-    'process.env.NODE_ENV': '"production"'
   }
 });
