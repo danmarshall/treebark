@@ -286,7 +286,8 @@ ul:
 
 ### Implementations
 
-- **[Node.js/Browser](nodejs/)** - Core library with string and DOM renderers, plus markdown-it plugin
+- **[Node.js/Browser](nodejs/packages/treebark/)** - Core library with string and DOM renderers
+  - **[markdown-it plugin](nodejs/packages/markdown-it-treebark/)** - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 
 ---
@@ -295,6 +296,9 @@ ul:
 
 ### Node.js
 
+See the **[Node.js package documentation](nodejs/packages/treebark/)** for installation instructions and quick start guide.
+
+**Quick install:**
 ```bash
 npm install treebark
 ```  
