@@ -49,25 +49,22 @@
         }
     },
     
-    "self-contained": {
+    "user-profile": {
         "template": {
-            "$template": {
-                "div": {
-                    "class": "user-profile",
-                    "$children": [
-                        { "h3": "{{name}}" },
-                        { "p": "Email: {{email}}" },
-                        { "p": "Skills: {{skills}}" }
-                    ]
-                }
-            },
-            "$data": {
-                "name": "Alice Johnson",
-                "email": "alice@example.com",
-                "skills": "JavaScript, Python, React"
+            "div": {
+                "class": "user-profile",
+                "$children": [
+                    { "h3": "{{name}}" },
+                    { "p": "Email: {{email}}" },
+                    { "p": "Skills: {{skills}}" }
+                ]
             }
         },
-        "data": {}
+        "data": {
+            "name": "Alice Johnson",
+            "email": "alice@example.com",
+            "skills": "JavaScript, Python, React"
+        }
     },
     
     "shorthand-syntax": {
