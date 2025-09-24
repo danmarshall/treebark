@@ -317,10 +317,10 @@ Data: {
     </div>
 
     <div class="demo-section">
-        <h2 class="demo-title">Self-Contained Template</h2>
+        <h2 class="demo-title">Template with Data</h2>
         <div class="schema">
 {
-  "$template": {
+  "template": {
     "div": {
       "class": "product-card",
       "$children": [
@@ -329,7 +329,7 @@ Data: {
       ]
     }
   },
-  "$data": {
+  "data": {
     "name": "Gaming Laptop",
     "price": "$1299"
   }
@@ -567,10 +567,10 @@ Data: {
                 }
             );
 
-            // Self-contained
+            // Template with Data
             renderExample('self-contained', 'self-contained-html',
                 {
-                    $template: {
+                    template: {
                         div: {
                             class: "product-card",
                             $children: [
@@ -579,7 +579,7 @@ Data: {
                             ]
                         }
                     },
-                    $data: {
+                    data: {
                         name: "Gaming Laptop",
                         price: "$1299"
                     }

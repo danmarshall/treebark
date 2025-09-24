@@ -167,7 +167,7 @@ div:
         <div class="input">
             <h3>Template with Data</h3>
             <pre><code>```treebark
-$template:
+template:
   div:
     class: product-grid
     $children:
@@ -184,7 +184,7 @@ $template:
                   - div:
                       class: price
                       $children: ["{{price}}"]
-$data:
+data:
   items:
     - name: "Core"
       desc: "Basic features"
@@ -219,7 +219,7 @@ $data:
             <h3>Template with Data (JSON)</h3>
             <pre><code>```treebark
 {
-  "$template": {
+  "template": {
     "div": {
       "class": "product-grid",
       "$children": [
@@ -250,7 +250,7 @@ $data:
       ]
     }
   },
-  "$data": {
+  "data": {
     "items": [
       { "name": "Core", "desc": "Basic features", "price": "Free" },
       { "name": "Pro", "desc": "Advanced features", "price": "$29/mo" }

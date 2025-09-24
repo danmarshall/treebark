@@ -171,11 +171,11 @@ This is equivalent to:
 
 ---
 
-### Self-Contained Block  
+### Template with Data  
 
 ```json
 {
-  "$template": {
+  "template": {
     "div": {
       "class": "product-card",
       "$children": [
@@ -184,7 +184,7 @@ This is equivalent to:
       ]
     }
   },
-  "$data": {
+  "data": {
     "name": "Laptop",
     "price": "$999"
   }

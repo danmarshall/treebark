@@ -193,7 +193,7 @@ Both render to:
 
 ````markdown
 ```treebark
-$template:
+template:
   div:
     class: user-profile
     $children:
@@ -202,7 +202,7 @@ $template:
           alt: "{{name}}'s avatar"
       - h3: "{{name}}"
       - p: "{{bio}}"
-$data:
+data:
   name: "Alice Johnson"
   avatar: "/avatars/alice.jpg"
   bio: "Software engineer and treebark enthusiast"
@@ -214,7 +214,7 @@ $data:
 ````markdown
 ```treebark
 {
-  "$template": {
+  "template": {
     "div": {
       "class": "user-profile",
       "$children": [
@@ -229,7 +229,7 @@ $data:
       ]
     }
   },
-  "$data": {
+  "data": {
     "name": "Alice Johnson",
     "avatar": "/avatars/alice.jpg",
     "bio": "Software engineer and treebark enthusiast"
@@ -242,13 +242,13 @@ $data:
 
 ````markdown
 ```treebark
-$template:
+template:
   ul:
     class: product-list
     $bind: products
     $children:
       - li: "{{name}} - {{price}}"
-$data:
+data:
   products:
     - name: "Laptop"
       price: "$999"
@@ -262,7 +262,7 @@ $data:
 ````markdown
 ```treebark
 {
-  "$template": {
+  "template": {
     "ul": {
       "class": "product-list",
       "$bind": "products",
@@ -271,7 +271,7 @@ $data:
       ]
     }
   },
-  "$data": {
+  "data": {
     "products": [
       { "name": "Laptop", "price": "$999" },
       { "name": "Phone", "price": "$499" }
