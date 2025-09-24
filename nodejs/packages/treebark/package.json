@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run build:browser",
     "build:browser": "vite build --config vite.browser.config.ts",
     "build:vite": "vite build",
     "clean": "rm -rf dist",

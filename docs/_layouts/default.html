@@ -78,8 +78,12 @@
             transition: color 0.3s;
         }
         
-        .nav-link:hover {
+        .nav-link:hover, .nav-link.active {
             color: #005a9c;
+        }
+        
+        .nav-link.active {
+            font-weight: 600;
         }
         
         .content {
@@ -170,8 +174,8 @@
             <span class="tagline">{{ site.description }}</span>
         </div>
         <div class="header-right">
-            <a href="{{ '/playground.html' | relative_url }}" class="nav-link">Playground</a>
-            <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
+            <a href="{{ '/playground.html' | relative_url }}" class="nav-link{% if page.url == '/playground.html' %} active{% endif %}">Playground</a>
+            <a href="https://github.com/danmarshall/treebark" class="github-link">View on GitHub</a>
         </div>
     </div>
     
