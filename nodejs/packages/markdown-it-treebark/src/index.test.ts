@@ -178,16 +178,16 @@ div: "Hello"
       expect(result).toContain('At least one format');
     });
 
-    it('should maintain backward compatibility with allowJson option', () => {
-      const mdLegacy = new MarkdownIt();
-      mdLegacy.use(treebarkPlugin, { yaml, allowJson: true });
+    it('should work with allowJson option', () => {
+      const mdWithJson = new MarkdownIt();
+      mdWithJson.use(treebarkPlugin, { yaml, allowJson: true });
 
       const yamlMarkdown = `
 \`\`\`treebark
 div: "Hello YAML"
 \`\`\`
 `;
-      const yamlResult = mdLegacy.render(yamlMarkdown);
+      const yamlResult = mdWithJson.render(yamlMarkdown);
       expect(yamlResult).toContain('<div>Hello YAML</div>');
 
       const jsonMarkdown = `
@@ -195,7 +195,7 @@ div: "Hello YAML"
 {"div": "Hello JSON"}
 \`\`\`
 `;
-      const jsonResult = mdLegacy.render(jsonMarkdown);
+      const jsonResult = mdWithJson.render(jsonMarkdown);
       expect(jsonResult).toContain('<div>Hello JSON</div>');
     });
   });

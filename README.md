@@ -115,7 +115,7 @@ renderToString({
 </div>
 ```
 
-This eliminates the need for verbose `$bind` syntax in simple cases while maintaining full backward compatibility.
+This eliminates the need for verbose `$bind` syntax in simple cases while preserving all existing `$bind` functionality.
 
 ---
 
