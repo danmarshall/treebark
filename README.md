@@ -292,12 +292,6 @@ ul:
 
 ---
 
-## 🚀 Getting Started  
-
-See the platform-specific documentation above for installation and usage instructions.
-
----
-
 ## 📦 Safe by Default  
 
 Treebark ships with a strict whitelist:  
