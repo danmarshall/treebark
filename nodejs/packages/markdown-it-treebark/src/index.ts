@@ -80,7 +80,7 @@ function renderTreebarkBlock(
   yaml?: { load: (content: string) => any },
   indent?: string | number | boolean
 ): string {
-  let schema: any;
+  let template: any;
   let yamlError: Error | null = null;
   
   // Validate that at least one format is enabled
@@ -90,7 +90,7 @@ function renderTreebarkBlock(
   
   // Check for empty content first
   if (!content.trim()) {
-    throw new Error('Empty or invalid schema');
+    throw new Error('Empty or invalid template');
   }
   
   // Try YAML first if enabled
@@ -99,16 +99,16 @@ function renderTreebarkBlock(
       throw new Error('YAML library not provided but YAML parsing is enabled');
     }
     try {
-      schema = yaml.load(content);
+      template = yaml.load(content);
     } catch (error) {
       yamlError = error instanceof Error ? error : new Error('YAML parsing failed');
     }
   }
   
   // If YAML failed or wasn't enabled, try JSON if enabled
-  if (!schema && allowJson) {
+  if (!template && allowJson) {
     try {
-      schema = JSON.parse(content);
+      template = JSON.parse(content);
     } catch (jsonError) {
       // If both failed, provide a helpful error message
       if (allowYaml && yamlError) {
@@ -119,17 +119,24 @@ function renderTreebarkBlock(
     }
   }
   
-  // If YAML succeeded but JSON wasn't tried, check that schema is valid
-  if (!schema && allowYaml && yamlError) {
+  // If YAML succeeded but JSON wasn't tried, check that template is valid
+  if (!template && allowYaml && yamlError) {
     throw new Error(`Failed to parse as YAML: ${yamlError.message}`);
   }
   
-  if (!schema) {
-    throw new Error('Empty or invalid schema');
+  if (!template) {
+    throw new Error('Empty or invalid template');
   }
   
-  // Render using treebark
-  return renderToString(schema, { data: defaultData, indent });
+  // Check if template is already in TreebarkInput format
+  if (template && typeof template === 'object' && 'template' in template) {
+    // Already in TreebarkInput format, merge with default data
+    const mergedData = { ...defaultData, ...template.data };
+    return renderToString({ template: template.template, data: mergedData }, { indent });
+  }
+  
+  // Template is a direct template, wrap it in TreebarkInput format
+  return renderToString({ template: template, data: defaultData }, { indent });
 }
 
 /**

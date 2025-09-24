@@ -54,23 +54,21 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ---
 
-### Bound to an Object  
+### With Data Binding
 
-```json
-{
-  "div": {
-    "class": "card",
-    "$children": [
-      { "h2": "{{title}}" },
-      { "p": "{{description}}" }
-    ]
-  }
-}
-```  
-
-**Data:**  
-```json
-{ "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
+```javascript
+renderToString({
+  template: {
+    div: {
+      class: "card",
+      $children: [
+        { h2: "{{title}}" },
+        { p: "{{description}}" }
+      ]
+    }
+  },
+  data: { title: "Treebark Demo", description: "CMS-driven and data-bound!" }
+});
 ```  
 
 **Output:**  
@@ -80,6 +78,44 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
   <p>CMS-driven and data-bound!</p>
 </div>
 ```  
+
+---
+
+### Automatic Array Iteration
+
+When you provide a single template with array data, Treebark automatically creates multiple instances:
+
+```javascript
+renderToString({
+  template: {
+    div: {
+      class: "product-card",
+      $children: [
+        { h2: "{{name}}" },
+        { p: "Only {{price}}!" }
+      ]
+    }
+  },
+  data: [
+    { name: "Laptop", price: "$999" },
+    { name: "Mouse", price: "$25" }
+  ]
+});
+```
+
+**Output:**
+```html
+<div class="product-card">
+  <h2>Laptop</h2>
+  <p>Only $999!</p>
+</div>
+<div class="product-card">
+  <h2>Mouse</h2>
+  <p>Only $25!</p>
+</div>
+```
+
+This eliminates the need for verbose `$bind` syntax in simple cases while preserving all existing `$bind` functionality.
 
 ---
 
@@ -132,27 +168,27 @@ This is equivalent to:
 
 ---
 
-### Bound to an Array  
+### Advanced Array Binding with $bind
 
-```json
-{
-  "ul": {
-    "$bind": "products",
-    "$children": [
-      { "li": "{{name}} — {{price}}" }
+For more complex array scenarios, you can still use the `$bind` syntax:
+
+```javascript
+renderToString({
+  template: {
+    ul: {
+      $bind: "products",
+      $children: [
+        { li: "{{name}} — {{price}}" }
+      ]
+    }
+  },
+  data: {
+    products: [
+      { name: "Laptop", price: "$999" },
+      { name: "Phone", price: "$499" }
     ]
   }
-}
-```  
-
-**Data:**  
-```json
-{
-  "products": [
-    { "name": "Laptop", "price": "$999" },
-    { "name": "Phone",  "price": "$499" }
-  ]
-}
+});
 ```  
 
 **Output:**  
@@ -162,36 +198,6 @@ This is equivalent to:
   <li>Phone — $499</li>
 </ul>
 ```  
-
----
-
-### Self-Contained Block  
-
-```json
-{
-  "$template": {
-    "div": {
-      "class": "product-card",
-      "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Only {{price}}!" }
-      ]
-    }
-  },
-  "$data": {
-    "name": "Laptop",
-    "price": "$999"
-  }
-}
-```  
-
-**Output:**
-```html
-<div class="product-card">
-  <h2>Laptop</h2>
-  <p>Only $999!</p>
-</div>
-```
 
 ---
 
@@ -278,48 +284,11 @@ ul:
 
 ## 📦 Available Libraries
 
-### Node.js
+### Implementations
 
-- **`treebark`** - Core library with two renderers:
-  - **String renderer** - Convert treebark schemas to HTML strings
-  - **DOM renderer** - Generate DOM nodes (browser or jsdom environments)
-- **[markdown-it-treebark](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark)** - Plugin for markdown-it parser
-
-### Other Languages
-
-Other language implementations are not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
-
----
-
-## 🚀 Getting Started  
-
-### Node.js
-
-```bash
-npm install treebark
-```  
-
-```js
-import { renderToString } from "treebark";
-
-const schema = {
-  ul: {
-    $bind: "products",
-    $children: [
-      { li: "{{name}} — {{price}}" }
-    ]
-  }
-};
-
-const data = {
-  products: [
-    { name: "Laptop", price: "$999" },
-    { name: "Phone", price: "$499" }
-  ]
-};
-
-const html = renderToString(schema, { data });
-```
+- **[Node.js/Browser](nodejs/packages/treebark/)** - Core library with string and DOM renderers
+  - **[markdown-it plugin](nodejs/packages/markdown-it-treebark/)** - Render treebark templates in Markdown
+- **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 
 ---
 

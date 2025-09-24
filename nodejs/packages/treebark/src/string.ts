@@ -1,5 +1,7 @@
 import { 
-  Schema, 
+  TemplateElement,
+  TemplateObject,
+  TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
   VOID_TAGS,
@@ -7,18 +9,16 @@ import {
   interpolate,
   escape,
   validateAttribute, 
-  isTemplate, 
   hasBinding, 
-  parseSchemaObject,
+  parseTemplateObject,
   RenderOptions
 } from './common';
 
-export function renderToString(schema: Schema | { $template: Schema; $data: Data }, options: RenderOptions = {}): string {
-  const data = options.data || {};
-  
-  if (isTemplate(schema)) {
-    return renderToString(schema.$template, { data: schema.$data, indent: options.indent });
-  }
+export function renderToString(
+  input: TreebarkInput, 
+  options: RenderOptions = {}
+): string {
+  const data = { ...input.data, ...options.data };
   
   // Conditionally set indent context
   const context = options.indent ? {
@@ -27,7 +27,15 @@ export function renderToString(schema: Schema | { $template: Schema; $data: Data
     level: 0
   } : {};
   
-  return render(schema as Schema, data, context);
+  // If template is a single element and data is an array, render template for each data item
+  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+    const separator = context.indentStr ? '\n' : '';
+    return input.data.map(item => 
+      render(input.template, { ...item, ...options.data }, context)
+    ).join(separator);
+  }
+  
+  return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
@@ -55,16 +63,16 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(schema: Schema, data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
-  if (typeof schema === "string") return interpolate(schema, data);
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
+  if (typeof template === "string") return interpolate(template, data);
   
   const separator = context.indentStr ? '\n' : '';
   
-  if (Array.isArray(schema)) {
-    return schema.map(s => render(s, data, context)).join(separator);
+  if (Array.isArray(template)) {
+    return template.map(t => render(t, data, context)).join(separator);
   }
   
-  const { tag, rest, children, attrs } = parseSchemaObject(schema);
+  const { tag, rest, children, attrs } = parseTemplateObject(template);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
@@ -102,7 +110,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: Schema) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: string | TemplateObject) => render(c, item as Data, childContext)).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
@@ -114,7 +122,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean; 
   }
   
   // Render children with indentation
-  const content = children.map((c: Schema) => {
+  const content = children.map((c: string | TemplateObject) => {
     const result = render(c, data, childContext);
     // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {

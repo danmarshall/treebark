@@ -112,7 +112,7 @@ md.use(treebarkPlugin, { allowYaml: true, allowJson: false });
 // JSON only 
 md.use(treebarkPlugin, { allowYaml: false, allowJson: true });
 
-// Legacy option (still supported for backward compatibility)
+// Alternative option format
 md.use(treebarkPlugin, { allowJson: true });
 ```
 

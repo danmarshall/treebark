@@ -20,49 +20,57 @@ export interface ErrorTestCase {
 export const basicRenderingTests: TestCase[] = [
   {
     name: 'renders simple text',
-    input: 'Hello world'
+    input: { template: 'Hello world' }
   },
   {
     name: 'renders simple element',
-    input: { div: 'Hello world' }
+    input: { template: { div: 'Hello world' } }
   },
   {
     name: 'renders element with attributes',
     input: {
-      div: {
-        class: 'greeting',
-        id: 'hello',
-        $children: ['Hello world']
+      template: {
+        div: {
+          class: 'greeting',
+          id: 'hello',
+          $children: ['Hello world']
+        }
       }
     }
   },
   {
     name: 'renders nested elements',
     input: {
-      div: {
-        $children: [
-          { h1: 'Title' },
-          { p: 'Content' }
-        ]
+      template: {
+        div: {
+          $children: [
+            { h1: 'Title' },
+            { p: 'Content' }
+          ]
+        }
       }
     }
   },
   {
     name: 'renders array as fragment',
-    input: [
-      { h1: 'Title' },
-      { p: 'Content' }
-    ]
+    input: {
+      template: [
+        { h1: 'Title' },
+        { p: 'Content' }
+      ]
+    }
   },
   {
     name: 'renders mixed content',
     input: {
-      div: {
-        $children: [
-          'Hello ',
-          { span: 'world' },
-          '!'
-        ]
+      template: {
+        div: {
+          $children: [
+            'Hello ',
+            { span: 'world' },
+            '!'
+          ]
+        }
       }
     }
   }
@@ -72,28 +80,36 @@ export const basicRenderingTests: TestCase[] = [
 export const dataInterpolationTests: TestCase[] = [
   {
     name: 'interpolates data',
-    input: { div: 'Hello {{name}}!' },
-    options: { data: { name: 'Alice' } }
+    input: { 
+      template: { div: 'Hello {{name}}!' },
+      data: { name: 'Alice' }
+    }
   },
   {
     name: 'interpolates nested properties',
-    input: { div: 'Price: {{product.price}}' },
-    options: { data: { product: { price: '$99' } } }
+    input: { 
+      template: { div: 'Price: {{product.price}}' },
+      data: { product: { price: '$99' } }
+    }
   },
   {
     name: 'interpolates in attributes',
     input: {
-      a: {
-        href: '/user/{{id}}',
-        $children: ['{{name}}']
-      }
-    },
-    options: { data: { id: '123', name: 'Alice' } }
+      template: {
+        a: {
+          href: '/user/{{id}}',
+          $children: ['{{name}}']
+        }
+      },
+      data: { id: '123', name: 'Alice' }
+    }
   },
   {
     name: 'handles escaped interpolation',
-    input: 'Hello {{{name}}}!',
-    options: { data: { name: 'Alice' } }
+    input: { 
+      template: 'Hello {{{name}}}!',
+      data: { name: 'Alice' }
+    }
   }
 ];
 
@@ -102,12 +118,12 @@ export const bindingTests: TestCase[] = [
   {
     name: 'handles array binding',
     input: {
-      ul: {
-        $bind: 'items',
-        $children: [{ li: '{{name}} - {{price}}' }]
-      }
-    },
-    options: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $children: [{ li: '{{name}} - {{price}}' }]
+        }
+      },
       data: {
         items: [
           { name: 'Apple', price: '$1' },
@@ -119,26 +135,50 @@ export const bindingTests: TestCase[] = [
   {
     name: 'handles object binding',
     input: {
-      div: {
-        $bind: 'user',
-        class: 'user-card',
-        $children: [
-          { h2: '{{name}}' },
-          { p: '{{email}}' }
-        ]
-      }
-    },
-    options: {
+      template: {
+        div: {
+          $bind: 'user',
+          class: 'user-card',
+          $children: [
+            { h2: '{{name}}' },
+            { p: '{{email}}' }
+          ]
+        }
+      },
       data: {
         user: { name: 'Alice', email: 'alice@example.com' }
       }
     }
   },
   {
-    name: 'handles self-contained template',
+    name: 'handles TreebarkInput format',
     input: {
-      $template: { p: 'Hello {{name}}!' },
-      $data: { name: 'Alice' }
+      template: { p: 'Hello {{name}}!' },
+      data: { name: 'Bob' }
+    }
+  },
+  {
+    name: 'handles TreebarkInput format without data',
+    input: {
+      template: { div: 'Static content' }
+    }
+  },
+  {
+    name: 'handles single template with array data',
+    input: {
+      template: {
+        div: {
+          class: 'card',
+          $children: [
+            { h3: '{{name}}' },
+            { p: 'Price: {{price}}' }
+          ]
+        }
+      },
+      data: [
+        { name: 'Laptop', price: '$999' },
+        { name: 'Mouse', price: '$25' }
+      ]
     }
   }
 ];
@@ -147,15 +187,17 @@ export const bindingTests: TestCase[] = [
 export const securityErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for disallowed tags',
-    input: { script: 'alert("xss")' },
+    input: { template: { script: 'alert("xss")' } },
     expectedError: 'Tag "script" is not allowed'
   },
   {
     name: 'throws error for disallowed attributes',
     input: {
-      div: {
-        onclick: 'alert("xss")',
-        $children: ['Content']
+      template: {
+        div: {
+          onclick: 'alert("xss")',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "onclick" is not allowed'
@@ -166,10 +208,12 @@ export const securityValidTests: TestCase[] = [
   {
     name: 'allows data- and aria- attributes',
     input: {
-      div: {
-        'data-test': 'value',
-        'aria-label': 'Test',
-        $children: ['Content']
+      template: {
+        div: {
+          'data-test': 'value',
+          'aria-label': 'Test',
+          $children: ['Content']
+        }
       }
     }
   }
@@ -180,71 +224,81 @@ export const tagSpecificAttributeTests: TestCase[] = [
   {
     name: 'allows tag-specific attributes for img',
     input: {
-      img: {
-        src: 'image.jpg',
-        alt: 'An image',
-        width: '100',
-        height: '200'
+      template: {
+        img: {
+          src: 'image.jpg',
+          alt: 'An image',
+          width: '100',
+          height: '200'
+        }
       }
     }
   },
   {
     name: 'allows tag-specific attributes for a',
     input: {
-      a: {
-        href: 'https://example.com',
-        target: '_blank',
-        rel: 'noopener',
-        $children: ['Link text']
+      template: {
+        a: {
+          href: 'https://example.com',
+          target: '_blank',
+          rel: 'noopener',
+          $children: ['Link text']
+        }
       }
     }
   },
   {
     name: 'allows global attributes on any tag',
     input: {
-      span: {
-        id: 'test-id',
-        class: 'test-class',
-        style: 'color: red',
-        title: 'Test title',
-        role: 'button',
-        $children: ['Content']
+      template: {
+        span: {
+          id: 'test-id',
+          class: 'test-class',
+          style: 'color: red',
+          title: 'Test title',
+          role: 'button',
+          $children: ['Content']
+        }
       }
     }
   },
   {
     name: 'allows tag-specific attributes for table elements',
     input: {
-      table: {
-        summary: 'Test table',
-        $children: [
-          {
-            tr: [
-              {
-                th: {
-                  scope: 'col',
-                  colspan: '2',
-                  $children: ['Header']
+      template: {
+        table: {
+          summary: 'Test table',
+          $children: [
+            {
+              tr: [
+                {
+                  th: {
+                    scope: 'col',
+                    colspan: '2',
+                    $children: ['Header']
+                  }
+                },
+                {
+                  td: {
+                    rowspan: '1',
+                    $children: ['Data']
+                  }
                 }
-              },
-              {
-                td: {
-                  rowspan: '1',
-                  $children: ['Data']
-                }
-              }
-            ]
-          }
-        ]
+              ]
+            }
+          ]
+        }
       }
     }
   },
   {
     name: 'allows tag-specific attributes for blockquote',
     input: {
-      blockquote: {
-        cite: 'https://example.com',
-        $children: ['Quote text']
+      template: {
+        blockquote: {
+          cite: 'https://example.com',
+          $children: ['Quote text']
+        }
       }
     }
   }
@@ -254,9 +308,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for tag-specific attribute on wrong tag',
     input: {
-      div: {
-        src: 'image.jpg',
-        $children: ['Content']
+      template: {
+        div: {
+          src: 'image.jpg',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "src" is not allowed on tag "div"'
@@ -264,9 +320,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for img-specific attribute on div',
     input: {
-      div: {
-        width: '100',
-        $children: ['Content']
+      template: {
+        div: {
+          width: '100',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "width" is not allowed on tag "div"'
@@ -274,9 +332,11 @@ export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error for a-specific attribute on div',
     input: {
-      div: {
-        target: '_blank',
-        $children: ['Content']
+      template: {
+        div: {
+          target: '_blank',
+          $children: ['Content']
+        }
       }
     },
     expectedError: 'Attribute "target" is not allowed on tag "div"'

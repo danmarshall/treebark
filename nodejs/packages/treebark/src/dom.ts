@@ -1,39 +1,50 @@
 import { 
-  Schema, 
+  TemplateElement,
+  TemplateObject,
+  TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
   VOID_TAGS,
   getProperty, 
   interpolate, 
   validateAttribute, 
-  isTemplate, 
   hasBinding, 
-  parseSchemaObject,
+  parseTemplateObject,
   RenderOptions
 } from './common';
 import { renderToString } from './string';
 
-export function renderToDOM(schema: Schema | { $template: Schema; $data: Data }, options: RenderOptions = {}): DocumentFragment {
-  const data = options.data || {};
-  
-  if (isTemplate(schema)) {
-    return renderToDOM(schema.$template, { data: schema.$data });
-  }
+export function renderToDOM(
+  input: TreebarkInput, 
+  options: RenderOptions = {}
+): DocumentFragment {
+  const data = { ...input.data, ...options.data };
   
   const fragment = document.createDocumentFragment();
-  const result = render(schema as Schema, data, {});
+  
+  // If template is a single element and data is an array, render template for each data item
+  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+    input.data.forEach(item => {
+      const result = render(input.template, { ...item, ...options.data }, {});
+      if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
+      else fragment.appendChild(result);
+    });
+    return fragment;
+  }
+  
+  const result = render(input.template, data, {});
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(schema: Schema, data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
-  if (typeof schema === "string") return document.createTextNode(interpolate(schema, data));
-  if (Array.isArray(schema)) return schema.flatMap(s => {
-    const r = render(s, data, context); return Array.isArray(r) ? r : [r];
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
+  if (typeof template === "string") return document.createTextNode(interpolate(template, data));
+  if (Array.isArray(template)) return template.flatMap(t => {
+    const r = render(t, data, context); return Array.isArray(r) ? r : [r];
   });
   
-  const { tag, rest, children, attrs } = parseSchemaObject(schema);
+  const { tag, rest, children, attrs } = parseTemplateObject(template);
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
@@ -55,7 +66,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
   // Special handling for comment tags
   if (tag === 'comment') {
     // Use string renderer and extract content between <!-- and -->
-    const stringResult = renderToString(schema, { data });
+    const stringResult = renderToString({ template, data });
     const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
     return document.createComment(commentContent);
   }
@@ -74,7 +85,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: Schema) => {
+      bound.forEach(item => $children.forEach((c: string | TemplateObject) => {
         const nodes = render(c, item as Data, context);
         (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
       }));
@@ -88,7 +99,7 @@ function render(schema: Schema, data: Data, context: { insideComment?: boolean }
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: Schema) => {
+  children.forEach((c: string | TemplateObject) => {
     const nodes = render(c, data, context);
     (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
   });

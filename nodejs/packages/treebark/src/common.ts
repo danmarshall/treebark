@@ -1,17 +1,25 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// More specific types for schema structure
-export type SchemaObject = { [tag: string]: SchemaContent };
-export type SchemaContent = string | Schema[] | SchemaAttributes;
-export type SchemaAttributes = {
+// Non-recursive template structure types (using $ prefixes for internal differentiation)
+// Template attributes defined first to avoid circular references
+export type TemplateAttributes = {
   $bind?: string;
-  $children?: Schema[];
-  $template?: Schema;
-  $data?: Data;
+  $children?: (string | TemplateObject)[];
   [key: string]: unknown;
 };
-export type Schema = string | Schema[] | SchemaObject;
+
+// Template object maps tag names to content (no circular reference to TemplateElement)
+export type TemplateObject = { [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes };
+
+// Template element is either a string or an object (defined after TemplateObject)
+export type TemplateElement = string | TemplateObject;
+
+// API input types (clean external interface without $ prefixes)
+export interface TreebarkInput {
+  template: TemplateElement | TemplateElement[];
+  data?: Data;
+}
 
 // Options interface for render functions
 export interface RenderOptions {
@@ -95,39 +103,39 @@ export function validateAttribute(key: string, tag: string): void {
 }
 
 /**
- * Check if a schema object has a template structure
+ * Check if input is a TreebarkInput object
  */
-export function isTemplate(schema: unknown): schema is { $template: Schema; $data: Data } {
-  return schema !== null && typeof schema === 'object' && '$template' in schema;
+export function isTreebarkInput(input: unknown): input is TreebarkInput {
+  return input !== null && typeof input === 'object' && 'template' in input;
 }
 
 /**
- * Check if a schema object has a binding structure
+ * Check if a template object has a binding structure
  */
-export function hasBinding(rest: SchemaContent): rest is SchemaAttributes & { $bind: string } {
+export function hasBinding(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
 }
 
 /**
- * Parse schema object structure to extract tag, attributes, and children
+ * Parse template object structure to extract tag, attributes, and children
  */
-export function parseSchemaObject(schema: SchemaObject): {
+export function parseTemplateObject(templateObj: TemplateObject): {
   tag: string;
-  rest: SchemaContent;
-  children: Schema[];
+  rest: string | (string | TemplateObject)[] | TemplateAttributes;
+  children: (string | TemplateObject)[];
   attrs: Record<string, unknown>;
 } {
-  const entries = Object.entries(schema);
+  const entries = Object.entries(templateObj);
   if (entries.length === 0) {
-    throw new Error('Schema object must have at least one tag');
+    throw new Error('Template object must have at least one tag');
   }
   const firstEntry = entries[0];
   if (!firstEntry) {
-    throw new Error('Schema object must have at least one tag');
+    throw new Error('Template object must have at least one tag');
   }
   const [tag, rest] = firstEntry;
   
-  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as SchemaAttributes)?.$children || [];
+  const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as TemplateAttributes)?.$children || [];
   const attrs = rest && typeof rest === "object" && !Array.isArray(rest) 
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
     

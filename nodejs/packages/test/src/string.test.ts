@@ -79,8 +79,14 @@ describe('String Renderer', () => {
           case 'handles object binding':
             expect(result).toBe('<div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div>');
             break;
-          case 'handles self-contained template':
-            expect(result).toBe('<p>Hello Alice!</p>');
+          case 'handles TreebarkInput format':
+            expect(result).toBe('<p>Hello Bob!</p>');
+            break;
+          case 'handles TreebarkInput format without data':
+            expect(result).toBe('<div>Static content</div>');
+            break;
+          case 'handles single template with array data':
+            expect(result).toBe('<div class="card"><h3>Laptop</h3><p>Price: $999</p></div><div class="card"><h3>Mouse</h3><p>Price: $25</p></div>');
             break;
         }
       });
@@ -89,23 +95,23 @@ describe('String Renderer', () => {
 
   // String-specific tests (HTML escaping, etc.)
   test('escapes HTML in content', () => {
-    const result = renderToString(
-      { div: '{{content}}' },
-      { data: { content: '<script>alert("xss")</script>' } }
-    );
+    const result = renderToString({
+      template: { div: '{{content}}' },
+      data: { content: '<script>alert("xss")</script>' }
+    });
     expect(result).toBe('<div>&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;</div>');
   });
 
   test('escapes HTML in attributes', () => {
-    const result = renderToString(
-      {
+    const result = renderToString({
+      template: {
         div: {
           title: '{{title}}',
           $children: ['Content']
         }
       },
-      { data: { title: '<script>alert("xss")</script>' } }
-    );
+      data: { title: '<script>alert("xss")</script>' }
+    });
     expect(result).toBe('<div title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;">Content</div>');
   });
 
@@ -282,36 +288,38 @@ describe('String Renderer', () => {
     });
 
     test('renders comments with indentation', () => {
-      const schema = {
-        div: {
-          $children: [
-            { comment: 'Start of content' },
-            { h1: 'Title' },
-            { comment: 'End of content' }
-          ]
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              { comment: 'Start of content' },
+              { h1: 'Title' },
+              { comment: 'End of content' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: true });
+      }, { indent: true });
       expect(result).toBe('<div>\n  <!--Start of content-->\n  <h1>Title</h1>\n  <!--End of content-->\n</div>');
     });
 
     test('renders nested comments with proper indentation', () => {
-      const schema = {
-        div: {
-          $children: [
-            { comment: 'Outer comment' },
-            {
-              section: {
-                $children: [
-                  { comment: 'Inner comment' },
-                  { p: 'Content' }
-                ]
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              { comment: 'Outer comment' },
+              {
+                section: {
+                  $children: [
+                    { comment: 'Inner comment' },
+                    { p: 'Content' }
+                  ]
+                }
               }
-            }
-          ]
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: true });
+      }, { indent: true });
       expect(result).toBe('<div>\n  <!--Outer comment-->\n  <section>\n    <!--Inner comment-->\n    <p>Content</p>\n  </section>\n</div>');
     });
   });
@@ -319,98 +327,103 @@ describe('String Renderer', () => {
   // Indent functionality tests
   describe('Indent Functionality', () => {
     test('renders without indentation by default', () => {
-      const schema = {
-        div: {
-          class: 'card',
-          $children: [
-            { h2: 'Title' },
-            { p: 'Content' }
-          ]
+      const result = renderToString({
+        template: {
+          div: {
+            class: 'card',
+            $children: [
+              { h2: 'Title' },
+              { p: 'Content' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema);
+      });
       expect(result).toBe('<div class="card"><h2>Title</h2><p>Content</p></div>');
     });
 
     test('renders with default indentation when indent is true', () => {
-      const schema = {
-        div: {
-          class: 'card',
-          $children: [
-            { h2: 'Title' },
-            { p: 'Content' }
-          ]
+      const result = renderToString({
+        template: {
+          div: {
+            class: 'card',
+            $children: [
+              { h2: 'Title' },
+              { p: 'Content' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: true });
+      }, { indent: true });
       expect(result).toBe('<div class="card">\n  <h2>Title</h2>\n  <p>Content</p>\n</div>');
     });
 
     test('renders with custom space indentation', () => {
-      const schema = {
-        div: {
-          $children: [
-            { h1: 'Header' }
-          ]
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              { h1: 'Header' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: 4 });
+      }, { indent: 4 });
       expect(result).toBe('<div>\n    <h1>Header</h1>\n</div>');
     });
 
     test('renders with custom string indentation', () => {
-      const schema = {
-        div: {
-          $children: [
-            { h1: 'Header' }
-          ]
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              { h1: 'Header' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: '\t' });
+      }, { indent: '\t' });
       expect(result).toBe('<div>\n\t<h1>Header</h1>\n</div>');
     });
 
     test('renders nested elements with proper indentation', () => {
-      const schema = {
-        div: [
-          { h1: 'Welcome' },
-          {
-            ul: [
-              { li: 'Item 1' },
-              { li: 'Item 2' }
-            ]
-          }
-        ]
-      };
-      const result = renderToString(schema, { indent: true });
+      const result = renderToString({
+        template: {
+          div: [
+            { h1: 'Welcome' },
+            {
+              ul: [
+                { li: 'Item 1' },
+                { li: 'Item 2' }
+              ]
+            }
+          ]
+        }
+      }, { indent: true });
       expect(result).toBe('<div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div>');
     });
 
     test('does not indent elements with only text content', () => {
-      const schema = {
-        p: 'Simple text content'
-      };
-      const result = renderToString(schema, { indent: true });
+      const result = renderToString({
+        template: { p: 'Simple text content' }
+      }, { indent: true });
       expect(result).toBe('<p>Simple text content</p>');
     });
 
     test('works with bound arrays', () => {
-      const schema = {
-        ul: {
-          $bind: 'items',
-          $children: [
-            { li: '{{name}}' }
-          ]
-        }
-      };
-      const data = { items: [{ name: 'Item 1' }, { name: 'Item 2' }] };
-      const result = renderToString(schema, { data, indent: true });
+      const result = renderToString({
+        template: {
+          ul: {
+            $bind: 'items',
+            $children: [
+              { li: '{{name}}' }
+            ]
+          }
+        },
+        data: { items: [{ name: 'Item 1' }, { name: 'Item 2' }] }
+      }, { indent: true });
       expect(result).toBe('<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>');
     });
 
     test('preserves template functionality with indentation', () => {
-      const schema = {
-        $template: {
+      const input = {
+        template: {
           div: {
             $children: [
               { h1: '{{title}}' },
@@ -418,64 +431,66 @@ describe('String Renderer', () => {
             ]
           }
         },
-        $data: {
+        data: {
           title: 'Test Title',
           content: 'Test Content'
         }
       };
-      const result = renderToString(schema, { indent: true });
+      const result = renderToString(input, { indent: true });
       expect(result).toBe('<div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div>');
     });
 
     test('renders comment surrounding nested content', () => {
-      const schema = {
-        comment: {
-          $children: [
-            'Before content',
-            {
-              div: {
-                $children: [
-                  { h1: 'Nested Title' },
-                  { p: 'Nested paragraph' }
-                ]
-              }
-            },
-            'After content'
-          ]
+      const result = renderToString({
+        template: {
+          comment: {
+            $children: [
+              'Before content',
+              {
+                div: {
+                  $children: [
+                    { h1: 'Nested Title' },
+                    { p: 'Nested paragraph' }
+                  ]
+                }
+              },
+              'After content'
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: true });
+      }, { indent: true });
       expect(result).toBe('<!--Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content-->');
     });
 
     test('renders complex nested structure with comments at multiple levels', () => {
-      const schema = {
-        div: {
-          class: 'container',
-          $children: [
-            { comment: 'Container start' },
-            {
-              section: {
-                $children: [
-                  { comment: 'Section content' },
-                  {
-                    article: {
-                      $children: [
-                        { comment: 'Article metadata' },
-                        { h1: 'Title' },
-                        { p: 'Content' },
-                        { comment: 'Article end' }
-                      ]
+      const result = renderToString({
+        template: {
+          div: {
+            class: 'container',
+            $children: [
+              { comment: 'Container start' },
+              {
+                section: {
+                  $children: [
+                    { comment: 'Section content' },
+                    {
+                      article: {
+                        $children: [
+                          { comment: 'Article metadata' },
+                          { h1: 'Title' },
+                          { p: 'Content' },
+                          { comment: 'Article end' }
+                        ]
+                      }
                     }
-                  }
-                ]
-              }
-            },
-            { comment: 'Container end' }
-          ]
+                  ]
+                }
+              },
+              { comment: 'Container end' }
+            ]
+          }
         }
-      };
-      const result = renderToString(schema, { indent: true });
+      }, { indent: true });
       expect(result).toBe('<div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div>');
     });
   });

@@ -1,6 +1,36 @@
 # 📜 Treebark Spec
 
-## 1. Node Types  
+## 1. API Format
+
+Treebark accepts input in the `TreebarkInput` format:
+
+```typescript
+interface TreebarkInput {
+  template: TemplateElement | TemplateElement[];
+  data?: Data;
+}
+```
+
+### Examples:
+
+**Simple template:**
+```javascript
+{
+  template: { div: "Hello world" }
+}
+```
+
+**Template with data:**
+```javascript
+{
+  template: { div: "Hello {{name}}" },
+  data: { name: "Alice" }
+}
+```
+
+---
+
+## 2. Node Types  
 
 - **Tag Node:** `{ "div": { ... } }`  
 - **Array (fragment):** `[ node, node, ... ]` → renders siblings with no wrapper  
@@ -8,16 +38,43 @@
 
 ---
 
-## 2. Reserved Keys  
+## 3. Automatic Array Iteration
 
-- **`$children`** → array of child nodes (strings, nodes, or arrays)  
-- **`$bind`** → bind current node to an array or object property in data  
-- **`$template`** → top-level template in a self-contained block  
-- **`$data`** → top-level data in a self-contained block  
+**New Feature:** When you provide a single template (not an array) with array data, Treebark automatically renders the template once for each data item:
+
+```javascript
+{
+  template: {
+    div: {
+      class: "card",
+      $children: [{ h2: "{{name}}" }]
+    }
+  },
+  data: [
+    { name: "Card 1" },
+    { name: "Card 2" }
+  ]
+}
+```
+
+**Result:** Two `<div class="card">` elements, one for each data item.
+
+**Rules:**
+- Only triggers when `template` is a single element (not array) AND `data` is an array
+- Each array item becomes the data context for one template instance
+- Empty arrays produce no output
+- For more complex scenarios, use `$bind` syntax instead
 
 ---
 
-## 3. Shorthand Array Syntax
+## 4. Reserved Keys  
+
+- **`$children`** → array of child nodes (strings, nodes, or arrays)  
+- **`$bind`** → bind current node to an array or object property in data  
+
+---
+
+## 5. Shorthand Array Syntax
 
 For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
@@ -43,7 +100,7 @@ div:
 
 ---
 
-## 4. Interpolation  
+## 6. Interpolation  
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
@@ -54,7 +111,7 @@ div:
 
 ---
 
-## 5. Mixed Content  
+## 7. Mixed Content  
 
 - `$children` can contain strings + nodes:  
   ```yaml
@@ -84,7 +141,7 @@ div:
 
 ---
 
-## 6. Attributes  
+## 8. Attributes  
 
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
@@ -99,20 +156,37 @@ div:
 
 ---
 
-## 7. Self-Contained Blocks  
+## 9. Advanced Array Binding with $bind
 
-```yaml
-$template:
-  p: "Hello {{name}}"
-$data:
-  name: "Alice"
+For complex array scenarios where you need a wrapper element or nested structure, use `$bind`:
+
+```javascript
+{
+  template: {
+    ul: {
+      class: "product-list",
+      $bind: "products",
+      $children: [
+        { li: "{{name}} — {{price}}" }
+      ]
+    }
+  },
+  data: {
+    products: [
+      { name: "Laptop", price: "$999" },
+      { name: "Phone", price: "$499" }
+    ]
+  }
+}
 ```
 
-If both `$template` and `$data` exist at the root, render `$template` with `$data`. Otherwise, treat the root as the template and use separately supplied data.  
+**When to use $bind vs automatic array iteration:**
+- **Automatic iteration:** Simple case where you want multiple instances of the same template
+- **$bind:** When you need a wrapper element, complex nesting, or binding to nested data properties
 
 ---
 
-## 8. Tag Whitelist  
+## 10. Tag Whitelist  
 
 Allowed tags:  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
@@ -129,7 +203,7 @@ Blocked tags:
 
 ---
 
-## 9. Comments
+## 11. Comments
 
 HTML comments are generated using the `comment` tag:
 

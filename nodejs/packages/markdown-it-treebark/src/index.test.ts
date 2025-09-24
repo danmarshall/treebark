@@ -65,13 +65,13 @@ div:
     it('should render self-contained template with data', () => {
       const markdown = `
 \`\`\`treebark
-$template:
+template:
   div:
     class: greeting
     $children:
       - h1: "{{title}}"
       - p: "{{message}}"
-$data:
+data:
   title: "Welcome"
   message: "Hello treebark!"
 \`\`\`
@@ -101,12 +101,12 @@ div: "{{greeting}} {{name}}!"
     it('should render list binding', () => {
       const markdown = `
 \`\`\`treebark
-$template:
+template:
   ul:
     $bind: items
     $children:
       - li: "{{name}} - {{price}}"
-$data:
+data:
   items:
     - name: "Laptop"
       price: "$999"
@@ -178,16 +178,16 @@ div: "Hello"
       expect(result).toContain('At least one format');
     });
 
-    it('should maintain backward compatibility with allowJson option', () => {
-      const mdLegacy = new MarkdownIt();
-      mdLegacy.use(treebarkPlugin, { yaml, allowJson: true });
+    it('should work with allowJson option', () => {
+      const mdWithJson = new MarkdownIt();
+      mdWithJson.use(treebarkPlugin, { yaml, allowJson: true });
 
       const yamlMarkdown = `
 \`\`\`treebark
 div: "Hello YAML"
 \`\`\`
 `;
-      const yamlResult = mdLegacy.render(yamlMarkdown);
+      const yamlResult = mdWithJson.render(yamlMarkdown);
       expect(yamlResult).toContain('<div>Hello YAML</div>');
 
       const jsonMarkdown = `
@@ -195,7 +195,7 @@ div: "Hello YAML"
 {"div": "Hello JSON"}
 \`\`\`
 `;
-      const jsonResult = mdLegacy.render(jsonMarkdown);
+      const jsonResult = mdWithJson.render(jsonMarkdown);
       expect(jsonResult).toContain('<div>Hello JSON</div>');
     });
   });
@@ -226,7 +226,7 @@ div: "Hello YAML"
       const markdown = `
 \`\`\`treebark
 {
-  "$template": {
+  "template": {
     "ul": {
       "class": "product-list",
       "$bind": "products",
@@ -235,7 +235,7 @@ div: "Hello YAML"
       ]
     }
   },
-  "$data": {
+  "data": {
     "products": [
       { "name": "Laptop", "price": "$999" },
       { "name": "Phone", "price": "$499" }
@@ -295,7 +295,7 @@ div: [
       expect(result).toContain('Treebark Error:');
     });
 
-    it('should handle invalid treebark schema', () => {
+    it('should handle invalid treebark template', () => {
       const markdown = `
 \`\`\`treebark
 script: "alert('xss')"
@@ -314,7 +314,7 @@ script: "alert('xss')"
 `;
       const result = md.render(markdown);
       expect(result).toContain('treebark-error');
-      expect(result).toContain('Empty or invalid schema');
+      expect(result).toContain('Empty or invalid template');
     });
 
     it('should error when YAML is enabled but no yaml library is provided', () => {
