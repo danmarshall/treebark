@@ -63,6 +63,24 @@
             background: #005a9c;
             color: white;
         }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: #007acc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #005a9c;
+        }
         
         .content {
             max-width: 800px;
@@ -136,8 +154,9 @@
                 gap: 0.25rem;
             }
             
-            .github-link {
+            .header-right {
                 align-self: flex-start;
+                gap: 0.75rem;
             }
         }
     </style>
@@ -145,10 +164,15 @@
 <body>
     <div class="header">
         <div class="header-left">
-            <h1>🌳 Treebark</h1>
+            <a href="{{ '/' | relative_url }}" style="text-decoration: none; color: inherit;">
+                <h1>🌳 Treebark</h1>
+            </a>
             <span class="tagline">{{ site.description }}</span>
         </div>
-        <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
+        <div class="header-right">
+            <a href="{{ '/playground.html' | relative_url }}" class="nav-link">Playground</a>
+            <a href="{{ site.repository }}" class="github-link">View on GitHub</a>
+        </div>
     </div>
     
     <div class="content">

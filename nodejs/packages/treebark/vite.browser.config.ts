@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     lib: {
-      entry: 'src/browser.ts',
+      entry: 'src/string.ts',
       name: 'Treebark',
       formats: ['umd'],
       fileName: () => 'treebark-browser.js'

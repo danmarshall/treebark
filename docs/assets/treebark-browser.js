@@ -171,11 +171,6 @@ ${currentIndent}</${tag}>`;
     }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
     return pairs ? " " + pairs : "";
   }
-  if (typeof window !== "undefined") {
-    window.Treebark = {
-      renderToString
-    };
-  }
   exports2.renderToString = renderToString;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
