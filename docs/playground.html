@@ -231,161 +231,34 @@ description: Try Treebark interactively with real-time examples and customizable
 <script src="{{ '/assets/treebark-browser.js' | relative_url }}"></script>
 <script>
 // Example templates and data
-const examples = {
-    'hello-world': {
-        template: {
-            div: {
-                class: "greeting",
-                $children: [
-                    { h1: "Hello World!" },
-                    { p: "Welcome to Treebark - safe HTML tree structures." }
-                ]
-            }
-        },
-        data: {}
-    },
-    
-    'card-layout': {
-        template: {
-            div: {
-                class: "product-card",
-                $children: [
-                    { h2: "{{name}}" },
-                    { p: "{{description}}" },
-                    { div: { class: "price", $children: ["{{price}}"] } }
-                ]
-            }
-        },
-        data: {
-            name: "Gaming Laptop",
-            description: "High-performance laptop for gaming and development",
-            price: "$1,299"
-        }
-    },
-    
-    'list-binding': {
-        template: {
-            ul: {
-                class: "product-list",
-                $bind: "products",
-                $children: [
-                    { li: "{{name}} - {{price}}" }
-                ]
-            }
-        },
-        data: {
-            products: [
-                { name: "Laptop", price: "$999" },
-                { name: "Phone", price: "$499" },
-                { name: "Tablet", price: "$299" }
-            ]
-        }
-    },
-    
-    'self-contained': {
-        template: {
-            $template: {
-                div: {
-                    class: "user-profile",
-                    $children: [
-                        { h3: "{{name}}" },
-                        { p: "Email: {{email}}" },
-                        { p: "Skills: {{skills}}" }
-                    ]
-                }
-            },
-            $data: {
-                name: "Alice Johnson",
-                email: "alice@example.com",
-                skills: "JavaScript, Python, React"
-            }
-        },
-        data: {}
-    },
-    
-    'shorthand-syntax': {
-        template: {
-            div: [
-                { h2: "Welcome" },
-                { p: "This is much cleaner with shorthand array syntax!" },
-                { 
-                    ul: [
-                        { li: "Item 1" },
-                        { li: "Item 2" },
-                        { li: "Item 3" }
-                    ]
-                }
-            ]
-        },
-        data: {}
-    },
-    
-    'mixed-content': {
-        template: {
-            div: {
-                $children: [
-                    "Hello ",
-                    { span: { style: "color: blue; font-weight: bold;", $children: ["World"] } },
-                    "! This mixes text and elements."
-                ]
-            }
-        },
-        data: {}
-    },
-    
-    'stack-of-cards': {
-        template: {
-            div: {
-                class: "cards-container",
-                $children: [
-                    { h2: "Team Members" },
-                    {
-                        div: {
-                            class: "cards-stack",
-                            $bind: "team",
-                            $children: [
-                                {
-                                    div: {
-                                        class: "member-card",
-                                        $children: [
-                                            { h3: "{{name}}" },
-                                            { p: "{{role}}" },
-                                            { p: "Experience: {{experience}} years" }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
+// Example templates and data - loaded from external JSON file
+let examples = {};
+
+// Load examples from external JSON file to avoid Jekyll processing {{placeholders}}
+async function loadExamples() {
+    try {
+        const response = await fetch('{{ "/assets/js/playground-examples.json" | relative_url }}');
+        examples = await response.json();
+        console.log('Examples loaded successfully');
+    } catch (error) {
+        console.error('Failed to load examples:', error);
+        // Fallback: provide a minimal example if loading fails
+        examples = {
+            'hello-world': {
+                template: {
+                    div: {
+                        class: "greeting",
+                        $children: [
+                            { h1: "Hello World!" },
+                            { p: "Welcome to Treebark - safe HTML tree structures." }
+                        ]
                     }
-                ]
+                },
+                data: {}
             }
-        },
-        data: {
-            team: [
-                { name: "Alice Smith", role: "Frontend Developer", experience: 5 },
-                { name: "Bob Johnson", role: "Backend Developer", experience: 8 },
-                { name: "Carol Brown", role: "UI/UX Designer", experience: 3 }
-            ]
-        }
-    },
-    
-    'root-array-binding': {
-        template: {
-            div: {
-                class: "notification",
-                $children: [
-                    { span: { class: "icon", $children: ["📧"] } },
-                    { span: { $children: ["{{message}}"] } }
-                ]
-            }
-        },
-        data: [
-            { message: "Welcome to our platform!" },
-            { message: "Your profile has been updated." },
-            { message: "New features are now available." }
-        ]
+        };
     }
-};
+}
 
 // Get DOM elements
 const templateEditor = document.getElementById('template-editor');
@@ -465,7 +338,8 @@ indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
 
 // Load default example
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadExamples();
     loadExample('hello-world');
 });
 </script>
