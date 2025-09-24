@@ -3,7 +3,7 @@ const path = require('path');
 
 // Read the ES module files
 const commonJs = fs.readFileSync(path.join(__dirname, '../dist/browser/common.js'), 'utf8');
-const domJs = fs.readFileSync(path.join(__dirname, '../dist/browser/dom.js'), 'utf8');
+const stringJs = fs.readFileSync(path.join(__dirname, '../dist/browser/string.js'), 'utf8');
 
 // Remove import statements and create a single bundle
 const commonCode = commonJs
@@ -11,15 +11,20 @@ const commonCode = commonJs
   .replace(/^import .+;$/gm, '')
   .replace(/\/\/# sourceMappingURL=.*$/gm, '');
 
-const domCode = domJs
+const stringCode = stringJs
   .replace(/^import .+;$/gm, '')
-  .replace(/^export /gm, 'export ')
+  .replace(/^export /gm, '')
   .replace(/\/\/# sourceMappingURL=.*$/gm, '');
 
 const bundle = `// Treebark browser bundle - generated from actual treebark library
 ${commonCode}
 
-${domCode}
+${stringCode}
+
+// Global exports for browser usage
+window.Treebark = {
+  renderToString
+};
 `;
 
 // Write the bundle

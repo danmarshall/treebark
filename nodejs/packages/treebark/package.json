@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "build:browser": "tsc -p tsconfig.browser.json && node scripts/create-browser-bundle.js",
+    "build:vite": "vite build",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
   },
@@ -28,7 +29,9 @@
   "author": "Dan Marshall",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.0.0"
   },
   "engines": {
     "node": ">=16.0.0"

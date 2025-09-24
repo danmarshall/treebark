@@ -1,0 +1,471 @@
+---
+layout: default
+title: Interactive Playground
+description: Try Treebark interactively with real-time examples and customizable templates
+---
+
+<style>
+/* Playground-specific styles */
+.playground-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1rem;
+    height: 80vh;
+    margin: 2rem 0;
+}
+
+.editor-panel {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-header {
+    background: #e9e9e9;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #ddd;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-textarea {
+    flex: 1;
+    border: none;
+    padding: 1rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+    background: #fff;
+    outline: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.editor-textarea:focus {
+    box-shadow: inset 0 0 0 2px #007acc;
+}
+
+.output-panel {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    border: 1px solid #007acc;
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.output-header {
+    background: #007acc;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+}
+
+.output-content {
+    flex: 1;
+    padding: 1rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.85rem;
+    overflow: auto;
+    background: #f8f8f8;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.control-group label {
+    font-weight: bold;
+    color: #333;
+}
+
+.control-group select,
+.control-group input {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.example-btn {
+    padding: 0.5rem 1rem;
+    background: #007acc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s;
+}
+
+.example-btn:hover {
+    background: #005a9c;
+}
+
+.error-display {
+    background: #ffe6e6;
+    border: 1px solid #ff6b6b;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    color: #d00;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .playground-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        height: auto;
+    }
+    
+    .output-panel {
+        grid-row: auto;
+        grid-column: 1;
+        min-height: 300px;
+    }
+    
+    .editor-textarea {
+        min-height: 200px;
+    }
+}
+</style>
+
+<h1>🛝 Interactive Playground</h1>
+
+<p>Experiment with Treebark templates and data in real-time. Choose from built-in examples or create your own!</p>
+
+<div class="controls">
+    <div class="control-group">
+        <label for="indent-type">Indent:</label>
+        <select id="indent-type">
+            <option value="none">None</option>
+            <option value="spaces" selected>Spaces</option>
+            <option value="tabs">Tabs</option>
+        </select>
+    </div>
+    <div class="control-group">
+        <label for="indent-size">Size:</label>
+        <input type="number" id="indent-size" min="1" max="8" value="2">
+    </div>
+</div>
+
+<div class="examples">
+    <button class="example-btn" onclick="loadExample('hello-world')">Hello World</button>
+    <button class="example-btn" onclick="loadExample('card-layout')">Card Layout</button>
+    <button class="example-btn" onclick="loadExample('list-binding')">List Binding</button>
+    <button class="example-btn" onclick="loadExample('self-contained')">Self-Contained</button>
+    <button class="example-btn" onclick="loadExample('shorthand-syntax')">Shorthand Syntax</button>
+    <button class="example-btn" onclick="loadExample('mixed-content')">Mixed Content</button>
+    <button class="example-btn" onclick="loadExample('stack-of-cards')">Stack of Cards</button>
+    <button class="example-btn" onclick="loadExample('root-array-binding')">Root Array Binding</button>
+</div>
+
+<div class="error-display" id="error-display"></div>
+
+<div class="playground-container">
+    <div class="editor-panel">
+        <div class="editor-header">
+            Template Editor
+        </div>
+        <textarea 
+            id="template-editor" 
+            class="editor-textarea"
+            spellcheck="false"
+            placeholder="Enter your Treebark template here..."></textarea>
+    </div>
+    
+    <div class="editor-panel">
+        <div class="editor-header">
+            Data Editor
+        </div>
+        <textarea 
+            id="data-editor" 
+            class="editor-textarea"
+            spellcheck="false"
+            placeholder="Enter your data (JSON format)..."></textarea>
+    </div>
+    
+    <div class="output-panel">
+        <div class="output-header">
+            Generated HTML
+        </div>
+        <div class="output-content" id="html-output">
+            <!-- Generated HTML will appear here -->
+        </div>
+    </div>
+</div>
+
+<script src="{{ '/assets/treebark-browser.js' | relative_url }}"></script>
+<script>
+// Example templates and data
+const examples = {
+    'hello-world': {
+        template: {
+            div: {
+                class: "greeting",
+                $children: [
+                    { h1: "Hello World!" },
+                    { p: "Welcome to Treebark - safe HTML tree structures." }
+                ]
+            }
+        },
+        data: {}
+    },
+    
+    'card-layout': {
+        template: {
+            div: {
+                class: "product-card",
+                $children: [
+                    { h2: "{{name}}" },
+                    { p: "{{description}}" },
+                    { div: { class: "price", $children: ["{{price}}"] } }
+                ]
+            }
+        },
+        data: {
+            name: "Gaming Laptop",
+            description: "High-performance laptop for gaming and development",
+            price: "$1,299"
+        }
+    },
+    
+    'list-binding': {
+        template: {
+            ul: {
+                class: "product-list",
+                $bind: "products",
+                $children: [
+                    { li: "{{name}} - {{price}}" }
+                ]
+            }
+        },
+        data: {
+            products: [
+                { name: "Laptop", price: "$999" },
+                { name: "Phone", price: "$499" },
+                { name: "Tablet", price: "$299" }
+            ]
+        }
+    },
+    
+    'self-contained': {
+        template: {
+            $template: {
+                div: {
+                    class: "user-profile",
+                    $children: [
+                        { h3: "{{name}}" },
+                        { p: "Email: {{email}}" },
+                        { p: "Skills: {{skills}}" }
+                    ]
+                }
+            },
+            $data: {
+                name: "Alice Johnson",
+                email: "alice@example.com",
+                skills: "JavaScript, Python, React"
+            }
+        },
+        data: {}
+    },
+    
+    'shorthand-syntax': {
+        template: {
+            div: [
+                { h2: "Welcome" },
+                { p: "This is much cleaner with shorthand array syntax!" },
+                { 
+                    ul: [
+                        { li: "Item 1" },
+                        { li: "Item 2" },
+                        { li: "Item 3" }
+                    ]
+                }
+            ]
+        },
+        data: {}
+    },
+    
+    'mixed-content': {
+        template: {
+            div: {
+                $children: [
+                    "Hello ",
+                    { span: { style: "color: blue; font-weight: bold;", $children: ["World"] } },
+                    "! This mixes text and elements."
+                ]
+            }
+        },
+        data: {}
+    },
+    
+    'stack-of-cards': {
+        template: {
+            div: {
+                class: "cards-container",
+                $children: [
+                    { h2: "Team Members" },
+                    {
+                        div: {
+                            class: "cards-stack",
+                            $bind: "team",
+                            $children: [
+                                {
+                                    div: {
+                                        class: "member-card",
+                                        $children: [
+                                            { h3: "{{name}}" },
+                                            { p: "{{role}}" },
+                                            { p: "Experience: {{experience}} years" }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        data: {
+            team: [
+                { name: "Alice Smith", role: "Frontend Developer", experience: 5 },
+                { name: "Bob Johnson", role: "Backend Developer", experience: 8 },
+                { name: "Carol Brown", role: "UI/UX Designer", experience: 3 }
+            ]
+        }
+    },
+    
+    'root-array-binding': {
+        template: {
+            div: {
+                class: "notification",
+                $children: [
+                    { span: { class: "icon", $children: ["📧"] } },
+                    { span: { $children: ["{{message}}"] } }
+                ]
+            }
+        },
+        data: [
+            { message: "Welcome to our platform!" },
+            { message: "Your profile has been updated." },
+            { message: "New features are now available." }
+        ]
+    }
+};
+
+// Get DOM elements
+const templateEditor = document.getElementById('template-editor');
+const dataEditor = document.getElementById('data-editor');
+const htmlOutput = document.getElementById('html-output');
+const errorDisplay = document.getElementById('error-display');
+const indentType = document.getElementById('indent-type');
+const indentSize = document.getElementById('indent-size');
+
+// Update output when inputs change
+function updateOutput() {
+    try {
+        errorDisplay.style.display = 'none';
+        
+        const templateText = templateEditor.value.trim();
+        const dataText = dataEditor.value.trim();
+        
+        if (!templateText) {
+            htmlOutput.textContent = '';
+            return;
+        }
+        
+        // Parse template
+        let template;
+        try {
+            template = JSON.parse(templateText);
+        } catch (e) {
+            throw new Error('Invalid JSON in template: ' + e.message);
+        }
+        
+        // Parse data
+        let data = {};
+        if (dataText) {
+            try {
+                data = JSON.parse(dataText);
+            } catch (e) {
+                throw new Error('Invalid JSON in data: ' + e.message);
+            }
+        }
+        
+        // Get indent options
+        let indent = false;
+        if (indentType.value !== 'none') {
+            const size = parseInt(indentSize.value) || 2;
+            indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
+        }
+        
+        // Render using treebark
+        const input = { template, data };
+        const options = { indent };
+        
+        const html = window.Treebark ? window.Treebark.renderToString(input, options) : 'Treebark not loaded';
+        
+        htmlOutput.textContent = html;
+        
+    } catch (error) {
+        errorDisplay.textContent = 'Error: ' + error.message;
+        errorDisplay.style.display = 'block';
+        htmlOutput.textContent = '';
+    }
+}
+
+// Load example
+function loadExample(exampleId) {
+    const example = examples[exampleId];
+    if (example) {
+        templateEditor.value = JSON.stringify(example.template, null, 2);
+        dataEditor.value = JSON.stringify(example.data, null, 2);
+        updateOutput();
+    }
+}
+
+// Event listeners
+templateEditor.addEventListener('input', updateOutput);
+dataEditor.addEventListener('input', updateOutput);
+indentType.addEventListener('change', updateOutput);
+indentSize.addEventListener('input', updateOutput);
+
+// Load default example
+document.addEventListener('DOMContentLoaded', function() {
+    loadExample('hello-world');
+});
+</script>
