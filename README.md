@@ -56,7 +56,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### With Data Binding
 
-**Template:**
+**Input:**
 ```json
 {
   "template": {
@@ -86,7 +86,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 When you provide a single template with array data, Treebark automatically creates multiple instances:
 
-**Template:**
+**Input:**
 ```json
 {
   "template": {
@@ -174,7 +174,7 @@ This is equivalent to:
 
 For more complex array scenarios, you can still use the `$bind` syntax:
 
-**Template:**
+**Input:**
 ```json
 {
   "template": {
