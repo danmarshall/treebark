@@ -466,7 +466,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content-->');
+      expect(result).toBe('<!--\nBefore content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content\n-->');
     });
 
     test('renders complex nested structure with comments at multiple levels', () => {
@@ -499,6 +499,83 @@ describe('String Renderer', () => {
         }
       }, { indent: true });
       expect(result).toBe('<div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div>');
+    });
+
+    test('properly indents comments containing HTML elements', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              {
+                comment: {
+                  $children: [
+                    'Start: ',
+                    { h2: 'Welcome' },
+                    { p: 'This is much cleaner with shorthand array syntax!' },
+                    {
+                      ul: [
+                        { li: 'Item 1' },
+                        { li: 'Item 2' },
+                        { li: 'Item 3' }
+                      ]
+                    },
+                    ' :End'
+                  ]
+                }
+              },
+              { p: 'Regular content' }
+            ]
+          }
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  <!--\nStart: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n :End\n  -->\n  <p>Regular content</p>\n</div>');
+    });
+
+    test('comments with mixed text and HTML content indent properly', () => {
+      const result = renderToString({
+        template: {
+          comment: {
+            $children: [
+              'Debug info:',
+              { div: { class: 'debug', $children: [{ span: 'value: 42' }] } },
+              'End debug'
+            ]
+          }
+        }
+      }, { indent: true });
+      expect(result).toBe('<!--\nDebug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\nEnd debug\n-->');
+    });
+
+    test('deeply nested comment content indents correctly', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              {
+                comment: {
+                  $children: [
+                    {
+                      section: {
+                        $children: [
+                          {
+                            article: {
+                              $children: [
+                                { h3: 'Deep Title' },
+                                { p: 'Deep content' }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  <!--\n    <section>\n      <article>\n        <h3>Deep Title</h3>\n        <p>Deep content</p>\n      </article>\n    </section>\n  -->\n</div>');
     });
   });
 });
