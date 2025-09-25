@@ -167,20 +167,22 @@ Use the `$bind` syntax to bind a property within an object:
 
 ```json
 {
-  "template": {
-    "ul": {
-      "$bind": "products",
-      "$children": [
-        { "li": "{{name}} — {{price}}" }
-      ]
-    }
-  },
-  "data": {
-    "products": [
-      { "name": "Laptop", "price": "$999" },
-      { "name": "Phone", "price": "$499" }
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
     ]
   }
+}
+```
+
+Data:
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone", "price": "$499" }
+  ]
 }
 ```
 
@@ -198,20 +200,22 @@ When you provide a single template with array data, Treebark automatically creat
 
 ```json
 {
-  "template": {
-    "div": {
-      "class": "product-card",
-      "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Only {{price}}!" }
-      ]
-    }
-  },
-  "data": [
-    { "name": "Laptop", "price": "$999" },
-    { "name": "Mouse", "price": "$25" }
-  ]
+  "div": {
+    "class": "product-card",
+    "$children": [
+      { "h2": "{{name}}" },
+      { "p": "Only {{price}}!" }
+    ]
+  }
 }
+```
+
+Data:
+```json
+[
+  { "name": "Laptop", "price": "$999" },
+  { "name": "Mouse", "price": "$25" }
+]
 ```
 
 Output:
