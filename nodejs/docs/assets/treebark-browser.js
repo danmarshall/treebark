@@ -122,9 +122,12 @@ ${currentIndent}</${tag}>`;
   }
   function render(template, data, context = {}) {
     if (typeof template === "string") return interpolate(template, data);
-    const separator = context.indentStr ? "\n" : "";
     if (Array.isArray(template)) {
-      return template.map((t) => render(t, data, context)).join(separator);
+      const results2 = [];
+      for (const t of template) {
+        results2.push(render(t, data, context));
+      }
+      return results2.join(context.indentStr ? "\n" : "");
     }
     const { tag, rest, children, attrs } = parseTemplateObject(template);
     if (!ALLOWED_TAGS.has(tag)) {
@@ -143,6 +146,16 @@ ${currentIndent}</${tag}>`;
       insideComment: tag === "comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
+    if (context.indentStr && !context.indentCache) {
+      context.indentCache = [];
+    }
+    const getIndent = (level) => {
+      if (!context.indentStr) return "";
+      if (!context.indentCache[level]) {
+        context.indentCache[level] = context.indentStr.repeat(level);
+      }
+      return context.indentCache[level];
+    };
     if (hasBinding(rest)) {
       const bound = getProperty(data, rest.$bind);
       const { $bind, $children = [], ...bindAttrs } = rest;
@@ -150,27 +163,33 @@ ${currentIndent}</${tag}>`;
         throw new Error(`Tag "${tag}" is a void element and cannot have children`);
       }
       if (Array.isArray(bound)) {
-        const content2 = bound.map(
-          (item) => $children.map((c) => {
+        const results2 = [];
+        for (const item of bound) {
+          for (const c of $children) {
             const result = render(c, item, childContext);
             if (context.indentStr && result.startsWith("<")) {
-              return context.indentStr.repeat(childContext.level) + result;
+              results2.push(getIndent(childContext.level) + result);
+            } else {
+              results2.push(result);
             }
-            return result;
-          }).join(separator)
-        ).join(separator);
+          }
+        }
+        const content2 = results2.join(context.indentStr ? "\n" : "");
         return renderTag(tag, bindAttrs, data, content2, context.indentStr, context.level);
       }
       const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
       return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
     }
-    const content = children.map((c) => {
+    const results = [];
+    for (const c of children) {
       const result = render(c, data, childContext);
       if (context.indentStr && result.startsWith("<")) {
-        return context.indentStr.repeat(childContext.level) + result;
+        results.push(getIndent(childContext.level) + result);
+      } else {
+        results.push(result);
       }
-      return result;
-    }).join(separator);
+    }
+    const content = results.join(context.indentStr ? "\n" : "");
     return renderTag(tag, attrs, data, content, context.indentStr, context.level);
   }
   function renderAttrs(attrs, data, tag) {
