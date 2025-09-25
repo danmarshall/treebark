@@ -73,6 +73,9 @@
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
   function parseTemplateObject(templateObj) {
+    if (!templateObj || typeof templateObj !== "object") {
+      throw new Error("Template object cannot be null, undefined, or non-object");
+    }
     const entries = Object.entries(templateObj);
     if (entries.length === 0) {
       throw new Error("Template object must have at least one tag");
@@ -86,6 +89,10 @@
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
+  const getIndentInfo = (indentStr, htmlContent, isElement = false, level = 0) => {
+    const should = indentStr && htmlContent && (isElement ? htmlContent.startsWith("<") : htmlContent.includes("<"));
+    return [Boolean(should), should ? indentStr.repeat(level) : ""];
+  };
   function renderToString(input, options = {}) {
     const data = { ...input.data, ...options.data };
     const context = options.indent ? {
@@ -101,27 +108,24 @@
     return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, content, indentStr, level) {
+    const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
+    const formattedContent = shouldIndentContent ? `
+${content}
+${currentIndent}` : content || "";
     if (tag === "comment") {
-      return `<!--${content || ""}-->`;
+      return `<!--${formattedContent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
     const isVoid = VOID_TAGS.has(tag);
     if (isVoid) {
       return openTag;
     }
-    if (indentStr && content && content.includes("<")) {
-      const currentIndent = indentStr.repeat(level || 0);
-      return `${openTag}
-${content}
-${currentIndent}</${tag}>`;
-    }
-    return `${openTag}${content || ""}</${tag}>`;
+    return `${openTag}${formattedContent}</${tag}>`;
   }
   function render(template, data, context = {}) {
     if (typeof template === "string") return interpolate(template, data);
-    const separator = context.indentStr ? "\n" : "";
     if (Array.isArray(template)) {
-      return template.map((t) => render(t, data, context)).join(separator);
+      return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
     }
     const { tag, rest, children, attrs } = parseTemplateObject(template);
     if (!ALLOWED_TAGS.has(tag)) {
@@ -130,9 +134,7 @@ ${currentIndent}</${tag}>`;
     if (tag === "comment" && context.insideComment) {
       throw new Error("Nested comments are not allowed");
     }
-    const hasChildren = children.length > 0;
-    const isVoid = VOID_TAGS.has(tag);
-    if (isVoid && hasChildren) {
+    if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
     }
     const childContext = {
@@ -140,35 +142,31 @@ ${currentIndent}</${tag}>`;
       insideComment: tag === "comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
+    const renderChildren = (children2, data2, separator) => {
+      return children2.map((child) => {
+        const result = render(child, data2, childContext);
+        const [shouldIndentElement, repeatedIndent] = getIndentInfo(context.indentStr, result, true, childContext.level);
+        return shouldIndentElement ? repeatedIndent + result : result;
+      }).join(separator);
+    };
+    let content;
+    let contentAttrs;
     if (hasBinding(rest)) {
       const bound = getProperty(data, rest.$bind);
       const { $bind, $children = [], ...bindAttrs } = rest;
-      if (isVoid && $children.length > 0) {
-        throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+      if (!Array.isArray(bound)) {
+        const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
+        return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
       }
-      if (Array.isArray(bound)) {
-        const content2 = bound.map(
-          (item) => $children.map((c) => {
-            const result = render(c, item, childContext);
-            if (context.indentStr && result.startsWith("<")) {
-              return context.indentStr.repeat(childContext.level) + result;
-            }
-            return result;
-          }).join(separator)
-        ).join(separator);
-        return renderTag(tag, bindAttrs, data, content2, context.indentStr, context.level);
-      }
-      const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
-      return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
+      content = bound.map(
+        (item) => renderChildren($children, item, "")
+      ).join(context.indentStr ? "\n" : "");
+      contentAttrs = bindAttrs;
+    } else {
+      content = renderChildren(children, data, context.indentStr ? "\n" : "");
+      contentAttrs = attrs;
     }
-    const content = children.map((c) => {
-      const result = render(c, data, childContext);
-      if (context.indentStr && result.startsWith("<")) {
-        return context.indentStr.repeat(childContext.level) + result;
-      }
-      return result;
-    }).join(separator);
-    return renderTag(tag, attrs, data, content, context.indentStr, context.level);
+    return renderTag(tag, contentAttrs, data, content, context.indentStr, context.level);
   }
   function renderAttrs(attrs, data, tag) {
     const pairs = Object.entries(attrs).filter(([key]) => {

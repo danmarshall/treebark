@@ -40,9 +40,15 @@ export function renderToDOM(
 
 function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
   if (typeof template === "string") return document.createTextNode(interpolate(template, data));
-  if (Array.isArray(template)) return template.flatMap(t => {
-    const r = render(t, data, context); return Array.isArray(r) ? r : [r];
-  });
+  if (Array.isArray(template)) {
+    const results: Node[] = [];
+    for (const t of template) {
+      const r = render(t, data, context);
+      if (Array.isArray(r)) results.push(...r);
+      else results.push(r);
+    }
+    return results;
+  }
   
   const { tag, rest, children, attrs } = parseTemplateObject(template);
   
@@ -85,10 +91,16 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     if (Array.isArray(bound)) {
-      bound.forEach(item => $children.forEach((c: string | TemplateObject) => {
-        const nodes = render(c, item as Data, context);
-        (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
-      }));
+      for (const item of bound) {
+        for (const c of $children) {
+          const nodes = render(c, item as Data, context);
+          if (Array.isArray(nodes)) {
+            for (const n of nodes) element.appendChild(n);
+          } else {
+            element.appendChild(nodes);
+          }
+        }
+      }
       return element;
     }
     
@@ -99,10 +111,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
   
   setAttrs(element, attrs, data, tag);
-  children.forEach((c: string | TemplateObject) => {
+  for (const c of children) {
     const nodes = render(c, data, context);
-    (Array.isArray(nodes) ? nodes : [nodes]).forEach(n => element.appendChild(n));
-  });
+    if (Array.isArray(nodes)) {
+      for (const n of nodes) element.appendChild(n);
+    } else {
+      element.appendChild(nodes);
+    }
+  }
   
   return element;
 }
