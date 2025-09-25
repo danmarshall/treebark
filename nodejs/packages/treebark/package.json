@@ -12,10 +12,11 @@
     }
   },
   "scripts": {
-    "build": "tsc && npm run build:browser",
+    "build": "tsc && npm run build:browser && npm run copy:browser",
     "build:browser": "vite build --config vite.browser.config.ts",
     "build:vite": "vite build",
-    "clean": "rm -rf dist",
+    "copy:browser": "mkdir -p ../../docs/assets && cp browser/treebark-browser.js ../../docs/assets/treebark-browser.js",
+    "clean": "rm -rf dist browser",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
