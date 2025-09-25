@@ -73,6 +73,9 @@
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
   function parseTemplateObject(templateObj) {
+    if (!templateObj || typeof templateObj !== "object") {
+      throw new Error("Template object cannot be null, undefined, or non-object");
+    }
     const entries = Object.entries(templateObj);
     if (entries.length === 0) {
       throw new Error("Template object must have at least one tag");
