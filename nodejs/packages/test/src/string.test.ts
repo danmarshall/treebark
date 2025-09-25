@@ -1,4 +1,4 @@
-const { renderToString } = require('treebark');
+import { renderToString, TreebarkInput } from 'treebark';
 import { 
   basicRenderingTests, 
   dataInterpolationTests, 
@@ -184,20 +184,24 @@ describe('String Renderer', () => {
 
     test('shorthand array syntax equivalent to $children', () => {
       const shorthand = renderToString({
-        ul: [
-          { li: 'Item 1' },
-          { li: 'Item 2' },
-          { li: 'Item 3' }
-        ]
-      });
-      
-      const explicit = renderToString({
-        ul: {
-          $children: [
+        template: {
+          ul: [
             { li: 'Item 1' },
             { li: 'Item 2' },
             { li: 'Item 3' }
           ]
+        }
+      });
+      
+      const explicit = renderToString({
+        template: {
+          ul: {
+            $children: [
+              { li: 'Item 1' },
+              { li: 'Item 2' },
+              { li: 'Item 3' }
+            ]
+          }
         }
       });
       
@@ -207,20 +211,22 @@ describe('String Renderer', () => {
 
     test('shorthand array syntax with nested structures', () => {
       const result = renderToString({
-        div: [
-          { 
-            div: [
-              { h1: 'Article Title' },
-              { p: 'Published on 2024' }
-            ]
-          },
-          { 
-            div: [
-              { p: 'First paragraph' },
-              { p: 'Second paragraph' }
-            ]
-          }
-        ]
+        template: {
+          div: [
+            { 
+              div: [
+                { h1: 'Article Title' },
+                { p: 'Published on 2024' }
+              ]
+            },
+            { 
+              div: [
+                { p: 'First paragraph' },
+                { p: 'Second paragraph' }
+              ]
+            }
+          ]
+        }
       });
       expect(result).toBe('<div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div>');
     });
@@ -244,12 +250,14 @@ describe('String Renderer', () => {
 
     test('void tags render without closing tags', () => {
       const result = renderToString({
-        div: {
-          $children: [
-            { img: { src: 'image1.jpg', alt: 'First' } },
-            ' ',
-            { img: { src: 'image2.jpg', alt: 'Second' } }
-          ]
+        template: {
+          div: {
+            $children: [
+              { img: { src: 'image1.jpg', alt: 'First' } },
+              ' ',
+              { img: { src: 'image2.jpg', alt: 'Second' } }
+            ]
+          }
         }
       });
       expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
@@ -422,7 +430,7 @@ describe('String Renderer', () => {
     });
 
     test('preserves template functionality with indentation', () => {
-      const input = {
+      const input: TreebarkInput = {
         template: {
           div: {
             $children: [
