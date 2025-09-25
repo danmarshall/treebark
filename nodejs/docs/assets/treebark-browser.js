@@ -180,15 +180,13 @@ ${currentIndent}</${tag}>`;
               const template2 = `<${childTag}${attrTemplate}>${grandchildren[0]}</${childTag}>`;
               compiledChildren.push({ isSimpleString: true, template: template2 });
             } else {
+              const { tag: childTag2, attrs: childAttrs2, children: grandchildren2 } = parsed;
               compiledChildren.push({
                 isSimpleString: false,
-                complexRender: () => {
-                  const grandchildResults = [];
-                  for (const gc of grandchildren) {
-                    grandchildResults.push(render(gc, {}, childContext));
-                  }
-                  const childContent = grandchildResults.join(context.indentStr ? "\n" : "");
-                  return renderTag(childTag, childAttrs, {}, childContent, context.indentStr, childContext.level);
+                complexData: {
+                  tag: childTag2,
+                  attrs: childAttrs2,
+                  children: grandchildren2
                 }
               });
             }
@@ -200,8 +198,13 @@ ${currentIndent}</${tag}>`;
             if (compiled.isSimpleString) {
               result = interpolate(compiled.template, item);
             } else {
-              const preRendered = compiled.complexRender();
-              result = interpolate(preRendered, item);
+              const { tag: childTag, attrs: childAttrs, children: grandchildren } = compiled.complexData;
+              const grandchildResults = [];
+              for (const gc of grandchildren) {
+                grandchildResults.push(render(gc, item, childContext));
+              }
+              const childContent = grandchildResults.join(context.indentStr ? "\n" : "");
+              result = renderTag(childTag, childAttrs, item, childContent, context.indentStr, childContext.level);
             }
             if (context.indentStr && result.startsWith("<")) {
               results2.push(getIndent(childContext.level) + result);

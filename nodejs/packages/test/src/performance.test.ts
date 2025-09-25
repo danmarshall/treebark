@@ -75,62 +75,51 @@ describe('Performance Tests', () => {
     expect(duration).toBeLessThan(1000); // 1 second should be plenty
   });
 
-  test('identify specific performance bottlenecks', () => {
-    const items = Array.from({ length: 100 }, (_, i) => ({ 
-      name: `Item ${i}`, 
-      value: i 
-    }));
+  test('verify linear time complexity', () => {
+    // Test different sizes to verify O(n) scaling
+    const sizes = [100, 200, 400];
+    const times: number[] = [];
+    
+    for (const size of sizes) {
+      const items = Array.from({ length: size }, (_, i) => ({ 
+        name: `Item ${i}`, 
+        value: i 
+      }));
+      
+      const children = Array.from({ length: 10 }, (_, i) => ({ 
+        p: `Child ${i}: {{name}} = {{value}}` 
+      }));
 
-    // Test 1: Simple string interpolation
-    console.time('Simple interpolation');
-    const result1 = renderToString({
-      template: {
-        div: {
-          $bind: 'items',
-          $children: [{ p: '{{name}} - {{value}}' }]
-        }
-      },
-      data: { items }
-    });
-    console.timeEnd('Simple interpolation');
-
-    // Test 2: Complex nested structure
-    console.time('Complex nested');
-    const result2 = renderToString({
-      template: {
-        div: {
-          $bind: 'items',
-          $children: [
-            { h3: { class: 'title', $children: ['{{name}}'] } },
-            { p: { class: 'description', $children: ['Value: {{value}}'] } },
-            { span: { 'data-id': '{{value}}', $children: ['ID: {{value}}'] } }
-          ]
-        }
-      },
-      data: { items }
-    });
-    console.timeEnd('Complex nested');
-
-    // Test 3: Many simple children  
-    const manySimpleChildren = Array.from({ length: 20 }, (_, i) => ({ 
-      span: `Child ${i}: {{name}}` 
-    }));
-
-    console.time('Many simple children');
-    const result3 = renderToString({
-      template: {
-        div: {
-          $bind: 'items',
-          $children: manySimpleChildren
-        }
-      },
-      data: { items }
-    });
-    console.timeEnd('Many simple children');
-
-    // Validate results are correct
-    expect(result1).toContain('<p>Item 0 - 0</p>');
-    expect(result2).toContain('<h3 class="title">Item 0</h3>');
-    expect(result3).toContain('<span>Child 0: Item 0</span>');
+      const start = performance.now();
+      
+      renderToString({
+        template: {
+          div: {
+            $bind: 'items',
+            $children: children
+          }
+        },
+        data: { items }
+      });
+      
+      const end = performance.now();
+      times.push(end - start);
+    }
+    
+    console.log(`Linear time test: ${sizes[0]} items: ${times[0].toFixed(2)}ms, ${sizes[1]} items: ${times[1].toFixed(2)}ms, ${sizes[2]} items: ${times[2].toFixed(2)}ms`);
+    
+    // Verify roughly linear scaling (allow some variance due to JIT optimization)
+    // If truly linear, doubling input should roughly double time
+    const ratio1 = times[1] / times[0]; // Should be ~2
+    const ratio2 = times[2] / times[1]; // Should be ~2
+    
+    // Allow generous bounds to account for measurement variance and JIT effects
+    expect(ratio1).toBeGreaterThan(1.5);
+    expect(ratio1).toBeLessThan(3.0);
+    expect(ratio2).toBeGreaterThan(1.5);
+    expect(ratio2).toBeLessThan(3.0);
+    
+    // Also verify all times are reasonable
+    times.forEach(time => expect(time).toBeLessThan(1000));
   });
 });

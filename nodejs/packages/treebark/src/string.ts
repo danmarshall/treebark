@@ -130,7 +130,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       const compiledChildren: Array<{
         isSimpleString: boolean;
         template?: string;
-        complexRender?: () => string;
+        complexData?: { tag: string; attrs: Record<string, unknown>; children: (string | TemplateObject)[] };
       }> = [];
       
       // Pre-process and potentially pre-compile children
@@ -156,16 +156,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
             const template = `<${childTag}${attrTemplate}>${grandchildren[0]}</${childTag}>`;
             compiledChildren.push({ isSimpleString: true, template });
           } else {
-            // Complex case: use regular rendering
+            // Complex case: still needs per-item rendering but with optimized parsing
+            const { tag: childTag, attrs: childAttrs, children: grandchildren } = parsed;
             compiledChildren.push({ 
               isSimpleString: false, 
-              complexRender: () => {
-                const grandchildResults: string[] = [];
-                for (const gc of grandchildren) {
-                  grandchildResults.push(render(gc, {} as Data, childContext)); // We'll interpolate later
-                }
-                const childContent = grandchildResults.join(context.indentStr ? '\n' : '');
-                return renderTag(childTag, childAttrs, {} as Data, childContent, context.indentStr, childContext.level);
+              complexData: {
+                tag: childTag,
+                attrs: childAttrs, 
+                children: grandchildren
               }
             });
           }
@@ -179,9 +177,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
           if (compiled.isSimpleString) {
             result = interpolate(compiled.template!, item as Data);
           } else {
-            // For complex cases, we still need full rendering but with optimized parsing
-            const preRendered = compiled.complexRender!();
-            result = interpolate(preRendered, item as Data);
+            // For complex cases, render with the pre-parsed structure
+            const { tag: childTag, attrs: childAttrs, children: grandchildren } = compiled.complexData!;
+            const grandchildResults: string[] = [];
+            for (const gc of grandchildren) {
+              grandchildResults.push(render(gc, item as Data, childContext));
+            }
+            const childContent = grandchildResults.join(context.indentStr ? '\n' : '');
+            result = renderTag(childTag, childAttrs, item as Data, childContent, context.indentStr, childContext.level);
           }
           
           if (context.indentStr && result.startsWith('<')) {
