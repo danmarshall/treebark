@@ -45,12 +45,12 @@ export function renderToString(
 
 // Helper function to render tag, deciding internally whether to close or not
 function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string, indentStr?: string, level?: number): string {
+  // Apply indentation if enabled and content has child elements
+  const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
+  const formattedContent = shouldIndentContent ? `\n${content}\n${currentIndent}` : (content || "");
+
   // Special handling for comment tags
   if (tag === 'comment') {
-    // For comments, content is already properly formatted by renderChildren
-    // Just add newlines if indentation is enabled and content contains HTML
-    const hasHtmlContent = content && content.includes('<');
-    const formattedContent = indentStr && hasHtmlContent ? `\n${content}\n${indentStr.repeat((level || 0))}` : (content || "");
     return `<!--${formattedContent}-->`;
   }
 
@@ -61,10 +61,6 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   if (isVoid) {
     return openTag;
   }
-
-  // Apply indentation if enabled and content has child elements
-  const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
-  const formattedContent = shouldIndentContent ? `\n${content}\n${currentIndent}` : (content || "");
 
   // Non-void tags get content (even if empty) and closing tag
   return `${openTag}${formattedContent}</${tag}>`;
