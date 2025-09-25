@@ -47,7 +47,11 @@ export function renderToString(
 function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string, indentStr?: string, level?: number): string {
   // Special handling for comment tags
   if (tag === 'comment') {
-    return `<!--${content || ""}-->`;
+    // For comments, content is already properly formatted by renderChildren
+    // Just add newlines if indentation is enabled and content contains HTML
+    const hasHtmlContent = content && content.includes('<');
+    const formattedContent = indentStr && hasHtmlContent ? `\n${content}\n${indentStr.repeat((level || 0))}` : (content || "");
+    return `<!--${formattedContent}-->`;
   }
 
   const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
