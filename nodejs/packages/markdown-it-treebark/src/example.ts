@@ -34,7 +34,7 @@ div:
 ## Product Showcase
 
 \`\`\`treebark
-$template:
+template:
   div:
     class: product-grid
     $children:
@@ -55,7 +55,7 @@ $template:
                       class: price
                       $children:
                         - "{{price}}"
-$data:
+data:
   products:
     - name: "Treebark Core"
       description: "Safe template rendering for Markdown"

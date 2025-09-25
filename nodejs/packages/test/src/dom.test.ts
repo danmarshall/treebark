@@ -1,23 +1,23 @@
 /**
  * @jest-environment jsdom
  */
-const { renderToDOM } = require('treebark');
-import { 
-  basicRenderingTests, 
-  dataInterpolationTests, 
-  bindingTests, 
-  securityErrorTests, 
-  securityValidTests, 
-  tagSpecificAttributeTests, 
-  tagSpecificAttributeErrorTests, 
-  shorthandArrayTests, 
-  voidTagTests, 
+import { renderToDOM } from 'treebark';
+import {
+  basicRenderingTests,
+  dataInterpolationTests,
+  bindingTests,
+  securityErrorTests,
+  securityValidTests,
+  tagSpecificAttributeTests,
+  tagSpecificAttributeErrorTests,
+  shorthandArrayTests,
+  voidTagTests,
   voidTagErrorTests,
   commentTests,
   commentErrorTests,
   createTest,
   createErrorTest,
-  TestCase 
+  TestCase
 } from './common-tests';
 
 describe('DOM Renderer', () => {
@@ -217,17 +217,19 @@ describe('DOM Renderer', () => {
   test('can be inserted into DOM', () => {
     document.body.innerHTML = '';
     const fragment = renderToDOM({
-      div: {
-        id: 'test-container',
-        $children: [
-          { h1: 'Test Title' },
-          { p: 'Test content' }
-        ]
+      template: {
+        div: {
+          id: 'test-container',
+          $children: [
+            { h1: 'Test Title' },
+            { p: 'Test content' }
+          ]
+        }
       }
     });
-    
+
     document.body.appendChild(fragment);
-    
+
     const container = document.getElementById('test-container');
     expect(container).toBeTruthy();
     expect(container?.querySelector('h1')?.textContent).toBe('Test Title');
@@ -273,26 +275,30 @@ describe('DOM Renderer', () => {
 
     test('shorthand array syntax equivalent to $children in DOM', () => {
       const shorthand = renderToDOM({
-        ul: [
-          { li: 'Item 1' },
-          { li: 'Item 2' },
-          { li: 'Item 3' }
-        ]
-      });
-      
-      const explicit = renderToDOM({
-        ul: {
-          $children: [
+        template: {
+          ul: [
             { li: 'Item 1' },
             { li: 'Item 2' },
             { li: 'Item 3' }
           ]
         }
       });
-      
+
+      const explicit = renderToDOM({
+        template: {
+          ul: {
+            $children: [
+              { li: 'Item 1' },
+              { li: 'Item 2' },
+              { li: 'Item 3' }
+            ]
+          }
+        }
+      });
+
       const shorthandDiv = shorthand.firstChild as HTMLElement;
       const explicitDiv = explicit.firstChild as HTMLElement;
-      
+
       expect(shorthandDiv.tagName).toBe(explicitDiv.tagName);
       expect(shorthandDiv.children.length).toBe(explicitDiv.children.length);
       expect(shorthandDiv.outerHTML).toBe(explicitDiv.outerHTML);
@@ -321,11 +327,13 @@ describe('DOM Renderer', () => {
 
     test('void tags render correctly in DOM', () => {
       const fragment = renderToDOM({
-        div: {
-          $children: [
-            { img: { src: 'image1.jpg', alt: 'First' } },
-            { img: { src: 'image2.jpg', alt: 'Second' } }
-          ]
+        template: {
+          div: {
+            $children: [
+              { img: { src: 'image1.jpg', alt: 'First' } },
+              { img: { src: 'image2.jpg', alt: 'Second' } }
+            ]
+          }
         }
       });
       const div = fragment.firstChild as HTMLElement;

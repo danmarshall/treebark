@@ -171,36 +171,6 @@ This is equivalent to:
 
 ---
 
-### Self-Contained Block  
-
-```json
-{
-  "$template": {
-    "div": {
-      "class": "product-card",
-      "$children": [
-        { "h2": "{% raw %}{{name}}{% endraw %}" },
-        { "p": "Only {% raw %}{{price}}{% endraw %}!" }
-      ]
-    }
-  },
-  "$data": {
-    "name": "Laptop",
-    "price": "$999"
-  }
-}
-```  
-
-**Output:**
-```html
-<div class="product-card">
-  <h2>Laptop</h2>
-  <p>Only $999!</p>
-</div>
-```
-
----
-
 ### Mixed Content  
 
 ```json

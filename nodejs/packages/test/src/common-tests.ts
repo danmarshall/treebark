@@ -348,36 +348,44 @@ export const shorthandArrayTests: TestCase[] = [
   {
     name: 'renders shorthand array syntax for nodes without attributes',
     input: {
-      div: [
-        { h2: 'Title' },
-        { p: 'Content' }
-      ]
+      template: {
+        div: [
+          { h2: 'Title' },
+          { p: 'Content' }
+        ]
+      }
     }
   },
   {
     name: 'shorthand array syntax with mixed content',
     input: {
-      div: [
-        'Hello ',
-        { span: 'world' },
-        '!'
-      ]
+      template: {
+        div: [
+          'Hello ',
+          { span: 'world' },
+          '!'
+        ]
+      }
     }
   },
   {
     name: 'shorthand array syntax with data interpolation',
     input: {
-      div: [
-        { h1: '{{title}}' },
-        { p: '{{content}}' }
-      ]
-    },
-    options: { data: { title: 'Welcome', content: 'This is a test.' } }
+      template: {
+        div: [
+          { h1: '{{title}}' },
+          { p: '{{content}}' }
+        ]
+      },
+      data: { title: 'Welcome', content: 'This is a test.' }
+    }
   },
   {
     name: 'shorthand array syntax works with empty arrays',
     input: {
-      div: []
+      template: {
+        div: []
+      }
     }
   }
 ];
@@ -387,9 +395,11 @@ export const voidTagTests: TestCase[] = [
   {
     name: 'allows void tags without children',
     input: {
-      img: {
-        src: 'image.jpg',
-        alt: 'Test image'
+      template: {
+        img: {
+          src: 'image.jpg',
+          alt: 'Test image'
+        }
       }
     }
   }
@@ -399,9 +409,11 @@ export const voidTagErrorTests: ErrorTestCase[] = [
   {
     name: 'prevents children on void tags',
     input: {
-      img: {
-        src: 'image.jpg',
-        $children: ['This should not work']
+      template: {
+        img: {
+          src: 'image.jpg',
+          $children: ['This should not work']
+        }
       }
     },
     expectedError: 'Tag "img" is a void element and cannot have children'
@@ -409,7 +421,9 @@ export const voidTagErrorTests: ErrorTestCase[] = [
   {
     name: 'prevents children on void tags with shorthand syntax',
     input: {
-      img: ['This should not work']
+      template: {
+        img: ['This should not work']
+      }
     },
     expectedError: 'Tag "img" is a void element and cannot have children'
   }
@@ -419,37 +433,43 @@ export const voidTagErrorTests: ErrorTestCase[] = [
 export const commentTests: TestCase[] = [
   {
     name: 'renders basic comment',
-    input: { comment: 'This is a comment' }
+    input: { template: { comment: 'This is a comment' } }
   },
   {
     name: 'renders comment with interpolation',
-    input: { comment: 'User: {{name}}' },
-    options: { data: { name: 'Alice' } }
+    input: { 
+      template: { comment: 'User: {{name}}' },
+      data: { name: 'Alice' }
+    }
   },
   {
     name: 'renders comment containing other tags',
     input: {
-      comment: {
-        $children: [
-          'Start: ',
-          { span: 'highlighted text' },
-          ' :End'
-        ]
+      template: {
+        comment: {
+          $children: [
+            'Start: ',
+            { span: 'highlighted text' },
+            ' :End'
+          ]
+        }
       }
     }
   },
   {
     name: 'renders empty comment',
-    input: { comment: '' }
+    input: { template: { comment: '' } }
   },
   {
     name: 'renders comment with special characters',
-    input: { comment: 'Special chars: & < > " \'' }
+    input: { template: { comment: 'Special chars: & < > " \'' } }
   },
   {
     name: 'safely handles malicious interpolation',
-    input: { comment: 'User input: {{input}}' },
-    options: { data: { input: 'evil --> <script>alert(1)</script>' } }
+    input: { 
+      template: { comment: 'User input: {{input}}' },
+      data: { input: 'evil --> <script>alert(1)</script>' }
+    }
   }
 ];
 
@@ -457,12 +477,14 @@ export const commentErrorTests: ErrorTestCase[] = [
   {
     name: 'prevents nested comments',
     input: {
-      comment: {
-        $children: [
-          'Outer comment with ',
-          { comment: 'nested comment' },
-          ' inside'
-        ]
+      template: {
+        comment: {
+          $children: [
+            'Outer comment with ',
+            { comment: 'nested comment' },
+            ' inside'
+          ]
+        }
       }
     },
     expectedError: 'Nested comments are not allowed'
