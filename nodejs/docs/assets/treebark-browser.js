@@ -164,9 +164,32 @@ ${currentIndent}</${tag}>`;
       }
       if (Array.isArray(bound)) {
         const results2 = [];
+        const processedChildren = [];
+        for (const c of $children) {
+          if (typeof c === "string") {
+            processedChildren.push({ parsedTemplate: null, isString: true, stringTemplate: c });
+          } else {
+            const parsed = parseTemplateObject(c);
+            if (!ALLOWED_TAGS.has(parsed.tag)) {
+              throw new Error(`Tag "${parsed.tag}" is not allowed`);
+            }
+            processedChildren.push({ parsedTemplate: parsed, isString: false });
+          }
+        }
         for (const item of bound) {
-          for (const c of $children) {
-            const result = render(c, item, childContext);
+          for (const processedChild of processedChildren) {
+            let result;
+            if (processedChild.isString) {
+              result = interpolate(processedChild.stringTemplate, item);
+            } else {
+              const { tag: childTag, attrs: childAttrs, children: grandchildren } = processedChild.parsedTemplate;
+              const grandchildResults = [];
+              for (const gc of grandchildren) {
+                grandchildResults.push(render(gc, item, childContext));
+              }
+              const childContent = grandchildResults.join(context.indentStr ? "\n" : "");
+              result = renderTag(childTag, childAttrs, item, childContent, context.indentStr, childContext.level);
+            }
             if (context.indentStr && result.startsWith("<")) {
               results2.push(getIndent(childContext.level) + result);
             } else {

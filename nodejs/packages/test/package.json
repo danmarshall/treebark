@@ -37,6 +37,12 @@
         "testMatch": ["<rootDir>/src/dom.test.ts"],
         "preset": "ts-jest",
         "testEnvironment": "jsdom"
+      },
+      {
+        "displayName": "performance",
+        "testMatch": ["<rootDir>/src/performance.test.ts"],
+        "preset": "ts-jest",
+        "testEnvironment": "node"
       }
     ]
   }

@@ -122,12 +122,48 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
     }
     
-    // This creates O(n×m) complexity for bound arrays
     if (Array.isArray(bound)) {
       const results: string[] = [];
+      
+      // Pre-process children templates to avoid redundant parsing
+      const processedChildren: Array<{
+        parsedTemplate: ReturnType<typeof parseTemplateObject>;
+        isString: boolean;
+        stringTemplate?: string;
+      }> = [];
+      
+      for (const c of $children) {
+        if (typeof c === "string") {
+          processedChildren.push({ parsedTemplate: null as any, isString: true, stringTemplate: c });
+        } else {
+          const parsed = parseTemplateObject(c);
+          // Validate tag once instead of for every item
+          if (!ALLOWED_TAGS.has(parsed.tag)) {
+            throw new Error(`Tag "${parsed.tag}" is not allowed`);
+          }
+          processedChildren.push({ parsedTemplate: parsed, isString: false });
+        }
+      }
+      
       for (const item of bound) {
-        for (const c of $children) {
-          const result = render(c, item as Data, childContext);
+        for (const processedChild of processedChildren) {
+          let result: string;
+          if (processedChild.isString) {
+            result = interpolate(processedChild.stringTemplate!, item as Data);
+          } else {
+            // Use the pre-parsed template data to avoid re-parsing
+            const { tag: childTag, attrs: childAttrs, children: grandchildren } = processedChild.parsedTemplate;
+            
+            // Render the tag content
+            const grandchildResults: string[] = [];
+            for (const gc of grandchildren) {
+              grandchildResults.push(render(gc, item as Data, childContext));
+            }
+            const childContent = grandchildResults.join(context.indentStr ? '\n' : '');
+            
+            result = renderTag(childTag, childAttrs, item as Data, childContent, context.indentStr, childContext.level);
+          }
+          
           if (context.indentStr && result.startsWith('<')) {
             results.push(getIndent(childContext.level) + result);
           } else {
