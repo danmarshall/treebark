@@ -144,3 +144,6 @@ docs/.sass-cache/
 docs/.jekyll-cache/
 docs/.jekyll-metadata
 docs/Gemfile.lock
+
+# Vite browser build output
+**/browser/
