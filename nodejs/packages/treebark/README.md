@@ -10,6 +10,8 @@ npm install treebark
 
 ## Quick Start
 
+### String Rendering (Node.js/Browser)
+
 ```javascript
 import { renderToString } from 'treebark';
 
@@ -26,6 +28,26 @@ const html = renderToString({
 
 console.log(html);
 // Output: <div class="greeting">Hello World!</div>
+```
+
+### DOM Rendering (Browser Only)
+
+```javascript
+import { renderToDOM } from 'treebark';
+
+// Create DOM elements directly
+const fragment = renderToDOM({
+  template: {
+    div: {
+      class: "greeting",
+      $children: ["Hello {{name}}!"]
+    }
+  },
+  data: { name: "World" }
+});
+
+// Append to document
+document.body.appendChild(fragment);
 ```
 
 ## API
