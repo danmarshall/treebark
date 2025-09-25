@@ -1,20 +1,19 @@
 import { renderToString, TreebarkInput } from 'treebark';
-import { 
-  basicRenderingTests, 
-  dataInterpolationTests, 
-  bindingTests, 
-  securityErrorTests, 
-  securityValidTests, 
-  tagSpecificAttributeTests, 
-  tagSpecificAttributeErrorTests, 
-  shorthandArrayTests, 
-  voidTagTests, 
+import {
+  basicRenderingTests,
+  dataInterpolationTests,
+  bindingTests,
+  securityErrorTests,
+  securityValidTests,
+  tagSpecificAttributeTests,
+  tagSpecificAttributeErrorTests,
+  shorthandArrayTests,
+  voidTagTests,
   voidTagErrorTests,
   commentTests,
   commentErrorTests,
   createTest,
   createErrorTest,
-  TestCase 
 } from './common-tests';
 
 describe('String Renderer', () => {
@@ -192,7 +191,7 @@ describe('String Renderer', () => {
           ]
         }
       });
-      
+
       const explicit = renderToString({
         template: {
           ul: {
@@ -204,7 +203,7 @@ describe('String Renderer', () => {
           }
         }
       });
-      
+
       expect(shorthand).toBe(explicit);
       expect(shorthand).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
     });
@@ -213,13 +212,13 @@ describe('String Renderer', () => {
       const result = renderToString({
         template: {
           div: [
-            { 
+            {
               div: [
                 { h1: 'Article Title' },
                 { p: 'Published on 2024' }
               ]
             },
-            { 
+            {
               div: [
                 { p: 'First paragraph' },
                 { p: 'Second paragraph' }
@@ -405,6 +404,13 @@ describe('String Renderer', () => {
         }
       }, { indent: true });
       expect(result).toBe('<div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div>');
+    });
+
+    test('does not indent elements with only text content', () => {
+      const result = renderToString({
+        template: { p: 'Simple text content' }
+      }, { indent: true });
+      expect(result).toBe('<p>Simple text content</p>');
     });
 
     test('works with bound arrays', () => {
