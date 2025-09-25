@@ -161,7 +161,7 @@ Output:
 </div>
 ```
 
-### Deep Poperty Binding with $bind
+### Deep Property Binding with $bind
 
 Use the `$bind` syntax to bind a property within an object:
 
