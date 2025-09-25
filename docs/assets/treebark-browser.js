@@ -148,7 +148,13 @@ ${currentIndent}</${tag}>`;
       }
       if (Array.isArray(bound)) {
         const content2 = bound.map(
-          (item) => $children.map((c) => render(c, item, childContext)).join(separator)
+          (item) => $children.map((c) => {
+            const result = render(c, item, childContext);
+            if (context.indentStr && result.startsWith("<")) {
+              return context.indentStr.repeat(childContext.level) + result;
+            }
+            return result;
+          }).join(separator)
         ).join(separator);
         return renderTag(tag, bindAttrs, data, content2, context.indentStr, context.level);
       }

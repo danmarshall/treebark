@@ -418,7 +418,7 @@ describe('String Renderer', () => {
         },
         data: { items: [{ name: 'Item 1' }, { name: 'Item 2' }] }
       }, { indent: true });
-      expect(result).toBe('<ul>\n<li>Item 1</li>\n<li>Item 2</li>\n</ul>');
+      expect(result).toBe('<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>');
     });
 
     test('preserves template functionality with indentation', () => {

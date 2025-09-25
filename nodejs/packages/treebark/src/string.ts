@@ -110,7 +110,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     if (Array.isArray(bound)) {
       const content = bound.map(item => 
-        $children.map((c: string | TemplateObject) => render(c, item as Data, childContext)).join(separator)
+        $children.map((c: string | TemplateObject) => {
+          const result = render(c, item as Data, childContext);
+          // Add indentation to child tags for bound arrays
+          if (context.indentStr && result.startsWith('<')) {
+            return context.indentStr.repeat(childContext.level) + result;
+          }
+          return result;
+        }).join(separator)
       ).join(separator);
       
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
