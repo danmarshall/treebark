@@ -1,7 +1,7 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown>;
 
-// Non-recursive template structure types (using $ prefixes for internal differentiation)
+// Non-recursive template structure types
 // Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
@@ -9,13 +9,13 @@ export type TemplateAttributes = {
   [key: string]: unknown;
 };
 
-// Template object maps tag names to content (no circular reference to TemplateElement)
+// Template object maps tag names to content
 export type TemplateObject = { [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes };
 
-// Template element is either a string or an object (defined after TemplateObject)
+// Template element is either a string or an object
 export type TemplateElement = string | TemplateObject;
 
-// API input types (clean external interface without $ prefixes)
+// API input types
 export interface TreebarkInput {
   template: TemplateElement | TemplateElement[];
   data?: Data;
@@ -42,7 +42,6 @@ export const VOID_TAGS = new Set([
   'img'
 ]);
 
-// All allowed tags (union of container and void tags)
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...VOID_TAGS]);
 
 // Global attributes allowed on all tags
