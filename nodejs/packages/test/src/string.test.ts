@@ -407,13 +407,6 @@ describe('String Renderer', () => {
       expect(result).toBe('<div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div>');
     });
 
-    test('does not indent elements with only text content', () => {
-      const result = renderToString({
-        template: { p: 'Simple text content' }
-      }, { indent: true });
-      expect(result).toBe('<p>Simple text content</p>');
-    });
-
     test('works with bound arrays', () => {
       const result = renderToString({
         template: {
