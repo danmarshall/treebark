@@ -56,19 +56,20 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### With Data Binding
 
-```javascript
-renderToString({
-  template: {
-    div: {
-      class: "card",
-      $children: [
-        { h2: "{{title}}" },
-        { p: "{{description}}" }
+**Template:**
+```json
+{
+  "template": {
+    "div": {
+      "class": "card",
+      "$children": [
+        { "h2": "{{title}}" },
+        { "p": "{{description}}" }
       ]
     }
   },
-  data: { title: "Treebark Demo", description: "CMS-driven and data-bound!" }
-});
+  "data": { "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
+}
 ```  
 
 **Output:**  
@@ -85,22 +86,23 @@ renderToString({
 
 When you provide a single template with array data, Treebark automatically creates multiple instances:
 
-```javascript
-renderToString({
-  template: {
-    div: {
-      class: "product-card",
-      $children: [
-        { h2: "{{name}}" },
-        { p: "Only {{price}}!" }
+**Template:**
+```json
+{
+  "template": {
+    "div": {
+      "class": "product-card",
+      "$children": [
+        { "h2": "{{name}}" },
+        { "p": "Only {{price}}!" }
       ]
     }
   },
-  data: [
-    { name: "Laptop", price: "$999" },
-    { name: "Mouse", price: "$25" }
+  "data": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Mouse", "price": "$25" }
   ]
-});
+}
 ```
 
 **Output:**
@@ -172,23 +174,24 @@ This is equivalent to:
 
 For more complex array scenarios, you can still use the `$bind` syntax:
 
-```javascript
-renderToString({
-  template: {
-    ul: {
-      $bind: "products",
-      $children: [
-        { li: "{{name}} — {{price}}" }
+**Template:**
+```json
+{
+  "template": {
+    "ul": {
+      "$bind": "products",
+      "$children": [
+        { "li": "{{name}} — {{price}}" }
       ]
     }
   },
-  data: {
-    products: [
-      { name: "Laptop", price: "$999" },
-      { name: "Phone", price: "$499" }
+  "data": {
+    "products": [
+      { "name": "Laptop", "price": "$999" },
+      { "name": "Phone", "price": "$499" }
     ]
   }
-});
+}
 ```  
 
 **Output:**  
@@ -286,7 +289,7 @@ ul:
 
 ### Implementations
 
-- **[Node.js/Browser](nodejs/packages/treebark/)** - Core library with string and DOM renderers
+- **[Node.js/Browser](nodejs/packages/treebark/)** - Core library with [`renderToString`](nodejs/packages/treebark/#rendertostringinput-options) and [`renderToDOM`](nodejs/packages/treebark/#rendertodominput-options) renderers
   - **[markdown-it plugin](nodejs/packages/markdown-it-treebark/)** - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 
