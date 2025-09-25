@@ -63,13 +63,15 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   return `${openTag}${content || ""}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number } = {}): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; indentCache?: string[] } = {}): string {
   if (typeof template === "string") return interpolate(template, data);
   
-  const separator = context.indentStr ? '\n' : '';
-  
   if (Array.isArray(template)) {
-    return template.map(t => render(t, data, context)).join(separator);
+    const results: string[] = [];
+    for (const t of template) {
+      results.push(render(t, data, context));
+    }
+    return results.join(context.indentStr ? '\n' : '');
   }
   
   const { tag, rest, children, attrs } = parseTemplateObject(template);
@@ -98,6 +100,18 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     level: (context.level || 0) + 1
   };
   
+  // Cache indentation for this level
+  if (context.indentStr && !context.indentCache) {
+    context.indentCache = [];
+  }
+  const getIndent = (level: number) => {
+    if (!context.indentStr) return '';
+    if (!context.indentCache![level]) {
+      context.indentCache![level] = context.indentStr.repeat(level);
+    }
+    return context.indentCache![level];
+  };
+
   // Handle $bind
   if (hasBinding(rest)) {
     const bound = getProperty(data, rest.$bind);
@@ -108,18 +122,20 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
     }
     
+    // This creates O(n×m) complexity for bound arrays
     if (Array.isArray(bound)) {
-      const content = bound.map(item => 
-        $children.map((c: string | TemplateObject) => {
+      const results: string[] = [];
+      for (const item of bound) {
+        for (const c of $children) {
           const result = render(c, item as Data, childContext);
-          // Add indentation to child tags for bound arrays
           if (context.indentStr && result.startsWith('<')) {
-            return context.indentStr.repeat(childContext.level) + result;
+            results.push(getIndent(childContext.level) + result);
+          } else {
+            results.push(result);
           }
-          return result;
-        }).join(separator)
-      ).join(separator);
-      
+        }
+      }
+      const content = results.join(context.indentStr ? '\n' : '');
       return renderTag(tag, bindAttrs, data, content, context.indentStr, context.level);
     }
     
@@ -128,15 +144,17 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
   }
   
-  // Render children with indentation
-  const content = children.map((c: string | TemplateObject) => {
+  // Render children with simple loop
+  const results: string[] = [];
+  for (const c of children) {
     const result = render(c, data, childContext);
-    // Add indentation to child tags
     if (context.indentStr && result.startsWith('<')) {
-      return context.indentStr.repeat(childContext.level) + result;
+      results.push(getIndent(childContext.level) + result);
+    } else {
+      results.push(result);
     }
-    return result;
-  }).join(separator);
+  }
+  const content = results.join(context.indentStr ? '\n' : '');
   
   return renderTag(tag, attrs, data, content, context.indentStr, context.level);
 }
