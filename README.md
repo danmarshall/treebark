@@ -41,7 +41,7 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
   `ul`, `ol`, `li`,  
   `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
   `a`, `img`, 
-    `comment` -> this becommes an html coment 
+    `comment` -> this becomes an html coment 
 
 ### Allowed attributes
 
