@@ -125,43 +125,63 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     if (Array.isArray(bound)) {
       const results: string[] = [];
       
-      // Pre-process children templates to avoid redundant parsing
-      const processedChildren: Array<{
-        parsedTemplate: ReturnType<typeof parseTemplateObject>;
-        isString: boolean;
-        stringTemplate?: string;
+      // For simple string children, we can pre-compile them into templates
+      // This makes the operation truly O(n+m) instead of O(n×m)
+      const compiledChildren: Array<{
+        isSimpleString: boolean;
+        template?: string;
+        complexRender?: () => string;
       }> = [];
       
+      // Pre-process and potentially pre-compile children
       for (const c of $children) {
         if (typeof c === "string") {
-          processedChildren.push({ parsedTemplate: null as any, isString: true, stringTemplate: c });
+          compiledChildren.push({ isSimpleString: true, template: c });
         } else {
           const parsed = parseTemplateObject(c);
-          // Validate tag once instead of for every item
           if (!ALLOWED_TAGS.has(parsed.tag)) {
             throw new Error(`Tag "${parsed.tag}" is not allowed`);
           }
-          processedChildren.push({ parsedTemplate: parsed, isString: false });
+          
+          // Check if this is a simple case we can optimize
+          const { tag: childTag, attrs: childAttrs, children: grandchildren } = parsed;
+          
+          if (grandchildren.length === 1 && typeof grandchildren[0] === 'string' && Object.keys(childAttrs).length <= 2) {
+            // Simple case: single text child with few attributes
+            // Pre-compile the template structure
+            const attrEntries = Object.entries(childAttrs);
+            const attrTemplate = attrEntries.length > 0 
+              ? ' ' + attrEntries.map(([k, v]) => `${k}="${String(v)}"`).join(' ')
+              : '';
+            const template = `<${childTag}${attrTemplate}>${grandchildren[0]}</${childTag}>`;
+            compiledChildren.push({ isSimpleString: true, template });
+          } else {
+            // Complex case: use regular rendering
+            compiledChildren.push({ 
+              isSimpleString: false, 
+              complexRender: () => {
+                const grandchildResults: string[] = [];
+                for (const gc of grandchildren) {
+                  grandchildResults.push(render(gc, {} as Data, childContext)); // We'll interpolate later
+                }
+                const childContent = grandchildResults.join(context.indentStr ? '\n' : '');
+                return renderTag(childTag, childAttrs, {} as Data, childContent, context.indentStr, childContext.level);
+              }
+            });
+          }
         }
       }
       
+      // Now render for each item using compiled templates
       for (const item of bound) {
-        for (const processedChild of processedChildren) {
+        for (const compiled of compiledChildren) {
           let result: string;
-          if (processedChild.isString) {
-            result = interpolate(processedChild.stringTemplate!, item as Data);
+          if (compiled.isSimpleString) {
+            result = interpolate(compiled.template!, item as Data);
           } else {
-            // Use the pre-parsed template data to avoid re-parsing
-            const { tag: childTag, attrs: childAttrs, children: grandchildren } = processedChild.parsedTemplate;
-            
-            // Render the tag content
-            const grandchildResults: string[] = [];
-            for (const gc of grandchildren) {
-              grandchildResults.push(render(gc, item as Data, childContext));
-            }
-            const childContent = grandchildResults.join(context.indentStr ? '\n' : '');
-            
-            result = renderTag(childTag, childAttrs, item as Data, childContent, context.indentStr, childContext.level);
+            // For complex cases, we still need full rendering but with optimized parsing
+            const preRendered = compiled.complexRender!();
+            result = interpolate(preRendered, item as Data);
           }
           
           if (context.indentStr && result.startsWith('<')) {

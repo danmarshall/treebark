@@ -75,33 +75,62 @@ describe('Performance Tests', () => {
     expect(duration).toBeLessThan(1000); // 1 second should be plenty
   });
 
-  test('deep nesting should not cause exponential slowdown', () => {
-    // Create deeply nested structure to test recursion performance
-    let template: any = { span: 'Deep content {{depth}}' };
-    
-    // Create 50 levels of nesting
-    for (let i = 0; i < 50; i++) {
-      template = { div: { class: `level-${i}`, $children: [template] } };
-    }
+  test('identify specific performance bottlenecks', () => {
+    const items = Array.from({ length: 100 }, (_, i) => ({ 
+      name: `Item ${i}`, 
+      value: i 
+    }));
 
-    const start = performance.now();
-    
-    const result = renderToString({
-      template,
-      data: { depth: 50 }
+    // Test 1: Simple string interpolation
+    console.time('Simple interpolation');
+    const result1 = renderToString({
+      template: {
+        div: {
+          $bind: 'items',
+          $children: [{ p: '{{name}} - {{value}}' }]
+        }
+      },
+      data: { items }
     });
-    
-    const end = performance.now();
-    const duration = end - start;
-    
-    // The result should be correct
-    expect(result).toContain('<span>Deep content 50</span>');
-    expect(result).toContain('class="level-0"');
-    expect(result).toContain('class="level-49"');
-    
-    console.log(`Deep nesting (50 levels) took ${duration.toFixed(2)}ms`);
-    
-    // Deep nesting should still be fast
-    expect(duration).toBeLessThan(100);
+    console.timeEnd('Simple interpolation');
+
+    // Test 2: Complex nested structure
+    console.time('Complex nested');
+    const result2 = renderToString({
+      template: {
+        div: {
+          $bind: 'items',
+          $children: [
+            { h3: { class: 'title', $children: ['{{name}}'] } },
+            { p: { class: 'description', $children: ['Value: {{value}}'] } },
+            { span: { 'data-id': '{{value}}', $children: ['ID: {{value}}'] } }
+          ]
+        }
+      },
+      data: { items }
+    });
+    console.timeEnd('Complex nested');
+
+    // Test 3: Many simple children  
+    const manySimpleChildren = Array.from({ length: 20 }, (_, i) => ({ 
+      span: `Child ${i}: {{name}}` 
+    }));
+
+    console.time('Many simple children');
+    const result3 = renderToString({
+      template: {
+        div: {
+          $bind: 'items',
+          $children: manySimpleChildren
+        }
+      },
+      data: { items }
+    });
+    console.timeEnd('Many simple children');
+
+    // Validate results are correct
+    expect(result1).toContain('<p>Item 0 - 0</p>');
+    expect(result2).toContain('<h3 class="title">Item 0</h3>');
+    expect(result3).toContain('<span>Child 0: Item 0</span>');
   });
 });

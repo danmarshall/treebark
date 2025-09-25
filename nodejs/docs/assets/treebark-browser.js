@@ -164,31 +164,44 @@ ${currentIndent}</${tag}>`;
       }
       if (Array.isArray(bound)) {
         const results2 = [];
-        const processedChildren = [];
+        const compiledChildren = [];
         for (const c of $children) {
           if (typeof c === "string") {
-            processedChildren.push({ parsedTemplate: null, isString: true, stringTemplate: c });
+            compiledChildren.push({ isSimpleString: true, template: c });
           } else {
             const parsed = parseTemplateObject(c);
             if (!ALLOWED_TAGS.has(parsed.tag)) {
               throw new Error(`Tag "${parsed.tag}" is not allowed`);
             }
-            processedChildren.push({ parsedTemplate: parsed, isString: false });
+            const { tag: childTag, attrs: childAttrs, children: grandchildren } = parsed;
+            if (grandchildren.length === 1 && typeof grandchildren[0] === "string" && Object.keys(childAttrs).length <= 2) {
+              const attrEntries = Object.entries(childAttrs);
+              const attrTemplate = attrEntries.length > 0 ? " " + attrEntries.map(([k, v]) => `${k}="${String(v)}"`).join(" ") : "";
+              const template2 = `<${childTag}${attrTemplate}>${grandchildren[0]}</${childTag}>`;
+              compiledChildren.push({ isSimpleString: true, template: template2 });
+            } else {
+              compiledChildren.push({
+                isSimpleString: false,
+                complexRender: () => {
+                  const grandchildResults = [];
+                  for (const gc of grandchildren) {
+                    grandchildResults.push(render(gc, {}, childContext));
+                  }
+                  const childContent = grandchildResults.join(context.indentStr ? "\n" : "");
+                  return renderTag(childTag, childAttrs, {}, childContent, context.indentStr, childContext.level);
+                }
+              });
+            }
           }
         }
         for (const item of bound) {
-          for (const processedChild of processedChildren) {
+          for (const compiled of compiledChildren) {
             let result;
-            if (processedChild.isString) {
-              result = interpolate(processedChild.stringTemplate, item);
+            if (compiled.isSimpleString) {
+              result = interpolate(compiled.template, item);
             } else {
-              const { tag: childTag, attrs: childAttrs, children: grandchildren } = processedChild.parsedTemplate;
-              const grandchildResults = [];
-              for (const gc of grandchildren) {
-                grandchildResults.push(render(gc, item, childContext));
-              }
-              const childContent = grandchildResults.join(context.indentStr ? "\n" : "");
-              result = renderTag(childTag, childAttrs, item, childContent, context.indentStr, childContext.level);
+              const preRendered = compiled.complexRender();
+              result = interpolate(preRendered, item);
             }
             if (context.indentStr && result.startsWith("<")) {
               results2.push(getIndent(childContext.level) + result);
