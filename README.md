@@ -45,12 +45,14 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 
 ### Allowed attributes
 
-  - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
-  - `a`: `href`, `target`, `rel`  
-  - `img`: `src`, `alt`, `width`, `height`  
-  - `table`: `summary`  
-  - `th`/`td`: `scope`, `colspan`, `rowspan`  
-  - `blockquote`: `cite`  
+  | Tag(s)         | Allowed Attributes                          |
+  |----------------|---------------------------------------------|
+  | Global         | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+  | `a`            | `href`, `target`, `rel`                     |
+  | `img`          | `src`, `alt`, `width`, `height`             |
+  | `table`        | `summary`                                   |
+  | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
+  | `blockquote`   | `cite`                                      |
 
 ### Special keys
 
