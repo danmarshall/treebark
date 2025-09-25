@@ -108,22 +108,18 @@
     return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, content, indentStr, level) {
-    if (tag === "comment") {
-      const hasHtmlContent = content && content.includes("<");
-      const formattedContent2 = indentStr && hasHtmlContent ? `
+    const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
+    const formattedContent = shouldIndentContent ? `
 ${content}
-${indentStr.repeat(level || 0)}` : content || "";
-      return `<!--${formattedContent2}-->`;
+${currentIndent}` : content || "";
+    if (tag === "comment") {
+      return `<!--${formattedContent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
     const isVoid = VOID_TAGS.has(tag);
     if (isVoid) {
       return openTag;
     }
-    const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
-    const formattedContent = shouldIndentContent ? `
-${content}
-${currentIndent}` : content || "";
     return `${openTag}${formattedContent}</${tag}>`;
   }
   function render(template, data, context = {}) {
