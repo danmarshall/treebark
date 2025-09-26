@@ -10,6 +10,7 @@ npm install markdown-it-treebark
 
 ## Usage
 
+
 For YAML and JSON support:
 ```javascript
 import MarkdownIt from 'markdown-it';
@@ -17,7 +18,7 @@ import treebarkPlugin from 'markdown-it-treebark';
 import yaml from 'js-yaml';
 
 const md = new MarkdownIt();
-md.use(treebarkPlugin, { yaml });
+md.use(treebarkPlugin, { yaml }); // YAML and JSON both supported
 ```
 
 For JSON-only (smaller bundle):
@@ -26,7 +27,7 @@ import MarkdownIt from 'markdown-it';
 import treebarkPlugin from 'markdown-it-treebark';
 
 const md = new MarkdownIt();
-md.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+md.use(treebarkPlugin); // JSON only (no YAML lib needed)
 ```
 
 ### Basic Example
@@ -49,23 +50,20 @@ console.log(md.render(markdown));
 
 ## Options
 
+
 The plugin accepts an options object:
 
 ```javascript
 md.use(treebarkPlugin, {
-  // YAML library instance (required when allowYaml is true)
+  // YAML library instance (if provided, enables YAML parsing)
   yaml: yaml,  // Pass js-yaml or compatible library
-  
+
   // Default data context for all templates
   data: {
     siteName: 'My Website',
     user: { name: 'Alice' }
   },
-  
-  // Format support (both default to true)
-  allowYaml: true,  // Enable YAML parsing
-  allowJson: true,  // Enable JSON parsing
-  
+
   // HTML output indentation (optional)
   indent: true      // Enable indentation with 2 spaces (default)
   // indent: 4      // Use 4 spaces for indentation
@@ -76,49 +74,26 @@ md.use(treebarkPlugin, {
 
 ### Bundle Size Optimization
 
+
 To reduce bundle size when you only need JSON support:
 
 ```javascript
 // JSON only - no YAML dependency needed
-md.use(treebarkPlugin, { 
-  allowYaml: false, 
-  allowJson: true 
-});
+md.use(treebarkPlugin); // No yaml option, only JSON supported
 
-// YAML only
-md.use(treebarkPlugin, { 
-  yaml: yaml,
-  allowYaml: true, 
-  allowJson: false 
-});
+// YAML + JSON
+md.use(treebarkPlugin, { yaml }); // Both supported
 ```
 
 ### Format Support
 
-The plugin supports both YAML and JSON formats with flexible configuration:
 
-- **YAML**: Clean, readable syntax ideal for templates
-- **JSON**: Structured format that's great for data-heavy templates  
+The plugin supports both YAML and JSON formats:
 
-You can configure format support independently:
+- **YAML**: Clean, readable syntax ideal for templates (enabled if you provide a `yaml` library)
+- **JSON**: Structured format that's great for data-heavy templates (always enabled)
 
-```javascript
-// Support both YAML and JSON (default)
-md.use(treebarkPlugin, { allowYaml: true, allowJson: true });
-
-// YAML only
-md.use(treebarkPlugin, { allowYaml: true, allowJson: false });
-
-// JSON only 
-md.use(treebarkPlugin, { allowYaml: false, allowJson: true });
-
-// Alternative option format
-md.use(treebarkPlugin, { allowJson: true });
-```
-
-**Parsing Strategy**: When both formats are enabled, the plugin tries YAML first, then falls back to JSON. This provides maximum compatibility while maintaining performance.
-
-**Future Considerations**: In future versions, YAML dependency could be made optional for JSON-only workflows, reducing bundle size for applications that only need JSON support.
+**Parsing Strategy**: If a `yaml` library is provided, the plugin tries YAML first, then falls back to JSON. If not, only JSON is supported.
 
 ### HTML Indentation
 
@@ -318,6 +293,7 @@ div:
 Treebark is safe by default and only allows whitelisted HTML tags and attributes. Dangerous elements like `<script>`, `<iframe>`, and event handlers are blocked.
 
 ## Error Handling
+
 
 If a treebark block contains invalid YAML/JSON or violates safety rules, an error message will be displayed instead of the content:
 
