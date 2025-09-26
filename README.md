@@ -40,13 +40,13 @@ That’s it — a `div` with text, expressed as pure data. No angle brackets, no
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `comment` 
+`a`, `img`, `comment` (see below)
 
 ### Allowed Attributes
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| Global         | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
