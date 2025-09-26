@@ -31,7 +31,7 @@ By using **object keys as tag names**, the schema is both natural and trivial to
 { "div": "Hello world" }
 ```
 
-That’s it — a `div` with text, expressed as pure data. No angle brackets, no parser, just a structural walk of the object tree.  
+That’s it — a `div` with text (or more nodes), expressed as a plain object. No angle brackets, no parser, just a structural walk of the object tree.  
 
 
 ### Allowed Tags
