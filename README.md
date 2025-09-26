@@ -71,43 +71,7 @@ Output:
 <div>Hello world</div>
 ```
 
-### Attributes
-
-You can add attributes to any element:
-
-```json
-{
-  "div": {
-    "class": "greeting",
-    "id": "hello",
-    "$children": ["Hello world"]
-  }
-}
-```
-
-Output:
-```html
-<div class="greeting" id="hello">Hello world</div>
-```
-
-For elements with both attributes and simple text content, you can also use this format:
-
-```json
-{
-  "a": {
-    "href": "https://example.com",
-    "target": "_blank",
-    "$children": ["Visit our site"]
-  }
-}
-```
-
-Output:
-```html
-<a href="https://example.com" target="_blank">Visit our site</a>
-```
-
-### Nested elements  
+### Nested Elements
 
 Use a special `$children` element to define child elements.
 
@@ -150,6 +114,42 @@ For nodes without attributes, you can use a shorthand array syntax instead of `$
 Output:
 ```html
 <div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+```
+
+### Attributes
+
+You can add attributes to any element. When an element has attributes, you'll use the `$children` property (as shown above) to define its content:
+
+```json
+{
+  "div": {
+    "class": "greeting",
+    "id": "hello",
+    "$children": ["Hello world"]
+  }
+}
+```
+
+Output:
+```html
+<div class="greeting" id="hello">Hello world</div>
+```
+
+For elements with both attributes and simple text content, you can also use this format:
+
+```json
+{
+  "a": {
+    "href": "https://example.com",
+    "target": "_blank",
+    "$children": ["Visit our site"]
+  }
+}
+```
+
+Output:
+```html
+<a href="https://example.com" target="_blank">Visit our site</a>
 ```
 
 ### Mixed Content  
