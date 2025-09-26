@@ -17,7 +17,7 @@ But for **safety and consistency**, many Markdown parsers (especially in CMSs, w
 
 **Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
 
-- Safe by default: only whitelisted tags/attrs are allowed.  
+- Safe by default: only whitelisted tags/attributes are allowed.  
 - Fits naturally into Markdown fenced code blocks.  
 - Flexible enough for both **static content** and **data-bound apps**.  
 
@@ -34,34 +34,33 @@ By using **object keys as tag names**, the schema is both natural and trivial to
 That’s it — a `div` with text, expressed as pure data. No angle brackets, no parser, just a structural walk of the object tree.  
 
 
-### Allowed tags
+### Allowed Tags
 
-  `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
-  `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
-  `ul`, `ol`, `li`,  
-  `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-  `a`, `img`, 
-    `comment` -> this becomes an html comment 
+`div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
+`h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
+`ul`, `ol`, `li`,  
+`table`, `thead`, `tbody`, `tr`, `th`, `td`,  
+`a`, `img`, `comment` 
 
-### Allowed attributes
+### Allowed Attributes
 
-  | Tag(s)         | Allowed Attributes                          |
-  |----------------|---------------------------------------------|
-  | Global         | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
-  | `a`            | `href`, `target`, `rel`                     |
-  | `img`          | `src`, `alt`, `width`, `height`             |
-  | `table`        | `summary`                                   |
-  | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
-  | `blockquote`   | `cite`                                      |
+| Tag(s)         | Allowed Attributes                          |
+|----------------|---------------------------------------------|
+| Global         | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| `a`            | `href`, `target`, `rel`                     |
+| `img`          | `src`, `alt`, `width`, `height`             |
+| `table`        | `summary`                                   |
+| `th`, `td`     | `scope`, `colspan`, `rowspan`               |
+| `blockquote`   | `cite`                                      |
 
-### Special keys
+### Special Keys
 
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context.
 
 ## ✨ Examples  
 
-### Hello World 
+### Hello World
 
 ```json
 { "div": "Hello world" }
@@ -72,7 +71,7 @@ Output:
 <div>Hello world</div>
 ```
 
-### Nested elements  
+### Nested Elements
 
 Use a special `$children` element to define child elements.
 
@@ -115,6 +114,42 @@ For nodes without attributes, you can use a shorthand array syntax instead of `$
 Output:
 ```html
 <div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+```
+
+### Attributes
+
+You can add attributes to any element. When an element has attributes, you'll use the `$children` property (as shown above) to define its content:
+
+```json
+{
+  "div": {
+    "class": "greeting",
+    "id": "hello",
+    "$children": ["Hello world"]
+  }
+}
+```
+
+Output:
+```html
+<div class="greeting" id="hello">Hello world</div>
+```
+
+For elements with both attributes and simple text content, you can also use this format:
+
+```json
+{
+  "a": {
+    "href": "https://example.com",
+    "target": "_blank",
+    "$children": ["Visit our site"]
+  }
+}
+```
+
+Output:
+```html
+<a href="https://example.com" target="_blank">Visit our site</a>
 ```
 
 ### Mixed Content  
@@ -163,7 +198,7 @@ Output:
 </div>
 ```
 
-### Deep Property Binding with $bind
+### Advanced Array Binding with $bind
 
 Use the `$bind` syntax to bind a property within an object:
 
@@ -194,6 +229,108 @@ Output:
   <li>Laptop — $999</li>
   <li>Phone — $499</li>
 </ul>
+```
+
+For more complex scenarios with nested data and wrapper elements:
+
+```json
+{
+  "div": {
+    "class": "product-showcase",
+    "$children": [
+      { "h2": "Featured Products" },
+      {
+        "div": {
+          "class": "product-grid",
+          "$bind": "categories",
+          "$children": [
+            {
+              "section": {
+                "class": "category",
+                "$children": [
+                  { "h3": "{{name}}" },
+                  {
+                    "div": {
+                      "class": "items",
+                      "$bind": "items",
+                      "$children": [
+                        {
+                          "div": {
+                            "class": "product-card",
+                            "$children": [
+                              { "h4": "{{title}}" },
+                              { "p": "{{description}}" },
+                              { "span": { "class": "price", "$children": ["{{price}}"] } }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "categories": [
+    {
+      "name": "Electronics",
+      "items": [
+        { "title": "Laptop", "description": "High-performance laptop", "price": "$999" },
+        { "title": "Phone", "description": "Latest smartphone", "price": "$499" }
+      ]
+    },
+    {
+      "name": "Accessories",
+      "items": [
+        { "title": "Mouse", "description": "Wireless mouse", "price": "$25" }
+      ]
+    }
+  ]
+}
+```
+
+Output:
+```html
+<div class="product-showcase">
+  <h2>Featured Products</h2>
+  <div class="product-grid">
+    <section class="category">
+      <h3>Electronics</h3>
+      <div class="items">
+        <div class="product-card">
+          <h4>Laptop</h4>
+          <p>High-performance laptop</p>
+          <span class="price">$999</span>
+        </div>
+        <div class="product-card">
+          <h4>Phone</h4>
+          <p>Latest smartphone</p>
+          <span class="price">$499</span>
+        </div>
+      </div>
+    </section>
+    <section class="category">
+      <h3>Accessories</h3>
+      <div class="items">
+        <div class="product-card">
+          <h4>Mouse</h4>
+          <p>Wireless mouse</p>
+          <span class="price">$25</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
 ```
 
 ### Automatic Array Iteration
@@ -270,7 +407,7 @@ Output:
 
 **Note:** Comments cannot be nested - attempting to place a `comment` tag inside another `comment` will result in an error.
 
-## Format notes
+## 📝 Format Notes
 
 When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
 
