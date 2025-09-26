@@ -3,6 +3,7 @@ import {
   basicRenderingTests,
   dataInterpolationTests,
   bindingTests,
+  parentPropertyTests,
   securityErrorTests,
   securityValidTests,
   tagSpecificAttributeTests,
@@ -86,6 +87,34 @@ describe('String Renderer', () => {
             break;
           case 'handles single template with array data':
             expect(result).toBe('<div class="card"><h3>Laptop</h3><p>Price: $999</p></div><div class="card"><h3>Mouse</h3><p>Price: $25</p></div>');
+            break;
+        }
+      });
+    });
+  });
+
+  // Parent property access tests
+  describe('Parent Property Access', () => {
+    parentPropertyTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'accesses parent property with double dots':
+            expect(result).toBe('<div><h2>Alice</h2><p>Organization: ACME Corp</p></div>');
+            break;
+          case 'accesses grandparent property with double dots and slash':
+            expect(result).toBe('<div><div><span>Alice works at Tech Solutions Inc</span><span>Bob works at Tech Solutions Inc</span></div></div>');
+            break;
+          case 'handles parent property in attributes':
+            expect(result).toBe('<div><a href="/products/1">Laptop</a><a href="/products/2">Mouse</a></div>');
+            break;
+          case 'returns empty string when parent not found':
+            expect(result).toBe('<div><p>Missing: </p></div>');
+            break;
+          case 'returns empty string when too many parent levels requested':
+            expect(result).toBe('<div><p>Missing: </p></div>');
+            break;
+          case 'works with nested object binding':
+            expect(result).toBe('<div><h1>ACME Corp</h1><div><h2>Engineering</h2><p>Part of ACME Corp</p></div></div>');
             break;
         }
       });

@@ -6,6 +6,7 @@ import {
   basicRenderingTests,
   dataInterpolationTests,
   bindingTests,
+  parentPropertyTests,
   securityErrorTests,
   securityValidTests,
   tagSpecificAttributeTests,
@@ -137,6 +138,53 @@ describe('DOM Renderer', () => {
             expect(secondCard.className).toBe('card');
             expect(secondCard.querySelector('h3')?.textContent).toBe('Mouse');
             expect(secondCard.querySelector('p')?.textContent).toBe('Price: $25');
+            break;
+        }
+      });
+    });
+  });
+
+  // Parent property access tests
+  describe('Parent Property Access', () => {
+    parentPropertyTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        switch (tc.name) {
+          case 'accesses parent property with double dots':
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('h2')?.textContent).toBe('Alice');
+            expect(div.querySelector('p')?.textContent).toBe('Organization: ACME Corp');
+            break;
+          case 'accesses grandparent property with double dots and slash':
+            const outerDiv = fragment.firstChild as HTMLElement;
+            const innerDiv = outerDiv.firstChild as HTMLElement;
+            const spans = innerDiv.querySelectorAll('span');
+            expect(spans.length).toBe(2);
+            expect(spans[0].textContent).toBe('Alice works at Tech Solutions Inc');
+            expect(spans[1].textContent).toBe('Bob works at Tech Solutions Inc');
+            break;
+          case 'handles parent property in attributes':
+            const container = fragment.firstChild as HTMLElement;
+            const links = container.querySelectorAll('a');
+            expect(links.length).toBe(2);
+            expect(links[0].getAttribute('href')).toBe('/products/1');
+            expect(links[0].textContent).toBe('Laptop');
+            expect(links[1].getAttribute('href')).toBe('/products/2');
+            expect(links[1].textContent).toBe('Mouse');
+            break;
+          case 'returns empty string when parent not found':
+            const containerDiv = fragment.firstChild as HTMLElement;
+            expect(containerDiv.querySelector('p')?.textContent).toBe('Missing: ');
+            break;
+          case 'returns empty string when too many parent levels requested':
+            const containerDiv2 = fragment.firstChild as HTMLElement;
+            expect(containerDiv2.querySelector('p')?.textContent).toBe('Missing: ');
+            break;
+          case 'works with nested object binding':
+            const companyDiv = fragment.firstChild as HTMLElement;
+            expect(companyDiv.querySelector('h1')?.textContent).toBe('ACME Corp');
+            const deptDiv = companyDiv.querySelector('div');
+            expect(deptDiv?.querySelector('h2')?.textContent).toBe('Engineering');
+            expect(deptDiv?.querySelector('p')?.textContent).toBe('Part of ACME Corp');
             break;
         }
       });

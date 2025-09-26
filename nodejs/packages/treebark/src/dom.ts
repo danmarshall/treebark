@@ -38,8 +38,10 @@ export function renderToDOM(
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean } = {}): Node | Node[] {
-  if (typeof template === "string") return document.createTextNode(interpolate(template, data));
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[] } = {}): Node | Node[] {
+  const parents = context.parents || [];
+  
+  if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents));
   if (Array.isArray(template)) {
     const results: Node[] = [];
     for (const t of template) {
@@ -72,7 +74,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   // Special handling for comment tags
   if (tag === 'comment') {
     // Use string renderer and extract content between <!-- and -->
-    const stringResult = renderToString({ template, data });
+    const stringResult = renderToString({ template, data }, { /* no options needed for comment rendering */ });
     const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
     return document.createComment(commentContent);
   }
@@ -81,9 +83,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    const bound = getProperty(data, rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data, tag);
+    setAttrs(element, bindAttrs, data, tag, parents);
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
@@ -92,8 +94,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     if (Array.isArray(bound)) {
       for (const item of bound) {
+        // For array items, add current data context to parents
+        const newParents = [...parents, data];
         for (const c of $children) {
-          const nodes = render(c, item as Data, context);
+          const nodes = render(c, item as Data, { ...context, parents: newParents });
           if (Array.isArray(nodes)) {
             for (const n of nodes) element.appendChild(n);
           } else {
@@ -106,11 +110,13 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     // For object binding, bound should be a Data object
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
+    // When binding to an object, add current data context to parents for child context
+    const newParents = [...parents, data];
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  setAttrs(element, attrs, data, tag);
+  setAttrs(element, attrs, data, tag, parents);
   for (const c of children) {
     const nodes = render(c, data, context);
     if (Array.isArray(nodes)) {
@@ -123,10 +129,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): void {
   Object.entries(attrs).forEach(([key, value]) => {
     validateAttribute(key, tag);
-    element.setAttribute(key, interpolate(String(value), data, false));
+    element.setAttribute(key, interpolate(String(value), data, false, parents));
   });
 }
 

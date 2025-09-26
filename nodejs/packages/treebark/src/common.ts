@@ -59,10 +59,40 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 
 /**
  * Get a nested property from an object using dot notation
+ * Supports parent property access with .. notation
  */
-export function getProperty(obj: Data, path: string): unknown {
-  return path.split('.').reduce((o: unknown, k: string): unknown => 
-    (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), obj);
+export function getProperty(obj: Data, path: string, parents: Data[] = []): unknown {
+  // Handle parent property access patterns
+  let currentObj: unknown = obj;
+  let remainingPath = path;
+  
+  // Process parent references (..)
+  while (remainingPath.startsWith('..')) {
+    const parentMatch = remainingPath.match(/^(\.\.)(\/\.\.)*(.*)$/);
+    if (!parentMatch) break;
+    
+    const fullParentRef = parentMatch[1] + (parentMatch[2] || ''); // .. or ../..
+    const restOfPath = parentMatch[3]; // remaining path after parent references
+    
+    // Count how many levels up we need to go
+    const parentLevels = fullParentRef.split('/').length; // .. = 1, ../.. = 2, etc.
+    
+    // Navigate up the parent chain
+    if (parentLevels - 1 < parents.length) {
+      currentObj = parents[parents.length - parentLevels];
+      remainingPath = restOfPath.startsWith('.') ? restOfPath.substring(1) : restOfPath;
+    } else {
+      return undefined;
+    }
+  }
+  
+  // If there's remaining path, process it normally
+  if (remainingPath) {
+    return remainingPath.split('.').reduce((o: unknown, k: string): unknown => 
+      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentObj);
+  }
+  
+  return currentObj;
 }
 
 /**
@@ -75,11 +105,11 @@ export function escape(s: string): string {
 /**
  * Interpolate template variables in a string
  */
-export function interpolate(tpl: string, data: Data, escapeHtml = true): string {
+export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = []): string {
   return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
-    const val = getProperty(data, trimmed);
+    const val = getProperty(data, trimmed, parents);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }

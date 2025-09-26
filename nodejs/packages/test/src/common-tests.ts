@@ -430,6 +430,147 @@ export const voidTagErrorTests: ErrorTestCase[] = [
 ];
 
 // Comment test cases
+// Parent property access test cases
+export const parentPropertyTests: TestCase[] = [
+  {
+    name: 'accesses parent property with double dots',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { h2: '{{name}}' },
+            { p: 'Organization: {{..orgName}}' }
+          ]
+        }
+      },
+      data: {
+        orgName: 'ACME Corp',
+        user: { name: 'Alice', email: 'alice@example.com' }
+      }
+    }
+  },
+  {
+    name: 'accesses grandparent property with double dots and slash',
+    input: {
+      template: {
+        div: {
+          $bind: 'departments',
+          $children: [
+            {
+              div: {
+                $bind: 'users',
+                $children: [
+                  { span: '{{name}} works at {{../..companyName}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        companyName: 'Tech Solutions Inc',
+        departments: [
+          {
+            name: 'Engineering',
+            users: [
+              { name: 'Alice' },
+              { name: 'Bob' }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    name: 'handles parent property in attributes',
+    input: {
+      template: {
+        div: {
+          $bind: 'items',
+          $children: [
+            {
+              a: {
+                href: '/{{..category}}/{{id}}',
+                $children: ['{{name}}']
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        category: 'products',
+        items: [
+          { id: '1', name: 'Laptop' },
+          { id: '2', name: 'Mouse' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'returns empty string when parent not found',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { p: 'Missing: {{..nonexistent}}' }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice' }
+      }
+    }
+  },
+  {
+    name: 'returns empty string when too many parent levels requested',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { p: 'Missing: {{../../..tooDeep}}' }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice' }
+      }
+    }
+  },
+  {
+    name: 'works with nested object binding',
+    input: {
+      template: {
+        div: {
+          $bind: 'company',
+          $children: [
+            { h1: '{{name}}' },
+            {
+              div: {
+                $bind: 'department',
+                $children: [
+                  { h2: '{{name}}' },
+                  { p: 'Part of {{..name}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        company: {
+          name: 'ACME Corp',
+          department: {
+            name: 'Engineering'
+          }
+        }
+      }
+    }
+  }
+];
+
 export const commentTests: TestCase[] = [
   {
     name: 'renders basic comment',
