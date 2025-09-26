@@ -2,8 +2,6 @@
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
----
-
 ## 🚧 Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
@@ -15,13 +13,11 @@ But for **safety and consistency**, many Markdown parsers (especially in CMSs, w
 - Structured layouts like tables or cards are awkward or impossible.  
 - Allowing raw HTML invites XSS and security issues.  
 
----
-
 ## 🌳 Solution  
 
 **Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
 
-- Safe by default: only whitelisted tags/attrs are allowed.  
+- Safe by default: only whitelisted tags/attributes are allowed.  
 - Fits naturally into Markdown fenced code blocks.  
 - Flexible enough for both **static content** and **data-bound apps**.  
 
@@ -33,119 +29,51 @@ By using **object keys as tag names**, the schema is both natural and trivial to
 
 ```json
 { "div": "Hello world" }
-```  
+```
 
 That’s it — a `div` with text, expressed as pure data. No angle brackets, no parser, just a structural walk of the object tree.  
 
----
+
+### Allowed Tags
+
+`div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
+`h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
+`ul`, `ol`, `li`,  
+`table`, `thead`, `tbody`, `tr`, `th`, `td`,  
+`a`, `img`, `comment` (see below)
+
+### Allowed Attributes
+
+| Tag(s)         | Allowed Attributes                          |
+|----------------|---------------------------------------------|
+| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| `a`            | `href`, `target`, `rel`                     |
+| `img`          | `src`, `alt`, `width`, `height`             |
+| `table`        | `summary`                                   |
+| `th`, `td`     | `scope`, `colspan`, `rowspan`               |
+| `blockquote`   | `cite`                                      |
+
+### Special Keys
+
+- `$children`: Array or string. Defines child nodes or mixed content for an element.
+- `$bind`: String. Binds the current node to a property or array in the data context.
 
 ## ✨ Examples  
 
-### Hello World  
+### Hello World
 
 ```json
 { "div": "Hello world" }
-```  
-
-**Output:**
 ```
+
+Output:
+```html
 <div>Hello world</div>
-```  
-
----
-
-### With Data Binding
-
-**Input:**
-```json
-{
-  "template": {
-    "div": {
-      "class": "card",
-      "$children": [
-        { "h2": "{{title}}" },
-        { "p": "{{description}}" }
-      ]
-    }
-  },
-  "data": { "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
-}
-```  
-
-**Output:**  
-```html
-<div class="card">
-  <h2>Treebark Demo</h2>
-  <p>CMS-driven and data-bound!</p>
-</div>
-```  
-
----
-
-### Automatic Array Iteration
-
-When you provide a single template with array data, Treebark automatically creates multiple instances:
-
-**Input:**
-```json
-{
-  "template": {
-    "div": {
-      "class": "product-card",
-      "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Only {{price}}!" }
-      ]
-    }
-  },
-  "data": [
-    { "name": "Laptop", "price": "$999" },
-    { "name": "Mouse", "price": "$25" }
-  ]
-}
 ```
 
-**Output:**
-```html
-<div class="product-card">
-  <h2>Laptop</h2>
-  <p>Only $999!</p>
-</div>
-<div class="product-card">
-  <h2>Mouse</h2>
-  <p>Only $25!</p>
-</div>
-```
+### Nested Elements
 
-This eliminates the need for verbose `$bind` syntax in simple cases while preserving all existing `$bind` functionality.
-
----
-
-### Shorthand Array Syntax  
-
-For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
-
-```json
-{
-  "div": [
-    { "h2": "Welcome" },
-    { "p": "This is much cleaner!" },
-    {
-      "ul": [
-        { "li": "Item 1" },
-        { "li": "Item 2" }
-      ]
-    }
-  ]
-}
-```  
-
-**Output:**
-```
-<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
-```
-
-This is equivalent to:
+Use a special `$children` element to define child elements.
 
 ```json
 {
@@ -166,43 +94,63 @@ This is equivalent to:
 }
 ```
 
-**Note:** Shorthand syntax only works when the node has no attributes. If you need attributes, use the explicit `$children` syntax.
+For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
----
-
-### Advanced Array Binding with $bind
-
-For more complex array scenarios, you can still use the `$bind` syntax:
-
-**Input:**
 ```json
 {
-  "template": {
-    "ul": {
-      "$bind": "products",
-      "$children": [
-        { "li": "{{name}} — {{price}}" }
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    {
+      "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" }
       ]
     }
-  },
-  "data": {
-    "products": [
-      { "name": "Laptop", "price": "$999" },
-      { "name": "Phone", "price": "$499" }
-    ]
+  ]
+}
+```
+
+Output:
+```html
+<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+```
+
+### Attributes
+
+You can add attributes to any element. When an element has attributes, you'll use the `$children` property (as shown above) to define its content:
+
+```json
+{
+  "div": {
+    "class": "greeting",
+    "id": "hello",
+    "$children": ["Hello world"]
   }
 }
-```  
+```
 
-**Output:**  
+Output:
 ```html
-<ul>
-  <li>Laptop — $999</li>
-  <li>Phone — $499</li>
-</ul>
-```  
+<div class="greeting" id="hello">Hello world</div>
+```
 
----
+For elements with both attributes and simple text content, you can also use this format:
+
+```json
+{
+  "a": {
+    "href": "https://example.com",
+    "target": "_blank",
+    "$children": ["Visit our site"]
+  }
+}
+```
+
+Output:
+```html
+<a href="https://example.com" target="_blank">Visit our site</a>
+```
 
 ### Mixed Content  
 
@@ -216,14 +164,210 @@ For more complex array scenarios, you can still use the `$bind` syntax:
     ]
   }
 }
-```  
-
-**Output:**
 ```
-<div>Hello <span>World</span>!</div>
-```  
 
----
+Output:
+```html
+<div>Hello <span>World</span>!</div>
+```
+
+### With Data Binding
+
+```json
+{
+  "div": {
+    "class": "card",
+    "$children": [
+      { "h2": "{{title}}" },
+      { "p": "{{description}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{ "title": "Treebark Demo", "description": "CMS-driven and data-bound!" }
+```
+
+Output:
+```html
+<div class="card">
+  <h2>Treebark Demo</h2>
+  <p>CMS-driven and data-bound!</p>
+</div>
+```
+
+### Advanced Array Binding with $bind
+
+Use the `$bind` syntax to bind a property within an object:
+
+```json
+{
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone", "price": "$499" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```
+
+For more complex scenarios with nested data and wrapper elements:
+
+```json
+{
+  "div": {
+    "class": "product-showcase",
+    "$children": [
+      { "h2": "Featured Products" },
+      {
+        "div": {
+          "class": "product-grid",
+          "$bind": "categories",
+          "$children": [
+            {
+              "section": {
+                "class": "category",
+                "$children": [
+                  { "h3": "{{name}}" },
+                  {
+                    "div": {
+                      "class": "items",
+                      "$bind": "items",
+                      "$children": [
+                        {
+                          "div": {
+                            "class": "product-card",
+                            "$children": [
+                              { "h4": "{{title}}" },
+                              { "p": "{{description}}" },
+                              { "span": { "class": "price", "$children": ["{{price}}"] } }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "categories": [
+    {
+      "name": "Electronics",
+      "items": [
+        { "title": "Laptop", "description": "High-performance laptop", "price": "$999" },
+        { "title": "Phone", "description": "Latest smartphone", "price": "$499" }
+      ]
+    },
+    {
+      "name": "Accessories",
+      "items": [
+        { "title": "Mouse", "description": "Wireless mouse", "price": "$25" }
+      ]
+    }
+  ]
+}
+```
+
+Output:
+```html
+<div class="product-showcase">
+  <h2>Featured Products</h2>
+  <div class="product-grid">
+    <section class="category">
+      <h3>Electronics</h3>
+      <div class="items">
+        <div class="product-card">
+          <h4>Laptop</h4>
+          <p>High-performance laptop</p>
+          <span class="price">$999</span>
+        </div>
+        <div class="product-card">
+          <h4>Phone</h4>
+          <p>Latest smartphone</p>
+          <span class="price">$499</span>
+        </div>
+      </div>
+    </section>
+    <section class="category">
+      <h3>Accessories</h3>
+      <div class="items">
+        <div class="product-card">
+          <h4>Mouse</h4>
+          <p>Wireless mouse</p>
+          <span class="price">$25</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+```
+
+### Automatic Array Iteration
+
+When you provide a single template with array data, Treebark automatically creates multiple instances:
+
+```json
+{
+  "div": {
+    "class": "product-card",
+    "$children": [
+      { "h2": "{{name}}" },
+      { "p": "Only {{price}}!" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+[
+  { "name": "Laptop", "price": "$999" },
+  { "name": "Mouse", "price": "$25" }
+]
+```
+
+Output:
+```html
+<div class="product-card">
+  <h2>Laptop</h2>
+  <p>Only $999!</p>
+</div>
+<div class="product-card">
+  <h2>Mouse</h2>
+  <p>Only $25!</p>
+</div>
+```
 
 ### Comments
 
@@ -233,7 +377,10 @@ HTML comments can be created using the `comment` tag:
 { "comment": "This is a comment" }
 ```
 
-→ `<!--This is a comment-->`
+Output:
+```html
+<!--This is a comment-->
+```
 
 Comments support interpolation and mixed content like other tags:
 
@@ -248,18 +395,19 @@ Comments support interpolation and mixed content like other tags:
 }
 ```
 
-**Data:**
+Data:
 ```json
 { "generator": "Treebark", "date": "2024-01-01" }
 ```
 
-→ `<!--Generated by Treebark on <span>2024-01-01</span>-->`
+Output:
+```html
+<!--Generated by Treebark on <span>2024-01-01</span>-->
+```
 
 **Note:** Comments cannot be nested - attempting to place a `comment` tag inside another `comment` will result in an error.
 
----
-
-### YAML Format (Much Cleaner!)
+## 📝 Format Notes
 
 When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
 
@@ -275,7 +423,7 @@ When using the js-yaml library, you can write much cleaner YAML syntax. Here's t
 }
 ```
 
-**YAML Format (Much Cleaner!):**
+**YAML Format:**
 ```yaml
 ul:
   $bind: products
@@ -283,38 +431,14 @@ ul:
     - li: "{{name}} — {{price}}"
 ```
 
----
-
 ## 📦 Available Libraries
 
 ### Implementations
 
-- **[Node.js/Browser](nodejs/packages/treebark/)** - Core library with [`renderToString`](nodejs/packages/treebark/#rendertostringinput-options) and [`renderToDOM`](nodejs/packages/treebark/#rendertodominput-options) renderers
-  - **[markdown-it plugin](nodejs/packages/markdown-it-treebark/)** - Render treebark templates in Markdown
+- [Node.js/Browser](nodejs/packages/treebark/)
+  - [Core library](nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
+  - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
-
----
-
-## 📦 Safe by Default  
-
-Treebark ships with a strict whitelist:  
-
-- **Allowed tags:**  
-  `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
-  `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
-  `ul`, `ol`, `li`,  
-  `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-  `a`, `img`, `comment`  
-
-- **Allowed attributes:**  
-  - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
-  - `a`: `href`, `target`, `rel`  
-  - `img`: `src`, `alt`, `width`, `height`  
-  - `table`: `summary`  
-  - `th`/`td`: `scope`, `colspan`, `rowspan`  
-  - `blockquote`: `cite`  
-
----
 
 ## 📛 Name Origin
 
