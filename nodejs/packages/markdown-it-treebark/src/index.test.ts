@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import treebarkPlugin from './index';
 import yaml from 'js-yaml';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 
 describe('markdown-it-treebark plugin', () => {
   let md: MarkdownIt;
@@ -120,90 +121,56 @@ data:
   });
 
   describe('Format configuration', () => {
-    it('should support both YAML and JSON by default', () => {
-      const markdown = `
+    it('should support both YAML and JSON when yaml lib is provided', () => {
+  const markdown = `
 \`\`\`treebark
 div: "Hello YAML"
 \`\`\`
 `;
-      const result = md.render(markdown);
-      expect(result).toContain('<div>Hello YAML</div>');
-      
-      const jsonMarkdown = `
+  const result = md.render(markdown);
+  expect(result).toContain('<div>Hello YAML</div>');
+
+  const jsonMarkdown = `
 \`\`\`treebark
 {"div": "Hello JSON"}
 \`\`\`
 `;
-      const jsonResult = md.render(jsonMarkdown);
-      expect(jsonResult).toContain('<div>Hello JSON</div>');
+  const jsonResult = md.render(jsonMarkdown);
+  expect(jsonResult).toContain('<div>Hello JSON</div>');
     });
 
-    it('should support YAML-only mode', () => {
-      const mdYamlOnly = new MarkdownIt();
-      mdYamlOnly.use(treebarkPlugin, { yaml, allowYaml: true, allowJson: false });
+    it('should support JSON-only mode (no yaml lib)', () => {
+  const mdJsonOnly = new MarkdownIt();
+  mdJsonOnly.use(treebarkPlugin); // no yaml
 
-      const yamlMarkdown = `
+  const jsonMarkdown = `
+\`\`\`treebark
+{"div": "Hello JSON"}
+\`\`\`
+`;
+  const result = mdJsonOnly.render(jsonMarkdown);
+  expect(result).toContain('<div>Hello JSON</div>');
+    });
+
+    it('should error on YAML input if no yaml lib', () => {
+  const mdNoYaml = new MarkdownIt();
+  mdNoYaml.use(treebarkPlugin); // no yaml
+
+  const yamlMarkdown = `
 \`\`\`treebark
 div: "Hello YAML"
 \`\`\`
 `;
-      const result = mdYamlOnly.render(yamlMarkdown);
-      expect(result).toContain('<div>Hello YAML</div>');
-    });
-
-    it('should support JSON-only mode', () => {
-      const mdJsonOnly = new MarkdownIt();
-      mdJsonOnly.use(treebarkPlugin, { allowYaml: false, allowJson: true });
-
-      const jsonMarkdown = `
-\`\`\`treebark
-{"div": "Hello JSON"}
-\`\`\`
-`;
-      const result = mdJsonOnly.render(jsonMarkdown);
-      expect(result).toContain('<div>Hello JSON</div>');
-    });
-
-    it('should error when both formats are disabled', () => {
-      const mdDisabled = new MarkdownIt();
-      mdDisabled.use(treebarkPlugin, { allowYaml: false, allowJson: false });
-
-      const markdown = `
-\`\`\`treebark
-div: "Hello"
-\`\`\`
-`;
-      const result = mdDisabled.render(markdown);
-      expect(result).toContain('treebark-error');
-      expect(result).toContain('At least one format');
-    });
-
-    it('should work with allowJson option', () => {
-      const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { yaml, allowJson: true });
-
-      const yamlMarkdown = `
-\`\`\`treebark
-div: "Hello YAML"
-\`\`\`
-`;
-      const yamlResult = mdWithJson.render(yamlMarkdown);
-      expect(yamlResult).toContain('<div>Hello YAML</div>');
-
-      const jsonMarkdown = `
-\`\`\`treebark
-{"div": "Hello JSON"}
-\`\`\`
-`;
-      const jsonResult = mdWithJson.render(jsonMarkdown);
-      expect(jsonResult).toContain('<div>Hello JSON</div>');
+  const result = mdNoYaml.render(yamlMarkdown);
+  expect(result).toContain('treebark-error');
+  expect(result).toContain('Failed to parse as JSON');
     });
   });
 
   describe('JSON support', () => {
-    it('should parse JSON format when enabled', () => {
+    it('should parse JSON format (always enabled)', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+      mdWithJson.use(treebarkPlugin); // no yaml
 
       const markdown = `
 \`\`\`treebark
@@ -221,7 +188,7 @@ div: "Hello YAML"
 
     it('should parse complex JSON template with data', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+      mdWithJson.use(treebarkPlugin); // no yaml
 
       const markdown = `
 \`\`\`treebark
@@ -250,7 +217,7 @@ div: "Hello YAML"
 
     it('should parse JSON shorthand array syntax', () => {
       const mdWithJson = new MarkdownIt();
-      mdWithJson.use(treebarkPlugin, { allowYaml: false, allowJson: true });
+      mdWithJson.use(treebarkPlugin); // no yaml
 
       const markdown = `
 \`\`\`treebark
@@ -264,21 +231,6 @@ div: "Hello YAML"
 `;
       const result = mdWithJson.render(markdown);
       expect(result).toContain('<div><h1>Quick Layout</h1><p>Using JSON shorthand syntax</p></div>');
-    });
-
-    it('should not parse JSON when disabled', () => {
-      const mdNoJson = new MarkdownIt();
-      mdNoJson.use(treebarkPlugin, { yaml, allowJson: false });
-
-      // Use JSON syntax that's not valid YAML to test the fallback
-      const markdown = `
-\`\`\`treebark
-{"div":"Hello"}
-\`\`\`
-`;
-      const result = mdNoJson.render(markdown);
-      // This will actually work because JSON is valid YAML
-      expect(result).toContain('<div>Hello</div>');
     });
   });
 
@@ -317,11 +269,18 @@ script: "alert('xss')"
       expect(result).toContain('Empty or invalid template');
     });
 
-    it('should error when YAML is enabled but no yaml library is provided', () => {
-      expect(() => {
-        const mdWithoutYaml = new MarkdownIt();
-        mdWithoutYaml.use(treebarkPlugin, { allowYaml: true });
-      }).toThrow('YAML library must be provided when allowYaml is true');
+    it('should error on YAML input if no yaml lib', () => {
+      const mdNoYaml = new MarkdownIt();
+      mdNoYaml.use(treebarkPlugin); // no yaml
+
+      const yamlMarkdown = `
+\`\`\`treebark
+div: "Hello YAML"
+\`\`\`
+`;
+      const result = mdNoYaml.render(yamlMarkdown);
+      expect(result).toContain('treebark-error');
+      expect(result).toContain('Failed to parse as JSON');
     });
   });
 
