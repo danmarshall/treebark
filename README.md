@@ -409,7 +409,7 @@ Output:
 
 ## 📝 Format Notes
 
-When using the js-yaml library, you can write much cleaner YAML syntax. Here's the "Bound to an Array" example in both formats for comparison:
+You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
 
 **JSON Format:**
 ```json
