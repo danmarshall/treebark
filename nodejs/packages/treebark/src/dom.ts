@@ -83,7 +83,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    const bound = getProperty(data, rest.$bind, parents);
+    // Interpolate the $bind value to support dynamic binding paths
+    const bindPath = interpolate(rest.$bind, data, false, parents);
+    const bound = getProperty(data, bindPath, parents);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag, parents);
     

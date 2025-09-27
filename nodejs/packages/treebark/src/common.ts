@@ -68,19 +68,24 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
   
   // Process parent references (..)
   while (remainingPath.startsWith('..')) {
-    const parentMatch = remainingPath.match(/^(\.\.)(\/\.\.)*(.*)$/);
-    if (!parentMatch) break;
+    // Count consecutive parent references
+    let parentLevels = 0;
+    let tempPath = remainingPath;
     
-    const fullParentRef = parentMatch[1] + (parentMatch[2] || ''); // .. or ../..
-    const restOfPath = parentMatch[3]; // remaining path after parent references
-    
-    // Count how many levels up we need to go
-    const parentLevels = fullParentRef.split('/').length; // .. = 1, ../.. = 2, etc.
+    // Count leading .. patterns
+    while (tempPath.startsWith('..')) {
+      parentLevels++;
+      tempPath = tempPath.substring(2);
+      // Skip optional slash after ..
+      if (tempPath.startsWith('/')) {
+        tempPath = tempPath.substring(1);
+      }
+    }
     
     // Navigate up the parent chain
-    if (parentLevels - 1 < parents.length) {
+    if (parentLevels <= parents.length) {
       currentObj = parents[parents.length - parentLevels];
-      remainingPath = restOfPath.startsWith('.') ? restOfPath.substring(1) : restOfPath;
+      remainingPath = tempPath.startsWith('.') ? tempPath.substring(1) : tempPath;
     } else {
       return undefined;
     }
