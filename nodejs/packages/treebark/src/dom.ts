@@ -19,12 +19,32 @@ export function renderToDOM(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  const data = { ...input.data, ...options.data };
+  // Preserve arrays as arrays, only spread objects
+  const data = Array.isArray(input.data) 
+    ? input.data 
+    : { ...input.data, ...options.data };
   
   const fragment = document.createDocumentFragment();
   
+  // Check if template has $bind: "." which means bind to current data object
+  const hasCurrentObjectBinding = !Array.isArray(input.template) && 
+    typeof input.template === 'object' &&
+    input.template !== null;
+  
+  let templateHasDotBind = false;
+  if (hasCurrentObjectBinding) {
+    const entries = Object.entries(input.template);
+    if (entries.length > 0) {
+      const [, rest] = entries[0];
+      if (rest && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest && rest.$bind === '.') {
+        templateHasDotBind = true;
+      }
+    }
+  }
+  
   // If template is a single element and data is an array, render template for each data item
-  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+  // UNLESS the template has $bind: "." which means bind to the array itself
+  if (!Array.isArray(input.template) && Array.isArray(input.data) && !templateHasDotBind) {
     input.data.forEach(item => {
       const result = render(input.template, { ...item, ...options.data }, {});
       if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));

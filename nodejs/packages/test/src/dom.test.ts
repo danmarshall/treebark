@@ -129,6 +129,20 @@ describe('DOM Renderer', () => {
             expect(divNew.tagName).toBe('DIV');
             expect(divNew.textContent).toBe('Static content');
             break;
+          case 'handles $bind: "." to bind to current data object (array)':
+            const ulDotArray = fragment.firstChild as HTMLElement;
+            expect(ulDotArray.tagName).toBe('UL');
+            expect(ulDotArray.querySelectorAll('li').length).toBe(3);
+            expect(ulDotArray.querySelectorAll('li')[0].textContent).toBe('Item 1');
+            expect(ulDotArray.querySelectorAll('li')[1].textContent).toBe('Item 2');
+            expect(ulDotArray.querySelectorAll('li')[2].textContent).toBe('Item 3');
+            break;
+          case 'handles $bind: "." to bind to current data object (nested)':
+            const divDotNested = fragment.firstChild as HTMLElement;
+            expect(divDotNested.querySelector('h2')?.textContent).toBe('Alice');
+            expect(divDotNested.querySelectorAll('p')[0].textContent).toBe('Email: alice@example.com');
+            expect(divDotNested.querySelectorAll('p')[1].textContent).toBe('Role: Admin');
+            break;
           case 'handles single template with array data':
             expect(fragment.children.length).toBe(2);
             const firstCard = fragment.children[0] as HTMLElement;

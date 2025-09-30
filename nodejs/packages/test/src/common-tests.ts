@@ -164,6 +164,47 @@ export const bindingTests: TestCase[] = [
     }
   },
   {
+    name: 'handles $bind: "." to bind to current data object (array)',
+    input: {
+      template: {
+        ul: {
+          $bind: '.',
+          $children: [{ li: '{{name}}' }]
+        }
+      },
+      data: [
+        { name: 'Item 1' },
+        { name: 'Item 2' },
+        { name: 'Item 3' }
+      ]
+    }
+  },
+  {
+    name: 'handles $bind: "." to bind to current data object (nested)',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { h2: '{{name}}' },
+            {
+              div: {
+                $bind: '.',
+                $children: [
+                  { p: 'Email: {{email}}' },
+                  { p: 'Role: {{role}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice', email: 'alice@example.com', role: 'Admin' }
+      }
+    }
+  },
+  {
     name: 'handles single template with array data',
     input: {
       template: {

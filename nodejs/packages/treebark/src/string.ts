@@ -24,7 +24,10 @@ export function renderToString(
   input: TreebarkInput,
   options: RenderOptions = {}
 ): string {
-  const data = { ...input.data, ...options.data };
+  // Preserve arrays as arrays, only spread objects
+  const data = Array.isArray(input.data) 
+    ? input.data 
+    : { ...input.data, ...options.data };
 
   // Conditionally set indent context
   const context = options.indent ? {
@@ -33,8 +36,25 @@ export function renderToString(
     level: 0
   } : {};
 
+  // Check if template has $bind: "." which means bind to current data object
+  const hasCurrentObjectBinding = !Array.isArray(input.template) && 
+    typeof input.template === 'object' &&
+    input.template !== null;
+  
+  let templateHasDotBind = false;
+  if (hasCurrentObjectBinding) {
+    const entries = Object.entries(input.template);
+    if (entries.length > 0) {
+      const [, rest] = entries[0];
+      if (rest && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest && rest.$bind === '.') {
+        templateHasDotBind = true;
+      }
+    }
+  }
+
   // If template is a single element and data is an array, render template for each data item
-  if (!Array.isArray(input.template) && Array.isArray(input.data)) {
+  // UNLESS the template has $bind: "." which means bind to the array itself
+  if (!Array.isArray(input.template) && Array.isArray(input.data) && !templateHasDotBind) {
     const separator = context.indentStr ? '\n' : '';
     return input.data.map(item =>
       render(input.template, { ...item, ...options.data }, context)

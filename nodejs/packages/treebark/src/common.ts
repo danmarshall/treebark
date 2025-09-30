@@ -62,6 +62,11 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
  * Supports parent property access with .. notation
  */
 export function getProperty(obj: Data, path: string, parents: Data[] = []): unknown {
+  // Special case: "." means the current object itself
+  if (path === '.') {
+    return obj;
+  }
+  
   // Handle parent property access patterns
   let currentObj: unknown = obj;
   let remainingPath = path;
@@ -154,6 +159,11 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
  * Validate $bind expression - no parent context access or interpolation
  */
 export function validateBindExpression(bindValue: string): void {
+  // Allow single dot "." to bind to current data object
+  if (bindValue === '.') {
+    return;
+  }
+  
   if (bindValue.includes('..')) {
     throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
   }
