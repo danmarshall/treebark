@@ -8,7 +8,8 @@ import {
   getProperty, 
   interpolate, 
   validateAttribute, 
-  hasBinding, 
+  hasBinding,
+  validateBindExpression,
   parseTemplateObject,
   RenderOptions
 } from './common';
@@ -83,13 +84,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    // Validate $bind expression - no parent context access or interpolation
-    if (rest.$bind.includes('..')) {
-      throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${rest.$bind}"`);
-    }
-    if (rest.$bind.includes('{{')) {
-      throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${rest.$bind}"`);
-    }
+    validateBindExpression(rest.$bind);
     
     // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);

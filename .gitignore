@@ -147,3 +147,6 @@ docs/Gemfile.lock
 
 # Vite browser build output
 **/browser/
+
+# Generated browser bundle (built from src, not committed)
+docs/assets/treebark-browser.js

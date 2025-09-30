@@ -151,6 +151,18 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
 }
 
 /**
+ * Validate $bind expression - no parent context access or interpolation
+ */
+export function validateBindExpression(bindValue: string): void {
+  if (bindValue.includes('..')) {
+    throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+  }
+  if (bindValue.includes('{{')) {
+    throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+  }
+}
+
+/**
  * Parse template object structure to extract tag, attributes, and children
  */
 export function parseTemplateObject(templateObj: TemplateObject): {

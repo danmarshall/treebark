@@ -47,35 +47,17 @@
     "td": /* @__PURE__ */ new Set(["scope", "colspan", "rowspan"]),
     "blockquote": /* @__PURE__ */ new Set(["cite"])
   };
-  function getProperty(obj, path, parents = []) {
-    let currentObj = obj;
-    let remainingPath = path;
-    while (remainingPath.startsWith("..")) {
-      const parentMatch = remainingPath.match(/^(\.\.)(\/\.\.)*(.*)$/);
-      if (!parentMatch) break;
-      const fullParentRef = parentMatch[1] + (parentMatch[2] || "");
-      const restOfPath = parentMatch[3];
-      const parentLevels = fullParentRef.split("/").length;
-      if (parentLevels - 1 < parents.length) {
-        currentObj = parents[parents.length - parentLevels];
-        remainingPath = restOfPath.startsWith(".") ? restOfPath.substring(1) : restOfPath;
-      } else {
-        return void 0;
-      }
-    }
-    if (remainingPath) {
-      return remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentObj);
-    }
-    return currentObj;
+  function getProperty(obj, path) {
+    return path.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, obj);
   }
   function escape(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
-  function interpolate(tpl, data, escapeHtml = true, parents = []) {
+  function interpolate(tpl, data, escapeHtml = true) {
     return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
       const trimmed = expr.trim();
       if (open === "{{{") return `{{${trimmed}}}`;
-      const val = getProperty(data, trimmed, parents);
+      const val = getProperty(data, trimmed);
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
@@ -125,7 +107,7 @@
     }
     return render(input.template, data, context);
   }
-  function renderTag(tag, attrs, data, content, indentStr, level, parents = []) {
+  function renderTag(tag, attrs, data, content, indentStr, level) {
     const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
     const formattedContent = shouldIndentContent ? `
 ${content}
@@ -133,7 +115,7 @@ ${currentIndent}` : content || "";
     if (tag === "comment") {
       return `<!--${formattedContent}-->`;
     }
-    const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
+    const openTag = `<${tag}${renderAttrs(attrs, data, tag)}>`;
     const isVoid = VOID_TAGS.has(tag);
     if (isVoid) {
       return openTag;
@@ -141,8 +123,7 @@ ${currentIndent}` : content || "";
     return `${openTag}${formattedContent}</${tag}>`;
   }
   function render(template, data, context = {}) {
-    const parents = context.parents || [];
-    if (typeof template === "string") return interpolate(template, data, true, parents);
+    if (typeof template === "string") return interpolate(template, data);
     if (Array.isArray(template)) {
       return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
     }
@@ -161,9 +142,9 @@ ${currentIndent}` : content || "";
       insideComment: tag === "comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
-    const renderChildren = (children2, data2, separator, childParents) => {
+    const renderChildren = (children2, data2, separator) => {
       return children2.map((child) => {
-        const result = render(child, data2, { ...childContext, parents: childParents });
+        const result = render(child, data2, childContext);
         const [shouldIndentElement, repeatedIndent] = getIndentInfo(context.indentStr, result, true, childContext.level);
         return shouldIndentElement ? repeatedIndent + result : result;
       }).join(separator);
@@ -171,29 +152,27 @@ ${currentIndent}` : content || "";
     let content;
     let contentAttrs;
     if (hasBinding(rest)) {
-      const bound = getProperty(data, rest.$bind, parents);
+      const bound = getProperty(data, rest.$bind);
       const { $bind, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
         const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
-        const newParents = [...parents, data];
-        return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+        return render({ [tag]: { ...bindAttrs, $children } }, boundData, context);
       }
-      content = bound.map((item) => {
-        const newParents = [...parents, data];
-        return renderChildren($children, item, "", newParents);
-      }).join(context.indentStr ? "\n" : "");
+      content = bound.map(
+        (item) => renderChildren($children, item, "")
+      ).join(context.indentStr ? "\n" : "");
       contentAttrs = bindAttrs;
     } else {
-      content = renderChildren(children, data, context.indentStr ? "\n" : "", parents);
+      content = renderChildren(children, data, context.indentStr ? "\n" : "");
       contentAttrs = attrs;
     }
-    return renderTag(tag, contentAttrs, data, content, context.indentStr, context.level, parents);
+    return renderTag(tag, contentAttrs, data, content, context.indentStr, context.level);
   }
-  function renderAttrs(attrs, data, tag, parents = []) {
+  function renderAttrs(attrs, data, tag) {
     const pairs = Object.entries(attrs).filter(([key]) => {
       validateAttribute(key, tag);
       return true;
-    }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+    }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false))}"`).join(" ");
     return pairs ? " " + pairs : "";
   }
   exports2.renderToString = renderToString;
