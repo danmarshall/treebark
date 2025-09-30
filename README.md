@@ -457,11 +457,9 @@ Output:
 
 **$bind Property Access Patterns:**
 - `$bind: "users"` - literal property access
-- `$bind: "config.userList"` - nested property with single dots  
-- `$bind: "..parentArray"` - parent context access with double dots
-- `$bind: "../..rootData"` - multi-level parent access
+- `$bind: "config.userList"` - nested property with single dots
 
-**Note:** `$bind` uses literal property paths only. Interpolation with `{{...}}` is supported in content and attributes, but not in `$bind` itself.
+**Note:** `$bind` uses literal property paths only - no interpolation or parent context access. For parent property access like `{{..parentProp}}`, use interpolation in content and attributes instead.
 
 **Common Use Cases:**
 - **Cross-referencing:** Link related data across binding contexts

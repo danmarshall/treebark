@@ -83,7 +83,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    const bound = getProperty(data, rest.$bind, parents);
+    // $bind uses literal property paths only - no parent context access
+    const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag, parents);
     
