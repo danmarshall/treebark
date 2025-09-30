@@ -16,6 +16,7 @@ import {
   voidTagErrorTests,
   commentTests,
   commentErrorTests,
+  bindValidationErrorTests,
   createTest,
   createErrorTest,
   TestCase
@@ -433,6 +434,10 @@ describe('DOM Renderer', () => {
     });
 
     commentErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToDOM);
+    });
+
+    bindValidationErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToDOM);
     });
   });

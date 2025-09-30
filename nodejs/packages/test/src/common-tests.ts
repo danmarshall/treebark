@@ -632,6 +632,58 @@ export const commentErrorTests: ErrorTestCase[] = [
   }
 ];
 
+// $bind validation error tests
+export const bindValidationErrorTests: ErrorTestCase[] = [
+  {
+    name: 'throws error for $bind with double dots',
+    input: {
+      template: {
+        div: {
+          $bind: 'container',
+          $children: [
+            { ul: { $bind: '..users', $children: [{ li: '{{name}}' }] } }
+          ]
+        }
+      },
+      data: { users: [{ name: 'Alice' }], container: {} }
+    },
+    expectedError: '$bind does not support parent context access'
+  },
+  {
+    name: 'throws error for $bind with multi-level parent access',
+    input: {
+      template: {
+        div: {
+          $bind: 'level1',
+          $children: [
+            {
+              div: {
+                $bind: 'level2',
+                $children: [
+                  { ul: { $bind: '../..users', $children: [{ li: '{{name}}' }] } }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { users: [{ name: 'Bob' }], level1: { level2: {} } }
+    },
+    expectedError: '$bind does not support parent context access'
+  },
+  {
+    name: 'throws error for $bind with interpolation',
+    input: {
+      template: {
+        ul: { $bind: '{{dynamicPath}}', $children: [{ li: '{{name}}' }] }
+      },
+      data: { dynamicPath: 'users', users: [{ name: 'Charlie' }] }
+    },
+    expectedError: '$bind does not support interpolation'
+  }
+];
+
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {

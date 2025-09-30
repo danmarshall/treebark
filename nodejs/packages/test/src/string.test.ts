@@ -13,6 +13,7 @@ import {
   voidTagErrorTests,
   commentTests,
   commentErrorTests,
+  bindValidationErrorTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -320,6 +321,10 @@ describe('String Renderer', () => {
     });
 
     commentErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
+    });
+
+    bindValidationErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToString);
     });
 
