@@ -182,12 +182,13 @@ For complex array scenarios where you need a wrapper element or nested structure
 }
 ```
 
-**$bind supports multiple access patterns:**
+**$bind supports property access patterns:**
 - **Literal property:** `$bind: "products"`
-- **Nested property:** `$bind: "catalog.products"`
-- **Interpolated value:** `$bind: "{{dynamicPath}}"`
-- **Parent context:** `$bind: "..parentArray"`
-- **Multi-level parent:** `$bind: "../..rootArray"`
+- **Nested property:** `$bind: "catalog.products"` (single dots for nested object access)
+- **Parent context:** `$bind: "..parentArray"` (double dots for parent binding context)
+- **Multi-level parent:** `$bind: "../..rootArray"` (multiple double dots for grandparent contexts)
+
+**Note:** `$bind` uses literal property paths only. For dynamic or computed values, use interpolation in content/attributes instead of in `$bind`.
 
 **Common use cases for parent property access:**
 - **Cross-referencing data:** Access IDs or metadata from outer scopes

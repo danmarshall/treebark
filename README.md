@@ -455,12 +455,13 @@ Output:
 </div>
 ```
 
-**$bind Interpolation Support:**
+**$bind Property Access Patterns:**
 - `$bind: "users"` - literal property access
-- `$bind: "config.userList"` - nested property with dots  
-- `$bind: "{{dynamicPath}}"` - interpolated from data
-- `$bind: "..parentArray"` - parent context access
+- `$bind: "config.userList"` - nested property with single dots  
+- `$bind: "..parentArray"` - parent context access with double dots
 - `$bind: "../..rootData"` - multi-level parent access
+
+**Note:** `$bind` uses literal property paths only. Interpolation with `{{...}}` is supported in content and attributes, but not in `$bind` itself.
 
 **Common Use Cases:**
 - **Cross-referencing:** Link related data across binding contexts
