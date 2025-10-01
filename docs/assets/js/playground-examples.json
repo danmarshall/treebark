@@ -148,5 +148,53 @@
             { "message": "Your profile has been updated." },
             { "message": "New features are now available." }
         ]
+    },
+    
+    "array-pattern-1-stack": {
+        "template": {
+            "div": {
+                "class": "product-card",
+                "$children": [
+                    { "h2": "{{name}}" },
+                    { "p": "Only {{price}}!" }
+                ]
+            }
+        },
+        "data": [
+            { "name": "Laptop", "price": "$999" },
+            { "name": "Mouse", "price": "$25" }
+        ]
+    },
+    
+    "array-pattern-2-property": {
+        "template": {
+            "ul": {
+                "$bind": "products",
+                "$children": [
+                    { "li": "{{name}} — {{price}}" }
+                ]
+            }
+        },
+        "data": {
+            "products": [
+                { "name": "Laptop", "price": "$999" },
+                { "name": "Phone", "price": "$499" }
+            ]
+        }
+    },
+    
+    "array-pattern-3-direct": {
+        "template": {
+            "ul": {
+                "$bind": ".",
+                "$children": [
+                    { "li": "{{name}} — {{price}}" }
+                ]
+            }
+        },
+        "data": [
+            { "name": "Laptop", "price": "$999" },
+            { "name": "Phone", "price": "$499" }
+        ]
     }
 }

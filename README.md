@@ -333,9 +333,15 @@ Output:
 </div>
 ```
 
-### Automatic Array Iteration
+### Working with Arrays: Three Patterns
 
-When you provide a single template with array data, Treebark automatically creates multiple instances:
+Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
+
+#### Pattern 1: Stack of Cards (Template + Array, No $bind)
+
+When you provide a **single template** with **array data**, Treebark automatically creates multiple instances. This is the simplest pattern - no wrapper element, just repeated cards.
+
+**Use when:** You want multiple instances of the same component, like a list of cards or items.
 
 ```json
 {
@@ -368,6 +374,82 @@ Output:
   <p>Only $25!</p>
 </div>
 ```
+
+#### Pattern 2: $bind to Property in Object (UL with Wrapper)
+
+When your data is an **object containing an array**, use `$bind` to target that property. This gives you a wrapper element (like `<ul>`) around the repeated children.
+
+**Use when:** You want a container element around your array items, like a `<ul>` around `<li>` elements, and your data is structured as an object with properties.
+
+```json
+{
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone", "price": "$499" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```
+
+#### Pattern 3: $bind: "." to Current Array (Direct Array Binding)
+
+When your data **is the array itself** (not wrapped in an object), use `$bind: "."` to bind directly to the current data. This gives you a wrapper element around array items without needing an object wrapper in your data.
+
+**Use when:** You have a plain array as your data and want a container element around the repeated items.
+
+```json
+{
+  "ul": {
+    "$bind": ".",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+[
+  { "name": "Laptop", "price": "$999" },
+  { "name": "Phone", "price": "$499" }
+]
+```
+
+Output:
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```
+
+#### Choosing the Right Pattern
+
+| Pattern | Data Structure | Wrapper Element | Use Case |
+|---------|---------------|-----------------|----------|
+| **Stack of Cards** | Array | No | Multiple cards/components |
+| **$bind to Property** | Object with array property | Yes | Container + nested data |
+| **$bind: "."** | Plain array | Yes | Container + simple array |
 
 ### Parent Property Access
 
