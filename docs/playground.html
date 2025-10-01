@@ -340,6 +340,15 @@ function loadExample(exampleId) {
     }
 }
 
+// Load example from dropdown
+function loadExampleFromDropdown() {
+    const select = document.getElementById('example-select');
+    const exampleId = select.value;
+    if (exampleId) {
+        loadExample(exampleId);
+    }
+}
+
 // Event listeners
 templateEditor.addEventListener('input', updateOutput);
 dataEditor.addEventListener('input', updateOutput);
