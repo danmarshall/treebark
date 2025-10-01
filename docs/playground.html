@@ -183,23 +183,23 @@ description: Try Treebark interactively with real-time examples and customizable
     </div>
 </div>
 
-<div class="examples">
-    <button class="example-btn" onclick="loadExample('hello-world')">Hello World</button>
-    <button class="example-btn" onclick="loadExample('card-layout')">Card Layout</button>
-    <button class="example-btn" onclick="loadExample('list-binding')">List Binding</button>
-    <button class="example-btn" onclick="loadExample('user-profile')">User Profile</button>
-    <button class="example-btn" onclick="loadExample('shorthand-syntax')">Shorthand Syntax</button>
-    <button class="example-btn" onclick="loadExample('mixed-content')">Mixed Content</button>
-    <button class="example-btn" onclick="loadExample('stack-of-cards')">Stack of Cards</button>
-    <button class="example-btn" onclick="loadExample('root-array-binding')">Root Array Binding</button>
-</div>
-
-<h3 style="margin-top: 2rem; margin-bottom: 0.5rem;">📚 Array Patterns - Understanding the Nuances</h3>
-<p style="margin-bottom: 1rem;">Choose the right pattern based on your template and data structure:</p>
-<div class="examples">
-    <button class="example-btn" onclick="loadExample('array-pattern-1-stack')">Pattern 1: Stack of Cards</button>
-    <button class="example-btn" onclick="loadExample('array-pattern-2-property')">Pattern 2: $bind to Property</button>
-    <button class="example-btn" onclick="loadExample('array-pattern-3-direct')">Pattern 3: $bind: "."</button>
+<div class="control-group">
+    <label for="example-select">Load Example:</label>
+    <select id="example-select" onchange="loadExampleFromDropdown()">
+        <option value="">-- Select an example --</option>
+        <option value="hello-world">Hello World</option>
+        <option value="card-layout">Card Layout</option>
+        <option value="list-binding">List Binding</option>
+        <option value="user-profile">User Profile</option>
+        <option value="shorthand-syntax">Shorthand Syntax</option>
+        <option value="mixed-content">Mixed Content</option>
+        <option value="stack-of-cards">Stack of Cards</option>
+        <option value="root-array-binding">Root Array Binding</option>
+        <option disabled>──────────────────</option>
+        <option value="array-pattern-1-stack">📚 Pattern 1: Stack of Cards (no $bind, no $children)</option>
+        <option value="array-pattern-2-property">📚 Pattern 2: $bind to Property (uses both)</option>
+        <option value="array-pattern-3-direct">📚 Pattern 3: $bind: "." Direct Array (uses both)</option>
+    </select>
 </div>
 
 <div class="error-display" id="error-display"></div>

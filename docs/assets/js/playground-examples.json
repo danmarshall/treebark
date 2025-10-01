@@ -151,6 +151,7 @@
     },
     
     "array-pattern-1-stack": {
+        "label": "Pattern 1: Stack of Cards (no $bind, no $children)",
         "template": {
             "div": {
                 "class": "product-card",
@@ -167,6 +168,7 @@
     },
     
     "array-pattern-2-property": {
+        "label": "Pattern 2: $bind to Property (uses both)",
         "template": {
             "ul": {
                 "$bind": "products",
@@ -184,6 +186,7 @@
     },
     
     "array-pattern-3-direct": {
+        "label": "Pattern 3: $bind: \".\" Direct Array (uses both)",
         "template": {
             "ul": {
                 "$bind": ".",
