@@ -443,19 +443,11 @@ Output:
 </ul>
 ```
 
-#### Choosing the Right Pattern
-
-| Pattern | Uses $bind? | Uses $children? | Data Structure | Wrapper Element | Use Case |
-|---------|------------|----------------|----------------|-----------------|----------|
-| **Stack of Cards** | No | No (at template level) | Array | No | Multiple cards/components |
-| **$bind to Property** | Yes | Yes | Object with array property | Yes | Container + nested data |
-| **$bind: "."** | Yes (`"."`) | Yes | Plain array | Yes | Container + simple array |
-
 ### Parent Property Access
 
 Access data from parent binding contexts using double dots (`..`) in interpolation expressions:
 
-```json treebark
+```json
 {
   "template": {
     "div": {
@@ -554,7 +546,7 @@ Output:
 
 HTML comments can be created using the `comment` tag:
 
-```json treebark
+```json
 { "comment": "This is a comment" }
 ```
 
@@ -565,7 +557,7 @@ Output:
 
 Comments support interpolation and mixed content like other tags:
 
-```json treebark
+```json
 {
   "comment": {
     "$children": [
