@@ -1,0 +1,157 @@
+/* Treebark dark theme - minimal theming on top of browser defaults */
+
+body {
+    background: #1a0f08;
+    color: #e0d5d0;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Green treetop header */
+.header {
+    background: linear-gradient(to bottom, #4caf50, #388e3c);
+    margin: 0 -2rem 2rem -2rem;
+    padding: 1rem 2rem;
+    border-bottom: 3px solid #4caf50;
+}
+
+.header h1 {
+    color: #1b3a1b;
+}
+
+.header .tagline {
+    color: #1f3d1f;
+}
+
+.github-link {
+    background: linear-gradient(to bottom, #81c784, #689f38);
+    color: #1b3a1b;
+    font-weight: 600;
+}
+
+.github-link:hover {
+    background: linear-gradient(to bottom, #66bb6a, #558b2f);
+}
+
+.nav-link {
+    color: #d7ccc8;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #a5d6a7;
+}
+
+/* Content area */
+.content {
+    background: #2c1810;
+    padding: 2rem;
+    border-radius: 8px;
+}
+
+/* Code blocks */
+code {
+    background: #3e2723;
+    color: #e0d5d0;
+}
+
+pre {
+    background: #3e2723;
+    border-left: 4px solid #81c784;
+}
+
+blockquote {
+    border-left: 4px solid #81c784;
+    background: #1f2d1f;
+    color: #e0d5d0;
+}
+
+/* Footer */
+.footer {
+    background: linear-gradient(to top, #1a0f08, #2c1810);
+    margin: 2rem -2rem 0 -2rem;
+    padding: 2rem 2rem 1rem 2rem;
+    border-top: 2px solid #5d4037;
+    color: #d7ccc8;
+}
+
+.footer a {
+    color: #81c784;
+}
+
+.footer a:hover {
+    color: #a5d6a7;
+}
+
+/* Playground theme adjustments */
+.editor-panel {
+    background: #2c1810;
+    border-color: #5d4037;
+}
+
+.editor-header {
+    background: linear-gradient(to bottom, #5d4037, #4e342e);
+    color: #e0d5d0;
+}
+
+.editor-textarea {
+    background: #1a0f08;
+    color: #f0ebe5;
+}
+
+.editor-textarea:focus {
+    box-shadow: inset 0 0 0 2px #81c784;
+}
+
+.output-panel {
+    border-color: #81c784;
+}
+
+.output-header {
+    background: linear-gradient(to bottom, #81c784, #689f38) !important;
+    color: #1b3a1b !important;
+}
+
+.output-content {
+    background: #3e2723;
+    color: #e0d5d0;
+}
+
+.controls {
+    background: #3e2723;
+    border-color: #5d4037;
+}
+
+.control-group label {
+    color: #e0d5d0;
+}
+
+.control-group select,
+.control-group input {
+    background: #1a0f08;
+    color: #e0d5d0;
+    border-color: #6d4c41;
+}
+
+.control-group select:focus,
+.control-group input:focus {
+    border-color: #81c784;
+    box-shadow: 0 0 0 2px rgba(129, 199, 132, 0.3);
+}
+
+.example-btn {
+    background: linear-gradient(to bottom, #81c784, #689f38);
+    color: #1b3a1b;
+    font-weight: 600;
+}
+
+.example-btn:hover {
+    background: linear-gradient(to bottom, #66bb6a, #558b2f);
+}
+
+.error-display {
+    background: #4e2a1f;
+    border-color: #bf8040;
+    color: #ffa366;
+}
