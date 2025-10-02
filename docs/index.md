@@ -209,6 +209,21 @@ Output:
 
 Use the `$bind` syntax to bind a property within an object:
 
+**$bind Property Access Patterns:**
+- `$bind: "."` - root data value
+- `$bind: "users"` - literal property access
+- `$bind: "config.userList"` - nested property with single dots
+
+For values within strings:
+
+**Value Access Patterns:**
+- `{% raw %}{{value}}{% endraw %}` — Accesses the current item's property `value`.
+- `{% raw %}{{product.price}}{% endraw %}` — Accesses the nested property `price` inside `product` of the current item.
+- `{% raw %}{{..parentProp}}{% endraw %}` — Accesses the property `parentProp` from the parent data context.
+- `{% raw %}{{../..grandparentProp}}{% endraw %}` — Accesses the property `grandparentProp` from the grandparent data context.
+
+The parent data context is the previous `$bind`, not to be confused with the object parent itself.
+
 ```json
 {
   "ul": {
@@ -535,19 +550,6 @@ Output:
   </ul>
 </div>
 ```
-
-**$bind Property Access Patterns:**
-- `$bind: "users"` - literal property access
-- `$bind: "config.userList"` - nested property with single dots
-
-**Note:** `$bind` uses literal property paths only - no interpolation or parent context access. For parent property access like `{% raw %}{{..parentProp}}{% endraw %}`, use interpolation in content and attributes instead.
-
-**Common Use Cases:**
-- **Cross-referencing:** Link related data across binding contexts
-- **Shared metadata:** Access common IDs, URLs, or configuration
-- **Breadcrumb navigation:** Build hierarchical navigation paths
-- **Conditional rendering:** Use parent flags to control child display
-- **Multi-level linking:** Create URLs that reference multiple context levels
 
 ### Comments
 
