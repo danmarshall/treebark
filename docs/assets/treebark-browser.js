@@ -213,7 +213,7 @@ ${currentIndent}` : content || "";
       }
       content = bound.map((item) => {
         const newParents = [...parents, data];
-        return renderChildren($children, item, "", newParents);
+        return renderChildren($children, item, context.indentStr ? "\n" : "", newParents);
       }).join(context.indentStr ? "\n" : "");
       contentAttrs = bindAttrs;
     } else {

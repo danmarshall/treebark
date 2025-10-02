@@ -130,7 +130,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     content = bound.map(item => {
       // For array items, add current data context to parents
       const newParents = [...parents, data];
-      return renderChildren($children, item as Data, '', newParents);
+      return renderChildren($children, item as Data, context.indentStr ? '\n' : '', newParents);
     }).join(context.indentStr ? '\n' : '');
     contentAttrs = bindAttrs;
   } else {
