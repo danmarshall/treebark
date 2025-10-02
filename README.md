@@ -583,26 +583,30 @@ Output:
 
 ## 📝 Format Notes
 
-Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
-
-**JSON Format:**
-```json
-{
-  "ul": {
-    "$bind": "products",
-    "$children": [
-      { "li": "{{name}} — {{price}}" }
-    ]
-  }
-}
-```
+Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the *Parent Property Access* example template (above) as YAML for comparison:
 
 **YAML Format:**
 ```yaml
-ul:
-  $bind: products
+div:
+  $bind: customers
   $children:
-    - li: "{{name}} — {{price}}"
+    - h2: "{{name}}"
+    - p: "Company: {{..companyName}}"
+    - ul:
+        $bind: orders
+        $children:
+          - li:
+              $children:
+                - "Order #{{orderId}} for {{..name}}: "
+                - ul:
+                    $bind: products
+                    $children:
+                      - li:
+                          $children:
+                            - a:
+                                href: /customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}
+                                $children:
+                                  - "{{name}} - {{price}}"
 ```
 
 ## 📦 Available Libraries
