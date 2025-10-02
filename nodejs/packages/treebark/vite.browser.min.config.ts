@@ -2,11 +2,13 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   build: {
+    outDir: 'browser',
+    emptyOutDir: false, // Don't clear the directory, as we're adding to it
     lib: {
-      entry: 'src/index.ts',
+      entry: 'src/string.ts',
       name: 'Treebark',
-      formats: ['es', 'cjs'],
-      fileName: (format) => `treebark.${format}.js`
+      formats: ['umd'],
+      fileName: () => 'treebark-browser.min.js'
     },
     rollupOptions: {
       external: [],
@@ -15,6 +17,6 @@ export default defineConfig({
       }
     },
     sourcemap: true,
-    minify: false
+    minify: true
   }
 });
