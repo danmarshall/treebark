@@ -4,22 +4,36 @@
             "div": {
                 "class": "greeting",
                 "$children": [
-                    { "h1": "Hello World!" },
-                    { "p": "Welcome to Treebark - safe HTML tree structures." }
+                    {
+                        "h1": "Hello World!"
+                    },
+                    {
+                        "p": "Welcome to Treebark - safe HTML tree structures."
+                    }
                 ]
             }
         },
         "data": {}
     },
-    
     "card-layout": {
         "template": {
             "div": {
                 "class": "product-card",
                 "$children": [
-                    { "h2": "{{name}}" },
-                    { "p": "{{description}}" },
-                    { "div": { "class": "price", "$children": ["{{price}}"] } }
+                    {
+                        "h2": "{{name}}"
+                    },
+                    {
+                        "p": "{{description}}"
+                    },
+                    {
+                        "div": {
+                            "class": "price",
+                            "$children": [
+                                "{{price}}"
+                            ]
+                        }
+                    }
                 ]
             }
         },
@@ -29,34 +43,49 @@
             "price": "$1,299"
         }
     },
-    
     "list-binding": {
         "template": {
             "ul": {
                 "class": "product-list",
                 "$bind": "products",
                 "$children": [
-                    { "li": "{{name}} - {{price}}" }
+                    {
+                        "li": "{{name}} - {{price}}"
+                    }
                 ]
             }
         },
         "data": {
             "products": [
-                { "name": "Laptop", "price": "$999" },
-                { "name": "Phone", "price": "$499" },
-                { "name": "Tablet", "price": "$299" }
+                {
+                    "name": "Laptop",
+                    "price": "$999"
+                },
+                {
+                    "name": "Phone",
+                    "price": "$499"
+                },
+                {
+                    "name": "Tablet",
+                    "price": "$299"
+                }
             ]
         }
     },
-    
     "user-profile": {
         "template": {
             "div": {
                 "class": "user-profile",
                 "$children": [
-                    { "h3": "{{name}}" },
-                    { "p": "Email: {{email}}" },
-                    { "p": "Skills: {{skills}}" }
+                    {
+                        "h3": "{{name}}"
+                    },
+                    {
+                        "p": "Email: {{email}}"
+                    },
+                    {
+                        "p": "Skills: {{skills}}"
+                    }
                 ]
             }
         },
@@ -66,43 +95,59 @@
             "skills": "JavaScript, Python, React"
         }
     },
-    
     "shorthand-syntax": {
         "template": {
             "div": [
-                { "h2": "Welcome" },
-                { "p": "This is much cleaner with shorthand array syntax!" },
-                { 
+                {
+                    "h2": "Welcome"
+                },
+                {
+                    "p": "This is much cleaner with shorthand array syntax!"
+                },
+                {
                     "ul": [
-                        { "li": "Item 1" },
-                        { "li": "Item 2" },
-                        { "li": "Item 3" }
+                        {
+                            "li": "Item 1"
+                        },
+                        {
+                            "li": "Item 2"
+                        },
+                        {
+                            "li": "Item 3"
+                        }
                     ]
                 }
             ]
         },
         "data": {}
     },
-    
     "mixed-content": {
         "template": {
             "div": {
                 "$children": [
                     "Hello ",
-                    { "span": { "style": "color: blue; font-weight: bold;", "$children": ["World"] } },
+                    {
+                        "span": {
+                            "style": "color: blue; font-weight: bold;",
+                            "$children": [
+                                "World"
+                            ]
+                        }
+                    },
                     "! This mixes text and elements."
                 ]
             }
         },
         "data": {}
     },
-    
     "stack-of-cards": {
         "template": {
             "div": {
                 "class": "cards-container",
                 "$children": [
-                    { "h2": "Team Members" },
+                    {
+                        "h2": "Team Members"
+                    },
                     {
                         "div": {
                             "class": "cards-stack",
@@ -112,9 +157,15 @@
                                     "div": {
                                         "class": "member-card",
                                         "$children": [
-                                            { "h3": "{{name}}" },
-                                            { "p": "{{role}}" },
-                                            { "p": "Experience: {{experience}} years" }
+                                            {
+                                                "h3": "{{name}}"
+                                            },
+                                            {
+                                                "p": "{{role}}"
+                                            },
+                                            {
+                                                "p": "Experience: {{experience}} years"
+                                            }
                                         ]
                                     }
                                 }
@@ -126,78 +177,208 @@
         },
         "data": {
             "team": [
-                { "name": "Alice Smith", "role": "Frontend Developer", "experience": 5 },
-                { "name": "Bob Johnson", "role": "Backend Developer", "experience": 8 },
-                { "name": "Carol Brown", "role": "UI/UX Designer", "experience": 3 }
+                {
+                    "name": "Alice Smith",
+                    "role": "Frontend Developer",
+                    "experience": 5
+                },
+                {
+                    "name": "Bob Johnson",
+                    "role": "Backend Developer",
+                    "experience": 8
+                },
+                {
+                    "name": "Carol Brown",
+                    "role": "UI/UX Designer",
+                    "experience": 3
+                }
             ]
         }
     },
-    
     "root-array-binding": {
         "template": {
             "div": {
                 "class": "notification",
                 "$children": [
-                    { "span": { "class": "icon", "$children": ["📧"] } },
-                    { "span": { "$children": ["{{message}}"] } }
+                    {
+                        "span": {
+                            "class": "icon",
+                            "$children": [
+                                "📧"
+                            ]
+                        }
+                    },
+                    {
+                        "span": {
+                            "$children": [
+                                "{{message}}"
+                            ]
+                        }
+                    }
                 ]
             }
         },
         "data": [
-            { "message": "Welcome to our platform!" },
-            { "message": "Your profile has been updated." },
-            { "message": "New features are now available." }
+            {
+                "message": "Welcome to our platform!"
+            },
+            {
+                "message": "Your profile has been updated."
+            },
+            {
+                "message": "New features are now available."
+            }
         ]
     },
-    
     "array-pattern-1-stack": {
         "label": "Pattern 1: Stack of Cards (no $bind, no $children)",
         "template": {
             "div": {
                 "class": "product-card",
                 "$children": [
-                    { "h2": "{{name}}" },
-                    { "p": "Only {{price}}!" }
+                    {
+                        "h2": "{{name}}"
+                    },
+                    {
+                        "p": "Only {{price}}!"
+                    }
                 ]
             }
         },
         "data": [
-            { "name": "Laptop", "price": "$999" },
-            { "name": "Mouse", "price": "$25" }
+            {
+                "name": "Laptop",
+                "price": "$999"
+            },
+            {
+                "name": "Mouse",
+                "price": "$25"
+            }
         ]
     },
-    
     "array-pattern-2-property": {
         "label": "Pattern 2: $bind to Property (uses both)",
         "template": {
             "ul": {
                 "$bind": "products",
                 "$children": [
-                    { "li": "{{name}} — {{price}}" }
+                    {
+                        "li": "{{name}} — {{price}}"
+                    }
                 ]
             }
         },
         "data": {
             "products": [
-                { "name": "Laptop", "price": "$999" },
-                { "name": "Phone", "price": "$499" }
+                {
+                    "name": "Laptop",
+                    "price": "$999"
+                },
+                {
+                    "name": "Phone",
+                    "price": "$499"
+                }
             ]
         }
     },
-    
     "array-pattern-3-direct": {
         "label": "Pattern 3: $bind: \".\" Direct Array (uses both)",
         "template": {
             "ul": {
                 "$bind": ".",
                 "$children": [
-                    { "li": "{{name}} — {{price}}" }
+                    {
+                        "li": "{{name}} — {{price}}"
+                    }
                 ]
             }
         },
         "data": [
-            { "name": "Laptop", "price": "$999" },
-            { "name": "Phone", "price": "$499" }
+            {
+                "name": "Laptop",
+                "price": "$999"
+            },
+            {
+                "name": "Phone",
+                "price": "$499"
+            }
         ]
+    },
+    "parent-property-access": {
+        "label": "Access Parent Property with double dot (..) notation",
+        "template": {
+            "div": {
+                "$bind": "customers",
+                "$children": [
+                    {
+                        "h2": "{{name}}"
+                    },
+                    {
+                        "p": "Company: {{..companyName}}"
+                    },
+                    {
+                        "ul": {
+                            "$bind": "orders",
+                            "$children": [
+                                {
+                                    "li": {
+                                        "$children": [
+                                            "Order #{{orderId}} for {{..name}}: ",
+                                            {
+                                                "ul": {
+                                                    "$bind": "products",
+                                                    "$children": [
+                                                        {
+                                                            "li": {
+                                                                "$children": [
+                                                                    {
+                                                                        "a": {
+                                                                            "href": "/customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}",
+                                                                            "$children": [
+                                                                                "{{name}} - {{price}}"
+                                                                            ]
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "companyName": "ACME Corp",
+            "customerId": "cust123",
+            "customers": [
+                {
+                    "name": "Alice Johnson",
+                    "orders": [
+                        {
+                            "orderId": "ord456",
+                            "products": [
+                                {
+                                    "productId": "prod789",
+                                    "name": "Laptop",
+                                    "price": "$999"
+                                },
+                                {
+                                    "productId": "prod101",
+                                    "name": "Mouse",
+                                    "price": "$25"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
     }
 }
