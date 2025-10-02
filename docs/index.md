@@ -205,7 +205,7 @@ Output:
 </div>
 ```
 
-### Advanced Array Binding with $bind
+### Binding with $bind
 
 Use the `$bind` syntax to bind a property within an object:
 
