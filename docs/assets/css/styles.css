@@ -20,7 +20,7 @@ body {
 
 .header-left {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 1rem;
 }
 
