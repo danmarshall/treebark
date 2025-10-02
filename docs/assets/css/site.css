@@ -76,7 +76,7 @@ body {
 }
 
 .content {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -89,7 +89,6 @@ code {
 
 /* Basic pre elements (not inside highlight containers) */
 pre:not(.highlight) {
-    background: #f8f8f8;
     padding: 1rem;
     border-radius: 4px;
     overflow-x: auto;
@@ -98,7 +97,6 @@ pre:not(.highlight) {
 
 /* Jekyll syntax highlighting containers */
 .highlight {
-    background: #f8f8f8;
     padding: 1rem;
     border-radius: 4px;
     overflow-x: auto;
