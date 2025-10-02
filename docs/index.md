@@ -355,6 +355,92 @@ Output:
 </div>
 ```
 
+### Parent Property Access
+
+Access data from parent binding contexts using double dots (`..`) in interpolation expressions:
+
+```json
+{
+  "template": {
+    "div": {
+      "$bind": "customers",
+      "$children": [
+        { "h2": "{% raw %}{{name}}{% endraw %}" },
+        { "p": "Company: {% raw %}{{..companyName}}{% endraw %}" },
+        {
+          "ul": {
+            "$bind": "orders",
+            "$children": [
+              {
+                "li": {
+                  "$children": [
+                    "Order #{% raw %}{{orderId}}{% endraw %} for {% raw %}{{..name}}{% endraw %}: ",
+                    {
+                      "ul": {
+                        "$bind": "products", 
+                        "$children": [
+                          {
+                            "li": {
+                              "$children": [
+                                {
+                                  "a": {
+                                    "href": "/customer/{% raw %}{{../../..customerId}}{% endraw %}/order/{% raw %}{{..orderId}}{% endraw %}/product/{% raw %}{{productId}}{% endraw %}",
+                                    "$children": ["{% raw %}{{name}}{% endraw %} - {% raw %}{{price}}{% endraw %}"]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "data": {
+    "companyName": "ACME Corp",
+    "customerId": "cust123",
+    "customers": [
+      {
+        "name": "Alice Johnson",
+        "orders": [
+          {
+            "orderId": "ord456",
+            "products": [
+              { "productId": "prod789", "name": "Laptop", "price": "$999" },
+              { "productId": "prod101", "name": "Mouse", "price": "$25" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  <h2>Alice Johnson</h2>
+  <p>Company: ACME Corp</p>
+  <ul>
+    <li>
+      Order #ord456 for Alice Johnson: 
+      <ul>
+        <li><a href="/customer/cust123/order/ord456/product/prod789">Laptop - $999</a></li>
+        <li><a href="/customer/cust123/order/ord456/product/prod101">Mouse - $25</a></li>
+      </ul>
+    </li>
+  </ul>
+</div>
+```
+
 ### Working with Arrays: Three Patterns
 
 Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
@@ -463,92 +549,6 @@ Output:
   <li>Laptop — $999</li>
   <li>Phone — $499</li>
 </ul>
-```
-
-### Parent Property Access
-
-Access data from parent binding contexts using double dots (`..`) in interpolation expressions:
-
-```json
-{
-  "template": {
-    "div": {
-      "$bind": "customers",
-      "$children": [
-        { "h2": "{% raw %}{{name}}{% endraw %}" },
-        { "p": "Company: {% raw %}{{..companyName}}{% endraw %}" },
-        {
-          "ul": {
-            "$bind": "orders",
-            "$children": [
-              {
-                "li": {
-                  "$children": [
-                    "Order #{% raw %}{{orderId}}{% endraw %} for {% raw %}{{..name}}{% endraw %}: ",
-                    {
-                      "ul": {
-                        "$bind": "products", 
-                        "$children": [
-                          {
-                            "li": {
-                              "$children": [
-                                {
-                                  "a": {
-                                    "href": "/customer/{% raw %}{{../../..customerId}}{% endraw %}/order/{% raw %}{{..orderId}}{% endraw %}/product/{% raw %}{{productId}}{% endraw %}",
-                                    "$children": ["{% raw %}{{name}}{% endraw %} - {% raw %}{{price}}{% endraw %}"]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  "data": {
-    "companyName": "ACME Corp",
-    "customerId": "cust123",
-    "customers": [
-      {
-        "name": "Alice Johnson",
-        "orders": [
-          {
-            "orderId": "ord456",
-            "products": [
-              { "productId": "prod789", "name": "Laptop", "price": "$999" },
-              { "productId": "prod101", "name": "Mouse", "price": "$25" }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Output:
-```html
-<div>
-  <h2>Alice Johnson</h2>
-  <p>Company: ACME Corp</p>
-  <ul>
-    <li>
-      Order #ord456 for Alice Johnson: 
-      <ul>
-        <li><a href="/customer/cust123/order/ord456/product/prod789">Laptop - $999</a></li>
-        <li><a href="/customer/cust123/order/ord456/product/prod101">Mouse - $25</a></li>
-      </ul>
-    </li>
-  </ul>
-</div>
 ```
 
 ### Comments
