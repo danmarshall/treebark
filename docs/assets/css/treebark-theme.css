@@ -1,0 +1,196 @@
+/* Treebark Theme - Natural wood and bark aesthetic */
+
+/* Color palette inspired by tree bark and nature:
+   - Dark bark brown: #3e2723, #4e342e, #5d4037
+   - Medium bark: #6d4c41, #795548, #8d6e63
+   - Light bark/wood: #a1887f, #bcaaa4, #d7ccc8
+   - Forest green: #2e7d32, #388e3c, #4caf50
+   - Moss/lichen: #689f38, #7cb342
+   - Warm earth: #bf8040
+*/
+
+body {
+    background-color: #f5f3f0;
+    color: #3e2723;
+}
+
+.header {
+    border-bottom: 3px solid #795548;
+    background: linear-gradient(to bottom, #f5f3f0 0%, #ebe6e0 100%);
+}
+
+.header h1 {
+    color: #4e342e;
+    text-shadow: 1px 1px 0 rgba(188, 170, 164, 0.3);
+}
+
+.header .tagline {
+    color: #6d4c41;
+}
+
+.github-link {
+    background: linear-gradient(to bottom, #795548 0%, #6d4c41 100%);
+    border: 1px solid #5d4037;
+    box-shadow: 0 2px 4px rgba(62, 39, 35, 0.2);
+}
+
+.github-link:hover {
+    background: linear-gradient(to bottom, #6d4c41 0%, #5d4037 100%);
+}
+
+.nav-link {
+    color: #5d4037;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #388e3c;
+}
+
+.content {
+    background-color: #fefdfb;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(62, 39, 35, 0.1);
+}
+
+code {
+    background: #ebe6e0;
+    color: #4e342e;
+    border: 1px solid #d7ccc8;
+}
+
+pre:not(.highlight) {
+    background: linear-gradient(to bottom, #faf8f6 0%, #f0ebe5 100%);
+    border-left: 4px solid #795548;
+    box-shadow: inset 0 1px 3px rgba(62, 39, 35, 0.05);
+}
+
+.highlight {
+    background: linear-gradient(to bottom, #faf8f6 0%, #f0ebe5 100%);
+    border-left: 4px solid #795548;
+    box-shadow: inset 0 1px 3px rgba(62, 39, 35, 0.05);
+}
+
+blockquote {
+    border-left: 4px solid #689f38;
+    background: #f9fdf7;
+    padding: 1rem;
+    padding-left: 1.5rem;
+    color: #4e342e;
+    border-radius: 0 4px 4px 0;
+}
+
+.footer {
+    border-top: 2px solid #d7ccc8;
+    color: #6d4c41;
+    background: linear-gradient(to top, #f5f3f0 0%, #fefdfb 100%);
+}
+
+.footer a {
+    color: #5d4037;
+}
+
+.footer a:hover {
+    color: #388e3c;
+}
+
+/* Playground theme adjustments */
+.editor-panel {
+    background: #fefdfb;
+    border: 2px solid #d7ccc8;
+    box-shadow: 0 2px 6px rgba(62, 39, 35, 0.1);
+}
+
+.editor-header {
+    background: linear-gradient(to bottom, #bcaaa4 0%, #a1887f 100%);
+    border-bottom: 2px solid #8d6e63;
+    color: #3e2723;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.editor-textarea {
+    background: #fefdfb;
+    color: #3e2723;
+}
+
+.editor-textarea:focus {
+    box-shadow: inset 0 0 0 2px #689f38;
+}
+
+.output-panel {
+    border: 2px solid #795548;
+    box-shadow: 0 3px 8px rgba(62, 39, 35, 0.15);
+}
+
+.output-header {
+    background: linear-gradient(to bottom, #795548 0%, #6d4c41 100%);
+    border-bottom: 2px solid #5d4037;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.output-content {
+    background: linear-gradient(to bottom, #faf8f6 0%, #f0ebe5 100%);
+    color: #3e2723;
+}
+
+.controls {
+    background: linear-gradient(to bottom, #ebe6e0 0%, #e0d9d1 100%);
+    border: 2px solid #d7ccc8;
+    box-shadow: 0 2px 4px rgba(62, 39, 35, 0.08);
+}
+
+.control-group label {
+    color: #4e342e;
+}
+
+.control-group select,
+.control-group input {
+    border: 1px solid #bcaaa4;
+    background: #fefdfb;
+    color: #3e2723;
+}
+
+.control-group select:focus,
+.control-group input:focus {
+    outline: none;
+    border-color: #689f38;
+    box-shadow: 0 0 0 2px rgba(104, 159, 56, 0.2);
+}
+
+.example-btn {
+    background: linear-gradient(to bottom, #795548 0%, #6d4c41 100%);
+    border: 1px solid #5d4037;
+    box-shadow: 0 2px 4px rgba(62, 39, 35, 0.2);
+}
+
+.example-btn:hover {
+    background: linear-gradient(to bottom, #6d4c41 0%, #5d4037 100%);
+    box-shadow: 0 3px 6px rgba(62, 39, 35, 0.3);
+}
+
+.error-display {
+    background: #fef0e6;
+    border: 2px solid #bf8040;
+    color: #8d4e00;
+}
+
+/* Add subtle wood grain texture effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.03;
+    background-image: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(62, 39, 35, 0.1) 2px,
+            rgba(62, 39, 35, 0.1) 4px
+        );
+    pointer-events: none;
+}
