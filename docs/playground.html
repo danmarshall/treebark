@@ -26,19 +26,6 @@ description: Try Treebark interactively with real-time examples and customizable
 <div class="control-group">
     <label for="example-select">Load Example:</label>
     <select id="example-select" onchange="loadExampleFromDropdown()">
-        <option value="">-- Select an example --</option>
-        <option value="hello-world">Hello World</option>
-        <option value="card-layout">Card Layout</option>
-        <option value="list-binding">List Binding</option>
-        <option value="user-profile">User Profile</option>
-        <option value="shorthand-syntax">Shorthand Syntax</option>
-        <option value="mixed-content">Mixed Content</option>
-        <option value="stack-of-cards">Stack of Cards</option>
-        <option value="root-array-binding">Root Array Binding</option>
-        <option disabled>──────────────────</option>
-        <option value="array-pattern-1-stack">📚 Pattern 1: Stack of Cards (no $bind, no $children)</option>
-        <option value="array-pattern-2-property">📚 Pattern 2: $bind to Property (uses both)</option>
-        <option value="array-pattern-3-direct">📚 Pattern 3: $bind: "." Direct Array (uses both)</option>
     </select>
 </div>
 
@@ -89,6 +76,7 @@ async function loadExamples() {
         const response = await fetch('{{ "/assets/js/playground-examples.json" | relative_url }}');
         examples = await response.json();
         console.log('Examples loaded successfully');
+        populateExampleDropdown();
     } catch (error) {
         console.error('Failed to load examples:', error);
         // Fallback: provide a minimal example if loading fails
@@ -106,6 +94,28 @@ async function loadExamples() {
                 data: {}
             }
         };
+        populateExampleDropdown();
+    }
+}
+
+// Populate dropdown from examples JSON
+function populateExampleDropdown() {
+    const select = document.getElementById('example-select');
+    
+    const exampleIds = Object.keys(examples);
+    
+    // Add options for each example
+    exampleIds.forEach(exampleId => {
+        const option = document.createElement('option');
+        option.value = exampleId;
+        option.textContent = examples[exampleId].label || exampleId;
+        select.appendChild(option);
+    });
+    
+    // Auto-select and load the first example
+    if (exampleIds.length > 0) {
+        select.value = exampleIds[0];
+        loadExample(exampleIds[0]);
     }
 }
 
@@ -195,9 +205,8 @@ dataEditor.addEventListener('input', updateOutput);
 indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
 
-// Load default example
+// Load examples when page loads
 document.addEventListener('DOMContentLoaded', async function() {
     await loadExamples();
-    loadExample('hello-world');
 });
 </script>
