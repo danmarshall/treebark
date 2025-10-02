@@ -204,6 +204,7 @@ blockquote {
     background: #f8f8f8;
     white-space: pre;
     overflow-x: auto;
+    min-width: 0;
 }
 
 .controls {
