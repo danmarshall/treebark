@@ -185,6 +185,7 @@ blockquote {
     background: #fff;
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .output-header {
