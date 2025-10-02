@@ -31,8 +31,9 @@ By using **object keys as tag names**, the schema is both natural and trivial to
 { "div": "Hello world" }
 ```
 
-That’s it — a `div` with text (or more nodes), expressed as a plain object. No angle brackets, no parser, just a structural walk of the object tree.  
+That’s it — a `div` with text (or more nodes), expressed as a plain object. No angle brackets, no parser, just a structural walk of the object tree.
 
+This means the implementation is featherweight.
 
 ### Allowed Tags
 
@@ -582,7 +583,7 @@ Output:
 
 ## 📝 Format Notes
 
-You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
+Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
 
 **JSON Format:**
 ```json
