@@ -104,8 +104,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const renderChildren = (children: TemplateElement[], data: Data, separator: string, childParents: Data[]) => {
     return children.map(child => {
       const result = render(child, data, { ...childContext, parents: childParents });
-      // If indentation is enabled and result is an HTML element, indent it
-      const indent = (context.indentStr && result && result.startsWith('<')) ? context.indentStr.repeat(childContext.level) : '';
+      // If separator is newline, indent all children for consistent alignment
+      const indent = (separator === '\n' && result) ? context.indentStr!.repeat(childContext.level) : '';
       return indent + result;
     }).join(separator);
   };

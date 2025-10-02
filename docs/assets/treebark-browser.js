@@ -196,7 +196,7 @@ ${currentIndent}` : content || "";
     const renderChildren = (children2, data2, separator, childParents) => {
       return children2.map((child) => {
         const result = render(child, data2, { ...childContext, parents: childParents });
-        const indent = context.indentStr && result && result.startsWith("<") ? context.indentStr.repeat(childContext.level) : "";
+        const indent = separator === "\n" && result ? context.indentStr.repeat(childContext.level) : "";
         return indent + result;
       }).join(separator);
     };
