@@ -2,10 +2,11 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: #2d2d2d;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
+    background: #faf9f7;
 }
 
 .header {
@@ -14,8 +15,19 @@ body {
     justify-content: space-between;
     padding: 1rem 0;
     margin-bottom: 2rem;
-    border-bottom: 2px solid #007acc;
+    border-bottom: 3px solid #6b4423;
     height: 60px;
+    position: relative;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6b4423 0%, #8b5a2b 50%, #6b4423 100%);
 }
 
 .header-left {
@@ -27,6 +39,12 @@ body {
 .header h1 {
     font-size: 1.5rem;
     margin: 0;
+    color: #4a2f18;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: #4a2f18;
 }
 
 /* don't duplicate heading. the id has a hyphen because the readme heading starts with an emoji */
@@ -40,7 +58,7 @@ h1#-treebark + blockquote {
 
 .header .tagline {
     font-size: 0.9rem;
-    color: #666;
+    color: #6b6b6b;
     font-style: italic;
     margin: 0;
 }
@@ -48,8 +66,8 @@ h1#-treebark + blockquote {
 .github-link {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background: #007acc;
-    color: white;
+    background: #6b4423;
+    color: #faf9f7;
     text-decoration: none;
     border-radius: 4px;
     transition: background 0.3s;
@@ -58,8 +76,8 @@ h1#-treebark + blockquote {
 }
 
 .github-link:hover {
-    background: #005a9c;
-    color: white;
+    background: #4a2f18;
+    color: #faf9f7;
 }
 
 .header-right {
@@ -69,7 +87,7 @@ h1#-treebark + blockquote {
 }
 
 .nav-link {
-    color: #007acc;
+    color: #6b4423;
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
@@ -77,7 +95,7 @@ h1#-treebark + blockquote {
 }
 
 .nav-link:hover, .nav-link.active {
-    color: #005a9c;
+    color: #4a2f18;
 }
 
 .nav-link.active {
@@ -88,29 +106,44 @@ h1#-treebark + blockquote {
     margin: 0 auto;
 }
 
+/* Links */
+a {
+    color: #6b4423;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: #4a2f18;
+}
+
+a:visited {
+    color: #8b5a2b;
+}
+
 code {
-    background: #f5f5f5;
+    background: #f0ede8;
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     font-family: 'Monaco', 'Courier New', monospace;
+    color: #4a2f18;
 }
 
 /* Basic pre elements (not inside highlight containers) */
 pre:not(.highlight) {
-    background: #f8f8f8;
+    background: #f7f5f2;
     padding: 1rem;
     border-radius: 4px;
     overflow-x: auto;
-    border-left: 4px solid #007acc;
+    border-left: 4px solid #6b4423;
 }
 
 /* Jekyll syntax highlighting containers */
 .highlight {
-    background: #f8f8f8;
+    background: #f7f5f2;
     padding: 1rem;
     border-radius: 4px;
     overflow-x: auto;
-    border-left: 4px solid #007acc;
+    border-left: 4px solid #6b4423;
 }
 
 /* Remove styling from pre inside highlight to avoid conflicts */
@@ -123,10 +156,10 @@ pre:not(.highlight) {
 }
 
 blockquote {
-    border-left: 4px solid #007acc;
+    border-left: 4px solid #6b4423;
     margin: 0;
     padding-left: 1rem;
-    color: #666;
+    color: #6b6b6b;
     font-style: italic;
 }
 
@@ -134,8 +167,8 @@ blockquote {
     text-align: center;
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid #ddd;
-    color: #666;
+    border-top: 1px solid #d4cfc7;
+    color: #6b6b6b;
     font-size: 0.9rem;
 }
 
@@ -150,20 +183,20 @@ blockquote {
 }
 
 .editor-panel {
-    border: 1px solid #ddd;
+    border: 1px solid #d4cfc7;
     border-radius: 8px;
-    background: #f9f9f9;
+    background: #f7f5f2;
     display: flex;
     flex-direction: column;
 }
 
 .editor-header {
-    background: #e9e9e9;
+    background: #e9e4dc;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #d4cfc7;
     border-radius: 8px 8px 0 0;
     font-weight: bold;
-    color: #333;
+    color: #2d2d2d;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -182,13 +215,13 @@ blockquote {
 }
 
 .editor-textarea:focus {
-    box-shadow: inset 0 0 0 2px #007acc;
+    box-shadow: inset 0 0 0 2px #6b4423;
 }
 
 .output-panel {
     grid-row: 1 / 3;
     grid-column: 2;
-    border: 1px solid #007acc;
+    border: 1px solid #6b4423;
     border-radius: 8px;
     background: #fff;
     display: flex;
@@ -197,8 +230,8 @@ blockquote {
 }
 
 .output-header {
-    background: #007acc;
-    color: white;
+    background: #6b4423;
+    color: #faf9f7;
     padding: 0.5rem 1rem;
     border-radius: 8px 8px 0 0;
     font-weight: bold;
@@ -210,7 +243,7 @@ blockquote {
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
     overflow: auto;
-    background: #f8f8f8;
+    background: #f7f5f2;
     white-space: pre;
     overflow-x: auto;
     min-width: 0;
@@ -222,9 +255,9 @@ blockquote {
     gap: 1rem;
     margin: 1rem 0;
     padding: 1rem;
-    background: #f5f5f5;
+    background: #f7f5f2;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid #d4cfc7;
 }
 
 .control-group {
@@ -235,13 +268,13 @@ blockquote {
 
 .control-group label {
     font-weight: bold;
-    color: #333;
+    color: #2d2d2d;
 }
 
 .control-group select,
 .control-group input {
     padding: 0.25rem 0.5rem;
-    border: 1px solid #ccc;
+    border: 1px solid #d4cfc7;
     border-radius: 4px;
     font-size: 0.9rem;
 }
@@ -255,8 +288,8 @@ blockquote {
 
 .example-btn {
     padding: 0.5rem 1rem;
-    background: #007acc;
-    color: white;
+    background: #6b4423;
+    color: #faf9f7;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -265,7 +298,7 @@ blockquote {
 }
 
 .example-btn:hover {
-    background: #005a9c;
+    background: #4a2f18;
 }
 
 .error-display {
