@@ -333,9 +333,15 @@ Output:
 </div>
 ```
 
-### Automatic Array Iteration
+### Working with Arrays: Three Patterns
 
-When you provide a single template with array data, Treebark automatically creates multiple instances:
+Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
+
+#### Pattern 1: Stack of Cards (Template + Array, No $bind, No $children)
+
+When you provide a **single template** with **array data**, Treebark automatically creates multiple instances. This is the simplest pattern - no `$bind`, no `$children` at the template level, just repeated cards.
+
+**Use when:** You want multiple instances of the same component, like a list of cards or items.
 
 ```json
 {
@@ -369,11 +375,178 @@ Output:
 </div>
 ```
 
+#### Pattern 2: $bind to Property in Object (Uses Both $bind and $children)
+
+When your data is an **object containing an array**, use `$bind` to target that property and `$children` to define what to repeat. This gives you a wrapper element (like `<ul>`) around the repeated children.
+
+**Use when:** You want a container element around your array items, like a `<ul>` around `<li>` elements, and your data is structured as an object with properties.
+
+```json
+{
+  "ul": {
+    "$bind": "products",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Phone", "price": "$499" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```
+
+#### Pattern 3: $bind: "." to Current Array (Uses Both $bind and $children)
+
+When your data **is the array itself** (not wrapped in an object), use `$bind: "."` to bind directly to the current data and `$children` to define what to repeat. This gives you a wrapper element around array items without needing an object wrapper in your data.
+
+**Use when:** You have a plain array as your data and want a container element around the repeated items.
+
+```json
+{
+  "ul": {
+    "$bind": ".",
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+[
+  { "name": "Laptop", "price": "$999" },
+  { "name": "Phone", "price": "$499" }
+]
+```
+
+Output:
+```html
+<ul>
+  <li>Laptop — $999</li>
+  <li>Phone — $499</li>
+</ul>
+```
+
+### Parent Property Access
+
+Access data from parent binding contexts using double dots (`..`) in interpolation expressions:
+
+```json
+{
+  "template": {
+    "div": {
+      "$bind": "customers",
+      "$children": [
+        { "h2": "{{name}}" },
+        { "p": "Company: {{..companyName}}" },
+        {
+          "ul": {
+            "$bind": "orders",
+            "$children": [
+              {
+                "li": {
+                  "$children": [
+                    "Order #{{orderId}} for {{..name}}: ",
+                    {
+                      "ul": {
+                        "$bind": "products", 
+                        "$children": [
+                          {
+                            "li": {
+                              "$children": [
+                                {
+                                  "a": {
+                                    "href": "/customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}",
+                                    "$children": ["{{name}} - {{price}}"]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "data": {
+    "companyName": "ACME Corp",
+    "customerId": "cust123",
+    "customers": [
+      {
+        "name": "Alice Johnson",
+        "orders": [
+          {
+            "orderId": "ord456",
+            "products": [
+              { "productId": "prod789", "name": "Laptop", "price": "$999" },
+              { "productId": "prod101", "name": "Mouse", "price": "$25" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  <h2>Alice Johnson</h2>
+  <p>Company: ACME Corp</p>
+  <ul>
+    <li>
+      Order #ord456 for Alice Johnson: 
+      <ul>
+        <li><a href="/customer/cust123/order/ord456/product/prod789">Laptop - $999</a></li>
+        <li><a href="/customer/cust123/order/ord456/product/prod101">Mouse - $25</a></li>
+      </ul>
+    </li>
+  </ul>
+</div>
+```
+
+**$bind Property Access Patterns:**
+- `$bind: "users"` - literal property access
+- `$bind: "config.userList"` - nested property with single dots
+
+**Note:** `$bind` uses literal property paths only - no interpolation or parent context access. For parent property access like `{{..parentProp}}`, use interpolation in content and attributes instead.
+
+**Common Use Cases:**
+- **Cross-referencing:** Link related data across binding contexts
+- **Shared metadata:** Access common IDs, URLs, or configuration
+- **Breadcrumb navigation:** Build hierarchical navigation paths
+- **Conditional rendering:** Use parent flags to control child display
+- **Multi-level linking:** Create URLs that reference multiple context levels
+
 ### Comments
 
 HTML comments can be created using the `comment` tag:
 
-```json treebark
+```json
 { "comment": "This is a comment" }
 ```
 
@@ -384,7 +557,7 @@ Output:
 
 Comments support interpolation and mixed content like other tags:
 
-```json treebark
+```json
 {
   "comment": {
     "$children": [

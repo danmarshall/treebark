@@ -104,6 +104,8 @@ div:
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
+- Parent access: `{{..parentProp}}` → access parent binding context  
+- Multi-level parent access: `{{../..grandparentProp}}` → access multiple levels up  
 - Escaping:  
   - `{{…}}` → binding  
   - `{{{…}}}` → literal `{{…}}`  
@@ -176,6 +178,65 @@ For complex array scenarios where you need a wrapper element or nested structure
       { name: "Laptop", price: "$999" },
       { name: "Phone", price: "$499" }
     ]
+  }
+}
+```
+
+**$bind supports property access patterns:**
+- **Literal property:** `$bind: "products"`
+- **Nested property:** `$bind: "catalog.products"` (single dots for nested object access)
+
+**Note:** `$bind` uses literal property paths only - no interpolation or parent context access. For parent property access, use interpolation `{{..prop}}` in content/attributes instead.
+
+**Common use cases for parent property access:**
+- **Cross-referencing data:** Access IDs or metadata from outer scopes
+- **Shared resources:** Use common lookup tables or configuration from parent contexts
+- **Hierarchical navigation:** Build breadcrumbs or nested navigation with parent context
+- **Conditional rendering:** Access parent flags or settings to control child rendering
+
+**Example - Customer orders with product links:**
+```javascript
+{
+  template: {
+    div: {
+      $bind: "customers",
+      $children: [
+        { h2: "{{name}}" },
+        {
+          ul: {
+            $bind: "orders", 
+            $children: [
+              {
+                li: {
+                  $children: [
+                    "Order #{{orderId}}: ",
+                    {
+                      ul: {
+                        $bind: "products",
+                        $children: [
+                          {
+                            li: {
+                              $children: [
+                                {
+                                  a: {
+                                    href: "/customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}",
+                                    $children: ["{{name}}"]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
   }
 }
 ```

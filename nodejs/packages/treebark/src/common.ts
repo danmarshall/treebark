@@ -59,10 +59,50 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 
 /**
  * Get a nested property from an object using dot notation
+ * Supports parent property access with .. notation
  */
-export function getProperty(obj: Data, path: string): unknown {
-  return path.split('.').reduce((o: unknown, k: string): unknown => 
-    (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), obj);
+export function getProperty(obj: Data, path: string, parents: Data[] = []): unknown {
+  // Special case: "." means the current object itself
+  if (path === '.') {
+    return obj;
+  }
+  
+  // Handle parent property access patterns
+  let currentObj: unknown = obj;
+  let remainingPath = path;
+  
+  // Process parent references (..)
+  while (remainingPath.startsWith('..')) {
+    // Count consecutive parent references
+    let parentLevels = 0;
+    let tempPath = remainingPath;
+    
+    // Count leading .. patterns
+    while (tempPath.startsWith('..')) {
+      parentLevels++;
+      tempPath = tempPath.substring(2);
+      // Skip optional slash after ..
+      if (tempPath.startsWith('/')) {
+        tempPath = tempPath.substring(1);
+      }
+    }
+    
+    // Navigate up the parent chain
+    if (parentLevels <= parents.length) {
+      currentObj = parents[parents.length - parentLevels];
+      remainingPath = tempPath.startsWith('.') ? tempPath.substring(1) : tempPath;
+    } else {
+      return undefined;
+    }
+  }
+  
+  // If there's remaining path, process it normally
+  if (remainingPath) {
+    return remainingPath.split('.').reduce((o: unknown, k: string): unknown => 
+      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentObj);
+  }
+  
+  return currentObj;
 }
 
 /**
@@ -75,11 +115,11 @@ export function escape(s: string): string {
 /**
  * Interpolate template variables in a string
  */
-export function interpolate(tpl: string, data: Data, escapeHtml = true): string {
+export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = []): string {
   return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
     const trimmed = expr.trim();
     if (open === '{{{') return `{{${trimmed}}}`;
-    const val = getProperty(data, trimmed);
+    const val = getProperty(data, trimmed, parents);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
@@ -113,6 +153,44 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
  */
 export function hasBinding(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
+}
+
+/**
+ * Validate $bind expression - no parent context access or interpolation
+ */
+export function validateBindExpression(bindValue: string): void {
+  // Allow single dot "." to bind to current data object
+  if (bindValue === '.') {
+    return;
+  }
+  
+  if (bindValue.includes('..')) {
+    throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+  }
+  if (bindValue.includes('{{')) {
+    throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+  }
+}
+
+/**
+ * Check if a template has $bind: "." which means bind to current data object
+ */
+export function templateHasCurrentObjectBinding(template: TemplateElement): boolean {
+  if (Array.isArray(template) || typeof template !== 'object' || template === null) {
+    return false;
+  }
+  
+  const entries = Object.entries(template);
+  if (entries.length === 0) {
+    return false;
+  }
+  
+  const [, rest] = entries[0];
+  if (!rest || typeof rest !== 'object' || Array.isArray(rest)) {
+    return false;
+  }
+  
+  return '$bind' in rest && rest.$bind === '.';
 }
 
 /**

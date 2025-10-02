@@ -164,6 +164,47 @@ export const bindingTests: TestCase[] = [
     }
   },
   {
+    name: 'handles $bind: "." to bind to current data object (array)',
+    input: {
+      template: {
+        ul: {
+          $bind: '.',
+          $children: [{ li: '{{name}}' }]
+        }
+      },
+      data: [
+        { name: 'Item 1' },
+        { name: 'Item 2' },
+        { name: 'Item 3' }
+      ]
+    }
+  },
+  {
+    name: 'handles $bind: "." to bind to current data object (nested)',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { h2: '{{name}}' },
+            {
+              div: {
+                $bind: '.',
+                $children: [
+                  { p: 'Email: {{email}}' },
+                  { p: 'Role: {{role}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice', email: 'alice@example.com', role: 'Admin' }
+      }
+    }
+  },
+  {
     name: 'handles single template with array data',
     input: {
       template: {
@@ -430,6 +471,147 @@ export const voidTagErrorTests: ErrorTestCase[] = [
 ];
 
 // Comment test cases
+// Parent property access test cases
+export const parentPropertyTests: TestCase[] = [
+  {
+    name: 'accesses parent property with double dots',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { h2: '{{name}}' },
+            { p: 'Organization: {{..orgName}}' }
+          ]
+        }
+      },
+      data: {
+        orgName: 'ACME Corp',
+        user: { name: 'Alice', email: 'alice@example.com' }
+      }
+    }
+  },
+  {
+    name: 'accesses grandparent property with double dots and slash',
+    input: {
+      template: {
+        div: {
+          $bind: 'departments',
+          $children: [
+            {
+              div: {
+                $bind: 'users',
+                $children: [
+                  { span: '{{name}} works at {{../..companyName}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        companyName: 'Tech Solutions Inc',
+        departments: [
+          {
+            name: 'Engineering',
+            users: [
+              { name: 'Alice' },
+              { name: 'Bob' }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    name: 'handles parent property in attributes',
+    input: {
+      template: {
+        div: {
+          $bind: 'items',
+          $children: [
+            {
+              a: {
+                href: '/{{..category}}/{{id}}',
+                $children: ['{{name}}']
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        category: 'products',
+        items: [
+          { id: '1', name: 'Laptop' },
+          { id: '2', name: 'Mouse' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'returns empty string when parent not found',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { p: 'Missing: {{..nonexistent}}' }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice' }
+      }
+    }
+  },
+  {
+    name: 'returns empty string when too many parent levels requested',
+    input: {
+      template: {
+        div: {
+          $bind: 'user',
+          $children: [
+            { p: 'Missing: {{../../..tooDeep}}' }
+          ]
+        }
+      },
+      data: {
+        user: { name: 'Alice' }
+      }
+    }
+  },
+  {
+    name: 'works with nested object binding',
+    input: {
+      template: {
+        div: {
+          $bind: 'company',
+          $children: [
+            { h1: '{{name}}' },
+            {
+              div: {
+                $bind: 'department',
+                $children: [
+                  { h2: '{{name}}' },
+                  { p: 'Part of {{..name}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        company: {
+          name: 'ACME Corp',
+          department: {
+            name: 'Engineering'
+          }
+        }
+      }
+    }
+  }
+];
+
 export const commentTests: TestCase[] = [
   {
     name: 'renders basic comment',
@@ -490,6 +672,58 @@ export const commentErrorTests: ErrorTestCase[] = [
     expectedError: 'Nested comments are not allowed'
   }
 ];
+
+// $bind validation error tests
+export const bindValidationErrorTests: ErrorTestCase[] = [
+  {
+    name: 'throws error for $bind with double dots',
+    input: {
+      template: {
+        div: {
+          $bind: 'container',
+          $children: [
+            { ul: { $bind: '..users', $children: [{ li: '{{name}}' }] } }
+          ]
+        }
+      },
+      data: { users: [{ name: 'Alice' }], container: {} }
+    },
+    expectedError: '$bind does not support parent context access'
+  },
+  {
+    name: 'throws error for $bind with multi-level parent access',
+    input: {
+      template: {
+        div: {
+          $bind: 'level1',
+          $children: [
+            {
+              div: {
+                $bind: 'level2',
+                $children: [
+                  { ul: { $bind: '../..users', $children: [{ li: '{{name}}' }] } }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { users: [{ name: 'Bob' }], level1: { level2: {} } }
+    },
+    expectedError: '$bind does not support parent context access'
+  },
+  {
+    name: 'throws error for $bind with interpolation',
+    input: {
+      template: {
+        ul: { $bind: '{{dynamicPath}}', $children: [{ li: '{{name}}' }] }
+      },
+      data: { dynamicPath: 'users', users: [{ name: 'Charlie' }] }
+    },
+    expectedError: '$bind does not support interpolation'
+  }
+];
+
 
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {

@@ -148,5 +148,56 @@
             { "message": "Your profile has been updated." },
             { "message": "New features are now available." }
         ]
+    },
+    
+    "array-pattern-1-stack": {
+        "label": "Pattern 1: Stack of Cards (no $bind, no $children)",
+        "template": {
+            "div": {
+                "class": "product-card",
+                "$children": [
+                    { "h2": "{{name}}" },
+                    { "p": "Only {{price}}!" }
+                ]
+            }
+        },
+        "data": [
+            { "name": "Laptop", "price": "$999" },
+            { "name": "Mouse", "price": "$25" }
+        ]
+    },
+    
+    "array-pattern-2-property": {
+        "label": "Pattern 2: $bind to Property (uses both)",
+        "template": {
+            "ul": {
+                "$bind": "products",
+                "$children": [
+                    { "li": "{{name}} — {{price}}" }
+                ]
+            }
+        },
+        "data": {
+            "products": [
+                { "name": "Laptop", "price": "$999" },
+                { "name": "Phone", "price": "$499" }
+            ]
+        }
+    },
+    
+    "array-pattern-3-direct": {
+        "label": "Pattern 3: $bind: \".\" Direct Array (uses both)",
+        "template": {
+            "ul": {
+                "$bind": ".",
+                "$children": [
+                    { "li": "{{name}} — {{price}}" }
+                ]
+            }
+        },
+        "data": [
+            { "name": "Laptop", "price": "$999" },
+            { "name": "Phone", "price": "$499" }
+        ]
     }
 }
