@@ -17,16 +17,6 @@ export default defineConfig({
       }
     },
     sourcemap: true,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: false,
-        drop_debugger: true,
-        pure_funcs: []
-      },
-      format: {
-        comments: false
-      }
-    }
+    minify: 'esbuild'
   }
 });
