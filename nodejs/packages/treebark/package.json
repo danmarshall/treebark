@@ -12,10 +12,11 @@
     }
   },
   "scripts": {
-    "build": "tsc && npm run build:browser && npm run copy:browser",
+    "build": "tsc && npm run build:browser && npm run build:browser:min && npm run copy:browser",
     "build:browser": "vite build --config vite.browser.config.ts",
+    "build:browser:min": "vite build --config vite.browser.min.config.ts",
     "build:vite": "vite build",
-    "copy:browser": "node -e \"const fs=require('fs'),path=require('path'); const dir=path.join(__dirname,'../../../docs/assets'); if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true}); fs.copyFileSync('browser/treebark-browser.js', path.join(dir,'treebark-browser.js'));\"",
+    "copy:browser": "node -e \"const fs=require('fs'),path=require('path'); const dir=path.join(__dirname,'../../../docs/assets'); if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true}); fs.copyFileSync('browser/treebark-browser.js', path.join(dir,'treebark-browser.js')); fs.copyFileSync('browser/treebark-browser.min.js', path.join(dir,'treebark-browser.min.js'));\"",
     "clean": "rm -rf dist browser",
     "prepublishOnly": "npm run clean && npm run build"
   },
@@ -30,6 +31,7 @@
   "author": "Dan Marshall",
   "license": "MIT",
   "devDependencies": {
+    "terser": "^5.44.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   },
