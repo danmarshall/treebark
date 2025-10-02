@@ -66,7 +66,7 @@ h1#-treebark + blockquote {
 .github-link {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background: #6b4423;
+    background: #3d7e3d;
     color: #faf9f7;
     text-decoration: none;
     border-radius: 4px;
@@ -76,7 +76,7 @@ h1#-treebark + blockquote {
 }
 
 .github-link:hover {
-    background: #4a2f18;
+    background: #2d6e2d;
     color: #faf9f7;
 }
 
@@ -87,7 +87,7 @@ h1#-treebark + blockquote {
 }
 
 .nav-link {
-    color: #6b4423;
+    color: #2d6e2d;
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
@@ -95,7 +95,7 @@ h1#-treebark + blockquote {
 }
 
 .nav-link:hover, .nav-link.active {
-    color: #4a2f18;
+    color: #1f4d1f;
 }
 
 .nav-link.active {
@@ -108,16 +108,16 @@ h1#-treebark + blockquote {
 
 /* Links */
 a {
-    color: #6b4423;
+    color: #2d6e2d;
     transition: color 0.2s;
 }
 
 a:hover {
-    color: #4a2f18;
+    color: #1f4d1f;
 }
 
 a:visited {
-    color: #8b5a2b;
+    color: #3d7e3d;
 }
 
 code {
@@ -350,7 +350,7 @@ blockquote {
 
 .example-btn {
     padding: 0.5rem 1rem;
-    background: #6b4423;
+    background: #3d7e3d;
     color: #faf9f7;
     border: none;
     border-radius: 4px;
@@ -360,7 +360,7 @@ blockquote {
 }
 
 .example-btn:hover {
-    background: #4a2f18;
+    background: #2d6e2d;
 }
 
 .error-display {
