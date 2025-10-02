@@ -1,2 +1,3 @@
 baseurl: "/treebark"
 repository: "danmarshall/treebark"
+description: "Safe HTML tree structures for Markdown and content-driven apps"
