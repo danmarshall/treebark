@@ -21,11 +21,6 @@ const getIndentInfo = (indentStr: string | undefined, htmlContent: string | unde
   return [Boolean(should), should ? indentStr.repeat(level) : ''];
 };
 
-// Helper to check if indentation should be applied for any child (element or text)
-const getIndentForChild = (indentStr: string | undefined, htmlContent: string | undefined, shouldIndent: boolean, level = 0): string => {
-  return (indentStr && htmlContent && shouldIndent) ? indentStr.repeat(level) : '';
-};
-
 export function renderToString(
   input: TreebarkInput,
   options: RenderOptions = {}
@@ -107,18 +102,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   };
 
   const renderChildren = (children: TemplateElement[], data: Data, separator: string, childParents: Data[]) => {
-    // First, render all children to check if any are HTML elements
-    const renderedChildren = children.map(child => render(child, data, { ...childContext, parents: childParents }));
-    
-    // Check if any rendered child is an HTML element (starts with '<')
-    const hasElementChild = renderedChildren.some(result => result.startsWith('<'));
-    
-    // Indent all children (text and elements) if there are element siblings for consistent alignment
-    // Exception: inside comments, only indent elements, not text (to preserve comment formatting)
-    return renderedChildren.map(result => {
-      const shouldIndentText = hasElementChild && !childContext.insideComment;
-      const shouldIndent = result.startsWith('<') || shouldIndentText;
-      const indent = getIndentForChild(context.indentStr, result, shouldIndent, childContext.level);
+    return children.map(child => {
+      const result = render(child, data, { ...childContext, parents: childParents });
+      // If indentation is enabled and result is an HTML element, indent it
+      const indent = (context.indentStr && result && result.startsWith('<')) ? context.indentStr.repeat(childContext.level) : '';
       return indent + result;
     }).join(separator);
   };

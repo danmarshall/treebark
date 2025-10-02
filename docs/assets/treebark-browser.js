@@ -143,9 +143,6 @@
     const should = indentStr && htmlContent && (isElement ? htmlContent.startsWith("<") : htmlContent.includes("<"));
     return [Boolean(should), should ? indentStr.repeat(level) : ""];
   };
-  const getIndentForChild = (indentStr, htmlContent, shouldIndent, level = 0) => {
-    return indentStr && htmlContent && shouldIndent ? indentStr.repeat(level) : "";
-  };
   function renderToString(input, options = {}) {
     const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };
     const context = options.indent ? {
@@ -197,12 +194,9 @@ ${currentIndent}` : content || "";
       level: (context.level || 0) + 1
     };
     const renderChildren = (children2, data2, separator, childParents) => {
-      const renderedChildren = children2.map((child) => render(child, data2, { ...childContext, parents: childParents }));
-      const hasElementChild = renderedChildren.some((result) => result.startsWith("<"));
-      return renderedChildren.map((result) => {
-        const shouldIndentText = hasElementChild && !childContext.insideComment;
-        const shouldIndent = result.startsWith("<") || shouldIndentText;
-        const indent = getIndentForChild(context.indentStr, result, shouldIndent, childContext.level);
+      return children2.map((child) => {
+        const result = render(child, data2, { ...childContext, parents: childParents });
+        const indent = context.indentStr && result && result.startsWith("<") ? context.indentStr.repeat(childContext.level) : "";
         return indent + result;
       }).join(separator);
     };
