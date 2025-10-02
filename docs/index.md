@@ -589,7 +589,7 @@ Output:
 
 ## 📝 Format Notes
 
-You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
+Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
 
 **JSON Format:**
 ```json
