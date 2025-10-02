@@ -589,26 +589,30 @@ Output:
 
 ## 📝 Format Notes
 
-Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the "Bound to an Array" example in both formats for comparison:
-
-**JSON Format:**
-```json
-{
-  "ul": {
-    "$bind": "products",
-    "$children": [
-      { "li": "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}" }
-    ]
-  }
-}
-```
+Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the *Parent Property Access* example template (above) as YAML for comparison:
 
 **YAML Format:**
 ```yaml
-ul:
-  $bind: products
+div:
+  $bind: customers
   $children:
-    - li: "{% raw %}{{name}}{% endraw %} — {% raw %}{{price}}{% endraw %}"
+    - h2: "{% raw %}{{name}}{% endraw %}"
+    - p: "Company: {% raw %}{{..companyName}}{% endraw %}"
+    - ul:
+        $bind: orders
+        $children:
+          - li:
+              $children:
+                - "Order #{% raw %}{{orderId}}{% endraw %} for {% raw %}{{..name}}{% endraw %}: "
+                - ul:
+                    $bind: products
+                    $children:
+                      - li:
+                          $children:
+                            - a:
+                                href: /customer/{% raw %}{{../../..customerId}}{% endraw %}/order/{% raw %}{{..orderId}}{% endraw %}/product/{% raw %}{{productId}}{% endraw %}
+                                $children:
+                                  - "{% raw %}{{name}}{% endraw %} - {% raw %}{{price}}{% endraw %}"
 ```
 
 ## 📦 Available Libraries
