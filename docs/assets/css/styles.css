@@ -203,8 +203,7 @@ blockquote {
     overflow: auto;
     background: #f8f8f8;
     white-space: pre;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    overflow-x: auto;
 }
 
 .controls {
