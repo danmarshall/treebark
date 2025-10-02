@@ -29,6 +29,15 @@ body {
     margin: 0;
 }
 
+/* don't duplicate heading. the id has a hyphen because the readme heading starts with an emoji */
+h1#-treebark {
+    display: none;
+}
+
+h1#-treebark + blockquote {
+    display: none;
+}
+
 .header .tagline {
     font-size: 0.9rem;
     color: #666;
@@ -76,7 +85,6 @@ body {
 }
 
 .content {
-    max-width: 800px;
     margin: 0 auto;
 }
 
