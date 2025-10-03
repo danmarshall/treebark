@@ -17,7 +17,7 @@ import {
 
 // Helper function to check if indentation should be applied and return [shouldIndent, repeatedIndentStr]
 const getIndentInfo = (indentStr: string | undefined, htmlContent: string | undefined, isElement = false, level = 0): [boolean, string] => {
-  const should = indentStr && htmlContent && (isElement ? htmlContent.startsWith('<') : htmlContent.includes('<'));
+  const should = indentStr && htmlContent;
   return [Boolean(should), should ? indentStr.repeat(level) : ''];
 };
 

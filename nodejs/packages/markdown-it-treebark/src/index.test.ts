@@ -325,7 +325,7 @@ div:
 \`\`\`
 `;
       const result = mdWithIndent.render(markdown);
-      expect(result).toContain('<div class="card">\n  <h2>    Product Card</h2>\n  <p>    A simple card component</p>\n</div>');
+      expect(result).toContain('<div class="card">\n  <h2>\n    Product Card\n  </h2>\n  <p>\n    A simple card component\n  </p>\n</div>');
     });
 
     it('should render with custom indentation', () => {
@@ -340,7 +340,7 @@ div:
 \`\`\`
 `;
       const result = mdWithCustomIndent.render(markdown);
-      expect(result).toContain('<div>\n    <h1>        Header</h1>\n</div>');
+      expect(result).toContain('<div>\n    <h1>\n        Header\n    </h1>\n</div>');
     });
 
     it('should render without indentation by default', () => {
