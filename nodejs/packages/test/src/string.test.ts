@@ -468,6 +468,21 @@ describe('String Renderer', () => {
       expect(result).toBe('<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>');
     });
 
+    test('indents multiple text strings in sequence', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              'First string',
+              'Second string',
+              'Third string'
+            ]
+          }
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  First string\n  Second string\n  Third string\n</div>');
+    });
+
     test('preserves template functionality with indentation', () => {
       const input: TreebarkInput = {
         template: {
@@ -506,7 +521,37 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\nBefore content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content\n-->');
+      expect(result).toBe('<!--\n  Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\n  After content\n-->');
+    });
+
+    test('handles interpolated data with newlines when indentation is enabled', () => {
+      const result = renderToString({
+        template: {
+          p: '{{text}}'
+        },
+        data: {
+          text: 'Line 1\nLine 2\nLine 3'
+        }
+      }, { indent: true });
+      expect(result).toBe('<p>\n  Line 1\n  Line 2\n  Line 3\n</p>');
+    });
+
+    test('handles mixed literal and interpolated newlines with indentation', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              'First line',
+              { p: '{{multiline}}' },
+              'Last line'
+            ]
+          }
+        },
+        data: {
+          multiline: 'Data line 1\nData line 2'
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  First line\n  <p>\n    Data line 1\n    Data line 2\n  </p>\n  Last line\n</div>');
     });
 
     test('renders complex nested structure with comments at multiple levels', () => {
@@ -568,7 +613,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--\nStart: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n :End\n  -->\n  <p>Regular content</p>\n</div>');
+      expect(result).toBe('<div>\n  <!--\n    Start: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n     :End\n  -->\n  <p>Regular content</p>\n</div>');
     });
 
     test('comments with mixed text and HTML content indent properly', () => {
@@ -583,7 +628,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\nDebug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\nEnd debug\n-->');
+      expect(result).toBe('<!--\n  Debug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\n  End debug\n-->');
     });
 
     test('deeply nested comment content indents correctly', () => {

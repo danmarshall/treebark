@@ -139,9 +139,35 @@
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
-  const getIndentInfo = (indentStr, htmlContent, isElement = false, level = 0) => {
-    const should = indentStr && htmlContent && (isElement ? htmlContent.startsWith("<") : htmlContent.includes("<"));
-    return [Boolean(should), should ? indentStr.repeat(level) : ""];
+  const flattenOutput = (output, indentStr) => {
+    if (!indentStr || output.length === 0) {
+      if (output.length === 0) return "";
+      if (output.length === 1) return output[0][1];
+      let result2 = output[0][1];
+      for (let i = 1; i < output.length; i++) {
+        result2 += output[i][1];
+      }
+      return result2;
+    }
+    const hasMultipleChildren = output.length > 1;
+    let hasHtmlChild = false;
+    if (!hasMultipleChildren) {
+      hasHtmlChild = output[0][1].includes("<");
+      if (!hasHtmlChild) {
+        return output[0][1];
+      }
+    }
+    let result = "\n";
+    for (let i = 0; i < output.length; i++) {
+      const [level, content] = output[i];
+      result += indentStr.repeat(level);
+      result += content;
+      if (i < output.length - 1) {
+        result += "\n";
+      }
+    }
+    result += "\n";
+    return result;
   };
   function renderToString(input, options = {}) {
     const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };
@@ -157,20 +183,19 @@
     }
     return render(input.template, data, context);
   }
-  function renderTag(tag, attrs, data, content, indentStr, level, parents = []) {
-    const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
-    const formattedContent = shouldIndentContent ? `
-${content}
-${currentIndent}` : content || "";
+  function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = []) {
+    const formattedContent = flattenOutput(childrenOutput, indentStr);
+    const needsParentIndent = formattedContent.startsWith("\n");
+    const parentIndent = needsParentIndent && indentStr ? indentStr.repeat(level || 0) : "";
     if (tag === "comment") {
-      return `<!--${formattedContent}-->`;
+      return `<!--${formattedContent}${parentIndent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
     const isVoid = VOID_TAGS.has(tag);
     if (isVoid) {
       return openTag;
     }
-    return `${openTag}${formattedContent}</${tag}>`;
+    return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
   }
   function render(template, data, context = {}) {
     const parents = context.parents || [];
@@ -193,14 +218,22 @@ ${currentIndent}` : content || "";
       insideComment: tag === "comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
-    const renderChildren = (children2, data2, separator, childParents) => {
-      return children2.map((child) => {
-        const result = render(child, data2, { ...childContext, parents: childParents });
-        const [shouldIndentElement, repeatedIndent] = getIndentInfo(context.indentStr, result, true, childContext.level);
-        return shouldIndentElement ? repeatedIndent + result : result;
-      }).join(separator);
+    const renderChildren = (children2, data2, childParents) => {
+      const results = [];
+      for (const child of children2) {
+        const content = render(child, data2, { ...childContext, parents: childParents });
+        if (context.indentStr && content.includes("\n") && !content.includes("<")) {
+          const lines = content.split("\n");
+          for (const line of lines) {
+            results.push([childContext.level, line]);
+          }
+        } else {
+          results.push([childContext.level, content]);
+        }
+      }
+      return results;
     };
-    let content;
+    let childrenOutput;
     let contentAttrs;
     if (hasBinding(rest)) {
       validateBindExpression(rest.$bind);
@@ -211,16 +244,16 @@ ${currentIndent}` : content || "";
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
-      content = bound.map((item) => {
+      childrenOutput = bound.flatMap((item) => {
         const newParents = [...parents, data];
-        return renderChildren($children, item, "", newParents);
-      }).join(context.indentStr ? "\n" : "");
+        return renderChildren($children, item, newParents);
+      });
       contentAttrs = bindAttrs;
     } else {
-      content = renderChildren(children, data, context.indentStr ? "\n" : "", parents);
+      childrenOutput = renderChildren(children, data, parents);
       contentAttrs = attrs;
     }
-    return renderTag(tag, contentAttrs, data, content, context.indentStr, context.level, parents);
+    return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
     const pairs = Object.entries(attrs).filter(([key]) => {
