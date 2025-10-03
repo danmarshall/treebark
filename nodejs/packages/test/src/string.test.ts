@@ -346,7 +346,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--Start of content-->\n  <h1>Title</h1>\n  <!--End of content-->\n</div>');
+      expect(result).toBe('<div>\n  <!--    Start of content-->\n  <h1>    Title</h1>\n  <!--    End of content-->\n</div>');
     });
 
     test('renders nested comments with proper indentation', () => {
@@ -367,7 +367,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--Outer comment-->\n  <section>\n    <!--Inner comment-->\n    <p>Content</p>\n  </section>\n</div>');
+      expect(result).toBe('<div>\n  <!--    Outer comment-->\n  <section>\n    <!--      Inner comment-->\n    <p>      Content</p>\n  </section>\n</div>');
     });
   });
 
@@ -400,7 +400,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div class="card">\n  <h2>Title</h2>\n  <p>Content</p>\n</div>');
+      expect(result).toBe('<div class="card">\n  <h2>    Title</h2>\n  <p>    Content</p>\n</div>');
     });
 
     test('renders with custom space indentation', () => {
@@ -413,7 +413,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: 4 });
-      expect(result).toBe('<div>\n    <h1>Header</h1>\n</div>');
+      expect(result).toBe('<div>\n    <h1>        Header</h1>\n</div>');
     });
 
     test('renders with custom string indentation', () => {
@@ -426,7 +426,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: '\t' });
-      expect(result).toBe('<div>\n\t<h1>Header</h1>\n</div>');
+      expect(result).toBe('<div>\n\t<h1>\t\tHeader</h1>\n</div>');
     });
 
     test('renders nested elements with proper indentation', () => {
@@ -443,14 +443,14 @@ describe('String Renderer', () => {
           ]
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div>');
+      expect(result).toBe('<div>\n  <h1>    Welcome</h1>\n  <ul>\n    <li>      Item 1</li>\n    <li>      Item 2</li>\n  </ul>\n</div>');
     });
 
     test('does not indent elements with only text content', () => {
       const result = renderToString({
         template: { p: 'Simple text content' }
       }, { indent: true });
-      expect(result).toBe('<p>Simple text content</p>');
+      expect(result).toBe('<p>  Simple text content</p>');
     });
 
     test('works with bound arrays', () => {
@@ -465,7 +465,7 @@ describe('String Renderer', () => {
         },
         data: { items: [{ name: 'Item 1' }, { name: 'Item 2' }] }
       }, { indent: true });
-      expect(result).toBe('<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>');
+      expect(result).toBe('<ul>\n  <li>    Item 1</li>\n  <li>    Item 2</li>\n</ul>');
     });
 
     test('preserves template functionality with indentation', () => {
@@ -484,7 +484,7 @@ describe('String Renderer', () => {
         }
       };
       const result = renderToString(input, { indent: true });
-      expect(result).toBe('<div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div>');
+      expect(result).toBe('<div>\n  <h1>    Test Title</h1>\n  <p>    Test Content</p>\n</div>');
     });
 
     test('renders comment surrounding nested content', () => {
@@ -506,7 +506,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\nBefore content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\nAfter content\n-->');
+      expect(result).toBe('<!--\n  Before content\n  <div>\n    <h1>      Nested Title</h1>\n    <p>      Nested paragraph</p>\n  </div>\n  After content\n-->');
     });
 
     test('renders complex nested structure with comments at multiple levels', () => {
@@ -538,7 +538,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div>');
+      expect(result).toBe('<div class="container">\n  <!--    Container start-->\n  <section>\n    <!--      Section content-->\n    <article>\n      <!--        Article metadata-->\n      <h1>        Title</h1>\n      <p>        Content</p>\n      <!--        Article end-->\n    </article>\n  </section>\n  <!--    Container end-->\n</div>');
     });
 
     test('properly indents comments containing HTML elements', () => {
@@ -568,7 +568,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--\nStart: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n :End\n  -->\n  <p>Regular content</p>\n</div>');
+      expect(result).toBe('<div>\n  <!--\n    Start: \n    <h2>      Welcome</h2>\n    <p>      This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>        Item 1</li>\n      <li>        Item 2</li>\n      <li>        Item 3</li>\n    </ul>\n     :End\n  -->\n  <p>    Regular content</p>\n</div>');
     });
 
     test('comments with mixed text and HTML content indent properly', () => {
@@ -583,7 +583,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\nDebug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\nEnd debug\n-->');
+      expect(result).toBe('<!--\n  Debug info:\n  <div class="debug">\n    <span>      value: 42</span>\n  </div>\n  End debug\n-->');
     });
 
     test('deeply nested comment content indents correctly', () => {
@@ -615,7 +615,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--\n    <section>\n      <article>\n        <h3>Deep Title</h3>\n        <p>Deep content</p>\n      </article>\n    </section>\n  -->\n</div>');
+      expect(result).toBe('<div>\n  <!--\n    <section>\n      <article>\n        <h3>          Deep Title</h3>\n        <p>          Deep content</p>\n      </article>\n    </section>\n  -->\n</div>');
     });
   });
 });
