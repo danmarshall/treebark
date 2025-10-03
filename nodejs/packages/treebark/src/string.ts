@@ -112,7 +112,19 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   };
 
   const renderChildren = (children: TemplateElement[], data: Data, separator: string, childParents: Data[]) => {
-    const renderedChildren = children.map(child => render(child, data, { ...childContext, parents: childParents }));
+    // Split any string children that contain newlines into separate elements (only when using newline separator)
+    const expandedChildren: TemplateElement[] = [];
+    for (const child of children) {
+      if (typeof child === 'string' && separator === '\n' && child.includes('\n')) {
+        // Split strings by newline to treat each line as a separate element
+        const lines = child.split('\n');
+        expandedChildren.push(...lines);
+      } else {
+        expandedChildren.push(child);
+      }
+    }
+    
+    const renderedChildren = expandedChildren.map(child => render(child, data, { ...childContext, parents: childParents }));
     
     // Check if we have multiple children or if any child is an HTML element
     const hasMultipleChildren = renderedChildren.length > 1;

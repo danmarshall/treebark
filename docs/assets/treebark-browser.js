@@ -199,7 +199,16 @@ ${currentIndent}` : content || "";
       level: (context.level || 0) + 1
     };
     const renderChildren = (children2, data2, separator, childParents) => {
-      const renderedChildren = children2.map((child) => render(child, data2, { ...childContext, parents: childParents }));
+      const expandedChildren = [];
+      for (const child of children2) {
+        if (typeof child === "string" && separator === "\n" && child.includes("\n")) {
+          const lines = child.split("\n");
+          expandedChildren.push(...lines);
+        } else {
+          expandedChildren.push(child);
+        }
+      }
+      const renderedChildren = expandedChildren.map((child) => render(child, data2, { ...childContext, parents: childParents }));
       const hasMultipleChildren = renderedChildren.length > 1;
       const hasHtmlChild = renderedChildren.some((result) => result.includes("<"));
       const shouldIndent = separator === "\n" && (hasMultipleChildren || hasHtmlChild);
