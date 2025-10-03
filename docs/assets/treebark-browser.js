@@ -144,8 +144,8 @@
       return [false, ""];
     }
     const hasHtml = htmlContent.includes("<");
-    const startsWithIndent = htmlContent.startsWith(indentStr);
-    const should = hasHtml || startsWithIndent;
+    const hasIndentedChildren = htmlContent.includes("\n" + indentStr);
+    const should = hasHtml || hasIndentedChildren;
     return [Boolean(should), should ? indentStr.repeat(level) : ""];
   };
   function renderToString(input, options = {}) {
