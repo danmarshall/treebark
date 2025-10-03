@@ -15,21 +15,31 @@ import {
   RenderOptions
 } from './common';
 
-// Helper function to check if indentation should be applied and return [shouldIndent, repeatedIndentStr]
-const getIndentInfo = (indentStr: string | undefined, htmlContent: string | undefined, isElement = false, level = 0): [boolean, string] => {
-  if (!indentStr || !htmlContent) {
-    return [false, ''];
+// Type for indented output: [indentLevel, htmlContent]
+type IndentedOutput = [number, string];
+
+// Helper function to flatten indented output into a string
+const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined): string => {
+  if (!indentStr || output.length === 0) {
+    return output.map(([_, content]) => content).join('');
   }
   
-  // Content is already wrapped if it starts with newline (done by renderChildren for multiple children)
-  if (htmlContent.startsWith('\n')) {
-    return [false, '']; // Already formatted, don't double-wrap
+  // Check if we have multiple children or any HTML elements
+  const hasMultipleChildren = output.length > 1;
+  const hasHtmlChild = output.some(([_, content]) => content.includes('<'));
+  
+  // Single text child stays tight
+  if (!hasMultipleChildren && !hasHtmlChild) {
+    return output[0][1];
   }
   
-  // Wrap with newlines if content has HTML elements (single child that is an element)
-  const hasHtml = htmlContent.includes('<');
+  // Multiple children or HTML elements: indent each line
+  const lines = output.map(([level, content]) => {
+    const indent = indentStr.repeat(level);
+    return indent + content;
+  });
   
-  return [Boolean(hasHtml), hasHtml ? indentStr.repeat(level) : ''];
+  return '\n' + lines.join('\n') + '\n';
 };
 
 export function renderToString(
@@ -61,14 +71,17 @@ export function renderToString(
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, content?: string, indentStr?: string, level?: number, parents: Data[] = []): string {
-  // Apply indentation if enabled and content has child elements
-  const [shouldIndentContent, currentIndent] = getIndentInfo(indentStr, content, false, level || 0);
-  const formattedContent = shouldIndentContent ? `\n${content}\n${currentIndent}` : (content || "");
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], indentStr?: string, level?: number, parents: Data[] = []): string {
+  // Flatten children output into content
+  const formattedContent = flattenOutput(childrenOutput, indentStr);
+  
+  // For wrapped content, need to add parent indent before closing tag
+  const needsParentIndent = formattedContent.startsWith('\n');
+  const parentIndent = needsParentIndent && indentStr ? indentStr.repeat(level || 0) : '';
 
   // Special handling for comment tags
   if (tag === 'comment') {
-    return `<!--${formattedContent}-->`;
+    return `<!--${formattedContent}${parentIndent}-->`;
   }
 
   const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
@@ -80,7 +93,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, cont
   }
 
   // Non-void tags get content (even if empty) and closing tag
-  return `${openTag}${formattedContent}</${tag}>`;
+  return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
 function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[] } = {}): string {
@@ -112,11 +125,11 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     level: (context.level || 0) + 1
   };
 
-  const renderChildren = (children: TemplateElement[], data: Data, separator: string, childParents: Data[]) => {
-    // Split any string children that contain newlines into separate elements (only when using newline separator)
+  const renderChildren = (children: TemplateElement[], data: Data, childParents: Data[]): IndentedOutput[] => {
+    // Split any string children that contain newlines into separate elements (only when indenting)
     const expandedChildren: TemplateElement[] = [];
     for (const child of children) {
-      if (typeof child === 'string' && separator === '\n' && child.includes('\n')) {
+      if (typeof child === 'string' && context.indentStr && child.includes('\n')) {
         // Split strings by newline to treat each line as a separate element
         const lines = child.split('\n');
         expandedChildren.push(...lines);
@@ -125,31 +138,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       }
     }
     
-    const renderedChildren = expandedChildren.map(child => render(child, data, { ...childContext, parents: childParents }));
-    
-    // Check if we have multiple children or if any child is an HTML element
-    const hasMultipleChildren = renderedChildren.length > 1;
-    const hasHtmlChild = renderedChildren.some(result => result.includes('<'));
-    
-    // Only indent if we have multiple children OR if we have HTML elements (not just a single text child)
-    const shouldIndent = separator === '\n' && (hasMultipleChildren || hasHtmlChild);
-    
-    const joined = renderedChildren.map(result => {
-      const indent = shouldIndent && result ? context.indentStr!.repeat(childContext.level) : '';
-      return indent + result;
-    }).join(separator);
-    
-    // If we indented multiple children, wrap the result with newlines and parent indent
-    // Use a special marker to indicate this content is already formatted and should be wrapped
-    if (shouldIndent && hasMultipleChildren) {
-      const parentIndent = context.indentStr!.repeat(Math.max(0, childContext.level - 1));
-      return `\n${joined}\n${parentIndent}`;
-    }
-    
-    return joined;
+    // Return array of [indentLevel, content] tuples
+    return expandedChildren.map(child => {
+      const content = render(child, data, { ...childContext, parents: childParents });
+      return [childContext.level, content] as IndentedOutput;
+    });
   };
 
-  let content: string;
+  let childrenOutput: IndentedOutput[];
   let contentAttrs: Record<string, unknown>;
 
   // Handle $bind
@@ -167,17 +163,18 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
     }
 
-    content = bound.map(item => {
-      // For array items, add current data context to parents
+    // For array binding, collect all children from all items
+    childrenOutput = bound.flatMap(item => {
       const newParents = [...parents, data];
-      return renderChildren($children, item as Data, context.indentStr ? '\n' : '', newParents);
-    }).join(context.indentStr ? '\n' : '');
+      return renderChildren($children, item as Data, newParents);
+    });
     contentAttrs = bindAttrs;
   } else {
-    content = renderChildren(children, data, context.indentStr ? '\n' : '', parents);
+    childrenOutput = renderChildren(children, data, parents);
     contentAttrs = attrs;
   }
-  return renderTag(tag, contentAttrs, data, content, context.indentStr, context.level, parents);
+  
+  return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
 }
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
