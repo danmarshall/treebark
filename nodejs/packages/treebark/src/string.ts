@@ -23,10 +23,10 @@ const getIndentInfo = (indentStr: string | undefined, htmlContent: string | unde
   
   // Wrap with newlines if:
   // 1. Content has HTML elements, OR
-  // 2. Content starts with indentation (meaning children were indented, so there are multiple)
+  // 2. Content has indented children (indicated by newline followed by indent string)
   const hasHtml = htmlContent.includes('<');
-  const startsWithIndent = htmlContent.startsWith(indentStr);
-  const should = hasHtml || startsWithIndent;
+  const hasIndentedChildren = htmlContent.includes('\n' + indentStr);
+  const should = hasHtml || hasIndentedChildren;
   
   return [Boolean(should), should ? indentStr.repeat(level) : ''];
 };
