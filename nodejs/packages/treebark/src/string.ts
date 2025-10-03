@@ -21,14 +21,15 @@ const getIndentInfo = (indentStr: string | undefined, htmlContent: string | unde
     return [false, ''];
   }
   
-  // Wrap with newlines if:
-  // 1. Content has HTML elements, OR
-  // 2. Content has indented children (indicated by newline followed by indent string)
-  const hasHtml = htmlContent.includes('<');
-  const hasIndentedChildren = htmlContent.includes('\n' + indentStr);
-  const should = hasHtml || hasIndentedChildren;
+  // Content is already wrapped if it starts with newline (done by renderChildren for multiple children)
+  if (htmlContent.startsWith('\n')) {
+    return [false, '']; // Already formatted, don't double-wrap
+  }
   
-  return [Boolean(should), should ? indentStr.repeat(level) : ''];
+  // Wrap with newlines if content has HTML elements (single child that is an element)
+  const hasHtml = htmlContent.includes('<');
+  
+  return [Boolean(hasHtml), hasHtml ? indentStr.repeat(level) : ''];
 };
 
 export function renderToString(
@@ -133,10 +134,19 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     // Only indent if we have multiple children OR if we have HTML elements (not just a single text child)
     const shouldIndent = separator === '\n' && (hasMultipleChildren || hasHtmlChild);
     
-    return renderedChildren.map(result => {
+    const joined = renderedChildren.map(result => {
       const indent = shouldIndent && result ? context.indentStr!.repeat(childContext.level) : '';
       return indent + result;
     }).join(separator);
+    
+    // If we indented multiple children, wrap the result with newlines and parent indent
+    // Use a special marker to indicate this content is already formatted and should be wrapped
+    if (shouldIndent && hasMultipleChildren) {
+      const parentIndent = context.indentStr!.repeat(Math.max(0, childContext.level - 1));
+      return `\n${joined}\n${parentIndent}`;
+    }
+    
+    return joined;
   };
 
   let content: string;
