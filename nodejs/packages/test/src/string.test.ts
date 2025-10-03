@@ -524,6 +524,36 @@ describe('String Renderer', () => {
       expect(result).toBe('<!--\n  Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\n  After content\n-->');
     });
 
+    test('handles interpolated data with newlines when indentation is enabled', () => {
+      const result = renderToString({
+        template: {
+          p: '{{text}}'
+        },
+        data: {
+          text: 'Line 1\nLine 2\nLine 3'
+        }
+      }, { indent: true });
+      expect(result).toBe('<p>\n  Line 1\n  Line 2\n  Line 3\n</p>');
+    });
+
+    test('handles mixed literal and interpolated newlines with indentation', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              'First line',
+              { p: '{{multiline}}' },
+              'Last line'
+            ]
+          }
+        },
+        data: {
+          multiline: 'Data line 1\nData line 2'
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  First line\n  <p>\n    Data line 1\n    Data line 2\n  </p>\n  Last line\n</div>');
+    });
+
     test('renders complex nested structure with comments at multiple levels', () => {
       const result = renderToString({
         template: {
