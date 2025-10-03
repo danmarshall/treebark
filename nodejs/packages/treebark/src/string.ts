@@ -31,19 +31,11 @@ const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined):
     return output[0][1];
   }
   
-  // Multiple children or HTML elements: build indented string in one pass
+  // Build indented string in one pass
   let result = '\n';
   for (let i = 0; i < output.length; i++) {
-    const [level, content] = output[i];
-    
-    // Add indent
-    result += indentStr.repeat(level);
-    result += content;
-    
-    // Add newline separator (except we'll add final newline after loop)
-    if (i < output.length - 1) {
-      result += '\n';
-    }
+    result += indentStr.repeat(output[i][0]) + output[i][1];
+    if (i < output.length - 1) result += '\n';
   }
   result += '\n';
   
@@ -133,27 +125,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     level: (context.level || 0) + 1
   };
 
-  const renderChildren = (children: TemplateElement[], data: Data, childParents: Data[]): IndentedOutput[] => {
-    // Render children first, then split text-only content by newlines if needed
-    const results: IndentedOutput[] = [];
-    
-    for (const child of children) {
-      const content = render(child, data, { ...childContext, parents: childParents });
-      
-      // Only split pure text content (no HTML tags) by newlines AFTER interpolation (when indenting)
-      // This handles cases where data contains newlines that need proper indentation
-      if (context.indentStr && content.includes('\n') && !content.includes('<')) {
-        // Split by newline to treat each line as a separate element
-        const lines = content.split('\n');
-        for (const line of lines) {
-          results.push([childContext.level, line]);
-        }
-      } else {
-        results.push([childContext.level, content]);
-      }
+  // Helper to process rendered content into IndentedOutput
+  const processContent = (content: string): IndentedOutput[] => {
+    if (context.indentStr && content.includes('\n') && !content.includes('<')) {
+      return content.split('\n').map(line => [childContext.level, line]);
     }
-    
-    return results;
+    return [[childContext.level, content]];
   };
 
   let childrenOutput: IndentedOutput[];
@@ -175,13 +152,22 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
 
     // For array binding, collect all children from all items
-    childrenOutput = bound.flatMap(item => {
+    childrenOutput = [];
+    for (const item of bound) {
       const newParents = [...parents, data];
-      return renderChildren($children, item as Data, newParents);
-    });
+      for (const child of $children) {
+        const content = render(child, item as Data, { ...childContext, parents: newParents });
+        childrenOutput.push(...processContent(content));
+      }
+    }
     contentAttrs = bindAttrs;
   } else {
-    childrenOutput = renderChildren(children, data, parents);
+    // Render children directly
+    childrenOutput = [];
+    for (const child of children) {
+      const content = render(child, data, { ...childContext, parents });
+      childrenOutput.push(...processContent(content));
+    }
     contentAttrs = attrs;
   }
   
