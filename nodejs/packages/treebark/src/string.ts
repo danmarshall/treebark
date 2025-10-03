@@ -20,28 +20,15 @@ type IndentedOutput = [number, string];
 
 // Helper function to flatten indented output into a string in a single pass
 const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined): string => {
-  if (!indentStr || output.length === 0) {
-    // No indentation: join directly without overhead
-    if (output.length === 0) return '';
-    if (output.length === 1) return output[0][1];
-    
-    let result = output[0][1];
-    for (let i = 1; i < output.length; i++) {
-      result += output[i][1];
-    }
-    return result;
+  if (!indentStr) {
+    // No indentation: join directly
+    return output.length <= 1 ? (output[0]?.[1] ?? '') : output.reduce((acc, [, content]) => acc + content, '');
   }
+  if (output.length === 0) return '';
   
-  // Check if we have multiple children or any HTML elements in first pass
-  const hasMultipleChildren = output.length > 1;
-  let hasHtmlChild = false;
-  
-  // Single text child: check if it has HTML and return tight if not
-  if (!hasMultipleChildren) {
-    hasHtmlChild = output[0][1].includes('<');
-    if (!hasHtmlChild) {
-      return output[0][1];
-    }
+  // Single text child without HTML stays tight
+  if (output.length === 1 && !output[0][1].includes('<')) {
+    return output[0][1];
   }
   
   // Multiple children or HTML elements: build indented string in one pass
@@ -202,9 +189,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 }
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
-  const pairs = Object.entries(attrs).filter(([key]) => {
-    validateAttribute(key, tag);
-    return true;
-  }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+  const pairs = Object.entries(attrs)
+    .filter(([key]) => (validateAttribute(key, tag), true))
+    .map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`)
+    .join(" ");
   return pairs ? " " + pairs : "";
 }
