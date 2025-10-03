@@ -17,7 +17,8 @@ import {
 
 // Helper function to check if indentation should be applied and return [shouldIndent, repeatedIndentStr]
 const getIndentInfo = (indentStr: string | undefined, htmlContent: string | undefined, isElement = false, level = 0): [boolean, string] => {
-  const should = indentStr && htmlContent;
+  // Wrap with newlines if content has HTML elements or multiple children (indicated by newlines in content)
+  const should = indentStr && htmlContent && (htmlContent.includes('<') || htmlContent.includes('\n'));
   return [Boolean(should), should ? indentStr.repeat(level) : ''];
 };
 
@@ -102,10 +103,17 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   };
 
   const renderChildren = (children: TemplateElement[], data: Data, separator: string, childParents: Data[]) => {
-    return children.map(child => {
-      const result = render(child, data, { ...childContext, parents: childParents });
-      // If separator is newline, indent all children for consistent alignment
-      const indent = (separator === '\n' && result) ? context.indentStr!.repeat(childContext.level) : '';
+    const renderedChildren = children.map(child => render(child, data, { ...childContext, parents: childParents }));
+    
+    // Check if we have multiple children or if any child is an HTML element
+    const hasMultipleChildren = renderedChildren.length > 1;
+    const hasHtmlChild = renderedChildren.some(result => result.includes('<'));
+    
+    // Only indent if we have multiple children OR if we have HTML elements (not just a single text child)
+    const shouldIndent = separator === '\n' && (hasMultipleChildren || hasHtmlChild);
+    
+    return renderedChildren.map(result => {
+      const indent = shouldIndent && result ? context.indentStr!.repeat(childContext.level) : '';
       return indent + result;
     }).join(separator);
   };
