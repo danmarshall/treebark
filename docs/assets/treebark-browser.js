@@ -160,9 +160,7 @@
     let result = "\n";
     for (let i = 0; i < output.length; i++) {
       const [level, content] = output[i];
-      for (let j = 0; j < level; j++) {
-        result += indentStr;
-      }
+      result += indentStr.repeat(level);
       result += content;
       if (i < output.length - 1) {
         result += "\n";
@@ -221,19 +219,19 @@
       level: (context.level || 0) + 1
     };
     const renderChildren = (children2, data2, childParents) => {
-      const expandedChildren = [];
+      const results = [];
       for (const child of children2) {
-        if (typeof child === "string" && context.indentStr && child.includes("\n")) {
-          const lines = child.split("\n");
-          expandedChildren.push(...lines);
+        const content = render(child, data2, { ...childContext, parents: childParents });
+        if (context.indentStr && content.includes("\n") && !content.includes("<")) {
+          const lines = content.split("\n");
+          for (const line of lines) {
+            results.push([childContext.level, line]);
+          }
         } else {
-          expandedChildren.push(child);
+          results.push([childContext.level, content]);
         }
       }
-      return expandedChildren.map((child) => {
-        const content = render(child, data2, { ...childContext, parents: childParents });
-        return [childContext.level, content];
-      });
+      return results;
     };
     let childrenOutput;
     let contentAttrs;

@@ -147,23 +147,26 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   };
 
   const renderChildren = (children: TemplateElement[], data: Data, childParents: Data[]): IndentedOutput[] => {
-    // Split any string children that contain newlines into separate elements (only when indenting)
-    const expandedChildren: TemplateElement[] = [];
+    // Render children first, then split text-only content by newlines if needed
+    const results: IndentedOutput[] = [];
+    
     for (const child of children) {
-      if (typeof child === 'string' && context.indentStr && child.includes('\n')) {
-        // Split strings by newline to treat each line as a separate element
-        const lines = child.split('\n');
-        expandedChildren.push(...lines);
+      const content = render(child, data, { ...childContext, parents: childParents });
+      
+      // Only split pure text content (no HTML tags) by newlines AFTER interpolation (when indenting)
+      // This handles cases where data contains newlines that need proper indentation
+      if (context.indentStr && content.includes('\n') && !content.includes('<')) {
+        // Split by newline to treat each line as a separate element
+        const lines = content.split('\n');
+        for (const line of lines) {
+          results.push([childContext.level, line]);
+        }
       } else {
-        expandedChildren.push(child);
+        results.push([childContext.level, content]);
       }
     }
     
-    // Return array of [indentLevel, content] tuples
-    return expandedChildren.map(child => {
-      const content = render(child, data, { ...childContext, parents: childParents });
-      return [childContext.level, content] as IndentedOutput;
-    });
+    return results;
   };
 
   let childrenOutput: IndentedOutput[];
