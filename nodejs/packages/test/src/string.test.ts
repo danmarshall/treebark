@@ -468,6 +468,21 @@ describe('String Renderer', () => {
       expect(result).toBe('<ul>\n  <li>\n    Item 1\n  </li>\n  <li>\n    Item 2\n  </li>\n</ul>');
     });
 
+    test('indents multiple text strings in sequence', () => {
+      const result = renderToString({
+        template: {
+          div: {
+            $children: [
+              'First string',
+              'Second string',
+              'Third string'
+            ]
+          }
+        }
+      }, { indent: true });
+      expect(result).toBe('<div>\n  First string\n  Second string\n  Third string\n</div>');
+    });
+
     test('preserves template functionality with indentation', () => {
       const input: TreebarkInput = {
         template: {
