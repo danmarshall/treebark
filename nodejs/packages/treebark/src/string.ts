@@ -140,18 +140,16 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   if (hasBinding(rest)) {
     validateBindExpression(rest.$bind);
     
-    // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
       const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
-      // When binding to an object, add current data context to parents for child context
       const newParents = [...parents, data];
       return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
     }
 
-    // For array binding, collect all children from all items
+    // Array binding case
     childrenOutput = [];
     for (const item of bound) {
       const newParents = [...parents, data];
@@ -162,7 +160,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     contentAttrs = bindAttrs;
   } else {
-    // Render children directly
+    // Normal children case
     childrenOutput = [];
     for (const child of children) {
       const content = render(child, data, { ...childContext, parents });
