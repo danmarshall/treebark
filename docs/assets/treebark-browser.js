@@ -140,7 +140,12 @@
     return { tag, rest, children, attrs };
   }
   const getIndentInfo = (indentStr, htmlContent, isElement = false, level = 0) => {
-    const should = indentStr && htmlContent && (htmlContent.includes("<") || htmlContent.includes("\n"));
+    if (!indentStr || !htmlContent) {
+      return [false, ""];
+    }
+    const hasHtml = htmlContent.includes("<");
+    const startsWithIndent = htmlContent.startsWith(indentStr);
+    const should = hasHtml || startsWithIndent;
     return [Boolean(should), should ? indentStr.repeat(level) : ""];
   };
   function renderToString(input, options = {}) {
