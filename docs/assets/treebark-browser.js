@@ -140,7 +140,7 @@
     return { tag, rest, children, attrs };
   }
   const getIndentInfo = (indentStr, htmlContent, isElement = false, level = 0) => {
-    const should = indentStr && htmlContent;
+    const should = indentStr && htmlContent && (htmlContent.includes("<") || htmlContent.includes("\n"));
     return [Boolean(should), should ? indentStr.repeat(level) : ""];
   };
   function renderToString(input, options = {}) {
@@ -194,9 +194,12 @@ ${currentIndent}` : content || "";
       level: (context.level || 0) + 1
     };
     const renderChildren = (children2, data2, separator, childParents) => {
-      return children2.map((child) => {
-        const result = render(child, data2, { ...childContext, parents: childParents });
-        const indent = separator === "\n" && result ? context.indentStr.repeat(childContext.level) : "";
+      const renderedChildren = children2.map((child) => render(child, data2, { ...childContext, parents: childParents }));
+      const hasMultipleChildren = renderedChildren.length > 1;
+      const hasHtmlChild = renderedChildren.some((result) => result.includes("<"));
+      const shouldIndent = separator === "\n" && (hasMultipleChildren || hasHtmlChild);
+      return renderedChildren.map((result) => {
+        const indent = shouldIndent && result ? context.indentStr.repeat(childContext.level) : "";
         return indent + result;
       }).join(separator);
     };
