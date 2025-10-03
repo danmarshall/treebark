@@ -17,8 +17,17 @@ import {
 
 // Helper function to check if indentation should be applied and return [shouldIndent, repeatedIndentStr]
 const getIndentInfo = (indentStr: string | undefined, htmlContent: string | undefined, isElement = false, level = 0): [boolean, string] => {
-  // Wrap with newlines if content has HTML elements or multiple children (indicated by newlines in content)
-  const should = indentStr && htmlContent && (htmlContent.includes('<') || htmlContent.includes('\n'));
+  if (!indentStr || !htmlContent) {
+    return [false, ''];
+  }
+  
+  // Wrap with newlines if:
+  // 1. Content has HTML elements, OR
+  // 2. Content starts with indentation (meaning children were indented, so there are multiple)
+  const hasHtml = htmlContent.includes('<');
+  const startsWithIndent = htmlContent.startsWith(indentStr);
+  const should = hasHtml || startsWithIndent;
+  
   return [Boolean(should), should ? indentStr.repeat(level) : ''];
 };
 
