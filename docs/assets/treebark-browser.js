@@ -143,10 +143,11 @@
     if (!indentStr || !htmlContent) {
       return [false, ""];
     }
+    if (htmlContent.startsWith("\n")) {
+      return [false, ""];
+    }
     const hasHtml = htmlContent.includes("<");
-    const hasIndentedChildren = htmlContent.includes("\n" + indentStr);
-    const should = hasHtml || hasIndentedChildren;
-    return [Boolean(should), should ? indentStr.repeat(level) : ""];
+    return [Boolean(hasHtml), hasHtml ? indentStr.repeat(level) : ""];
   };
   function renderToString(input, options = {}) {
     const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };
@@ -212,10 +213,17 @@ ${currentIndent}` : content || "";
       const hasMultipleChildren = renderedChildren.length > 1;
       const hasHtmlChild = renderedChildren.some((result) => result.includes("<"));
       const shouldIndent = separator === "\n" && (hasMultipleChildren || hasHtmlChild);
-      return renderedChildren.map((result) => {
+      const joined = renderedChildren.map((result) => {
         const indent = shouldIndent && result ? context.indentStr.repeat(childContext.level) : "";
         return indent + result;
       }).join(separator);
+      if (shouldIndent && hasMultipleChildren) {
+        const parentIndent = context.indentStr.repeat(Math.max(0, childContext.level - 1));
+        return `
+${joined}
+${parentIndent}`;
+      }
+      return joined;
     };
     let content;
     let contentAttrs;
