@@ -49,10 +49,8 @@ const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined):
   for (let i = 0; i < output.length; i++) {
     const [level, content] = output[i];
     
-    // Add indent inline
-    for (let j = 0; j < level; j++) {
-      result += indentStr;
-    }
+    // Add indent
+    result += indentStr.repeat(level);
     result += content;
     
     // Add newline separator (except we'll add final newline after loop)
