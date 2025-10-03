@@ -141,18 +141,35 @@
   }
   const flattenOutput = (output, indentStr) => {
     if (!indentStr || output.length === 0) {
-      return output.map(([_, content]) => content).join("");
+      if (output.length === 0) return "";
+      if (output.length === 1) return output[0][1];
+      let result2 = output[0][1];
+      for (let i = 1; i < output.length; i++) {
+        result2 += output[i][1];
+      }
+      return result2;
     }
     const hasMultipleChildren = output.length > 1;
-    const hasHtmlChild = output.some(([_, content]) => content.includes("<"));
-    if (!hasMultipleChildren && !hasHtmlChild) {
-      return output[0][1];
+    let hasHtmlChild = false;
+    if (!hasMultipleChildren) {
+      hasHtmlChild = output[0][1].includes("<");
+      if (!hasHtmlChild) {
+        return output[0][1];
+      }
     }
-    const lines = output.map(([level, content]) => {
-      const indent = indentStr.repeat(level);
-      return indent + content;
-    });
-    return "\n" + lines.join("\n") + "\n";
+    let result = "\n";
+    for (let i = 0; i < output.length; i++) {
+      const [level, content] = output[i];
+      for (let j = 0; j < level; j++) {
+        result += indentStr;
+      }
+      result += content;
+      if (i < output.length - 1) {
+        result += "\n";
+      }
+    }
+    result += "\n";
+    return result;
   };
   function renderToString(input, options = {}) {
     const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };

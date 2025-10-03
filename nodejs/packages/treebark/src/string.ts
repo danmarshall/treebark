@@ -18,28 +18,51 @@ import {
 // Type for indented output: [indentLevel, htmlContent]
 type IndentedOutput = [number, string];
 
-// Helper function to flatten indented output into a string
+// Helper function to flatten indented output into a string in a single pass
 const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined): string => {
   if (!indentStr || output.length === 0) {
-    return output.map(([_, content]) => content).join('');
+    // No indentation: join directly without overhead
+    if (output.length === 0) return '';
+    if (output.length === 1) return output[0][1];
+    
+    let result = output[0][1];
+    for (let i = 1; i < output.length; i++) {
+      result += output[i][1];
+    }
+    return result;
   }
   
-  // Check if we have multiple children or any HTML elements
+  // Check if we have multiple children or any HTML elements in first pass
   const hasMultipleChildren = output.length > 1;
-  const hasHtmlChild = output.some(([_, content]) => content.includes('<'));
+  let hasHtmlChild = false;
   
-  // Single text child stays tight
-  if (!hasMultipleChildren && !hasHtmlChild) {
-    return output[0][1];
+  // Single text child: check if it has HTML and return tight if not
+  if (!hasMultipleChildren) {
+    hasHtmlChild = output[0][1].includes('<');
+    if (!hasHtmlChild) {
+      return output[0][1];
+    }
   }
   
-  // Multiple children or HTML elements: indent each line
-  const lines = output.map(([level, content]) => {
-    const indent = indentStr.repeat(level);
-    return indent + content;
-  });
+  // Multiple children or HTML elements: build indented string in one pass
+  let result = '\n';
+  for (let i = 0; i < output.length; i++) {
+    const [level, content] = output[i];
+    
+    // Add indent inline
+    for (let j = 0; j < level; j++) {
+      result += indentStr;
+    }
+    result += content;
+    
+    // Add newline separator (except we'll add final newline after loop)
+    if (i < output.length - 1) {
+      result += '\n';
+    }
+  }
+  result += '\n';
   
-  return '\n' + lines.join('\n') + '\n';
+  return result;
 };
 
 export function renderToString(
