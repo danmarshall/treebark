@@ -75,6 +75,10 @@ h1#-treebark + blockquote {
     white-space: nowrap;
 }
 
+.github-link:visited {
+    color: #faf9f7;
+}
+
 .github-link:hover {
     background: #2d6e2d;
     color: #faf9f7;
