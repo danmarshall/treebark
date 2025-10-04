@@ -26,8 +26,11 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 EOF
 
 # Append README content with handlebars escaped for Jekyll
-# Use sed to wrap {{...}} with {% raw %}...{% endraw %} to prevent Jekyll processing
-sed 's/{{/{% raw %}{{/g; s/}}/}}{% endraw %}/g' "$README_PATH" >> "$INDEX_PATH"
+# Use sed to:
+# 1. Wrap {{...}} with {% raw %}...{% endraw %} to prevent Jekyll processing
+# 2. Convert relative nodejs/ links to absolute GitHub URLs
+sed 's/{{/{% raw %}{{/g; s/}}/}}{% endraw %}/g' "$README_PATH" | \
+sed 's|\](nodejs/packages/|](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/|g' >> "$INDEX_PATH"
 
 echo "✅ Successfully generated docs/index.md"
 echo "📄 Combined front matter with README.md"
