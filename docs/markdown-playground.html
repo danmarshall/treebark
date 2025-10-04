@@ -1,0 +1,221 @@
+---
+layout: default
+title: Markdown-it Plugin Playground
+description: Try the markdown-it-treebark plugin interactively with real-time rendering
+---
+
+<h1>📝 Markdown-it Plugin Playground</h1>
+
+<p>Experiment with the markdown-it-treebark plugin in real-time. Write markdown with embedded treebark code blocks!</p>
+
+<div class="controls">
+    <div class="control-group">
+        <label for="indent-type">Indent:</label>
+        <select id="indent-type">
+            <option value="none">None</option>
+            <option value="spaces" selected>Spaces</option>
+            <option value="tabs">Tabs</option>
+        </select>
+    </div>
+    <div class="control-group">
+        <label for="indent-size">Size:</label>
+        <input type="number" id="indent-size" min="1" max="8" value="2">
+    </div>
+</div>
+
+<div class="control-group">
+    <label for="example-select">Load Example:</label>
+    <select id="example-select" onchange="loadExampleFromDropdown()">
+    </select>
+</div>
+
+<div class="error-display" id="error-display"></div>
+
+<div class="playground-container">
+    <div class="editor-panel">
+        <div class="editor-header">
+            Markdown Editor
+        </div>
+        <textarea 
+            id="markdown-editor" 
+            class="editor-textarea"
+            spellcheck="false"
+            placeholder="Enter your markdown with treebark code blocks..."></textarea>
+    </div>
+    
+    <div class="editor-panel">
+        <div class="editor-header">
+            Data Context (JSON)
+        </div>
+        <textarea 
+            id="data-editor" 
+            class="editor-textarea"
+            spellcheck="false"
+            placeholder="Enter default data context (JSON format)..."></textarea>
+    </div>
+    
+    <div class="output-panel">
+        <div class="output-header">
+            Rendered HTML
+        </div>
+        <div class="output-content" id="html-output">
+            <!-- Generated HTML will appear here -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+<script src="{{ '/assets/markdown-it-treebark-browser.js' | relative_url }}"></script>
+<script>
+// Examples
+let examples = {};
+
+// Load examples
+async function loadExamples() {
+    try {
+        const response = await fetch('{{ "/assets/js/markdown-playground-examples.json" | relative_url }}');
+        examples = await response.json();
+        console.log('Examples loaded successfully');
+        populateExampleDropdown();
+    } catch (error) {
+        console.error('Failed to load examples:', error);
+        // Fallback: provide a minimal example if loading fails
+        examples = {
+            'hello-world': {
+                label: 'Hello World',
+                markdown: `# Welcome to markdown-it-treebark!
+
+This plugin allows you to embed **treebark templates** inside markdown code blocks.
+
+\`\`\`treebark
+div:
+  class: greeting
+  $children:
+    - h2: "Hello {{name}}!"
+    - p: "Welcome to the markdown-it-treebark plugin."
+\`\`\`
+
+Regular markdown continues to work normally:
+- Bullet points
+- **Bold text**
+- *Italic text*`,
+                data: {
+                    name: 'World'
+                }
+            }
+        };
+        populateExampleDropdown();
+    }
+}
+
+// Populate dropdown from examples JSON
+function populateExampleDropdown() {
+    const select = document.getElementById('example-select');
+    
+    const exampleIds = Object.keys(examples);
+    
+    // Add options for each example
+    exampleIds.forEach(exampleId => {
+        const option = document.createElement('option');
+        option.value = exampleId;
+        option.textContent = examples[exampleId].label || exampleId;
+        select.appendChild(option);
+    });
+    
+    // Auto-select and load the first example
+    if (exampleIds.length > 0) {
+        select.value = exampleIds[0];
+        loadExample(exampleIds[0]);
+    }
+}
+
+// Get DOM elements
+const markdownEditor = document.getElementById('markdown-editor');
+const dataEditor = document.getElementById('data-editor');
+const htmlOutput = document.getElementById('html-output');
+const errorDisplay = document.getElementById('error-display');
+const indentType = document.getElementById('indent-type');
+const indentSize = document.getElementById('indent-size');
+
+// Update output when inputs change
+function updateOutput() {
+    try {
+        errorDisplay.style.display = 'none';
+        
+        const markdownText = markdownEditor.value.trim();
+        const dataText = dataEditor.value.trim();
+        
+        if (!markdownText) {
+            htmlOutput.textContent = '';
+            return;
+        }
+        
+        // Parse data context
+        let data = {};
+        if (dataText) {
+            try {
+                data = JSON.parse(dataText);
+            } catch (e) {
+                throw new Error('Invalid JSON in data context: ' + e.message);
+            }
+        }
+        
+        // Get indent options
+        let indent = false;
+        if (indentType.value !== 'none') {
+            const size = parseInt(indentSize.value) || 2;
+            indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
+        }
+        
+        // Create markdown-it instance with treebark plugin
+        const md = window.markdownit();
+        
+        // Apply the treebark plugin
+        if (window.MarkdownItTreebark) {
+            md.use(window.MarkdownItTreebark, { data, indent });
+        } else {
+            throw new Error('markdown-it-treebark plugin not loaded');
+        }
+        
+        // Render markdown
+        const html = md.render(markdownText);
+        
+        htmlOutput.textContent = html;
+        
+    } catch (error) {
+        errorDisplay.textContent = 'Error: ' + error.message;
+        errorDisplay.style.display = 'block';
+        htmlOutput.textContent = '';
+    }
+}
+
+// Load example
+function loadExample(exampleId) {
+    const example = examples[exampleId];
+    if (example) {
+        markdownEditor.value = example.markdown || '';
+        dataEditor.value = JSON.stringify(example.data || {}, null, 2);
+        updateOutput();
+    }
+}
+
+// Load example from dropdown
+function loadExampleFromDropdown() {
+    const select = document.getElementById('example-select');
+    const exampleId = select.value;
+    if (exampleId) {
+        loadExample(exampleId);
+    }
+}
+
+// Event listeners
+markdownEditor.addEventListener('input', updateOutput);
+dataEditor.addEventListener('input', updateOutput);
+indentType.addEventListener('change', updateOutput);
+indentSize.addEventListener('input', updateOutput);
+
+// Load examples when page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadExamples();
+});
+</script>
