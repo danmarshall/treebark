@@ -20,43 +20,22 @@ type IndentedOutput = [number, string];
 
 // Helper function to flatten indented output into a string in a single pass
 const flattenOutput = (output: IndentedOutput[], indentStr: string | undefined): string => {
-  if (!indentStr || output.length === 0) {
-    // No indentation: join directly without overhead
-    if (output.length === 0) return '';
-    if (output.length === 1) return output[0][1];
-    
-    let result = output[0][1];
-    for (let i = 1; i < output.length; i++) {
-      result += output[i][1];
-    }
-    return result;
+  if (!indentStr) {
+    // No indentation: join directly
+    return output.length <= 1 ? (output[0]?.[1] ?? '') : output.reduce((acc, [, content]) => acc + content, '');
+  }
+  if (output.length === 0) return '';
+  
+  // Single text child without HTML stays tight
+  if (output.length === 1 && !output[0][1].includes('<')) {
+    return output[0][1];
   }
   
-  // Check if we have multiple children or any HTML elements in first pass
-  const hasMultipleChildren = output.length > 1;
-  let hasHtmlChild = false;
-  
-  // Single text child: check if it has HTML and return tight if not
-  if (!hasMultipleChildren) {
-    hasHtmlChild = output[0][1].includes('<');
-    if (!hasHtmlChild) {
-      return output[0][1];
-    }
-  }
-  
-  // Multiple children or HTML elements: build indented string in one pass
+  // Build indented string in one pass
   let result = '\n';
   for (let i = 0; i < output.length; i++) {
-    const [level, content] = output[i];
-    
-    // Add indent
-    result += indentStr.repeat(level);
-    result += content;
-    
-    // Add newline separator (except we'll add final newline after loop)
-    if (i < output.length - 1) {
-      result += '\n';
-    }
+    result += indentStr.repeat(output[i][0]) + output[i][1];
+    if (i < output.length - 1) result += '\n';
   }
   result += '\n';
   
@@ -97,8 +76,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
   // For wrapped content, need to add parent indent before closing tag
-  const needsParentIndent = formattedContent.startsWith('\n');
-  const parentIndent = needsParentIndent && indentStr ? indentStr.repeat(level || 0) : '';
+  const parentIndent = formattedContent.startsWith('\n') && indentStr ? indentStr.repeat(level || 0) : '';
 
   // Special handling for comment tags
   if (tag === 'comment') {
@@ -106,10 +84,9 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   }
 
   const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
-  const isVoid = VOID_TAGS.has(tag);
 
   // Void tags are never closed, regardless of content
-  if (isVoid) {
+  if (VOID_TAGS.has(tag)) {
     return openTag;
   }
 
@@ -146,27 +123,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     level: (context.level || 0) + 1
   };
 
-  const renderChildren = (children: TemplateElement[], data: Data, childParents: Data[]): IndentedOutput[] => {
-    // Render children first, then split text-only content by newlines if needed
-    const results: IndentedOutput[] = [];
-    
-    for (const child of children) {
-      const content = render(child, data, { ...childContext, parents: childParents });
-      
-      // Only split pure text content (no HTML tags) by newlines AFTER interpolation (when indenting)
-      // This handles cases where data contains newlines that need proper indentation
-      if (context.indentStr && content.includes('\n') && !content.includes('<')) {
-        // Split by newline to treat each line as a separate element
-        const lines = content.split('\n');
-        for (const line of lines) {
-          results.push([childContext.level, line]);
-        }
-      } else {
-        results.push([childContext.level, content]);
-      }
+  // Helper to process rendered content into IndentedOutput
+  const processContent = (content: string): IndentedOutput[] => {
+    if (context.indentStr && content.includes('\n') && !content.includes('<')) {
+      return content.split('\n').map(line => [childContext.level, line]);
     }
-    
-    return results;
+    return [[childContext.level, content]];
   };
 
   let childrenOutput: IndentedOutput[];
@@ -176,25 +138,32 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   if (hasBinding(rest)) {
     validateBindExpression(rest.$bind);
     
-    // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
       const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
-      // When binding to an object, add current data context to parents for child context
       const newParents = [...parents, data];
       return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
     }
 
-    // For array binding, collect all children from all items
-    childrenOutput = bound.flatMap(item => {
+    // Array binding case
+    childrenOutput = [];
+    for (const item of bound) {
       const newParents = [...parents, data];
-      return renderChildren($children, item as Data, newParents);
-    });
+      for (const child of $children) {
+        const content = render(child, item as Data, { ...childContext, parents: newParents });
+        childrenOutput.push(...processContent(content));
+      }
+    }
     contentAttrs = bindAttrs;
   } else {
-    childrenOutput = renderChildren(children, data, parents);
+    // Normal children case
+    childrenOutput = [];
+    for (const child of children) {
+      const content = render(child, data, { ...childContext, parents });
+      childrenOutput.push(...processContent(content));
+    }
     contentAttrs = attrs;
   }
   
@@ -202,9 +171,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 }
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
-  const pairs = Object.entries(attrs).filter(([key]) => {
-    validateAttribute(key, tag);
-    return true;
-  }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+  const pairs = Object.entries(attrs)
+    .filter(([key]) => (validateAttribute(key, tag), true))
+    .map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`)
+    .join(" ");
   return pairs ? " " + pairs : "";
 }
