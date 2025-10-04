@@ -76,8 +76,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
   // For wrapped content, need to add parent indent before closing tag
-  const needsParentIndent = formattedContent.startsWith('\n');
-  const parentIndent = needsParentIndent && indentStr ? indentStr.repeat(level || 0) : '';
+  const parentIndent = formattedContent.startsWith('\n') && indentStr ? indentStr.repeat(level || 0) : '';
 
   // Special handling for comment tags
   if (tag === 'comment') {
@@ -85,10 +84,9 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   }
 
   const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
-  const isVoid = VOID_TAGS.has(tag);
 
   // Void tags are never closed, regardless of content
-  if (isVoid) {
+  if (VOID_TAGS.has(tag)) {
     return openTag;
   }
 
