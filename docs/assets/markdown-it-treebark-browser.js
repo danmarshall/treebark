@@ -1,6 +1,6 @@
 (function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.MarkdownItTreebark = factory());
-})(this, function() {
+})(this, (function() {
   "use strict";
   const CONTAINER_TAGS = /* @__PURE__ */ new Set([
     "div",
@@ -135,14 +135,13 @@
       throw new Error("Template object must have at least one tag");
     }
     const [tag, rest] = firstEntry;
-    const children = typeof rest === "string" ? [rest] : Array.isArray(rest) ? rest : (rest == null ? void 0 : rest.$children) || [];
+    const children = typeof rest === "string" ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
   const flattenOutput = (output, indentStr) => {
-    var _a;
     if (!indentStr) {
-      return output.length <= 1 ? ((_a = output[0]) == null ? void 0 : _a[1]) ?? "" : output.reduce((acc, [, content]) => acc + content, "");
+      return output.length <= 1 ? output[0]?.[1] ?? "" : output.reduce((acc, [, content]) => acc + content, "");
     }
     if (output.length === 0) return "";
     if (output.length === 1 && !output[0][1].includes("<")) {
@@ -305,5 +304,5 @@
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
   return treebarkPlugin;
-});
+}));
 //# sourceMappingURL=markdown-it-treebark-browser.js.map
