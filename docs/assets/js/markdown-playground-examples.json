@@ -1,14 +1,14 @@
 {
     "hello-world": {
         "label": "Hello World",
-        "markdown": "# Welcome to markdown-it-treebark!\n\nThis plugin allows you to embed **treebark templates** inside markdown code blocks.\n\n```treebark\ndiv:\n  class: greeting\n  $children:\n    - h2: \"Hello {{name}}!\"\n    - p: \"Welcome to the markdown-it-treebark plugin.\"\n```\n\nRegular markdown continues to work normally:\n- Bullet points\n- **Bold text**\n- *Italic text*",
+        "markdown": "# Welcome to markdown-it-treebark!\n\nThis plugin allows you to embed **treebark templates** inside markdown code blocks.\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"greeting\",\n    \"$children\": [\n      { \"h2\": \"Hello {{name}}!\" },\n      { \"p\": \"Welcome to the markdown-it-treebark plugin.\" }\n    ]\n  }\n}\n```\n\nRegular markdown continues to work normally:\n- Bullet points\n- **Bold text**\n- *Italic text*",
         "data": {
             "name": "World"
         }
     },
     "product-card": {
         "label": "Product Card",
-        "markdown": "# Product Showcase\n\nHere's a product card rendered with treebark:\n\n```treebark\ndiv:\n  class: product-card\n  $children:\n    - h2: \"{{name}}\"\n    - img:\n        src: \"{{image}}\"\n        alt: \"{{name}}\"\n    - p: \"{{description}}\"\n    - div:\n        class: price\n        $children:\n          - \"{{price}}\"\n    - a:\n        href: \"{{link}}\"\n        class: btn\n        $children:\n          - \"Learn More\"\n```\n\n## Features\n\n- Dynamic content with data binding\n- Clean HTML output\n- Safe rendering",
+        "markdown": "# Product Showcase\n\nHere's a product card rendered with treebark:\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"product-card\",\n    \"$children\": [\n      { \"h2\": \"{{name}}\" },\n      { \"img\": { \"src\": \"{{image}}\", \"alt\": \"{{name}}\" } },\n      { \"p\": \"{{description}}\" },\n      { \"div\": { \"class\": \"price\", \"$children\": [\"{{price}}\"] } },\n      { \"a\": { \"href\": \"{{link}}\", \"class\": \"btn\", \"$children\": [\"Learn More\"] } }\n    ]\n  }\n}\n```\n\n## Features\n\n- Dynamic content with data binding\n- Clean HTML output\n- Safe rendering",
         "data": {
             "name": "Gaming Laptop",
             "description": "High-performance laptop for gaming and development",
@@ -19,7 +19,7 @@
     },
     "list-binding": {
         "label": "List Binding",
-        "markdown": "# Team Members\n\nMeet our amazing team:\n\n```treebark\nul:\n  class: team-list\n  $bind: members\n  $children:\n    - li:\n        class: team-member\n        $children:\n          - strong: \"{{name}}\"\n          - \" - \"\n          - em: \"{{role}}\"\n```\n\n## About Us\n\nWe're passionate about building great software!",
+        "markdown": "# Team Members\n\nMeet our amazing team:\n\n```treebark\n{\n  \"ul\": {\n    \"class\": \"team-list\",\n    \"$bind\": \"members\",\n    \"$children\": [\n      {\n        \"li\": {\n          \"class\": \"team-member\",\n          \"$children\": [\n            { \"strong\": \"{{name}}\" },\n            \" - \",\n            { \"em\": \"{{role}}\" }\n          ]\n        }\n      }\n    ]\n  }\n}\n```\n\n## About Us\n\nWe're passionate about building great software!",
         "data": {
             "members": [
                 { "name": "Alice", "role": "Developer" },
@@ -30,7 +30,7 @@
     },
     "mixed-content": {
         "label": "Mixed Content",
-        "markdown": "# {{siteName}} Documentation\n\nWelcome to the **{{siteName}}** documentation!\n\n## Quick Start\n\nGet started with our product in minutes:\n\n```treebark\ndiv:\n  class: quick-start\n  $children:\n    - h3: \"Installation\"\n    - pre: \"npm install {{packageName}}\"\n    - h3: \"Usage\"\n    - p: \"Import and use in your project:\"\n```\n\n## Features\n\nCheck out our latest features:\n\n```treebark\nul:\n  class: features\n  $bind: features\n  $children:\n    - li:\n        $children:\n          - strong: \"{{title}}\"\n          - \" - \"\n          - \"{{description}}\"\n```\n\n## Get Help\n\nVisit our [documentation](#) or [contact support](#).",
+        "markdown": "# {{siteName}} Documentation\n\nWelcome to the **{{siteName}}** documentation!\n\n## Quick Start\n\nGet started with our product in minutes:\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"quick-start\",\n    \"$children\": [\n      { \"h3\": \"Installation\" },\n      { \"pre\": \"npm install {{packageName}}\" },\n      { \"h3\": \"Usage\" },\n      { \"p\": \"Import and use in your project:\" }\n    ]\n  }\n}\n```\n\n## Features\n\nCheck out our latest features:\n\n```treebark\n{\n  \"ul\": {\n    \"class\": \"features\",\n    \"$bind\": \"features\",\n    \"$children\": [\n      {\n        \"li\": {\n          \"$children\": [\n            { \"strong\": \"{{title}}\" },\n            \" - \",\n            \"{{description}}\"\n          ]\n        }\n      }\n    ]\n  }\n}\n```\n\n## Get Help\n\nVisit our [documentation](#) or [contact support](#).",
         "data": {
             "siteName": "Treebark",
             "packageName": "treebark",
@@ -43,7 +43,7 @@
     },
     "full-template": {
         "label": "Full Template with Data",
-        "markdown": "# Product Gallery\n\nBrowse our amazing products below:\n\n```treebark\ntemplate:\n  div:\n    class: product-grid\n    $children:\n      - h2: \"Featured Products\"\n      - div:\n          class: products\n          $bind: products\n          $children:\n            - div:\n                class: product-card\n                $children:\n                  - img:\n                      src: \"{{image}}\"\n                      alt: \"{{name}}\"\n                  - h3: \"{{name}}\"\n                  - p: \"{{description}}\"\n                  - div:\n                      class: price\n                      $children:\n                        - \"{{price}}\"\ndata:\n  products:\n    - name: \"Treebark Core\"\n      description: \"Safe template rendering for Markdown\"\n      price: \"Free\"\n      image: \"https://via.placeholder.com/150\"\n    - name: \"Treebark Pro\"\n      description: \"Advanced features and support\"\n      price: \"$29/month\"\n      image: \"https://via.placeholder.com/150\"\n```\n\n*Note: This example includes both template and data in the code block.*",
+        "markdown": "# Product Gallery\n\nBrowse our amazing products below:\n\n```treebark\n{\n  \"template\": {\n    \"div\": {\n      \"class\": \"product-grid\",\n      \"$children\": [\n        { \"h2\": \"Featured Products\" },\n        {\n          \"div\": {\n            \"class\": \"products\",\n            \"$bind\": \"products\",\n            \"$children\": [\n              {\n                \"div\": {\n                  \"class\": \"product-card\",\n                  \"$children\": [\n                    { \"img\": { \"src\": \"{{image}}\", \"alt\": \"{{name}}\" } },\n                    { \"h3\": \"{{name}}\" },\n                    { \"p\": \"{{description}}\" },\n                    { \"div\": { \"class\": \"price\", \"$children\": [\"{{price}}\"] } }\n                  ]\n                }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  },\n  \"data\": {\n    \"products\": [\n      {\n        \"name\": \"Treebark Core\",\n        \"description\": \"Safe template rendering for Markdown\",\n        \"price\": \"Free\",\n        \"image\": \"https://via.placeholder.com/150\"\n      },\n      {\n        \"name\": \"Treebark Pro\",\n        \"description\": \"Advanced features and support\",\n        \"price\": \"$29/month\",\n        \"image\": \"https://via.placeholder.com/150\"\n      }\n    ]\n  }\n}\n```\n\n*Note: This example includes both template and data in the code block.*",
         "data": {}
     }
 }

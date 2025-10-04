@@ -145,5 +145,8 @@ docs/.jekyll-cache/
 docs/.jekyll-metadata
 docs/Gemfile.lock
 
+# Test files
+docs/test-playground.html
+
 # Vite browser build output
 **/browser/
