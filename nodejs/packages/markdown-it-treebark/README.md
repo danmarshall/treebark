@@ -2,6 +2,8 @@
 
 A [markdown-it](https://github.com/markdown-it/markdown-it) plugin for rendering [treebark](https://github.com/danmarshall/treebark) templates in fenced code blocks.
 
+**[Try it in the interactive playground!](https://danmarshall.github.io/treebark/markdown-playground.html)**
+
 ## Installation
 
 ```bash
@@ -47,6 +49,27 @@ div:
 
 console.log(md.render(markdown));
 ```
+
+## Browser Usage
+
+The plugin is available as a UMD browser bundle:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14/dist/markdown-it.min.js"></script>
+<script src="path/to/markdown-it-treebark-browser.js"></script>
+<script>
+  const md = window.markdownit();
+  md.use(window.MarkdownItTreebark, { 
+    data: { name: 'World' },
+    indent: true 
+  });
+  
+  const html = md.render('# Hello\n\n```treebark\n{"div": "Hello {{name}}!"}\n```');
+  console.log(html);
+</script>
+```
+
+**Note:** The browser bundle only supports JSON format. For YAML support in the browser, you would need to include js-yaml and pass it as an option.
 
 ## Options
 
