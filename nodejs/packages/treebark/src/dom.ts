@@ -8,6 +8,7 @@ import {
   getProperty, 
   interpolate, 
   validateAttribute, 
+  validateUrl,
   hasBinding,
   validateBindExpression,
   templateHasCurrentObjectBinding,
@@ -141,7 +142,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): void {
   Object.entries(attrs).forEach(([key, value]) => {
     validateAttribute(key, tag);
-    element.setAttribute(key, interpolate(String(value), data, false, parents));
+    const interpolatedValue = interpolate(String(value), data, false, parents);
+    // Validate URLs for href and src attributes
+    if (key === 'href' || key === 'src') {
+      validateUrl(interpolatedValue);
+    }
+    element.setAttribute(key, interpolatedValue);
   });
 }
 

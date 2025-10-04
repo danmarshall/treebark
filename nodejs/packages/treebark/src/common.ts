@@ -126,6 +126,30 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 
 /**
+ * List of dangerous URL protocols that should be blocked
+ */
+const DANGEROUS_PROTOCOLS = [
+  'javascript:',
+  'data:',
+  'vbscript:',
+  'file:',
+  'about:'
+];
+
+/**
+ * Validate URL value to prevent XSS attacks via dangerous protocols
+ */
+export function validateUrl(url: string): void {
+  const trimmedUrl = url.trim().toLowerCase();
+  
+  for (const protocol of DANGEROUS_PROTOCOLS) {
+    if (trimmedUrl.startsWith(protocol)) {
+      throw new Error(`URL protocol "${protocol}" is not allowed for security reasons`);
+    }
+  }
+}
+
+/**
  * Validate that an attribute is allowed for the given tag
  */
 export function validateAttribute(key: string, tag: string): void {

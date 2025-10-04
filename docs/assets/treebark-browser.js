@@ -86,6 +86,21 @@
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
+  const DANGEROUS_PROTOCOLS = [
+    "javascript:",
+    "data:",
+    "vbscript:",
+    "file:",
+    "about:"
+  ];
+  function validateUrl(url) {
+    const trimmedUrl = url.trim().toLowerCase();
+    for (const protocol of DANGEROUS_PROTOCOLS) {
+      if (trimmedUrl.startsWith(protocol)) {
+        throw new Error(`URL protocol "${protocol}" is not allowed for security reasons`);
+      }
+    }
+  }
   function validateAttribute(key, tag) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
@@ -239,7 +254,13 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
-    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => {
+      const interpolatedValue = interpolate(String(v), data, false, parents);
+      if (k === "href" || k === "src") {
+        validateUrl(interpolatedValue);
+      }
+      return `${k}="${escape(interpolatedValue)}"`;
+    }).join(" ");
     return pairs ? " " + pairs : "";
   }
   exports2.renderToString = renderToString;

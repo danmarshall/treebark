@@ -242,6 +242,127 @@ export const securityErrorTests: ErrorTestCase[] = [
       }
     },
     expectedError: 'Attribute "onclick" is not allowed'
+  },
+  {
+    name: 'throws error for javascript: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'javascript:alert("xss")',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "javascript:" is not allowed'
+  },
+  {
+    name: 'throws error for data: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'data:text/html,<script>alert("xss")</script>',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "data:" is not allowed'
+  },
+  {
+    name: 'throws error for vbscript: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'vbscript:msgbox("xss")',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "vbscript:" is not allowed'
+  },
+  {
+    name: 'throws error for javascript: protocol in src',
+    input: {
+      template: {
+        img: {
+          src: 'javascript:alert("xss")',
+          alt: 'image'
+        }
+      }
+    },
+    expectedError: 'URL protocol "javascript:" is not allowed'
+  },
+  {
+    name: 'throws error for data: protocol in src',
+    input: {
+      template: {
+        img: {
+          src: 'data:text/html,<script>alert("xss")</script>',
+          alt: 'image'
+        }
+      }
+    },
+    expectedError: 'URL protocol "data:" is not allowed'
+  },
+  {
+    name: 'throws error for javascript: with uppercase',
+    input: {
+      template: {
+        a: {
+          href: 'JavaScript:alert("xss")',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "javascript:" is not allowed'
+  },
+  {
+    name: 'throws error for javascript: with whitespace',
+    input: {
+      template: {
+        a: {
+          href: '  javascript:alert("xss")',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "javascript:" is not allowed'
+  },
+  {
+    name: 'throws error for javascript: in interpolated href',
+    input: {
+      template: {
+        a: {
+          href: '{{url}}',
+          $children: ['Click me']
+        }
+      },
+      data: { url: 'javascript:alert("xss")' }
+    },
+    expectedError: 'URL protocol "javascript:" is not allowed'
+  },
+  {
+    name: 'throws error for file: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'file:///etc/passwd',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "file:" is not allowed'
+  },
+  {
+    name: 'throws error for about: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'about:blank',
+          $children: ['Click me']
+        }
+      }
+    },
+    expectedError: 'URL protocol "about:" is not allowed'
   }
 ];
 
@@ -256,6 +377,95 @@ export const securityValidTests: TestCase[] = [
           $children: ['Content']
         }
       }
+    }
+  },
+  {
+    name: 'allows safe http URLs in href',
+    input: {
+      template: {
+        a: {
+          href: 'http://example.com',
+          $children: ['Link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows safe https URLs in href',
+    input: {
+      template: {
+        a: {
+          href: 'https://example.com',
+          $children: ['Link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows relative URLs in href',
+    input: {
+      template: {
+        a: {
+          href: '/path/to/page',
+          $children: ['Link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows anchor links in href',
+    input: {
+      template: {
+        a: {
+          href: '#section',
+          $children: ['Link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows mailto URLs in href',
+    input: {
+      template: {
+        a: {
+          href: 'mailto:user@example.com',
+          $children: ['Email']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows tel URLs in href',
+    input: {
+      template: {
+        a: {
+          href: 'tel:+1234567890',
+          $children: ['Call']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows safe URLs in src',
+    input: {
+      template: {
+        img: {
+          src: 'https://example.com/image.jpg',
+          alt: 'An image'
+        }
+      }
+    }
+  },
+  {
+    name: 'allows interpolated safe URLs',
+    input: {
+      template: {
+        a: {
+          href: '{{url}}',
+          $children: ['Link']
+        }
+      },
+      data: { url: 'https://example.com' }
     }
   }
 ];
