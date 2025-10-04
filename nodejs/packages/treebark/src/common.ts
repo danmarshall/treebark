@@ -116,9 +116,10 @@ export function escape(s: string): string {
  * Interpolate template variables in a string
  */
 export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = []): string {
-  // Use non-overlapping alternation to avoid ReDoS vulnerability
+  // Use non-overlapping alternation with restricted character class to avoid ReDoS vulnerability
+  // [^{]*? prevents the regex from matching opening braces in the content, eliminating polynomial backtracking
   // First alternative matches {{{...}}} for escaping, second matches {{...}} for interpolation
-  return tpl.replace(/\{\{\{(.*?)\}\}\}|\{\{(.*?)\}\}/g, (match, escapedExpr, normalExpr) => {
+  return tpl.replace(/\{\{\{([^{]*?)\}\}\}|\{\{([^{]*?)\}\}/g, (match, escapedExpr, normalExpr) => {
     // If escapedExpr is defined, we matched {{{...}}}
     if (escapedExpr !== undefined) {
       const trimmed = escapedExpr.trim();

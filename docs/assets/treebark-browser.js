@@ -79,7 +79,7 @@
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
   function interpolate(tpl, data, escapeHtml = true, parents = []) {
-    return tpl.replace(/\{\{\{(.*?)\}\}\}|\{\{(.*?)\}\}/g, (match, escapedExpr, normalExpr) => {
+    return tpl.replace(/\{\{\{([^{]*?)\}\}\}|\{\{([^{]*?)\}\}/g, (match, escapedExpr, normalExpr) => {
       if (escapedExpr !== void 0) {
         const trimmed2 = escapedExpr.trim();
         return `{{${trimmed2}}}`;
