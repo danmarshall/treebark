@@ -41,11 +41,11 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, yaml, indent);
+        return renderTreebarkBlock(token.content, data, yaml, indent) + '\n';
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>`;
+        return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>\n`;
       }
     }
 

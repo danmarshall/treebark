@@ -251,10 +251,11 @@
       const info = token.info ? token.info.trim() : "";
       if (info === "treebark" || info.startsWith("treebark ")) {
         try {
-          return renderTreebarkBlock(token.content, data, yaml, indent);
+          return renderTreebarkBlock(token.content, data, yaml, indent) + "\n";
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : "Unknown error";
-          return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>`;
+          return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>
+`;
         }
       }
       return originalFence ? originalFence(tokens, idx, options2, env, renderer) : "";
