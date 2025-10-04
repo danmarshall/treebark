@@ -140,31 +140,18 @@
     return { tag, rest, children, attrs };
   }
   const flattenOutput = (output, indentStr) => {
-    if (!indentStr || output.length === 0) {
-      if (output.length === 0) return "";
-      if (output.length === 1) return output[0][1];
-      let result2 = output[0][1];
-      for (let i = 1; i < output.length; i++) {
-        result2 += output[i][1];
-      }
-      return result2;
+    var _a;
+    if (!indentStr) {
+      return output.length <= 1 ? ((_a = output[0]) == null ? void 0 : _a[1]) ?? "" : output.reduce((acc, [, content]) => acc + content, "");
     }
-    const hasMultipleChildren = output.length > 1;
-    let hasHtmlChild = false;
-    if (!hasMultipleChildren) {
-      hasHtmlChild = output[0][1].includes("<");
-      if (!hasHtmlChild) {
-        return output[0][1];
-      }
+    if (output.length === 0) return "";
+    if (output.length === 1 && !output[0][1].includes("<")) {
+      return output[0][1];
     }
     let result = "\n";
     for (let i = 0; i < output.length; i++) {
-      const [level, content] = output[i];
-      result += indentStr.repeat(level);
-      result += content;
-      if (i < output.length - 1) {
-        result += "\n";
-      }
+      result += indentStr.repeat(output[i][0]) + output[i][1];
+      if (i < output.length - 1) result += "\n";
     }
     result += "\n";
     return result;
@@ -185,14 +172,12 @@
   }
   function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = []) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
-    const needsParentIndent = formattedContent.startsWith("\n");
-    const parentIndent = needsParentIndent && indentStr ? indentStr.repeat(level || 0) : "";
+    const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
     if (tag === "comment") {
       return `<!--${formattedContent}${parentIndent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
-    const isVoid = VOID_TAGS.has(tag);
-    if (isVoid) {
+    if (VOID_TAGS.has(tag)) {
       return openTag;
     }
     return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
@@ -218,20 +203,11 @@
       insideComment: tag === "comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
-    const renderChildren = (children2, data2, childParents) => {
-      const results = [];
-      for (const child of children2) {
-        const content = render(child, data2, { ...childContext, parents: childParents });
-        if (context.indentStr && content.includes("\n") && !content.includes("<")) {
-          const lines = content.split("\n");
-          for (const line of lines) {
-            results.push([childContext.level, line]);
-          }
-        } else {
-          results.push([childContext.level, content]);
-        }
+    const processContent = (content) => {
+      if (context.indentStr && content.includes("\n") && !content.includes("<")) {
+        return content.split("\n").map((line) => [childContext.level, line]);
       }
-      return results;
+      return [[childContext.level, content]];
     };
     let childrenOutput;
     let contentAttrs;
@@ -244,22 +220,27 @@
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
-      childrenOutput = bound.flatMap((item) => {
+      childrenOutput = [];
+      for (const item of bound) {
         const newParents = [...parents, data];
-        return renderChildren($children, item, newParents);
-      });
+        for (const child of $children) {
+          const content = render(child, item, { ...childContext, parents: newParents });
+          childrenOutput.push(...processContent(content));
+        }
+      }
       contentAttrs = bindAttrs;
     } else {
-      childrenOutput = renderChildren(children, data, parents);
+      childrenOutput = [];
+      for (const child of children) {
+        const content = render(child, data, { ...childContext, parents });
+        childrenOutput.push(...processContent(content));
+      }
       contentAttrs = attrs;
     }
     return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
-    const pairs = Object.entries(attrs).filter(([key]) => {
-      validateAttribute(key, tag);
-      return true;
-    }).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
     return pairs ? " " + pairs : "";
   }
   function treebarkPlugin(md, options = {}) {
