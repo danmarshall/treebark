@@ -79,27 +79,15 @@
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
   function interpolate(tpl, data, escapeHtml = true, parents = []) {
-    return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
-      const trimmed = expr.trim();
-      if (open === "{{{") return `{{${trimmed}}}`;
+    return tpl.replace(/\{\{\{(.*?)\}\}\}|\{\{(.*?)\}\}/g, (match, escapedExpr, normalExpr) => {
+      if (escapedExpr !== void 0) {
+        const trimmed2 = escapedExpr.trim();
+        return `{{${trimmed2}}}`;
+      }
+      const trimmed = normalExpr.trim();
       const val = getProperty(data, trimmed, parents);
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
-  }
-  const DANGEROUS_PROTOCOLS = [
-    "javascript:",
-    "data:",
-    "vbscript:",
-    "file:",
-    "about:"
-  ];
-  function validateUrl(url) {
-    const trimmedUrl = url.trim().toLowerCase();
-    for (const protocol of DANGEROUS_PROTOCOLS) {
-      if (trimmedUrl.startsWith(protocol)) {
-        throw new Error(`URL protocol "${protocol}" is not allowed for security reasons`);
-      }
-    }
   }
   function validateAttribute(key, tag) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
@@ -254,13 +242,7 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
-    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => {
-      const interpolatedValue = interpolate(String(v), data, false, parents);
-      if (k === "href" || k === "src") {
-        validateUrl(interpolatedValue);
-      }
-      return `${k}="${escape(interpolatedValue)}"`;
-    }).join(" ");
+    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
     return pairs ? " " + pairs : "";
   }
   exports2.renderToString = renderToString;

@@ -8,7 +8,6 @@ import {
   interpolate,
   escape,
   validateAttribute,
-  validateUrl,
   hasBinding,
   validateBindExpression,
   templateHasCurrentObjectBinding,
@@ -174,14 +173,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => (validateAttribute(key, tag), true))
-    .map(([k, v]) => {
-      const interpolatedValue = interpolate(String(v), data, false, parents);
-      // Validate URLs for href and src attributes
-      if (k === 'href' || k === 'src') {
-        validateUrl(interpolatedValue);
-      }
-      return `${k}="${escape(interpolatedValue)}"`;
-    })
+    .map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`)
     .join(" ");
   return pairs ? " " + pairs : "";
 }

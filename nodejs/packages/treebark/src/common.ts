@@ -116,38 +116,21 @@ export function escape(s: string): string {
  * Interpolate template variables in a string
  */
 export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = []): string {
-  return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
-    const trimmed = expr.trim();
-    if (open === '{{{') return `{{${trimmed}}}`;
+  // Use non-overlapping alternation to avoid ReDoS vulnerability
+  // First alternative matches {{{...}}} for escaping, second matches {{...}} for interpolation
+  return tpl.replace(/\{\{\{(.*?)\}\}\}|\{\{(.*?)\}\}/g, (match, escapedExpr, normalExpr) => {
+    // If escapedExpr is defined, we matched {{{...}}}
+    if (escapedExpr !== undefined) {
+      const trimmed = escapedExpr.trim();
+      return `{{${trimmed}}}`;
+    }
+    // Otherwise, we matched {{...}}
+    const trimmed = normalExpr.trim();
     const val = getProperty(data, trimmed, parents);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
 
-
-/**
- * List of dangerous URL protocols that should be blocked
- */
-const DANGEROUS_PROTOCOLS = [
-  'javascript:',
-  'data:',
-  'vbscript:',
-  'file:',
-  'about:'
-];
-
-/**
- * Validate URL value to prevent XSS attacks via dangerous protocols
- */
-export function validateUrl(url: string): void {
-  const trimmedUrl = url.trim().toLowerCase();
-  
-  for (const protocol of DANGEROUS_PROTOCOLS) {
-    if (trimmedUrl.startsWith(protocol)) {
-      throw new Error(`URL protocol "${protocol}" is not allowed for security reasons`);
-    }
-  }
-}
 
 /**
  * Validate that an attribute is allowed for the given tag

@@ -315,15 +315,6 @@ div:
 
 Treebark is safe by default and only allows whitelisted HTML tags and attributes. Dangerous elements like `<script>`, `<iframe>`, and event handlers are blocked.
 
-**URL Security:** Treebark also validates URL values in `href` and `src` attributes to prevent XSS attacks. The following URL protocols are blocked for security reasons:
-- `javascript:` - Prevents JavaScript execution
-- `data:` - Prevents data URI attacks
-- `vbscript:` - Prevents VBScript execution
-- `file:` - Prevents local file access
-- `about:` - Prevents about: protocol exploits
-
-Safe protocols like `http:`, `https:`, `mailto:`, `tel:`, and relative URLs are allowed.
-
 ## Error Handling
 
 

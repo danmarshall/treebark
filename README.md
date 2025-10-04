@@ -55,19 +55,6 @@ This means the implementation is featherweight.
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
 
-### Security
-
-Treebark is designed with security as a priority:
-
-- **Tag Whitelisting:** Only safe HTML tags are allowed (see above). Dangerous tags like `<script>`, `<iframe>`, `<object>`, `<embed>` are blocked.
-- **Attribute Whitelisting:** Only safe attributes are allowed (see above). Event handlers like `onclick`, `onerror`, etc. are blocked.
-- **URL Validation:** URLs in `href` and `src` attributes are validated to prevent XSS attacks:
-  - ❌ Blocked protocols: `javascript:`, `data:`, `vbscript:`, `file:`, `about:`
-  - ✅ Allowed: `http:`, `https:`, `mailto:`, `tel:`, relative URLs, and anchor links
-- **HTML Escaping:** Template interpolations (`{{value}}`) are HTML-escaped by default to prevent injection attacks.
-
-For complete security details, see the [specification](spec.md).
-
 ### Special Keys
 
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
