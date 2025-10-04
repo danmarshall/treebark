@@ -624,9 +624,9 @@ div:
 
 ### Implementations
 
-- [Node.js/Browser](nodejs/packages/treebark/)
-  - [Core library](nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
-  - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
+- [Node.js/Browser](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark/)
+  - [Core library](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
+  - [markdown-it plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 
 ## 📛 Name Origin
