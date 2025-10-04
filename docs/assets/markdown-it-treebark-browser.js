@@ -1,6 +1,6 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = {}));
-})(this, function(exports2) {
+  typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.MarkdownItTreebark = factory());
+})(this, function() {
   "use strict";
   const CONTAINER_TAGS = /* @__PURE__ */ new Set([
     "div",
@@ -78,12 +78,12 @@
   function escape(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
-  function interpolate(tpl, data, escapeHtml = true, parents = []) {
+  function interpolate(tpl, data, escapeHtml2 = true, parents = []) {
     return tpl.replace(/(\{\{\{|\{\{)(.*?)(\}\}\}|\}\})/g, (_, open, expr, close) => {
       const trimmed = expr.trim();
       if (open === "{{{") return `{{${trimmed}}}`;
       const val = getProperty(data, trimmed, parents);
-      return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
+      return val == null ? "" : escapeHtml2 ? escape(String(val)) : String(val);
     });
   }
   function validateAttribute(key, tag) {
@@ -243,7 +243,67 @@
     const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
     return pairs ? " " + pairs : "";
   }
-  exports2.renderToString = renderToString;
-  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+  function treebarkPlugin(md, options = {}) {
+    const { data = {}, yaml, indent } = options;
+    const originalFence = md.renderer.rules.fence;
+    md.renderer.rules.fence = function(tokens, idx, options2, env, renderer) {
+      const token = tokens[idx];
+      const info = token.info ? token.info.trim() : "";
+      if (info === "treebark" || info.startsWith("treebark ")) {
+        try {
+          return renderTreebarkBlock(token.content, data, yaml, indent) + "\n";
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : "Unknown error";
+          return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>
+`;
+        }
+      }
+      return originalFence ? originalFence(tokens, idx, options2, env, renderer) : "";
+    };
+  }
+  function renderTreebarkBlock(content, defaultData, yaml, indent) {
+    let template;
+    let yamlError = null;
+    if (!content.trim()) {
+      throw new Error("Empty or invalid template");
+    }
+    if (yaml) {
+      try {
+        template = yaml.load(content);
+      } catch (error) {
+        yamlError = error instanceof Error ? error : new Error("YAML parsing failed");
+      }
+    }
+    if (!template) {
+      try {
+        template = JSON.parse(content);
+      } catch (jsonError) {
+        if (yaml && yamlError) {
+          throw new Error(`Failed to parse as YAML or JSON. YAML error: ${yamlError.message}`);
+        } else {
+          throw new Error(`Failed to parse as JSON: ${jsonError instanceof Error ? jsonError.message : "Invalid format"}`);
+        }
+      }
+    }
+    if (!template) {
+      throw new Error("Empty or invalid template");
+    }
+    if (template && typeof template === "object" && "template" in template) {
+      const mergedData = { ...defaultData, ...template.data };
+      return renderToString({ template: template.template, data: mergedData }, { indent });
+    }
+    return renderToString({ template, data: defaultData }, { indent });
+  }
+  function escapeHtml(text) {
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+  return treebarkPlugin;
 });
-//# sourceMappingURL=treebark-browser.js.map
+//# sourceMappingURL=markdown-it-treebark-browser.js.map

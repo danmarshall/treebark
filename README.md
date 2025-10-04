@@ -41,7 +41,8 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `comment` (see below)
+`a`, `img`, `comment` (see below)  
+> Note: `comment` is a virtual tag used to emit HTML comments and cannot be nested inside another `comment`.
 
 ### Allowed Attributes
 
@@ -57,7 +58,7 @@ This means the implementation is featherweight.
 ### Special Keys
 
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
-- `$bind`: String. Binds the current node to a property or array in the data context.
+- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element’s children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
 
 ## ✨ Examples  
 
@@ -355,66 +356,68 @@ Access data from parent binding contexts using double dots (`..`) in interpolati
 
 ```json
 {
-  "template": {
-    "div": {
-      "$bind": "customers",
-      "$children": [
-        { "h2": "{{name}}" },
-        { "p": "Company: {{..companyName}}" },
-        {
-          "ul": {
-            "$bind": "orders",
-            "$children": [
-              {
-                "li": {
-                  "$children": [
-                    "Order #{{orderId}} for {{..name}}: ",
-                    {
-                      "ul": {
-                        "$bind": "products", 
-                        "$children": [
-                          {
-                            "li": {
-                              "$children": [
-                                {
-                                  "a": {
-                                    "href": "/customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}",
-                                    "$children": ["{{name}} - {{price}}"]
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  "data": {
-    "companyName": "ACME Corp",
-    "customerId": "cust123",
-    "customers": [
+  "div": {
+    "$bind": "customers",
+    "$children": [
+      { "h2": "{{name}}" },
+      { "p": "Company: {{..companyName}}" },
       {
-        "name": "Alice Johnson",
-        "orders": [
-          {
-            "orderId": "ord456",
-            "products": [
-              { "productId": "prod789", "name": "Laptop", "price": "$999" },
-              { "productId": "prod101", "name": "Mouse", "price": "$25" }
-            ]
-          }
-        ]
+        "ul": {
+          "$bind": "orders",
+          "$children": [
+            {
+              "li": {
+                "$children": [
+                  "Order #{{orderId}} for {{..name}}: ",
+                  {
+                    "ul": {
+                      "$bind": "products", 
+                      "$children": [
+                        {
+                          "li": {
+                            "$children": [
+                              {
+                                "a": {
+                                  "href": "/customer/{{../../..customerId}}/order/{{..orderId}}/product/{{productId}}",
+                                  "$children": ["{{name}} - {{price}}"]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
       }
     ]
   }
+}
+```
+
+Data:
+```json
+{
+  "companyName": "ACME Corp",
+  "customerId": "cust123",
+  "customers": [
+    {
+      "name": "Alice Johnson",
+      "orders": [
+        {
+          "orderId": "ord456",
+          "products": [
+            { "productId": "prod789", "name": "Laptop", "price": "$999" },
+            { "productId": "prod101", "name": "Mouse", "price": "$25" }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -439,11 +442,11 @@ Output:
 
 Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
 
-#### Pattern 1: Stack of Cards (Template + Array, No $bind, No $children)
+#### Pattern 1: Stack of Cards (Template + Array Data, No $bind on root)
 
-When you provide a **single template** with **array data**, Treebark automatically creates multiple instances. This is the simplest pattern - no `$bind`, no `$children` at the template level, just repeated cards.
+When you provide a single root element template and pass an array as the data value, Treebark renders the template once per array item, changing the data context each time. You do not set `$bind` on the root; normal `$children` inside the template are still used.
 
-**Use when:** You want multiple instances of the same component, like a list of cards or items.
+**Use when:** You want repeated instances of the same root component (e.g., cards) directly, without an extra wrapper element.
 
 ```json
 {
