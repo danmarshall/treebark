@@ -154,7 +154,10 @@ div:
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
   - `blockquote`: `cite`  
-- Blocked: event handlers (`on*`), dangerous protocols (`javascript:`).  
+- Blocked: event handlers (`on*`), invalid attributes for the tag.  
+- **URL Security:** URLs in `href` and `src` attributes are validated to prevent XSS attacks:
+  - ❌ Blocked protocols: `javascript:`, `data:`, `vbscript:`, `file:`, `about:`
+  - ✅ Allowed protocols: `http:`, `https:`, `mailto:`, `tel:`, and relative URLs
 
 ---
 
