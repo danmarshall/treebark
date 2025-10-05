@@ -6,12 +6,10 @@
 
 ```json
 {
-  "div": {
-    "$children": [
-      { "h1": "Hello world" },
-      { "p": "Welcome to treebark templates" }
-    ]
-  }
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
 }
 ```
 

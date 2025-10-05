@@ -12,12 +12,10 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 
 ```json
 {
-  "div": {
-    "$children": [
-      { "h1": "Hello world" },
-      { "p": "Welcome to treebark templates" }
-    ]
-  }
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
 }
 ```
 
