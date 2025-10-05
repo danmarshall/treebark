@@ -2,6 +2,27 @@
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
+### Hello World
+
+```json
+{
+  "div": {
+    "$children": [
+      { "h1": "Hello world" },
+      { "p": "Welcome to treebark templates" }
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  <h1>Hello world</h1>
+  <p>Welcome to treebark templates</p>
+</div>
+```
+
 ## 🚧 Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
@@ -61,17 +82,6 @@ This means the implementation is featherweight.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element’s children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
 
 ## ✨ Examples  
-
-### Hello World
-
-```json
-{ "div": "Hello world" }
-```
-
-Output:
-```html
-<div>Hello world</div>
-```
 
 ### Nested Elements
 
