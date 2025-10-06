@@ -2,6 +2,25 @@
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
+### Hello World
+
+```json
+{
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
+}
+```
+
+Output:
+```html
+<div>
+  <h1>Hello world</h1>
+  <p>Welcome to treebark templates</p>
+</div>
+```
+
 ## 🚧 Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
@@ -62,20 +81,26 @@ This means the implementation is featherweight.
 
 ## ✨ Examples  
 
-### Hello World
-
-```json
-{ "div": "Hello world" }
-```
-
-Output:
-```html
-<div>Hello world</div>
-```
-
 ### Nested Elements
 
-Use a special `$children` element to define child elements.
+For nodes without attributes, you can use a shorthand array syntax:
+
+```json
+{
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    {
+      "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" }
+      ]
+    }
+  ]
+}
+```
+
+You can also use a `$children` element to define child elements:
 
 ```json
 {
@@ -93,23 +118,6 @@ Use a special `$children` element to define child elements.
       }
     ]
   }
-}
-```
-
-For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
-
-```json
-{
-  "div": [
-    { "h2": "Welcome" },
-    { "p": "This is much cleaner!" },
-    {
-      "ul": [
-        { "li": "Item 1" },
-        { "li": "Item 2" }
-      ]
-    }
-  ]
 }
 ```
 
