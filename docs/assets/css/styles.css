@@ -78,6 +78,7 @@ h1#-treebark + blockquote {
     transition: background 0.3s;
     font-size: 0.9rem;
     white-space: nowrap;
+    font-family: 'Stoke', serif;
 }
 
 .github-link:visited {
@@ -134,8 +135,9 @@ code {
     background: #f0ede8;
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
-    font-family: 'Monaco', 'Courier New', monospace;
+    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
     color: #4a2f18;
+    font-size: 0.9em;
 }
 
 /* Basic pre elements (not inside highlight containers) */
@@ -145,6 +147,8 @@ pre:not(.highlight) {
     border-radius: 4px;
     overflow-x: auto;
     border-left: 4px solid #6b4423;
+    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
 }
 
 /* Jekyll syntax highlighting containers */
@@ -154,6 +158,8 @@ pre:not(.highlight) {
     border-radius: 4px;
     overflow-x: auto;
     border-left: 4px solid #6b4423;
+    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
 }
 
 /* Remove styling from pre inside highlight to avoid conflicts */

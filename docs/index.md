@@ -89,7 +89,24 @@ This means the implementation is featherweight.
 
 ### Nested Elements
 
-Use a special `$children` element to define child elements.
+For nodes without attributes, you can use a shorthand array syntax:
+
+```json
+{
+  "div": [
+    { "h2": "Welcome" },
+    { "p": "This is much cleaner!" },
+    {
+      "ul": [
+        { "li": "Item 1" },
+        { "li": "Item 2" }
+      ]
+    }
+  ]
+}
+```
+
+You can also use a `$children` element to define child elements:
 
 ```json
 {
@@ -107,23 +124,6 @@ Use a special `$children` element to define child elements.
       }
     ]
   }
-}
-```
-
-For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
-
-```json
-{
-  "div": [
-    { "h2": "Welcome" },
-    { "p": "This is much cleaner!" },
-    {
-      "ul": [
-        { "li": "Item 1" },
-        { "li": "Item 2" }
-      ]
-    }
-  ]
 }
 ```
 
