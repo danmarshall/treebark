@@ -6,17 +6,31 @@
     "dist",
     "browser"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "types": "./dist/cjs/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./string": {
+      "types": "./dist/cjs/string.d.ts",
+      "import": "./dist/esm/string.js",
+      "require": "./dist/cjs/string.js"
+    },
+    "./dom": {
+      "types": "./dist/cjs/dom.d.ts",
+      "import": "./dist/esm/dom.js",
+      "require": "./dist/cjs/dom.js"
     }
   },
   "scripts": {
-    "build": "tsc && npm run build:browser && npm run build:browser:min && npm run copy:browser",
+    "build": "npm run build:esm && npm run build:cjs && npm run fix:esm && npm run build:browser && npm run build:browser:min && npm run copy:browser",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "fix:esm": "node fix-esm-imports.js",
     "build:browser": "vite build --config vite.browser.config.ts",
     "build:browser:min": "vite build --config vite.browser.min.config.ts",
     "build:vite": "vite build",
