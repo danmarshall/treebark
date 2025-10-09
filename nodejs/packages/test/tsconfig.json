@@ -4,7 +4,12 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": true,
-    "types": ["jest", "jsdom"]
+    "types": ["jest", "jsdom"],
+    "paths": {
+      "treebark": ["../treebark/src/index.ts"],
+      "treebark/string": ["../treebark/src/string.ts"],
+      "treebark/dom": ["../treebark/src/dom.ts"]
+    }
   },
   "include": [
     "src/**/*"
