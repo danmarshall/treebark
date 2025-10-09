@@ -37,7 +37,6 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.0",
     "@types/markdown-it": "^13.0.0",
-    "cross-env": "^7.0.3",
     "js-yaml": "^4.1.0",
     "markdown-it": "^14.0.0"
   },

@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@types/jsdom": "^21.0.0",
-    "cross-env": "^7.0.3",
     "jest-environment-jsdom": "^29.0.0",
     "jsdom": "^22.0.0"
   },
