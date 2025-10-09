@@ -1,8 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "rootDir": null,
     "outDir": "./dist",
-    "rootDir": "./src",
     "noEmit": true,
     "types": ["jest", "jsdom"],
     "paths": {
