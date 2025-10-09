@@ -16,13 +16,13 @@
 </head>
 <body>
     <div class="header">
-        <div class="header-left">
+        <div class="header-title">
             <a href="{{ '/' | relative_url }}" style="text-decoration: none; color: inherit;">
                 <h1>🌳 Treebark</h1>
             </a>
             <span class="tagline">{{ site.description }}</span>
         </div>
-        <div class="header-right">
+        <div class="header-nav">
             <a href="{{ '/playground.html' | relative_url }}" class="nav-link{% if page.url == '/playground.html' %} active{% endif %}">Playground</a>
             <a href="{{ '/markdown-playground.html' | relative_url }}" class="nav-link{% if page.url == '/markdown-playground.html' %} active{% endif %}">Markdown Plugin</a>
             <a href="https://github.com/danmarshall/treebark" class="github-link">View on GitHub</a>
