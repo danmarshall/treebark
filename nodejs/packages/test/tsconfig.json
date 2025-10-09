@@ -1,16 +1,33 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "noEmit": true,
-    "types": ["jest", "jsdom"]
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "types": ["jest", "jsdom"],
+    "baseUrl": ".",
+    "paths": {
+      "treebark": ["../../node_modules/treebark/dist/index.d.ts"],
+      "treebark/string": ["../../node_modules/treebark/dist/string.d.ts"],
+      "treebark/dom": ["../../node_modules/treebark/dist/dom.d.ts"]
+    }
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
-    "../../node_modules",
-    "../../dist"
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
   ]
 }
