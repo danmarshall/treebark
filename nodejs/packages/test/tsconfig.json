@@ -1,15 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": null,
     "outDir": "./dist",
+    "rootDir": "./src",
     "noEmit": true,
-    "types": ["jest", "jsdom"],
-    "paths": {
-      "treebark": ["../treebark/src/index.ts"],
-      "treebark/string": ["../treebark/src/string.ts"],
-      "treebark/dom": ["../treebark/src/dom.ts"]
-    }
+    "types": ["jest", "jsdom"]
   },
   "include": [
     "src/**/*"

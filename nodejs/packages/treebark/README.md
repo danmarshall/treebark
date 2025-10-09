@@ -52,32 +52,20 @@ document.body.appendChild(fragment);
 
 ## Tree Shaking
 
-Treebark supports tree shaking for optimal bundle sizes. When using modern bundlers like Vite, Webpack, or Rollup with ESM, unused code will be automatically removed from your bundle.
-
-### Importing Specific Renderers
-
-For the best tree-shaking results, import directly from subpaths:
+Treebark supports tree shaking for optimal bundle sizes. Import only what you need:
 
 ```javascript
-// Only import the string renderer (smaller bundle)
+// Only import the string renderer (smaller bundle for Node.js SSR)
 import { renderToString } from 'treebark/string';
 
 // Only import the DOM renderer (for browser-only apps)
 import { renderToDOM } from 'treebark/dom';
-```
 
-This ensures that if you only need the string renderer (e.g., for Node.js server-side rendering), the DOM renderer code won't be included in your bundle.
-
-### Default Import
-
-You can still import from the main entry point for convenience:
-
-```javascript
-// Both renderers available (but tree-shaking still works with ESM)
+// Or import both from the main entry
 import { renderToString, renderToDOM } from 'treebark';
 ```
 
-With ESM builds and modern bundlers, unused exports will be tree-shaken automatically.
+Modern bundlers like Vite, Webpack, and Rollup will automatically remove unused code from your bundle.
 
 ## API
 

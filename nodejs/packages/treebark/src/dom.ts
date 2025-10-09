@@ -13,8 +13,8 @@ import {
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
-} from './common';
-import { renderToString } from './string';
+} from './common.js';
+import { renderToString } from './string.js';
 
 export function renderToDOM(
   input: TreebarkInput, 

@@ -2,35 +2,29 @@
   "name": "treebark",
   "version": "1.1.1",
   "description": "Safe HTML tree structures for Markdown and content-driven apps",
+  "type": "module",
   "files": [
     "dist",
     "browser"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/cjs/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/cjs/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./string": {
-      "types": "./dist/cjs/string.d.ts",
-      "import": "./dist/esm/string.js",
-      "require": "./dist/cjs/string.js"
+      "types": "./dist/string.d.ts",
+      "default": "./dist/string.js"
     },
     "./dom": {
-      "types": "./dist/cjs/dom.d.ts",
-      "import": "./dist/esm/dom.js",
-      "require": "./dist/cjs/dom.js"
+      "types": "./dist/dom.d.ts",
+      "default": "./dist/dom.js"
     }
   },
   "scripts": {
-    "build": "npm run build:esm && npm run build:cjs && npm run fix:esm && npm run build:browser && npm run build:browser:min && npm run copy:browser",
-    "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json",
-    "fix:esm": "node fix-esm-imports.js",
+    "build": "tsc && npm run build:browser && npm run build:browser:min && npm run copy:browser",
     "build:browser": "vite build --config vite.browser.config.ts",
     "build:browser:min": "vite build --config vite.browser.min.config.ts",
     "build:vite": "vite build",

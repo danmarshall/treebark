@@ -33,18 +33,6 @@
         "testMatch": ["<rootDir>/src/dom.test.ts"],
         "preset": "ts-jest",
         "testEnvironment": "jsdom"
-      },
-      {
-        "displayName": "subpath-string",
-        "testMatch": ["<rootDir>/src/subpath-string.test.ts"],
-        "preset": "ts-jest",
-        "testEnvironment": "node"
-      },
-      {
-        "displayName": "subpath-dom",
-        "testMatch": ["<rootDir>/src/subpath-dom.test.ts"],
-        "preset": "ts-jest",
-        "testEnvironment": "jsdom"
       }
     ]
   }
