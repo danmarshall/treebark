@@ -5,8 +5,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "build": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@types/jsdom": "^21.0.0",
+    "cross-env": "^7.0.3",
     "jest-environment-jsdom": "^29.0.0",
     "jsdom": "^22.0.0"
   },

@@ -18,7 +18,7 @@
     "build:browser:min": "vite build --config vite.browser.min.config.ts",
     "copy:browser": "node -e \"const fs=require('fs'),path=require('path'); const dir=path.join(__dirname,'../../../docs/assets'); if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true}); fs.copyFileSync('browser/markdown-it-treebark-browser.js', path.join(dir,'markdown-it-treebark-browser.js')); fs.copyFileSync('browser/markdown-it-treebark-browser.min.js', path.join(dir,'markdown-it-treebark-browser.min.js'));\"",
     "clean": "rm -rf dist browser",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
@@ -37,6 +37,7 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.0",
     "@types/markdown-it": "^13.0.0",
+    "cross-env": "^7.0.3",
     "js-yaml": "^4.1.0",
     "markdown-it": "^14.0.0"
   },
