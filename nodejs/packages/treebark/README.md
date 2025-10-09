@@ -50,6 +50,23 @@ const fragment = renderToDOM({
 document.body.appendChild(fragment);
 ```
 
+## Tree Shaking
+
+Treebark supports tree shaking for optimal bundle sizes. Import only what you need:
+
+```javascript
+// Only import the string renderer (smaller bundle for Node.js SSR)
+import { renderToString } from 'treebark/string';
+
+// Only import the DOM renderer (for browser-only apps)
+import { renderToDOM } from 'treebark/dom';
+
+// Or import both from the main entry
+import { renderToString, renderToDOM } from 'treebark';
+```
+
+Modern bundlers like Vite, Webpack, and Rollup will automatically remove unused code from your bundle.
+
 ## API
 
 ### `renderToString(input, options?)`

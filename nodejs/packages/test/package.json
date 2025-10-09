@@ -2,10 +2,11 @@
   "name": "treebark-test",
   "version": "1.0.0",
   "description": "Tests for treebark",
+  "type": "module",
   "private": true,
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "build": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
@@ -18,21 +19,69 @@
     "jsdom": "^22.0.0"
   },
   "jest": {
-    "preset": "ts-jest",
+    "preset": "ts-jest/presets/default-esm",
     "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "tsconfig": {
+            "module": "ES2020",
+            "outDir": "dist"
+          }
+        }
+      ]
+    },
     "modulePathIgnorePatterns": ["<rootDir>/dist/"],
     "projects": [
       {
         "displayName": "string",
         "testMatch": ["<rootDir>/src/string.test.ts"],
-        "preset": "ts-jest",
-        "testEnvironment": "node"
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "node",
+        "extensionsToTreatAsEsm": [".ts"],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
+              }
+            }
+          ]
+        }
       },
       {
         "displayName": "dom",
         "testMatch": ["<rootDir>/src/dom.test.ts"],
-        "preset": "ts-jest",
-        "testEnvironment": "jsdom"
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "jsdom",
+        "extensionsToTreatAsEsm": [".ts"],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
+              }
+            }
+          ]
+        }
       }
     ]
   }

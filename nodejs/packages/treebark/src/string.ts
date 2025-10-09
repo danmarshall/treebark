@@ -13,7 +13,7 @@ import {
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
-} from './common';
+} from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
 type IndentedOutput = [number, string];
