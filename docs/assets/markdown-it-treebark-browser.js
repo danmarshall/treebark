@@ -31,14 +31,16 @@
     "tr",
     "th",
     "td",
-    "a",
+    "a"
+  ]);
+  const SPECIAL_TAGS = /* @__PURE__ */ new Set([
     "comment",
     "if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
     "img"
   ]);
-  const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...VOID_TAGS]);
+  const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
   const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
   const TAG_SPECIFIC_ATTRS = {
     "a": /* @__PURE__ */ new Set(["href", "target", "rel"]),
@@ -207,12 +209,13 @@
       }
       validateBindExpression(rest.$bind);
       const bound = getProperty(data, rest.$bind, parents);
-      const { $bind, $children = [], ...bindAttrs } = rest;
+      const { $bind, $children = [], $not, ...bindAttrs } = rest;
       const hasAttrs = Object.keys(bindAttrs).length > 0;
       if (hasAttrs) {
-        throw new Error('"if" tag does not support attributes, only $bind and $children');
+        throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
       }
-      if (!isTruthy(bound)) {
+      const condition = $not ? !isTruthy(bound) : isTruthy(bound);
+      if (!condition) {
         return "";
       }
       return $children.map((child) => render(child, data, context)).join(context.indentStr ? "\n" : "");

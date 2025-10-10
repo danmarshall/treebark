@@ -123,16 +123,19 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     validateBindExpression(rest.$bind);
     const bound = getProperty(data, rest.$bind, parents);
-    const { $bind, $children = [], ...bindAttrs } = rest;
+    const { $bind, $children = [], $not, ...bindAttrs } = rest;
     
     // Check if any non-reserved attributes were provided
     const hasAttrs = Object.keys(bindAttrs).length > 0;
     if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind and $children');
+      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
     }
     
-    // Only render children if condition is truthy
-    if (!isTruthy(bound)) {
+    // Check condition with optional negation
+    const condition = $not ? !isTruthy(bound) : isTruthy(bound);
+    
+    // Only render children if condition is true
+    if (!condition) {
       return '';
     }
     

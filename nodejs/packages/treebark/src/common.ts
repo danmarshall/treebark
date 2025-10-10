@@ -6,6 +6,7 @@ export type Data = Record<string, unknown>;
 export type TemplateAttributes = {
   $bind?: string;
   $children?: (string | TemplateObject)[];
+  $not?: boolean;
   [key: string]: unknown;
 };
 
@@ -33,7 +34,11 @@ export const CONTAINER_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a',
+  'a'
+]);
+
+// Special tags that have unique behavior
+export const SPECIAL_TAGS = new Set([
   'comment',
   'if'
 ]);
@@ -43,7 +48,7 @@ export const VOID_TAGS = new Set([
   'img'
 ]);
 
-export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...VOID_TAGS]);
+export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
 
 // Global attributes allowed on all tags
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'data-', 'aria-']);

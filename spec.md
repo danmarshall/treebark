@@ -249,12 +249,15 @@ For complex array scenarios where you need a wrapper element or nested structure
 
 ## 10. Tag Whitelist  
 
-Allowed tags:  
+**Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `comment`, `if`  
+`a`, `img`
+
+**Special tags:**  
+`comment`, `if`
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
@@ -308,10 +311,11 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
 
 **Key Features:**
 - Uses `$bind` to specify the condition to check
+- Supports `$not` to invert the condition (render when falsy)
 - Does not render itself as an HTML element
-- Only renders children when the condition is truthy
+- Only renders children when the condition is truthy (or falsy with `$not`)
 - Follows JavaScript truthiness rules
-- Cannot have attributes (only `$bind` and `$children`)
+- Cannot have attributes (only `$bind`, `$not`, and `$children`)
 
 **Basic usage:**
 ```javascript
@@ -333,6 +337,29 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
   data: { showMessage: true }
 }
 ```
+
+**Negation with `$not`:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $bind: 'isGuest',
+            $not: true,
+            $children: [
+              { p: 'Welcome back, member!' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { isGuest: false }
+}
+```
+→ Renders the paragraph because `isGuest` is false and `$not` inverts the check
 
 **Truthiness rules:**
 The `if` tag follows standard JavaScript truthiness:
@@ -425,7 +452,40 @@ Nested if tags for complex conditions:
 ```
 → `<div><h2>Protected content</h2><p>Verified user content</p></div>`
 
+**Using `$not` for "unless" behavior:**
+```javascript
+{
+  template: {
+    div: {
+      class: 'status',
+      $children: [
+        {
+          if: {
+            $bind: 'count',
+            $not: true,
+            $children: [
+              { p: 'No items available' }
+            ]
+          }
+        },
+        {
+          if: {
+            $bind: 'count',
+            $children: [
+              { p: 'Items found: {{count}}' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { count: 0 }
+}
+```
+→ `<div class="status"><p>No items available</p></div>`
+
 **Restrictions:**
 - The `if` tag **requires** a `$bind` attribute
 - The `if` tag **cannot** have any other attributes (like `class`, `id`, etc.)
+- The optional `$not` attribute must be a boolean (`true` or `false`)
 - If you need a wrapper element with attributes, use a regular tag inside the `if` tag's children  

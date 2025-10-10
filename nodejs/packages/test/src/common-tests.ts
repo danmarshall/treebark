@@ -986,6 +986,113 @@ export const ifTagTests: TestCase[] = [
       },
       data: { show: false }
     }
+  },
+  {
+    name: 'renders children with $not when condition is falsy',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showMessage',
+                $not: true,
+                $children: [
+                  { p: 'Message is hidden, showing this instead' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showMessage: false }
+    }
+  },
+  {
+    name: 'does not render children with $not when condition is truthy',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'showMessage',
+                $not: true,
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { showMessage: true }
+    }
+  },
+  {
+    name: 'works with $not and nested properties',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'user.isGuest',
+                $not: true,
+                $children: [
+                  { p: 'Welcome back, member!' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { user: { isGuest: false } }
+    }
+  },
+  {
+    name: 'works with $not and zero',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'count',
+                $not: true,
+                $children: [
+                  { p: 'No items' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 0 }
+    }
+  },
+  {
+    name: 'works with $not and empty string',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'message',
+                $not: true,
+                $children: [
+                  { p: 'No message provided' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { message: '' }
+    }
   }
 ];
 

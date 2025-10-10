@@ -710,6 +710,21 @@ describe('String Renderer', () => {
           case 'renders nothing at root level when falsy':
             expect(result).toBe('');
             break;
+          case 'renders children with $not when condition is falsy':
+            expect(result).toBe('<div><p>Message is hidden, showing this instead</p></div>');
+            break;
+          case 'does not render children with $not when condition is truthy':
+            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
+            break;
+          case 'works with $not and nested properties':
+            expect(result).toBe('<div><p>Welcome back, member!</p></div>');
+            break;
+          case 'works with $not and zero':
+            expect(result).toBe('<div><p>No items</p></div>');
+            break;
+          case 'works with $not and empty string':
+            expect(result).toBe('<div><p>No message provided</p></div>');
+            break;
         }
       });
     });

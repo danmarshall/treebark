@@ -536,6 +536,33 @@ describe('DOM Renderer', () => {
             expect(fragment.childNodes.length).toBe(0);
             break;
           }
+          case 'renders children with $not when condition is falsy': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Message is hidden, showing this instead');
+            break;
+          }
+          case 'does not render children with $not when condition is truthy': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('After');
+            break;
+          }
+          case 'works with $not and nested properties': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Welcome back, member!');
+            break;
+          }
+          case 'works with $not and zero': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('No items');
+            break;
+          }
+          case 'works with $not and empty string': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('No message provided');
+            break;
+          }
         }
       });
     });
