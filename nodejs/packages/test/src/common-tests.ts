@@ -221,6 +221,32 @@ export const bindingTests: TestCase[] = [
         { name: 'Mouse', price: '$25' }
       ]
     }
+  },
+  {
+    name: 'handles deep $bind: "." with array data',
+    input: {
+      template: {
+        div: {
+          class: 'container',
+          $children: [
+            {
+              div: {
+                class: 'item',
+                $bind: '.',
+                $children: [
+                  { h3: '{{title}}' },
+                  { p: '{{description}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: [
+        { title: 'Item 1', description: 'Description 1' },
+        { title: 'Item 2', description: 'Description 2' }
+      ]
+    }
   }
 ];
 

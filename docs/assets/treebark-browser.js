@@ -123,7 +123,16 @@
     if (!rest || typeof rest !== "object" || Array.isArray(rest)) {
       return false;
     }
-    return "$bind" in rest && rest.$bind === ".";
+    if ("$bind" in rest && rest.$bind === ".") {
+      return true;
+    }
+    const children = rest?.$children || [];
+    for (const child of children) {
+      if (templateHasCurrentObjectBinding(child)) {
+        return true;
+      }
+    }
+    return false;
   }
   function parseTemplateObject(templateObj) {
     if (!templateObj || typeof templateObj !== "object") {
@@ -234,6 +243,19 @@
     } else {
       childrenOutput = [];
       for (const child of children) {
+        if (typeof child === "object" && !Array.isArray(child) && child !== null) {
+          const childEntries = Object.entries(child);
+          if (childEntries.length > 0) {
+            const [childTag, childRest] = childEntries[0];
+            if (childRest && typeof childRest === "object" && !Array.isArray(childRest) && "$bind" in childRest && childRest.$bind === "." && Array.isArray(data)) {
+              for (const item of data) {
+                const content2 = render(child, item, { ...childContext, parents: [...parents, data] });
+                childrenOutput.push(...processContent(content2));
+              }
+              continue;
+            }
+          }
+        }
         const content = render(child, data, { ...childContext, parents });
         childrenOutput.push(...processContent(content));
       }

@@ -154,6 +154,16 @@ describe('DOM Renderer', () => {
             expect(secondCard.querySelector('h3')?.textContent).toBe('Mouse');
             expect(secondCard.querySelector('p')?.textContent).toBe('Price: $25');
             break;
+          case 'handles deep $bind: "." with array data':
+            const container = fragment.firstChild as HTMLElement;
+            expect(container.className).toBe('container');
+            const items = container.querySelectorAll('.item');
+            expect(items.length).toBe(2);
+            expect(items[0].querySelector('h3')?.textContent).toBe('Item 1');
+            expect(items[0].querySelector('p')?.textContent).toBe('Description 1');
+            expect(items[1].querySelector('h3')?.textContent).toBe('Item 2');
+            expect(items[1].querySelector('p')?.textContent).toBe('Description 2');
+            break;
         }
       });
     });

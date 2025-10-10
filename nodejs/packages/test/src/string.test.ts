@@ -95,6 +95,9 @@ describe('String Renderer', () => {
           case 'handles single template with array data':
             expect(result).toBe('<div class="card"><h3>Laptop</h3><p>Price: $999</p></div><div class="card"><h3>Mouse</h3><p>Price: $25</p></div>');
             break;
+          case 'handles deep $bind: "." with array data':
+            expect(result).toBe('<div class="container"><div class="item"><h3>Item 1</h3><p>Description 1</p></div><div class="item"><h3>Item 2</h3><p>Description 2</p></div></div>');
+            break;
         }
       });
     });

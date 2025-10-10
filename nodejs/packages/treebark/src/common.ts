@@ -182,6 +182,7 @@ export function validateBindExpression(bindValue: string): void {
 
 /**
  * Check if a template has $bind: "." which means bind to current data object
+ * This function recursively checks the template tree to find any $bind: "."
  */
 export function templateHasCurrentObjectBinding(template: TemplateElement): boolean {
   if (Array.isArray(template) || typeof template !== 'object' || template === null) {
@@ -198,7 +199,20 @@ export function templateHasCurrentObjectBinding(template: TemplateElement): bool
     return false;
   }
   
-  return '$bind' in rest && rest.$bind === '.';
+  // Check if this level has $bind: "."
+  if ('$bind' in rest && rest.$bind === '.') {
+    return true;
+  }
+  
+  // Recursively check children
+  const children = (rest as TemplateAttributes)?.$children || [];
+  for (const child of children) {
+    if (templateHasCurrentObjectBinding(child)) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 /**

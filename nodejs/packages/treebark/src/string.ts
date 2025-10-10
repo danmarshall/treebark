@@ -161,6 +161,25 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     // Normal children case
     childrenOutput = [];
     for (const child of children) {
+      // Check if child has $bind: "." and data is an array
+      // If so, render the child multiple times (once per array item)
+      if (typeof child === 'object' && !Array.isArray(child) && child !== null) {
+        const childEntries = Object.entries(child);
+        if (childEntries.length > 0) {
+          const [childTag, childRest] = childEntries[0];
+          if (childRest && typeof childRest === 'object' && !Array.isArray(childRest) && 
+              '$bind' in childRest && childRest.$bind === '.' && Array.isArray(data)) {
+            // Special case: child has $bind: "." and data is an array
+            // Render the child once for each array item
+            for (const item of data) {
+              const content = render(child, item as Data, { ...childContext, parents: [...parents, data] });
+              childrenOutput.push(...processContent(content));
+            }
+            continue;
+          }
+        }
+      }
+      // Normal case: render child once
       const content = render(child, data, { ...childContext, parents });
       childrenOutput.push(...processContent(content));
     }
