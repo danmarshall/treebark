@@ -380,5 +380,320 @@
                 }
             ]
         }
+    },
+    "conditional-if-basic": {
+        "label": "Conditional: Basic 'if' Tag",
+        "template": {
+            "div": {
+                "class": "user-greeting",
+                "$children": [
+                    {
+                        "h2": "User Dashboard"
+                    },
+                    {
+                        "if": {
+                            "$bind": "isLoggedIn",
+                            "$children": [
+                                {
+                                    "p": "Welcome back, {{username}}!"
+                                },
+                                {
+                                    "a": {
+                                        "href": "/profile",
+                                        "$children": [
+                                            "View Profile"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "$bind": "isLoggedIn",
+                            "$not": true,
+                            "$children": [
+                                {
+                                    "p": "Please log in to continue."
+                                },
+                                {
+                                    "a": {
+                                        "href": "/login",
+                                        "$children": [
+                                            "Login"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "isLoggedIn": true,
+            "username": "Alice"
+        }
+    },
+    "conditional-if-admin": {
+        "label": "Conditional: Role-Based Access",
+        "template": {
+            "div": {
+                "class": "user-panel",
+                "$children": [
+                    {
+                        "h2": "Welcome {{user.name}}!"
+                    },
+                    {
+                        "p": "Role: {{user.role}}"
+                    },
+                    {
+                        "if": {
+                            "$bind": "user.isAdmin",
+                            "$children": [
+                                {
+                                    "div": {
+                                        "class": "admin-panel",
+                                        "$children": [
+                                            {
+                                                "h3": "Admin Tools"
+                                            },
+                                            {
+                                                "ul": [
+                                                    {
+                                                        "li": {
+                                                            "a": {
+                                                                "href": "/admin/users",
+                                                                "$children": [
+                                                                    "Manage Users"
+                                                                ]
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "li": {
+                                                            "a": {
+                                                                "href": "/admin/settings",
+                                                                "$children": [
+                                                                    "System Settings"
+                                                                ]
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "$bind": "user.isPremium",
+                            "$children": [
+                                {
+                                    "div": {
+                                        "class": "premium-badge",
+                                        "style": "background: gold; padding: 5px;",
+                                        "$children": [
+                                            "⭐ Premium Member"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "user": {
+                "name": "Alice Johnson",
+                "role": "Administrator",
+                "isAdmin": true,
+                "isPremium": true
+            }
+        }
+    },
+    "conditional-if-inventory": {
+        "label": "Conditional: Stock Status with $not",
+        "template": {
+            "div": {
+                "class": "product-inventory",
+                "$children": [
+                    {
+                        "h2": "Product Inventory"
+                    },
+                    {
+                        "div": {
+                            "$bind": "products",
+                            "$children": [
+                                {
+                                    "div": {
+                                        "class": "product-item",
+                                        "$children": [
+                                            {
+                                                "h3": "{{name}}"
+                                            },
+                                            {
+                                                "p": "Price: {{price}}"
+                                            },
+                                            {
+                                                "if": {
+                                                    "$bind": "inStock",
+                                                    "$children": [
+                                                        {
+                                                            "p": {
+                                                                "style": "color: green;",
+                                                                "$children": [
+                                                                    "✓ In Stock ({{quantity}} available)"
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "if": {
+                                                    "$bind": "inStock",
+                                                    "$not": true,
+                                                    "$children": [
+                                                        {
+                                                            "p": {
+                                                                "style": "color: red;",
+                                                                "$children": [
+                                                                    "✗ Out of Stock"
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "products": [
+                {
+                    "name": "Laptop",
+                    "price": "$999",
+                    "inStock": true,
+                    "quantity": 15
+                },
+                {
+                    "name": "Phone",
+                    "price": "$499",
+                    "inStock": false,
+                    "quantity": 0
+                },
+                {
+                    "name": "Tablet",
+                    "price": "$299",
+                    "inStock": true,
+                    "quantity": 8
+                }
+            ]
+        }
+    },
+    "conditional-if-nested": {
+        "label": "Conditional: Nested Conditions",
+        "template": {
+            "div": {
+                "class": "access-control",
+                "$children": [
+                    {
+                        "h2": "Document Access"
+                    },
+                    {
+                        "if": {
+                            "$bind": "hasPermission",
+                            "$children": [
+                                {
+                                    "div": {
+                                        "class": "content-area",
+                                        "$children": [
+                                            {
+                                                "h3": "Secure Document"
+                                            },
+                                            {
+                                                "p": "This is protected content."
+                                            },
+                                            {
+                                                "if": {
+                                                    "$bind": "isVerified",
+                                                    "$children": [
+                                                        {
+                                                            "div": {
+                                                                "style": "background: lightgreen; padding: 10px;",
+                                                                "$children": [
+                                                                    {
+                                                                        "strong": "✓ Verified Access"
+                                                                    },
+                                                                    {
+                                                                        "p": "You have full access to this document."
+                                                                    }
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "if": {
+                                                    "$bind": "isVerified",
+                                                    "$not": true,
+                                                    "$children": [
+                                                        {
+                                                            "p": {
+                                                                "style": "color: orange;",
+                                                                "$children": [
+                                                                    "⚠ Limited access - verification pending"
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "if": {
+                            "$bind": "hasPermission",
+                            "$not": true,
+                            "$children": [
+                                {
+                                    "div": {
+                                        "style": "background: #ffe0e0; padding: 15px; border: 2px solid red;",
+                                        "$children": [
+                                            {
+                                                "strong": "Access Denied"
+                                            },
+                                            {
+                                                "p": "You do not have permission to view this content."
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "hasPermission": true,
+            "isVerified": true
+        }
     }
 }
