@@ -128,9 +128,6 @@
     }
     return "$bind" in rest && rest.$bind === ".";
   }
-  function isTruthy(value) {
-    return Boolean(value);
-  }
   function parseTemplateObject(templateObj) {
     if (!templateObj || typeof templateObj !== "object") {
       throw new Error("Template object cannot be null, undefined, or non-object");
@@ -214,11 +211,23 @@
       if (hasAttrs) {
         throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
       }
-      const condition = $not ? !isTruthy(bound) : isTruthy(bound);
+      const condition = $not ? !Boolean(bound) : Boolean(bound);
       if (!condition) {
         return "";
       }
-      return $children.map((child) => render(child, data, context)).join(context.indentStr ? "\n" : "");
+      if (!context.indentStr) {
+        return $children.map((child) => render(child, data, context)).join("");
+      }
+      const indent = context.indentStr.repeat(context.level || 0);
+      return $children.map((child) => {
+        const content = render(child, data, context);
+        return content.split("\n").map(
+          (line, i) => (
+            // First line gets the indent, subsequent lines keep their own indentation
+            i === 0 ? indent + line : line
+          )
+        ).join("\n");
+      }).join("\n");
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);

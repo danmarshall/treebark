@@ -208,14 +208,6 @@ export function templateHasCurrentObjectBinding(template: TemplateElement): bool
 }
 
 /**
- * Check if a value is truthy for the "if" tag
- */
-export function isTruthy(value: unknown): boolean {
-  // Standard JavaScript truthiness
-  return Boolean(value);
-}
-
-/**
  * Parse template object structure to extract tag, attributes, and children
  */
 export function parseTemplateObject(templateObj: TemplateObject): {

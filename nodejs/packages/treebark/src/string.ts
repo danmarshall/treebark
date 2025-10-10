@@ -12,8 +12,7 @@ import {
   validateBindExpression,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions,
-  isTruthy
+  RenderOptions
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -131,8 +130,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
     }
     
-    // Check condition with optional negation
-    const condition = $not ? !isTruthy(bound) : isTruthy(bound);
+    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
+    const condition = $not ? !Boolean(bound) : Boolean(bound);
     
     // Only render children if condition is true
     if (!condition) {
@@ -140,7 +139,24 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     // Render children without wrapping tag
-    return $children.map(child => render(child, data, context)).join(context.indentStr ? '\n' : '');
+    // When indentation is enabled, we need to add proper indentation to each child
+    // since they won't go through the normal processContent/renderTag flow
+    if (!context.indentStr) {
+      // No indentation: simple join
+      return $children.map(child => render(child, data, context)).join('');
+    }
+    
+    // With indentation: render each child and add appropriate indentation
+    // The children should be at the current context level (same as siblings would be)
+    const indent = context.indentStr.repeat(context.level || 0);
+    return $children.map(child => {
+      const content = render(child, data, context);
+      // Add indentation to each line of the rendered content
+      return content.split('\n').map((line, i) => 
+        // First line gets the indent, subsequent lines keep their own indentation
+        i === 0 ? indent + line : line
+      ).join('\n');
+    }).join('\n');
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {

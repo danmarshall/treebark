@@ -12,8 +12,7 @@ import {
   validateBindExpression,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions,
-  isTruthy
+  RenderOptions
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -88,8 +87,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
     }
     
-    // Check condition with optional negation
-    const condition = $not ? !isTruthy(bound) : isTruthy(bound);
+    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
+    const condition = $not ? !Boolean(bound) : Boolean(bound);
     
     // Only render children if condition is true
     if (!condition) {
