@@ -34,7 +34,8 @@ export const CONTAINER_TAGS = new Set([
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
   'a',
-  'comment'
+  'comment',
+  'if'
 ]);
 
 // Void tags that cannot have children and are self-closing
@@ -199,6 +200,14 @@ export function templateHasCurrentObjectBinding(template: TemplateElement): bool
   }
   
   return '$bind' in rest && rest.$bind === '.';
+}
+
+/**
+ * Check if a value is truthy for the "if" tag
+ */
+export function isTruthy(value: unknown): boolean {
+  // Standard JavaScript truthiness
+  return Boolean(value);
 }
 
 /**

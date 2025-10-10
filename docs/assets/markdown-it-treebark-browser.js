@@ -32,7 +32,8 @@
     "th",
     "td",
     "a",
-    "comment"
+    "comment",
+    "if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
     "img"
@@ -125,6 +126,9 @@
     }
     return "$bind" in rest && rest.$bind === ".";
   }
+  function isTruthy(value) {
+    return Boolean(value);
+  }
   function parseTemplateObject(templateObj) {
     if (!templateObj || typeof templateObj !== "object") {
       throw new Error("Template object cannot be null, undefined, or non-object");
@@ -196,6 +200,22 @@
     }
     if (tag === "comment" && context.insideComment) {
       throw new Error("Nested comments are not allowed");
+    }
+    if (tag === "if") {
+      if (!hasBinding(rest)) {
+        throw new Error('"if" tag requires $bind attribute to specify the condition');
+      }
+      validateBindExpression(rest.$bind);
+      const bound = getProperty(data, rest.$bind, parents);
+      const { $bind, $children = [], ...bindAttrs } = rest;
+      const hasAttrs = Object.keys(bindAttrs).length > 0;
+      if (hasAttrs) {
+        throw new Error('"if" tag does not support attributes, only $bind and $children');
+      }
+      if (!isTruthy(bound)) {
+        return "";
+      }
+      return $children.map((child) => render(child, data, context)).join(context.indentStr ? "\n" : "");
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);

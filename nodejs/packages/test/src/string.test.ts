@@ -14,6 +14,8 @@ import {
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
+  ifTagTests,
+  ifTagErrorTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -661,6 +663,59 @@ describe('String Renderer', () => {
         }
       }, { indent: true });
       expect(result).toBe('<div>\n  <!--\n    <section>\n      <article>\n        <h3>Deep Title</h3>\n        <p>Deep content</p>\n      </article>\n    </section>\n  -->\n</div>');
+    });
+  });
+
+  // "if" tag tests
+  describe('"if" Tag', () => {
+    ifTagTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders children when condition is truthy (true)':
+            expect(result).toBe('<div><p>Message is shown</p></div>');
+            break;
+          case 'renders children when condition is truthy (non-empty string)':
+            expect(result).toBe('<div><p>Hello Alice</p></div>');
+            break;
+          case 'renders children when condition is truthy (number)':
+            expect(result).toBe('<div><p>Count: 5</p></div>');
+            break;
+          case 'does not render children when condition is falsy (false)':
+            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
+            break;
+          case 'does not render children when condition is falsy (null)':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'does not render children when condition is falsy (undefined)':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'does not render children when condition is falsy (empty string)':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'does not render children when condition is falsy (zero)':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'works with nested property access':
+            expect(result).toBe('<div><p>Admin panel</p></div>');
+            break;
+          case 'works with multiple children':
+            expect(result).toBe('<div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div>');
+            break;
+          case 'works with nested if tags':
+            expect(result).toBe('<div><p>Level 1 visible</p><p>Level 2 visible</p></div>');
+            break;
+          case 'works at root level':
+            expect(result).toBe('<div>Content</div>');
+            break;
+          case 'renders nothing at root level when falsy':
+            expect(result).toBe('');
+            break;
+        }
+      });
+    });
+
+    ifTagErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
     });
   });
 });

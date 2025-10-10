@@ -12,7 +12,8 @@ import {
   validateBindExpression,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  isTruthy
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -111,6 +112,32 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   if (tag === 'comment' && context.insideComment) {
     throw new Error('Nested comments are not allowed');
+  }
+
+  // Special handling for "if" tag
+  if (tag === 'if') {
+    // "if" tag requires $bind
+    if (!hasBinding(rest)) {
+      throw new Error('"if" tag requires $bind attribute to specify the condition');
+    }
+    
+    validateBindExpression(rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
+    const { $bind, $children = [], ...bindAttrs } = rest;
+    
+    // Check if any non-reserved attributes were provided
+    const hasAttrs = Object.keys(bindAttrs).length > 0;
+    if (hasAttrs) {
+      throw new Error('"if" tag does not support attributes, only $bind and $children');
+    }
+    
+    // Only render children if condition is truthy
+    if (!isTruthy(bound)) {
+      return '';
+    }
+    
+    // Render children without wrapping tag
+    return $children.map(child => render(child, data, context)).join(context.indentStr ? '\n' : '');
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {

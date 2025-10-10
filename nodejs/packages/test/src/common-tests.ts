@@ -725,6 +725,304 @@ export const bindValidationErrorTests: ErrorTestCase[] = [
 ];
 
 
+// "if" tag test cases
+export const ifTagTests: TestCase[] = [
+  {
+    name: 'renders children when condition is truthy (true)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showMessage',
+                $children: [
+                  { p: 'Message is shown' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showMessage: true }
+    }
+  },
+  {
+    name: 'renders children when condition is truthy (non-empty string)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'userName',
+                $children: [
+                  { p: 'Hello {{userName}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { userName: 'Alice' }
+    }
+  },
+  {
+    name: 'renders children when condition is truthy (number)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'count',
+                $children: [
+                  { p: 'Count: {{count}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 5 }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (false)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'showMessage',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { showMessage: false }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (null)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: null }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (undefined)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: undefined }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (empty string)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: '' }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (zero)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: 0 }
+    }
+  },
+  {
+    name: 'works with nested property access',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'user.isAdmin',
+                $children: [
+                  { p: 'Admin panel' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { user: { isAdmin: true } }
+    }
+  },
+  {
+    name: 'works with multiple children',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showContent',
+                $children: [
+                  { h1: 'Title' },
+                  { p: 'Paragraph 1' },
+                  { p: 'Paragraph 2' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showContent: true }
+    }
+  },
+  {
+    name: 'works with nested if tags',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'level1',
+                $children: [
+                  { p: 'Level 1 visible' },
+                  {
+                    if: {
+                      $bind: 'level2',
+                      $children: [
+                        { p: 'Level 2 visible' }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { level1: true, level2: true }
+    }
+  },
+  {
+    name: 'works at root level',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          $children: [
+            { div: 'Content' }
+          ]
+        }
+      },
+      data: { show: true }
+    }
+  },
+  {
+    name: 'renders nothing at root level when falsy',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          $children: [
+            { div: 'Content' }
+          ]
+        }
+      },
+      data: { show: false }
+    }
+  }
+];
+
+export const ifTagErrorTests: ErrorTestCase[] = [
+  {
+    name: 'throws error when if tag has no $bind',
+    input: {
+      template: {
+        if: {
+          $children: [
+            { p: 'Content' }
+          ]
+        }
+      },
+      data: {}
+    },
+    expectedError: '"if" tag requires $bind attribute'
+  },
+  {
+    name: 'throws error when if tag has attributes',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          class: 'my-class',
+          $children: [
+            { p: 'Content' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"if" tag does not support attributes'
+  }
+];
+
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {

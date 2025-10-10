@@ -12,7 +12,8 @@ import {
   validateBindExpression,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  isTruthy
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -68,6 +69,41 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   // Prevent nested comments
   if (tag === 'comment' && context.insideComment) {
     throw new Error('Nested comments are not allowed');
+  }
+  
+  // Special handling for "if" tag
+  if (tag === 'if') {
+    // "if" tag requires $bind
+    if (!hasBinding(rest)) {
+      throw new Error('"if" tag requires $bind attribute to specify the condition');
+    }
+    
+    validateBindExpression(rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
+    const { $bind, $children = [], ...bindAttrs } = rest;
+    
+    // Check if any non-reserved attributes were provided
+    const hasAttrs = Object.keys(bindAttrs).length > 0;
+    if (hasAttrs) {
+      throw new Error('"if" tag does not support attributes, only $bind and $children');
+    }
+    
+    // Only render children if condition is truthy
+    if (!isTruthy(bound)) {
+      return [];
+    }
+    
+    // Render children without wrapping element
+    const results: Node[] = [];
+    for (const child of $children) {
+      const nodes = render(child, data, context);
+      if (Array.isArray(nodes)) {
+        results.push(...nodes);
+      } else {
+        results.push(nodes);
+      }
+    }
+    return results;
   }
   
   // Inline validateChildren: Validate that void tags don't have children
