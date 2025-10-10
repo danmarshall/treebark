@@ -1093,6 +1093,65 @@ export const ifTagTests: TestCase[] = [
       },
       data: { message: '' }
     }
+  },
+  {
+    name: 'preserves indentation with multiple children (one level)',
+    input: {
+      template: {
+        div: {
+          class: 'container',
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'show',
+                $children: [
+                  { p: 'First' },
+                  { p: 'Second' },
+                  { p: 'Third' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    options: { indent: true }
+  },
+  {
+    name: 'preserves indentation with multiple children (two levels)',
+    input: {
+      template: {
+        div: {
+          class: 'outer',
+          $children: [
+            { h1: 'Title' },
+            {
+              div: {
+                class: 'inner',
+                $children: [
+                  {
+                    if: {
+                      $bind: 'show',
+                      $children: [
+                        { p: 'First' },
+                        { p: 'Second' },
+                        { p: 'Third' }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            { p: 'Footer' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    options: { indent: true }
   }
 ];
 

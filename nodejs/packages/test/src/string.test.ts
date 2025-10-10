@@ -725,6 +725,12 @@ describe('String Renderer', () => {
           case 'works with $not and empty string':
             expect(result).toBe('<div><p>No message provided</p></div>');
             break;
+          case 'preserves indentation with multiple children (one level)':
+            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <p>First</p>\n  <p>Second</p>\n  <p>Third</p>\n  <p>After</p>\n</div>');
+            break;
+          case 'preserves indentation with multiple children (two levels)':
+            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
+            break;
         }
       });
     });

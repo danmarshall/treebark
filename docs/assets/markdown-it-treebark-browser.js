@@ -218,15 +218,11 @@
       if (!context.indentStr) {
         return $children.map((child) => render(child, data, context)).join("");
       }
-      const indent = context.indentStr.repeat(context.level || 0);
-      return $children.map((child) => {
+      const currentLevel = context.level || 0;
+      const indent = context.indentStr.repeat(currentLevel);
+      return $children.map((child, index) => {
         const content = render(child, data, context);
-        return content.split("\n").map(
-          (line, i) => (
-            // First line gets the indent, subsequent lines keep their own indentation
-            i === 0 ? indent + line : line
-          )
-        ).join("\n");
+        return index === 0 ? content : indent + content;
       }).join("\n");
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {

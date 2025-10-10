@@ -139,23 +139,21 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     // Render children without wrapping tag
-    // When indentation is enabled, we need to add proper indentation to each child
-    // since they won't go through the normal processContent/renderTag flow
     if (!context.indentStr) {
       // No indentation: simple join
       return $children.map(child => render(child, data, context)).join('');
     }
     
-    // With indentation: render each child and add appropriate indentation
-    // The children should be at the current context level (same as siblings would be)
-    const indent = context.indentStr.repeat(context.level || 0);
-    return $children.map(child => {
+    // With indentation: each child needs proper indentation since they won't go
+    // through the normal processContent flow individually
+    const currentLevel = context.level || 0;
+    const indent = context.indentStr.repeat(currentLevel);
+    
+    return $children.map((child, index) => {
       const content = render(child, data, context);
-      // Add indentation to each line of the rendered content
-      return content.split('\n').map((line, i) => 
-        // First line gets the indent, subsequent lines keep their own indentation
-        i === 0 ? indent + line : line
-      ).join('\n');
+      // Only the first child might get indented by parent's processContent,
+      // so we need to add indentation to subsequent children
+      return index === 0 ? content : indent + content;
     }).join('\n');
   }
 

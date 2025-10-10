@@ -563,6 +563,32 @@ describe('DOM Renderer', () => {
             expect(div.querySelector('p')?.textContent).toBe('No message provided');
             break;
           }
+          case 'preserves indentation with multiple children (one level)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.className).toBe('container');
+            const paragraphs = div.querySelectorAll('p');
+            expect(paragraphs.length).toBe(5);
+            expect(paragraphs[0].textContent).toBe('Before');
+            expect(paragraphs[1].textContent).toBe('First');
+            expect(paragraphs[2].textContent).toBe('Second');
+            expect(paragraphs[3].textContent).toBe('Third');
+            expect(paragraphs[4].textContent).toBe('After');
+            break;
+          }
+          case 'preserves indentation with multiple children (two levels)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.className).toBe('outer');
+            expect(div.querySelector('h1')?.textContent).toBe('Title');
+            const inner = div.querySelector('.inner');
+            expect(inner).toBeTruthy();
+            const paragraphs = inner?.querySelectorAll('p');
+            expect(paragraphs?.length).toBe(3);
+            expect(paragraphs?.[0].textContent).toBe('First');
+            expect(paragraphs?.[1].textContent).toBe('Second');
+            expect(paragraphs?.[2].textContent).toBe('Third');
+            expect(div.querySelector('div + p')?.textContent).toBe('Footer');
+            break;
+          }
         }
       });
     });
