@@ -242,12 +242,13 @@
       contentAttrs = bindAttrs;
     } else {
       childrenOutput = [];
+      const shouldCheckDeepBind = Array.isArray(data);
       for (const child of children) {
-        if (typeof child === "object" && !Array.isArray(child) && child !== null) {
+        if (shouldCheckDeepBind && typeof child === "object" && !Array.isArray(child) && child !== null) {
           const childEntries = Object.entries(child);
           if (childEntries.length > 0) {
             const [childTag, childRest] = childEntries[0];
-            if (childRest && typeof childRest === "object" && !Array.isArray(childRest) && "$bind" in childRest && childRest.$bind === "." && Array.isArray(data)) {
+            if (childRest && typeof childRest === "object" && !Array.isArray(childRest) && "$bind" in childRest && childRest.$bind === ".") {
               for (const item of data) {
                 const content2 = render(child, item, { ...childContext, parents: [...parents, data] });
                 childrenOutput.push(...processContent(content2));

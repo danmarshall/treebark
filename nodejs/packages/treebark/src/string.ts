@@ -160,15 +160,18 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   } else {
     // Normal children case
     childrenOutput = [];
+    // Optimize: only check for deep $bind if data is an array
+    const shouldCheckDeepBind = Array.isArray(data);
+    
     for (const child of children) {
       // Check if child has $bind: "." and data is an array
       // If so, render the child multiple times (once per array item)
-      if (typeof child === 'object' && !Array.isArray(child) && child !== null) {
+      if (shouldCheckDeepBind && typeof child === 'object' && !Array.isArray(child) && child !== null) {
         const childEntries = Object.entries(child);
         if (childEntries.length > 0) {
           const [childTag, childRest] = childEntries[0];
           if (childRest && typeof childRest === 'object' && !Array.isArray(childRest) && 
-              '$bind' in childRest && childRest.$bind === '.' && Array.isArray(data)) {
+              '$bind' in childRest && childRest.$bind === '.') {
             // Special case: child has $bind: "." and data is an array
             // Render the child once for each array item
             for (const item of data) {
