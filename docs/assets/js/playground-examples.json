@@ -380,5 +380,74 @@
                 }
             ]
         }
+    },
+    "deep-bind-array": {
+        "label": "Pattern 4: Deep $bind: \".\" with Array Data",
+        "template": {
+            "div": {
+                "class": "movie-cards",
+                "$children": [
+                    {
+                        "div": {
+                            "class": "movie-card",
+                            "$bind": ".",
+                            "$children": [
+                                {
+                                    "h3": "🎬 {{Title}}"
+                                },
+                                {
+                                    "p": {
+                                        "$children": [
+                                            {
+                                                "strong": "Director: "
+                                            },
+                                            "{{Director}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "p": {
+                                        "$children": [
+                                            {
+                                                "strong": "Year: "
+                                            },
+                                            "{{Year}}"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "p": {
+                                        "class": "rating",
+                                        "$children": [
+                                            "⭐ Rating: {{Rating}}"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": [
+            {
+                "Title": "The Shawshank Redemption",
+                "Director": "Frank Darabont",
+                "Year": "1994",
+                "Rating": "9.3"
+            },
+            {
+                "Title": "The Godfather",
+                "Director": "Francis Ford Coppola",
+                "Year": "1972",
+                "Rating": "9.2"
+            },
+            {
+                "Title": "The Dark Knight",
+                "Director": "Christopher Nolan",
+                "Year": "2008",
+                "Rating": "9.0"
+            }
+        ]
     }
 }
