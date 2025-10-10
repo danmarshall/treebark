@@ -234,6 +234,9 @@
       level: (context.level || 0) + 1
     };
     const processContent = (content) => {
+      if (content === "") {
+        return [];
+      }
       if (context.indentStr && content.includes("\n") && !content.includes("<")) {
         return content.split("\n").map((line) => [childContext.level, line]);
       }

@@ -169,6 +169,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Helper to process rendered content into IndentedOutput
   const processContent = (content: string): IndentedOutput[] => {
+    // Skip empty content to avoid blank lines
+    if (content === '') {
+      return [];
+    }
     if (context.indentStr && content.includes('\n') && !content.includes('<')) {
       return content.split('\n').map(line => [childContext.level, line]);
     }

@@ -462,22 +462,30 @@
                                                 "ul": [
                                                     {
                                                         "li": {
-                                                            "a": {
-                                                                "href": "/admin/users",
-                                                                "$children": [
-                                                                    "Manage Users"
-                                                                ]
-                                                            }
+                                                            "$children": [
+                                                                {
+                                                                    "a": {
+                                                                        "href": "/admin/users",
+                                                                        "$children": [
+                                                                            "Manage Users"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     },
                                                     {
                                                         "li": {
-                                                            "a": {
-                                                                "href": "/admin/settings",
-                                                                "$children": [
-                                                                    "System Settings"
-                                                                ]
-                                                            }
+                                                            "$children": [
+                                                                {
+                                                                    "a": {
+                                                                        "href": "/admin/settings",
+                                                                        "$children": [
+                                                                            "System Settings"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            ]
                                                         }
                                                     }
                                                 ]
