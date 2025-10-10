@@ -11,6 +11,7 @@ import {
   hasBinding,
   validateBindExpression,
   templateHasCurrentObjectBinding,
+  childHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
 } from './common.js';
@@ -132,25 +133,18 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   for (const c of children) {
     // Check if child has $bind: "." and data is an array
     // If so, render the child multiple times (once per array item)
-    if (shouldCheckDeepBind && typeof c === 'object' && !Array.isArray(c) && c !== null) {
-      const childEntries = Object.entries(c);
-      if (childEntries.length > 0) {
-        const [childTag, childRest] = childEntries[0];
-        if (childRest && typeof childRest === 'object' && !Array.isArray(childRest) && 
-            '$bind' in childRest && childRest.$bind === '.') {
-          // Special case: child has $bind: "." and data is an array
-          // Render the child once for each array item
-          for (const item of data) {
-            const nodes = render(c, item as Data, { ...context, parents: [...parents, data] });
-            if (Array.isArray(nodes)) {
-              for (const n of nodes) element.appendChild(n);
-            } else {
-              element.appendChild(nodes);
-            }
-          }
-          continue;
+    if (shouldCheckDeepBind && childHasCurrentObjectBinding(c)) {
+      // Special case: child has $bind: "." and data is an array
+      // Render the child once for each array item
+      for (const item of data) {
+        const nodes = render(c, item as Data, { ...context, parents: [...parents, data] });
+        if (Array.isArray(nodes)) {
+          for (const n of nodes) element.appendChild(n);
+        } else {
+          element.appendChild(nodes);
         }
       }
+      continue;
     }
     // Normal case: render child once
     const nodes = render(c, data, context);

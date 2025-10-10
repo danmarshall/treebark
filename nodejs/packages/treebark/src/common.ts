@@ -216,6 +216,28 @@ export function templateHasCurrentObjectBinding(template: TemplateElement): bool
 }
 
 /**
+ * Check if a child template element has $bind: "." at its immediate level
+ * Used to detect deep array binding patterns during child rendering
+ */
+export function childHasCurrentObjectBinding(child: TemplateElement): boolean {
+  if (typeof child !== 'object' || Array.isArray(child) || child === null) {
+    return false;
+  }
+  
+  const childEntries = Object.entries(child);
+  if (childEntries.length === 0) {
+    return false;
+  }
+  
+  const [, childRest] = childEntries[0];
+  if (!childRest || typeof childRest !== 'object' || Array.isArray(childRest)) {
+    return false;
+  }
+  
+  return '$bind' in childRest && childRest.$bind === '.';
+}
+
+/**
  * Parse template object structure to extract tag, attributes, and children
  */
 export function parseTemplateObject(templateObj: TemplateObject): {

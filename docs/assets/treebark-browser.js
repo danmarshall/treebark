@@ -134,6 +134,20 @@
     }
     return false;
   }
+  function childHasCurrentObjectBinding(child) {
+    if (typeof child !== "object" || Array.isArray(child) || child === null) {
+      return false;
+    }
+    const childEntries = Object.entries(child);
+    if (childEntries.length === 0) {
+      return false;
+    }
+    const [, childRest] = childEntries[0];
+    if (!childRest || typeof childRest !== "object" || Array.isArray(childRest)) {
+      return false;
+    }
+    return "$bind" in childRest && childRest.$bind === ".";
+  }
   function parseTemplateObject(templateObj) {
     if (!templateObj || typeof templateObj !== "object") {
       throw new Error("Template object cannot be null, undefined, or non-object");
@@ -244,18 +258,12 @@
       childrenOutput = [];
       const shouldCheckDeepBind = Array.isArray(data);
       for (const child of children) {
-        if (shouldCheckDeepBind && typeof child === "object" && !Array.isArray(child) && child !== null) {
-          const childEntries = Object.entries(child);
-          if (childEntries.length > 0) {
-            const [childTag, childRest] = childEntries[0];
-            if (childRest && typeof childRest === "object" && !Array.isArray(childRest) && "$bind" in childRest && childRest.$bind === ".") {
-              for (const item of data) {
-                const content2 = render(child, item, { ...childContext, parents: [...parents, data] });
-                childrenOutput.push(...processContent(content2));
-              }
-              continue;
-            }
+        if (shouldCheckDeepBind && childHasCurrentObjectBinding(child)) {
+          for (const item of data) {
+            const content2 = render(child, item, { ...childContext, parents: [...parents, data] });
+            childrenOutput.push(...processContent(content2));
           }
+          continue;
         }
         const content = render(child, data, { ...childContext, parents });
         childrenOutput.push(...processContent(content));
