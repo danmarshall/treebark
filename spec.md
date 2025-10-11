@@ -269,34 +269,34 @@ Blocked tags:
 
 ## 11. Comments
 
-HTML comments are generated using the `comment` tag:
+HTML comments are generated using the `$comment` tag:
 
 ```yaml
-comment: "This is a comment"
+$comment: "This is a comment"
 ```
 
 → `<!--This is a comment-->`
 
 **Features:**
-- Support interpolation: `comment: "Generated on {{date}}"`
+- Support interpolation: `$comment: "Generated on {{date}}"`
 - Support mixed content with `$children`
-- Cannot be nested (attempting to place a `comment` inside another `comment` throws an error)
+- Cannot be nested (attempting to place a `$comment` inside another `$comment` throws an error)
 
 **Examples:**
 
 Basic comment:
 ```yaml
-comment: "This is a comment"
+$comment: "This is a comment"
 ```
 
 Comment with interpolation:
 ```yaml
-comment: "User: {{name}}"
+$comment: "User: {{name}}"
 ```
 
 Comment with mixed content:
 ```yaml
-comment:
+$comment:
   $children:
     - "Start: "
     - span: "highlighted text"
@@ -305,27 +305,31 @@ comment:
 
 ---
 
-## 12. Conditional Rendering with "if" Tag
+## 12. Conditional Rendering with "$if" Tag
 
-The `if` tag provides conditional rendering based on the truthiness of a data property. It acts as a transparent container that renders its children only when a specified condition is truthy.
+The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
 **Key Features:**
-- Uses `$bind` to specify the condition to check
-- Supports `$not` to invert the condition (render when falsy)
+- Uses `$check` to specify the property to check
+- Supports comparison operators: `$<`, `$>`, `$=`, `$in`
+- Operators can be stacked (multiple operators)
+- Supports `$not` to invert the final result
+- Uses AND logic by default (`$and: true`), can switch to OR logic (`$or: true`)
 - Does not render itself as an HTML element
-- Only renders children when the condition is truthy (or falsy with `$not`)
-- Follows JavaScript truthiness rules
-- Cannot have attributes (only `$bind`, `$not`, and `$children`)
+- Cannot have regular HTML attributes (only special operators and modifiers)
 
-**Basic usage:**
+### Basic Truthiness Check
+
+When no operators are provided, performs a standard JavaScript truthiness check:
+
 ```javascript
 {
   template: {
     div: {
       $children: [
         {
-          if: {
-            $bind: 'showMessage',
+          $if: {
+            $check: 'showMessage',
             $children: [
               { p: 'This message is conditionally shown' }
             ]
@@ -338,61 +342,181 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
 }
 ```
 
-**Negation with `$not`:**
+**Truthiness rules:**
+- **Truthy values:** `true`, non-empty strings, non-zero numbers, objects, arrays
+- **Falsy values:** `false`, `null`, `undefined`, `0`, `""` (empty string), `NaN`
+
+### Comparison Operators
+
+#### Less Than (`$<`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$<': 18,
+      $children: [
+        { p: 'Minor' }
+      ]
+    }
+  },
+  data: { age: 15 }
+}
+```
+→ `<p>Minor</p>`
+
+#### Greater Than (`$>`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'score',
+      '$>': 90,
+      $children: [
+        { p: 'Excellent!' }
+      ]
+    }
+  },
+  data: { score: 95 }
+}
+```
+→ `<p>Excellent!</p>`
+
+#### Strict Equality (`$=`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'status',
+      '$=': 'active',
+      $children: [
+        { p: 'User is active' }
+      ]
+    }
+  },
+  data: { status: 'active' }
+}
+```
+→ `<p>User is active</p>`
+
+#### Array Membership (`$in`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'role',
+      $in: ['admin', 'moderator', 'editor'],
+      $children: [
+        { p: 'Has special privileges' }
+      ]
+    }
+  },
+  data: { role: 'admin' }
+}
+```
+→ `<p>Has special privileges</p>`
+
+### Stacking Operators
+
+Multiple operators can be used together. By default, they use AND logic (all must be true):
+
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$>': 18,
+      '$<': 65,
+      $children: [
+        { p: 'Working age adult' }
+      ]
+    }
+  },
+  data: { age: 30 }
+}
+```
+→ `<p>Working age adult</p>` (renders because age > 18 AND age < 65)
+
+### OR Logic
+
+Use `$or: true` to change from AND to OR logic (at least one must be true):
+
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$<': 18,
+      '$>': 65,
+      $or: true,
+      $children: [
+        { p: 'Non-working age' }
+      ]
+    }
+  },
+  data: { age: 70 }
+}
+```
+→ `<p>Non-working age</p>` (renders because age > 65, even though age is not < 18)
+
+### Negation with `$not`
+
+The `$not` modifier inverts the entire result after all operators are evaluated:
+
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$<': 18,
+      $not: true,
+      $children: [
+        { p: 'Adult' }
+      ]
+    }
+  },
+  data: { age: 25 }
+}
+```
+→ `<p>Adult</p>` (renders because NOT(age < 18) = true)
+
+### Complex Example
+
 ```javascript
 {
   template: {
     div: {
       $children: [
         {
-          if: {
-            $bind: 'isGuest',
+          $if: {
+            $check: 'user.status',
+            '$=': 'pending',
+            $in: ['error', 'failed'],
+            $or: true,
             $not: true,
             $children: [
-              { p: 'Welcome back, member!' }
+              { p: 'Valid user status' }
             ]
           }
         }
       ]
     }
   },
-  data: { isGuest: false }
+  data: { user: { status: 'active' } }
 }
 ```
-→ Renders the paragraph because `isGuest` is false and `$not` inverts the check
+→ Renders because status is NOT ('pending' OR in ['error', 'failed'])
 
-**Truthiness rules:**
-The `if` tag follows standard JavaScript truthiness:
-- **Truthy values:** `true`, non-empty strings, non-zero numbers, objects, arrays
-- **Falsy values:** `false`, `null`, `undefined`, `0`, `""` (empty string), `NaN`
+### Nested Property Access
 
-**Examples:**
-
-Conditional rendering with boolean:
-```javascript
-{
-  template: {
-    if: {
-      $bind: 'isLoggedIn',
-      $children: [
-        { div: 'Welcome back!' }
-      ]
-    }
-  },
-  data: { isLoggedIn: true }
-}
-```
-→ `<div>Welcome back!</div>`
-
-Conditional rendering with nested property:
 ```javascript
 {
   template: {
     div: {
       $children: [
         {
-          if: {
-            $bind: 'user.isAdmin',
+          $if: {
+            $check: 'user.isAdmin',
             $children: [
               { p: 'Admin panel access' }
             ]
@@ -410,8 +534,8 @@ When condition is falsy, nothing is rendered:
 ```javascript
 {
   template: {
-    if: {
-      $bind: 'showBanner',
+    $if: {
+      $check: 'showBanner',
       $children: [
         { div: 'Banner content' }
       ]
@@ -422,20 +546,20 @@ When condition is falsy, nothing is rendered:
 ```
 → `` (empty string)
 
-Nested if tags for complex conditions:
+Nested $if tags for complex conditions:
 ```javascript
 {
   template: {
     div: {
       $children: [
         {
-          if: {
-            $bind: 'hasPermissions',
+          $if: {
+            $check: 'hasPermissions',
             $children: [
               { h2: 'Protected content' },
               {
-                if: {
-                  $bind: 'isVerified',
+                $if: {
+                  $check: 'isVerified',
                   $children: [
                     { p: 'Verified user content' }
                   ]
@@ -460,8 +584,8 @@ Nested if tags for complex conditions:
       class: 'status',
       $children: [
         {
-          if: {
-            $bind: 'count',
+          $if: {
+            $check: 'count',
             $not: true,
             $children: [
               { p: 'No items available' }
@@ -481,11 +605,25 @@ Nested if tags for complex conditions:
   },
   data: { count: 0 }
 }
+        },
+        {
+          $if: {
+            $check: 'count',
+            $children: [
+              { p: 'Items found: {{count}}' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { count: 0 }
+}
 ```
 → `<div class="status"><p>No items available</p></div>`
 
 **Restrictions:**
-- The `if` tag **requires** a `$bind` attribute
-- The `if` tag **cannot** have any other attributes (like `class`, `id`, etc.)
-- The optional `$not` attribute must be a boolean (`true` or `false`)
-- If you need a wrapper element with attributes, use a regular tag inside the `if` tag's children  
+- The `$if` tag **requires** a `$check` attribute
+- The `$if` tag **cannot** have regular HTML attributes (like `class`, `id`, etc.)
+- Only special operators (`$<`, `$>`, `$=`, `$in`) and modifiers (`$not`, `$and`, `$or`) are allowed
+- If you need a wrapper element with attributes, use a regular tag inside the `$if` tag's children  
