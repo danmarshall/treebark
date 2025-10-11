@@ -23,8 +23,8 @@ export type TemplateAttributes = {
   $bind?: string;
   $check?: string;  // v2.0: for $if tag
   $children?: (string | TemplateObject)[];
-  $thenChildren?: (string | TemplateObject)[]; // v2.0: children when condition is true
-  $elseChildren?: (string | TemplateObject)[]; // v2.0: children when condition is false
+  $then?: string | TemplateObject; // v2.0: single element when condition is true
+  $else?: string | TemplateObject; // v2.0: single element when condition is false
   $not?: boolean;
   // Operators for $if tag
   '$<'?: unknown;
@@ -34,9 +34,6 @@ export type TemplateAttributes = {
   // Modifiers for $if tag
   $and?: boolean;
   $or?: boolean;
-  // Conditional values (deprecated in favor of $thenChildren/$elseChildren)
-  $then?: unknown;
-  $else?: unknown;
   [key: string]: unknown;
 };
 

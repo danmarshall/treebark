@@ -910,7 +910,7 @@ export const ifTagTests: TestCase[] = [
     }
   },
   {
-    name: 'works with multiple children',
+    name: 'works with multiple children (wrapped in div)',
     input: {
       template: {
         div: {
@@ -918,11 +918,15 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'showContent',
-                $children: [
-                  { h1: 'Title' },
-                  { p: 'Paragraph 1' },
-                  { p: 'Paragraph 2' }
-                ]
+                $then: {
+                  div: {
+                    $children: [
+                      { h1: 'Title' },
+                      { p: 'Paragraph 1' },
+                      { p: 'Paragraph 2' }
+                    ]
+                  }
+                }
               }
             }
           ]
@@ -940,17 +944,19 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'level1',
-                $children: [
-                  { p: 'Level 1 visible' },
-                  {
-                    $if: {
-                      $check: 'level2',
-                      $children: [
-                        { p: 'Level 2 visible' }
-                      ]
-                    }
+                $then: {
+                  div: {
+                    $children: [
+                      { p: 'Level 1 visible' },
+                      {
+                        $if: {
+                          $check: 'level2',
+                          $then: { p: 'Level 2 visible' }
+                        }
+                      }
+                    ]
                   }
-                ]
+                }
               }
             }
           ]
@@ -1105,11 +1111,15 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'show',
-                $children: [
-                  { p: 'First' },
-                  { p: 'Second' },
-                  { p: 'Third' }
-                ]
+                $then: {
+                  div: {
+                    $children: [
+                      { p: 'First' },
+                      { p: 'Second' },
+                      { p: 'Third' }
+                    ]
+                  }
+                }
               }
             },
             { p: 'After' }
@@ -1135,11 +1145,15 @@ export const ifTagTests: TestCase[] = [
                   {
                     $if: {
                       $check: 'show',
-                      $children: [
-                        { p: 'First' },
-                        { p: 'Second' },
-                        { p: 'Third' }
-                      ]
+                      $then: {
+                        div: {
+                          $children: [
+                            { p: 'First' },
+                            { p: 'Second' },
+                            { p: 'Third' }
+                          ]
+                        }
+                      }
                     }
                   }
                 ]
@@ -1463,10 +1477,10 @@ export const ifTagOperatorTests: TestCase[] = [
   }
 ];
 
-// $thenChildren and $elseChildren tests
+// $then and $else tests
 export const ifTagThenElseTests: TestCase[] = [
   {
-    name: 'renders $thenChildren when condition is true',
+    name: 'renders $then when condition is true',
     input: {
       template: {
         div: {
@@ -1474,9 +1488,7 @@ export const ifTagThenElseTests: TestCase[] = [
             {
               $if: {
                 $check: 'isActive',
-                $thenChildren: [
-                  { p: 'Active user' }
-                ]
+                $then: { p: 'Active user' }
               }
             }
           ]
@@ -1486,7 +1498,7 @@ export const ifTagThenElseTests: TestCase[] = [
     }
   },
   {
-    name: 'renders $elseChildren when condition is false',
+    name: 'renders $else when condition is false',
     input: {
       template: {
         div: {
@@ -1494,12 +1506,8 @@ export const ifTagThenElseTests: TestCase[] = [
             {
               $if: {
                 $check: 'isActive',
-                $thenChildren: [
-                  { p: 'Active user' }
-                ],
-                $elseChildren: [
-                  { p: 'Inactive user' }
-                ]
+                $then: { p: 'Active user' },
+                $else: { p: 'Inactive user' }
               }
             }
           ]
@@ -1509,7 +1517,7 @@ export const ifTagThenElseTests: TestCase[] = [
     }
   },
   {
-    name: 'renders $thenChildren when condition is true with both branches',
+    name: 'renders $then when condition is true with both branches',
     input: {
       template: {
         div: {
@@ -1518,12 +1526,8 @@ export const ifTagThenElseTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>': 90,
-                $thenChildren: [
-                  { p: 'Excellent!' }
-                ],
-                $elseChildren: [
-                  { p: 'Keep trying!' }
-                ]
+                $then: { p: 'Excellent!' },
+                $else: { p: 'Keep trying!' }
               }
             }
           ]
@@ -1533,7 +1537,7 @@ export const ifTagThenElseTests: TestCase[] = [
     }
   },
   {
-    name: 'renders empty when $elseChildren not provided and condition false',
+    name: 'renders empty when $else not provided and condition false',
     input: {
       template: {
         div: {
@@ -1541,9 +1545,7 @@ export const ifTagThenElseTests: TestCase[] = [
             {
               $if: {
                 $check: 'show',
-                $thenChildren: [
-                  { p: 'Content' }
-                ]
+                $then: { p: 'Content' }
               }
             }
           ]

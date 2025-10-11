@@ -701,11 +701,11 @@ describe('String Renderer', () => {
           case 'works with nested property access':
             expect(result).toBe('<div><p>Admin panel</p></div>');
             break;
-          case 'works with multiple children':
-            expect(result).toBe('<div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div>');
+          case 'works with multiple children (wrapped in div)':
+            expect(result).toBe('<div><div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div></div>');
             break;
           case 'works with nested if tags':
-            expect(result).toBe('<div><p>Level 1 visible</p><p>Level 2 visible</p></div>');
+            expect(result).toBe('<div><div><p>Level 1 visible</p><p>Level 2 visible</p></div></div>');
             break;
           case 'works at root level':
             expect(result).toBe('<div>Content</div>');
@@ -729,10 +729,10 @@ describe('String Renderer', () => {
             expect(result).toBe('<div><p>No message provided</p></div>');
             break;
           case 'preserves indentation with multiple children (one level)':
-            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <p>First</p>\n  <p>Second</p>\n  <p>Third</p>\n  <p>After</p>\n</div>');
+            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <div>\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>After</p>\n</div>');
             break;
           case 'preserves indentation with multiple children (two levels)':
-            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
+            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div>');
             break;
         }
       });
@@ -788,20 +788,20 @@ describe('String Renderer', () => {
       });
     });
 
-    // $thenChildren and $elseChildren tests
+    // $then and $else tests
     ifTagThenElseTests.forEach(testCase => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
-          case 'renders $thenChildren when condition is true':
+          case 'renders $then when condition is true':
             expect(result).toBe('<div><p>Active user</p></div>');
             break;
-          case 'renders $elseChildren when condition is false':
+          case 'renders $else when condition is false':
             expect(result).toBe('<div><p>Inactive user</p></div>');
             break;
-          case 'renders $thenChildren when condition is true with both branches':
+          case 'renders $then when condition is true with both branches':
             expect(result).toBe('<div><p>Excellent!</p></div>');
             break;
-          case 'renders empty when $elseChildren not provided and condition false':
+          case 'renders empty when $else not provided and condition false':
             expect(result).toBe('<div></div>');
             break;
         }
