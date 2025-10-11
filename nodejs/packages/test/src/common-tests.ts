@@ -1155,6 +1155,309 @@ export const ifTagTests: TestCase[] = [
   }
 ];
 
+// New operator tests for 'if' tag
+export const ifTagOperatorTests: TestCase[] = [
+  {
+    name: 'works with $condition instead of $bind',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'showMessage',
+                $children: [
+                  { p: 'Using $condition' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showMessage: true }
+    }
+  },
+  {
+    name: 'works with $condition and $not',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'isHidden',
+                $not: true,
+                $children: [
+                  { p: 'Not hidden' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { isHidden: false }
+    }
+  },
+  {
+    name: 'works with $equals operator (string match)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'status',
+                $equals: 'active',
+                $children: [
+                  { p: 'Status is active' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'does not render when $equals does not match',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $condition: 'status',
+                $equals: 'active',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { status: 'inactive' }
+    }
+  },
+  {
+    name: 'works with $equals operator (number match)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'count',
+                $equals: 5,
+                $children: [
+                  { p: 'Count is exactly 5' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 5 }
+    }
+  },
+  {
+    name: 'works with $equals operator (boolean match)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'isActive',
+                $equals: true,
+                $children: [
+                  { p: 'Is active' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'works with $equals and $not (inverted equality)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'status',
+                $equals: 'inactive',
+                $not: true,
+                $children: [
+                  { p: 'Status is not inactive' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'works with $notEquals operator',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'status',
+                $notEquals: 'inactive',
+                $children: [
+                  { p: 'Status is not inactive' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'does not render when $notEquals matches',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $condition: 'status',
+                $notEquals: 'active',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'works with $notEquals and $not (double negation)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'status',
+                $notEquals: 'active',
+                $not: true,
+                $children: [
+                  { p: 'Status is active (double negation)' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'works with $equals checking null',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'value',
+                $equals: null,
+                $children: [
+                  { p: 'Value is null' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: null }
+    }
+  },
+  {
+    name: 'works with $equals checking 0',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'count',
+                $equals: 0,
+                $children: [
+                  { p: 'Count is zero' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 0 }
+    }
+  },
+  {
+    name: 'works with $equals checking empty string',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $condition: 'message',
+                $equals: '',
+                $children: [
+                  { p: 'Message is empty' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { message: '' }
+    }
+  },
+  {
+    name: 'backward compatibility: $bind still works with operators',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'status',
+                $equals: 'ready',
+                $children: [
+                  { p: 'Ready to go' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'ready' }
+    }
+  }
+];
+
 export const ifTagErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error when if tag has no $bind or $condition',
