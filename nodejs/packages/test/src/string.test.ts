@@ -15,6 +15,7 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
+  ifTagOperatorTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -730,6 +731,56 @@ describe('String Renderer', () => {
             break;
           case 'preserves indentation with multiple children (two levels)':
             expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
+            break;
+        }
+      });
+    });
+
+    // Operator tests
+    ifTagOperatorTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'less than operator: renders when true':
+            expect(result).toBe('<div><p>Minor</p></div>');
+            break;
+          case 'less than operator: does not render when false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'greater than operator: renders when true':
+            expect(result).toBe('<div><p>Excellent</p></div>');
+            break;
+          case 'greater than operator: does not render when false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'equals operator: renders when equal':
+            expect(result).toBe('<div><p>User is active</p></div>');
+            break;
+          case 'equals operator: does not render when not equal':
+            expect(result).toBe('<div></div>');
+            break;
+          case '$in operator: renders when value is in array':
+            expect(result).toBe('<div><p>Has special privileges</p></div>');
+            break;
+          case '$in operator: does not render when value is not in array':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'multiple operators with AND (default): all must be true':
+            expect(result).toBe('<div><p>Working age adult</p></div>');
+            break;
+          case 'multiple operators with AND: does not render if one is false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'multiple operators with OR: renders if one is true':
+            expect(result).toBe('<div><p>Non-working age</p></div>');
+            break;
+          case 'multiple operators with OR: does not render if all are false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'operator with $not: inverts result':
+            expect(result).toBe('<div><p>Adult</p></div>');
+            break;
+          case 'complex condition: multiple operators with OR and $not':
+            expect(result).toBe('<div><p>Valid status</p></div>');
             break;
         }
       });

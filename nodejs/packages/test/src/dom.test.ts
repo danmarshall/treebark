@@ -18,6 +18,7 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
+  ifTagOperatorTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -589,6 +590,57 @@ describe('DOM Renderer', () => {
             expect(div.querySelector('div + p')?.textContent).toBe('Footer');
             break;
           }
+        }
+      });
+    });
+
+    // Operator tests
+    ifTagOperatorTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'less than operator: renders when true':
+            expect(div.querySelector('p')?.textContent).toBe('Minor');
+            break;
+          case 'less than operator: does not render when false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'greater than operator: renders when true':
+            expect(div.querySelector('p')?.textContent).toBe('Excellent');
+            break;
+          case 'greater than operator: does not render when false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'equals operator: renders when equal':
+            expect(div.querySelector('p')?.textContent).toBe('User is active');
+            break;
+          case 'equals operator: does not render when not equal':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case '$in operator: renders when value is in array':
+            expect(div.querySelector('p')?.textContent).toBe('Has special privileges');
+            break;
+          case '$in operator: does not render when value is not in array':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'multiple operators with AND (default): all must be true':
+            expect(div.querySelector('p')?.textContent).toBe('Working age adult');
+            break;
+          case 'multiple operators with AND: does not render if one is false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'multiple operators with OR: renders if one is true':
+            expect(div.querySelector('p')?.textContent).toBe('Non-working age');
+            break;
+          case 'multiple operators with OR: does not render if all are false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'operator with $not: inverts result':
+            expect(div.querySelector('p')?.textContent).toBe('Adult');
+            break;
+          case 'complex condition: multiple operators with OR and $not':
+            expect(div.querySelector('p')?.textContent).toBe('Valid status');
+            break;
         }
       });
     });
