@@ -1,5 +1,6 @@
 import {
   TemplateElement,
+  TemplateObject,
   TreebarkInput,
   Data,
   ALLOWED_TAGS,
@@ -9,10 +10,14 @@ import {
   escape,
   validateAttribute,
   hasBinding,
+  hasCondition,
+  getConditionExpression,
   validateBindExpression,
+  evaluateCondition,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  TemplateAttributes
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -115,23 +120,31 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Special handling for "if" tag
   if (tag === 'if') {
-    // "if" tag requires $bind
-    if (!hasBinding(rest)) {
-      throw new Error('"if" tag requires $bind attribute to specify the condition');
+    // Type guard: ensure rest is TemplateAttributes
+    if (typeof rest !== 'object' || Array.isArray(rest)) {
+      throw new Error('"if" tag requires attributes object');
     }
     
-    validateBindExpression(rest.$bind);
-    const bound = getProperty(data, rest.$bind, parents);
-    const { $bind, $children = [], $not, ...bindAttrs } = rest;
+    const restAttrs = rest as TemplateAttributes;
+    
+    // "if" tag requires $bind or $condition
+    const conditionExpr = getConditionExpression(restAttrs);
+    if (!conditionExpr) {
+      throw new Error('"if" tag requires $bind or $condition attribute to specify the condition');
+    }
+    
+    validateBindExpression(conditionExpr);
+    const bound = getProperty(data, conditionExpr, parents);
+    const { $bind, $condition, $children = [], $not, $equals, $notEquals, ...bindAttrs } = restAttrs;
     
     // Check if any non-reserved attributes were provided
     const hasAttrs = Object.keys(bindAttrs).length > 0;
     if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+      throw new Error('"if" tag does not support attributes, only $bind/$condition, $not, $equals, $notEquals, and $children');
     }
     
-    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
-    const condition = $not ? !Boolean(bound) : Boolean(bound);
+    // Evaluate condition with operators
+    const condition = evaluateCondition(bound, { $not, $equals, $notEquals });
     
     // Only render children if condition is true
     if (!condition) {
@@ -141,7 +154,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     // Render children without wrapping tag
     if (!context.indentStr) {
       // No indentation: simple join
-      return $children.map(child => render(child, data, context)).join('');
+      return $children.map((child: string | TemplateObject) => render(child, data, context)).join('');
     }
     
     // With indentation: each child needs proper indentation since they won't go
@@ -149,7 +162,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const currentLevel = context.level || 0;
     const indent = context.indentStr.repeat(currentLevel);
     
-    return $children.map((child, index) => {
+    return $children.map((child: string | TemplateObject, index: number) => {
       const content = render(child, data, context);
       // Only the first child might get indented by parent's processContent,
       // so we need to add indentation to subsequent children

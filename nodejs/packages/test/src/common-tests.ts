@@ -1157,7 +1157,7 @@ export const ifTagTests: TestCase[] = [
 
 export const ifTagErrorTests: ErrorTestCase[] = [
   {
-    name: 'throws error when if tag has no $bind',
+    name: 'throws error when if tag has no $bind or $condition',
     input: {
       template: {
         if: {
@@ -1168,7 +1168,7 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       },
       data: {}
     },
-    expectedError: '"if" tag requires $bind attribute'
+    expectedError: '"if" tag requires $bind or $condition attribute'
   },
   {
     name: 'throws error when if tag has attributes',

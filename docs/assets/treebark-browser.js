@@ -103,6 +103,9 @@
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
+  function getConditionExpression(rest) {
+    return rest.$condition ?? rest.$bind;
+  }
   function validateBindExpression(bindValue) {
     if (bindValue === ".") {
       return;
@@ -113,6 +116,18 @@
     if (bindValue.includes("{{")) {
       throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
     }
+  }
+  function evaluateCondition(boundValue, operators) {
+    if ("$equals" in operators && operators.$equals !== void 0) {
+      const result = boundValue === operators.$equals;
+      return operators.$not ? !result : result;
+    }
+    if ("$notEquals" in operators && operators.$notEquals !== void 0) {
+      const result = boundValue !== operators.$notEquals;
+      return operators.$not ? !result : result;
+    }
+    const isTruthy = Boolean(boundValue);
+    return operators.$not ? !isTruthy : isTruthy;
   }
   function templateHasCurrentObjectBinding(template) {
     if (Array.isArray(template) || typeof template !== "object" || template === null) {
@@ -201,17 +216,22 @@
       throw new Error("Nested comments are not allowed");
     }
     if (tag === "if") {
-      if (!hasBinding(rest)) {
-        throw new Error('"if" tag requires $bind attribute to specify the condition');
+      if (typeof rest !== "object" || Array.isArray(rest)) {
+        throw new Error('"if" tag requires attributes object');
       }
-      validateBindExpression(rest.$bind);
-      const bound = getProperty(data, rest.$bind, parents);
-      const { $bind, $children = [], $not, ...bindAttrs } = rest;
+      const restAttrs = rest;
+      const conditionExpr = getConditionExpression(restAttrs);
+      if (!conditionExpr) {
+        throw new Error('"if" tag requires $bind or $condition attribute to specify the condition');
+      }
+      validateBindExpression(conditionExpr);
+      const bound = getProperty(data, conditionExpr, parents);
+      const { $bind, $condition, $children = [], $not, $equals, $notEquals, ...bindAttrs } = restAttrs;
       const hasAttrs = Object.keys(bindAttrs).length > 0;
       if (hasAttrs) {
-        throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+        throw new Error('"if" tag does not support attributes, only $bind/$condition, $not, $equals, $notEquals, and $children');
       }
-      const condition = $not ? !Boolean(bound) : Boolean(bound);
+      const condition = evaluateCondition(bound, { $not, $equals, $notEquals });
       if (!condition) {
         return "";
       }
