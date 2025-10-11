@@ -97,6 +97,21 @@ describe('DOM Renderer', () => {
           case 'handles escaped interpolation':
             expect(fragment.textContent).toBe('Hello {{name}}!');
             break;
+          case 'interpolates .length property of array': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.textContent).toBe('Array has 3 items');
+            break;
+          }
+          case 'interpolates .property of current object': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.textContent).toBe('Name: Alice');
+            break;
+          }
+          case 'interpolates nested .property': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.textContent).toBe('Admin: true');
+            break;
+          }
         }
       });
     });
@@ -587,6 +602,32 @@ describe('DOM Renderer', () => {
             expect(paragraphs?.[1].textContent).toBe('Second');
             expect(paragraphs?.[2].textContent).toBe('Third');
             expect(div.querySelector('div + p')?.textContent).toBe('Footer');
+            break;
+          }
+          case 'checks .length property of array data': {
+            const p = fragment.firstChild as HTMLElement;
+            expect(p.tagName).toBe('P');
+            expect(p.textContent).toBe('Array has items');
+            break;
+          }
+          case 'checks .length property of empty array': {
+            expect(fragment.childNodes.length).toBe(0);
+            break;
+          }
+          case 'checks .length property with $not': {
+            const p = fragment.firstChild as HTMLElement;
+            expect(p.tagName).toBe('P');
+            expect(p.textContent).toBe('Array is empty');
+            break;
+          }
+          case 'accesses property of current object with .property': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('User is active');
+            break;
+          }
+          case 'accesses nested property with .prop.nested': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Admin access');
             break;
           }
         }

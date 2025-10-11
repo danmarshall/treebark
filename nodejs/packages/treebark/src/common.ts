@@ -73,6 +73,17 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
     return obj;
   }
 
+  // Handle paths starting with "." followed by a property (e.g., ".length", ".name")
+  if (path.startsWith('.') && !path.startsWith('..')) {
+    // Remove the leading "." and process the rest as a property path on the current object
+    const propertyPath = path.substring(1);
+    if (propertyPath) {
+      return propertyPath.split('.').reduce((o: unknown, k: string): unknown =>
+        (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), obj);
+    }
+    return obj;
+  }
+
   // Handle parent property access patterns
   let currentObj: unknown = obj;
   let remainingPath = path;
@@ -175,6 +186,15 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
 export function validateBindExpression(bindValue: string): void {
   // Allow single dot "." to bind to current data object
   if (bindValue === '.') {
+    return;
+  }
+  
+  // Allow paths starting with "." followed by property names (e.g., ".length", ".name")
+  if (bindValue.startsWith('.') && !bindValue.startsWith('..')) {
+    // Check for interpolation in the property path
+    if (bindValue.includes('{{')) {
+      throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+    }
     return;
   }
 

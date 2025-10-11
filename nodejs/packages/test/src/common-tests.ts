@@ -110,6 +110,27 @@ export const dataInterpolationTests: TestCase[] = [
       template: 'Hello {{{name}}}!',
       data: { name: 'Alice' }
     }
+  },
+  {
+    name: 'interpolates .length property of array',
+    input: {
+      template: [{ div: 'Array has {{.length}} items' }],
+      data: ['a', 'b', 'c']
+    }
+  },
+  {
+    name: 'interpolates .property of current object',
+    input: {
+      template: { div: 'Name: {{.name}}' },
+      data: { name: 'Alice', age: 25 }
+    }
+  },
+  {
+    name: 'interpolates nested .property',
+    input: {
+      template: { div: 'Admin: {{.user.isAdmin}}' },
+      data: { user: { isAdmin: true } }
+    }
   }
 ];
 
@@ -1152,6 +1173,95 @@ export const ifTagTests: TestCase[] = [
       data: { show: true }
     },
     options: { indent: true }
+  },
+  {
+    name: 'checks .length property of array data',
+    input: {
+      template: [
+        {
+          if: {
+            $bind: '.length',
+            $children: [
+              { p: 'Array has items' }
+            ]
+          }
+        }
+      ],
+      data: ['item1', 'item2', 'item3']
+    }
+  },
+  {
+    name: 'checks .length property of empty array',
+    input: {
+      template: [
+        {
+          if: {
+            $bind: '.length',
+            $children: [
+              { p: 'Array has items' }
+            ]
+          }
+        }
+      ],
+      data: []
+    }
+  },
+  {
+    name: 'checks .length property with $not',
+    input: {
+      template: [
+        {
+          if: {
+            $bind: '.length',
+            $not: true,
+            $children: [
+              { p: 'Array is empty' }
+            ]
+          }
+        }
+      ],
+      data: []
+    }
+  },
+  {
+    name: 'accesses property of current object with .property',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: '.active',
+                $children: [
+                  { p: 'User is active' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { active: true, name: 'Alice' }
+    }
+  },
+  {
+    name: 'accesses nested property with .prop.nested',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: '.user.isAdmin',
+                $children: [
+                  { p: 'Admin access' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { user: { isAdmin: true } }
+    }
   }
 ];
 

@@ -66,6 +66,15 @@ describe('String Renderer', () => {
           case 'handles escaped interpolation':
             expect(result).toBe('Hello {{name}}!');
             break;
+          case 'interpolates .length property of array':
+            expect(result).toBe('<div>Array has 3 items</div>');
+            break;
+          case 'interpolates .property of current object':
+            expect(result).toBe('<div>Name: Alice</div>');
+            break;
+          case 'interpolates nested .property':
+            expect(result).toBe('<div>Admin: true</div>');
+            break;
         }
       });
     });
@@ -730,6 +739,21 @@ describe('String Renderer', () => {
             break;
           case 'preserves indentation with multiple children (two levels)':
             expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
+            break;
+          case 'checks .length property of array data':
+            expect(result).toBe('<p>Array has items</p>');
+            break;
+          case 'checks .length property of empty array':
+            expect(result).toBe('');
+            break;
+          case 'checks .length property with $not':
+            expect(result).toBe('<p>Array is empty</p>');
+            break;
+          case 'accesses property of current object with .property':
+            expect(result).toBe('<div><p>User is active</p></div>');
+            break;
+          case 'accesses nested property with .prop.nested':
+            expect(result).toBe('<div><p>Admin access</p></div>');
             break;
         }
       });

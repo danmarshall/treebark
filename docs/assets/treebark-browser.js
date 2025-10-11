@@ -54,6 +54,13 @@
     if (path === ".") {
       return obj;
     }
+    if (path.startsWith(".") && !path.startsWith("..")) {
+      const propertyPath = path.substring(1);
+      if (propertyPath) {
+        return propertyPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, obj);
+      }
+      return obj;
+    }
     let currentObj = obj;
     let remainingPath = path;
     while (remainingPath.startsWith("..")) {
@@ -105,6 +112,12 @@
   }
   function validateBindExpression(bindValue) {
     if (bindValue === ".") {
+      return;
+    }
+    if (bindValue.startsWith(".") && !bindValue.startsWith("..")) {
+      if (bindValue.includes("{{")) {
+        throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+      }
       return;
     }
     if (bindValue.includes("..")) {
