@@ -15,7 +15,6 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
-  ifTagOperatorTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -731,55 +730,6 @@ describe('String Renderer', () => {
             break;
           case 'preserves indentation with multiple children (two levels)':
             expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
-            break;
-        }
-      });
-    });
-
-    ifTagOperatorTests.forEach(testCase => {
-      createTest(testCase, renderToString, (result, tc) => {
-        switch (tc.name) {
-          case 'works with $condition instead of $bind':
-            expect(result).toBe('<div><p>Using $condition</p></div>');
-            break;
-          case 'works with $condition and $not':
-            expect(result).toBe('<div><p>Not hidden</p></div>');
-            break;
-          case 'works with $equals operator (string match)':
-            expect(result).toBe('<div><p>Status is active</p></div>');
-            break;
-          case 'does not render when $equals does not match':
-            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
-            break;
-          case 'works with $equals operator (number match)':
-            expect(result).toBe('<div><p>Count is exactly 5</p></div>');
-            break;
-          case 'works with $equals operator (boolean match)':
-            expect(result).toBe('<div><p>Is active</p></div>');
-            break;
-          case 'works with $equals and $not (inverted equality)':
-            expect(result).toBe('<div><p>Status is not inactive</p></div>');
-            break;
-          case 'works with $notEquals operator':
-            expect(result).toBe('<div><p>Status is not inactive</p></div>');
-            break;
-          case 'does not render when $notEquals matches':
-            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
-            break;
-          case 'works with $notEquals and $not (double negation)':
-            expect(result).toBe('<div><p>Status is active (double negation)</p></div>');
-            break;
-          case 'works with $equals checking null':
-            expect(result).toBe('<div><p>Value is null</p></div>');
-            break;
-          case 'works with $equals checking 0':
-            expect(result).toBe('<div><p>Count is zero</p></div>');
-            break;
-          case 'works with $equals checking empty string':
-            expect(result).toBe('<div><p>Message is empty</p></div>');
-            break;
-          case 'backward compatibility: $bind still works with operators':
-            expect(result).toBe('<div><p>Ready to go</p></div>');
             break;
         }
       });

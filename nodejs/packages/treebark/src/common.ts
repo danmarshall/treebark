@@ -5,11 +5,8 @@ export type Data = Record<string, unknown> | Record<string, unknown>[];
 // Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
-  $condition?: string;  // Alias for $bind, clearer for 'if' tag usage
   $children?: (string | TemplateObject)[];
   $not?: boolean;
-  $equals?: unknown;
-  $notEquals?: unknown;
   [key: string]: unknown;
 };
 
@@ -173,21 +170,7 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
 }
 
 /**
- * Check if a template object has a condition (for 'if' tag)
- */
-export function hasCondition(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $condition: string } {
-  return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$condition' in rest;
-}
-
-/**
- * Get the condition expression from an 'if' tag (supports both $condition and $bind)
- */
-export function getConditionExpression(rest: TemplateAttributes): string | undefined {
-  return rest.$condition ?? rest.$bind;
-}
-
-/**
- * Validate $bind or $condition expression - no parent context access or interpolation
+ * Validate $bind expression - no parent context access or interpolation
  */
 export function validateBindExpression(bindValue: string): void {
   // Allow single dot "." to bind to current data object
@@ -201,31 +184,6 @@ export function validateBindExpression(bindValue: string): void {
   if (bindValue.includes('{{')) {
     throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
   }
-}
-
-/**
- * Evaluate a condition for the 'if' tag with support for operators
- */
-export function evaluateCondition(boundValue: unknown, operators: {
-  $not?: boolean;
-  $equals?: unknown;
-  $notEquals?: unknown;
-}): boolean {
-  // Handle $equals operator first (most specific)
-  if ('$equals' in operators && operators.$equals !== undefined) {
-    const result = boundValue === operators.$equals;
-    return operators.$not ? !result : result;
-  }
-
-  // Handle $notEquals operator
-  if ('$notEquals' in operators && operators.$notEquals !== undefined) {
-    const result = boundValue !== operators.$notEquals;
-    return operators.$not ? !result : result;
-  }
-
-  // Default: check truthiness with optional negation
-  const isTruthy = Boolean(boundValue);
-  return operators.$not ? !isTruthy : isTruthy;
 }
 
 /**

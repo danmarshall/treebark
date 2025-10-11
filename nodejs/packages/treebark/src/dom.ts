@@ -9,14 +9,10 @@ import {
   interpolate, 
   validateAttribute, 
   hasBinding,
-  hasCondition,
-  getConditionExpression,
   validateBindExpression,
-  evaluateCondition,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions,
-  TemplateAttributes
+  RenderOptions
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -76,31 +72,23 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Special handling for "if" tag
   if (tag === 'if') {
-    // Type guard: ensure rest is TemplateAttributes
-    if (typeof rest !== 'object' || Array.isArray(rest)) {
-      throw new Error('"if" tag requires attributes object');
+    // "if" tag requires $bind
+    if (!hasBinding(rest)) {
+      throw new Error('"if" tag requires $bind attribute to specify the condition');
     }
     
-    const restAttrs = rest as TemplateAttributes;
-    
-    // "if" tag requires $bind or $condition
-    const conditionExpr = getConditionExpression(restAttrs);
-    if (!conditionExpr) {
-      throw new Error('"if" tag requires $bind or $condition attribute to specify the condition');
-    }
-    
-    validateBindExpression(conditionExpr);
-    const bound = getProperty(data, conditionExpr, parents);
-    const { $bind, $condition, $children = [], $not, $equals, $notEquals, ...bindAttrs } = restAttrs;
+    validateBindExpression(rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
+    const { $bind, $children = [], $not, ...bindAttrs } = rest;
     
     // Check if any non-reserved attributes were provided
     const hasAttrs = Object.keys(bindAttrs).length > 0;
     if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind/$condition, $not, $equals, $notEquals, and $children');
+      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
     }
     
-    // Evaluate condition with operators
-    const condition = evaluateCondition(bound, { $not, $equals, $notEquals });
+    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
+    const condition = $not ? !Boolean(bound) : Boolean(bound);
     
     // Only render children if condition is true
     if (!condition) {
