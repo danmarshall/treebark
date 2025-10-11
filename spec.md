@@ -310,14 +310,14 @@ comment:
 The `if` tag provides conditional rendering based on the truthiness of a data property. It acts as a transparent container that renders its children only when a specified condition is truthy.
 
 **Key Features:**
-- Uses `$bind` to specify the condition to check
-- Supports `$not` to invert the condition (render when falsy)
+- Uses `$condition` (or `$bind` for backward compatibility) to specify the condition to check
+- Supports multiple operators: `$not`, `$equals`, `$notEquals`
 - Does not render itself as an HTML element
-- Only renders children when the condition is truthy (or falsy with `$not`)
-- Follows JavaScript truthiness rules
-- Cannot have attributes (only `$bind`, `$not`, and `$children`)
+- Only renders children when the condition evaluates to true
+- Follows JavaScript truthiness rules (when using default behavior)
+- Cannot have attributes (only condition/operators and `$children`)
 
-**Basic usage:**
+**Basic usage with `$condition`:**
 ```javascript
 {
   template: {
@@ -325,7 +325,7 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
       $children: [
         {
           if: {
-            $bind: 'showMessage',
+            $condition: 'showMessage',
             $children: [
               { p: 'This message is conditionally shown' }
             ]
@@ -338,6 +338,8 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
 }
 ```
 
+**Note:** `$bind` can still be used instead of `$condition` for backward compatibility.
+
 **Negation with `$not`:**
 ```javascript
 {
@@ -346,7 +348,7 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
       $children: [
         {
           if: {
-            $bind: 'isGuest',
+            $condition: 'isGuest',
             $not: true,
             $children: [
               { p: 'Welcome back, member!' }
@@ -361,6 +363,52 @@ The `if` tag provides conditional rendering based on the truthiness of a data pr
 ```
 → Renders the paragraph because `isGuest` is false and `$not` inverts the check
 
+**Equality check with `$equals`:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $condition: 'status',
+            $equals: 'active',
+            $children: [
+              { p: 'Your account is active' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { status: 'active' }
+}
+```
+→ Renders only when `status` exactly equals `'active'` (uses `===` comparison)
+
+**Inequality check with `$notEquals`:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $condition: 'userType',
+            $notEquals: 'guest',
+            $children: [
+              { p: 'Welcome registered user' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { userType: 'member' }
+}
+```
+→ Renders when `userType` is not equal to `'guest'`
+
 **Truthiness rules:**
 The `if` tag follows standard JavaScript truthiness:
 - **Truthy values:** `true`, non-empty strings, non-zero numbers, objects, arrays
@@ -373,7 +421,7 @@ Conditional rendering with boolean:
 {
   template: {
     if: {
-      $bind: 'isLoggedIn',
+      $condition: 'isLoggedIn',
       $children: [
         { div: 'Welcome back!' }
       ]
@@ -392,7 +440,7 @@ Conditional rendering with nested property:
       $children: [
         {
           if: {
-            $bind: 'user.isAdmin',
+            $condition: 'user.isAdmin',
             $children: [
               { p: 'Admin panel access' }
             ]
@@ -411,7 +459,7 @@ When condition is falsy, nothing is rendered:
 {
   template: {
     if: {
-      $bind: 'showBanner',
+      $condition: 'showBanner',
       $children: [
         { div: 'Banner content' }
       ]
@@ -430,12 +478,12 @@ Nested if tags for complex conditions:
       $children: [
         {
           if: {
-            $bind: 'hasPermissions',
+            $condition: 'hasPermissions',
             $children: [
               { h2: 'Protected content' },
               {
                 if: {
-                  $bind: 'isVerified',
+                  $condition: 'isVerified',
                   $children: [
                     { p: 'Verified user content' }
                   ]
@@ -461,7 +509,7 @@ Nested if tags for complex conditions:
       $children: [
         {
           if: {
-            $bind: 'count',
+            $condition: 'count',
             $not: true,
             $children: [
               { p: 'No items available' }
@@ -470,7 +518,7 @@ Nested if tags for complex conditions:
         },
         {
           if: {
-            $bind: 'count',
+            $condition: 'count',
             $children: [
               { p: 'Items found: {{count}}' }
             ]
@@ -484,8 +532,78 @@ Nested if tags for complex conditions:
 ```
 → `<div class="status"><p>No items available</p></div>`
 
+**Combining operators:**
+
+Operators can be combined for more complex conditions:
+
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $condition: 'status',
+            $equals: 'inactive',
+            $not: true,
+            $children: [
+              { p: 'Status is NOT inactive' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { status: 'active' }
+}
+```
+→ Combines `$equals` with `$not` for inverted equality check
+
+**Checking falsy values:**
+
+The `$equals` operator can explicitly check for falsy values:
+
+```javascript
+// Check for exactly zero
+{
+  if: {
+    $condition: 'count',
+    $equals: 0,
+    $children: [{ p: 'Count is zero' }]
+  }
+}
+
+// Check for null
+{
+  if: {
+    $condition: 'value',
+    $equals: null,
+    $children: [{ p: 'Value is null' }]
+  }
+}
+
+// Check for empty string
+{
+  if: {
+    $condition: 'message',
+    $equals: '',
+    $children: [{ p: 'No message' }]
+  }
+}
+```
+
+**Operator precedence:**
+
+When multiple operators are present:
+1. `$equals` is evaluated first (most specific)
+2. `$notEquals` is evaluated second
+3. Default truthiness check is used if neither is present
+4. `$not` inverts the result of whichever check was performed
+
 **Restrictions:**
-- The `if` tag **requires** a `$bind` attribute
-- The `if` tag **cannot** have any other attributes (like `class`, `id`, etc.)
-- The optional `$not` attribute must be a boolean (`true` or `false`)
+- The `if` tag **requires** either `$condition` or `$bind` attribute
+- The `if` tag **cannot** have regular HTML attributes (like `class`, `id`, etc.)
+- Only the following special attributes are allowed: `$condition`, `$bind`, `$not`, `$equals`, `$notEquals`, and `$children`
+- The `$not` attribute must be a boolean (`true` or `false`)
+- Only one of `$equals` or `$notEquals` should be used at a time (if both are present, `$equals` takes precedence)
 - If you need a wrapper element with attributes, use a regular tag inside the `if` tag's children  
