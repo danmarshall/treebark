@@ -34,8 +34,8 @@
     "a"
   ]);
   const SPECIAL_TAGS = /* @__PURE__ */ new Set([
-    "comment",
-    "if"
+    "$comment",
+    "$if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
     "img"
@@ -103,6 +103,9 @@
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
+  function hasCheck(rest) {
+    return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$check" in rest;
+  }
   function validateBindExpression(bindValue) {
     if (bindValue === ".") {
       return;
@@ -113,6 +116,50 @@
     if (bindValue.includes("{{")) {
       throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
     }
+  }
+  function validateCheckExpression(checkValue) {
+    if (checkValue === ".") {
+      return;
+    }
+    if (checkValue.includes("..")) {
+      throw new Error(`$check does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $check: "${checkValue}"`);
+    }
+    if (checkValue.includes("{{")) {
+      throw new Error(`$check does not support interpolation {{...}} - use literal property paths only. Invalid: $check: "${checkValue}"`);
+    }
+  }
+  function evaluateCondition(checkValue, attrs) {
+    const operators = [];
+    if ("$<" in attrs) operators.push({ key: "$<", value: attrs["$<"] });
+    if ("$>" in attrs) operators.push({ key: "$>", value: attrs["$>"] });
+    if ("$=" in attrs) operators.push({ key: "$=", value: attrs["$="] });
+    if ("$in" in attrs) operators.push({ key: "$in", value: attrs["$in"] });
+    if (operators.length === 0) {
+      const result = Boolean(checkValue);
+      return attrs.$not ? !result : result;
+    }
+    const results = operators.map((op) => {
+      switch (op.key) {
+        case "$<":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue < op.value;
+        case "$>":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue > op.value;
+        case "$=":
+          return checkValue === op.value;
+        case "$in":
+          return Array.isArray(op.value) && op.value.includes(checkValue);
+        default:
+          return false;
+      }
+    });
+    const useOr = attrs.$or === true;
+    let finalResult;
+    if (useOr) {
+      finalResult = results.some((r) => r);
+    } else {
+      finalResult = results.every((r) => r);
+    }
+    return attrs.$not ? !finalResult : finalResult;
   }
   function templateHasCurrentObjectBinding(template) {
     if (Array.isArray(template) || typeof template !== "object" || template === null) {
@@ -178,7 +225,7 @@
   function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = []) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
     const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
-    if (tag === "comment") {
+    if (tag === "$comment") {
       return `<!--${formattedContent}${parentIndent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
@@ -197,21 +244,22 @@
     if (!ALLOWED_TAGS.has(tag)) {
       throw new Error(`Tag "${tag}" is not allowed`);
     }
-    if (tag === "comment" && context.insideComment) {
+    if (tag === "$comment" && context.insideComment) {
       throw new Error("Nested comments are not allowed");
     }
-    if (tag === "if") {
-      if (!hasBinding(rest)) {
-        throw new Error('"if" tag requires $bind attribute to specify the condition');
+    if (tag === "$if") {
+      if (!hasCheck(rest)) {
+        throw new Error('"$if" tag requires $check attribute to specify the condition');
       }
-      validateBindExpression(rest.$bind);
-      const bound = getProperty(data, rest.$bind, parents);
-      const { $bind, $children = [], $not, ...bindAttrs } = rest;
-      const hasAttrs = Object.keys(bindAttrs).length > 0;
-      if (hasAttrs) {
-        throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+      validateCheckExpression(rest.$check);
+      const checkValue = getProperty(data, rest.$check, parents);
+      const { $check, $children = [], ...restAttrs } = rest;
+      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$=", "$in", "$and", "$or", "$then", "$else"]);
+      const nonReservedAttrs = Object.keys(restAttrs).filter((key) => !reservedKeys.has(key));
+      if (nonReservedAttrs.length > 0) {
+        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $children');
       }
-      const condition = $not ? !Boolean(bound) : Boolean(bound);
+      const condition = evaluateCondition(checkValue, rest);
       if (!condition) {
         return "";
       }
@@ -230,7 +278,7 @@
     }
     const childContext = {
       ...context,
-      insideComment: tag === "comment" || context.insideComment,
+      insideComment: tag === "$comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
     const processContent = (content) => {

@@ -5,8 +5,20 @@ export type Data = Record<string, unknown> | Record<string, unknown>[];
 // Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
+  $check?: string;  // v2.0: replaces $bind for $if tag
   $children?: (string | TemplateObject)[];
   $not?: boolean;
+  // Operators for $if tag
+  '$<'?: unknown;
+  '$>'?: unknown;
+  '$='?: unknown;
+  $in?: unknown[];
+  // Modifiers for $if tag
+  $and?: boolean;
+  $or?: boolean;
+  // Conditional values
+  $then?: unknown;
+  $else?: unknown;
   [key: string]: unknown;
 };
 
@@ -39,8 +51,8 @@ export const CONTAINER_TAGS = new Set([
 
 // Special tags that have unique behavior
 export const SPECIAL_TAGS = new Set([
-  'comment',
-  'if'
+  '$comment',
+  '$if'
 ]);
 
 // Void tags that cannot have children and are self-closing
@@ -170,6 +182,13 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
 }
 
 /**
+ * Check if a template object has a $check structure (for $if tag)
+ */
+export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $check: string } {
+  return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$check' in rest;
+}
+
+/**
  * Validate $bind expression - no parent context access or interpolation
  */
 export function validateBindExpression(bindValue: string): void {
@@ -184,6 +203,79 @@ export function validateBindExpression(bindValue: string): void {
   if (bindValue.includes('{{')) {
     throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
   }
+}
+
+/**
+ * Validate $check expression - no parent context access or interpolation (for $if tag)
+ */
+export function validateCheckExpression(checkValue: string): void {
+  // Allow single dot "." to check current data object
+  if (checkValue === '.') {
+    return;
+  }
+
+  if (checkValue.includes('..')) {
+    throw new Error(`$check does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $check: "${checkValue}"`);
+  }
+  if (checkValue.includes('{{')) {
+    throw new Error(`$check does not support interpolation {{...}} - use literal property paths only. Invalid: $check: "${checkValue}"`);
+  }
+}
+
+/**
+ * Evaluate conditional logic for $if tag
+ * Supports operators: $<, $>, $=, $in
+ * Supports modifiers: $not, $and, $or
+ * Default behavior: truthy check when no operators
+ */
+export function evaluateCondition(
+  checkValue: unknown,
+  attrs: TemplateAttributes
+): boolean {
+  const operators: { key: string; value: unknown }[] = [];
+  
+  // Collect operators
+  if ('$<' in attrs) operators.push({ key: '$<', value: attrs['$<'] });
+  if ('$>' in attrs) operators.push({ key: '$>', value: attrs['$>'] });
+  if ('$=' in attrs) operators.push({ key: '$=', value: attrs['$='] });
+  if ('$in' in attrs) operators.push({ key: '$in', value: attrs['$in'] });
+  
+  // If no operators, use truthy check
+  if (operators.length === 0) {
+    const result = Boolean(checkValue);
+    return attrs.$not ? !result : result;
+  }
+  
+  // Evaluate each operator
+  const results = operators.map(op => {
+    switch (op.key) {
+      case '$<':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue < op.value;
+      case '$>':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue > op.value;
+      case '$=':
+        return checkValue === op.value;
+      case '$in':
+        return Array.isArray(op.value) && op.value.includes(checkValue);
+      default:
+        return false;
+    }
+  });
+  
+  // Combine results using AND or OR logic
+  const useOr = attrs.$or === true;
+  let finalResult: boolean;
+  
+  if (useOr) {
+    // OR logic: at least one must be true
+    finalResult = results.some(r => r);
+  } else {
+    // AND logic (default): all must be true
+    finalResult = results.every(r => r);
+  }
+  
+  // Apply negation if $not is true
+  return attrs.$not ? !finalResult : finalResult;
 }
 
 /**

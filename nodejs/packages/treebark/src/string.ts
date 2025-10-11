@@ -9,7 +9,10 @@ import {
   escape,
   validateAttribute,
   hasBinding,
+  hasCheck,
   validateBindExpression,
+  validateCheckExpression,
+  evaluateCondition,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
@@ -78,8 +81,8 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   // For wrapped content, need to add parent indent before closing tag
   const parentIndent = formattedContent.startsWith('\n') && indentStr ? indentStr.repeat(level || 0) : '';
 
-  // Special handling for comment tags
-  if (tag === 'comment') {
+  // Special handling for $comment tags
+  if (tag === '$comment') {
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
@@ -109,29 +112,30 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     throw new Error(`Tag "${tag}" is not allowed`);
   }
 
-  if (tag === 'comment' && context.insideComment) {
+  if (tag === '$comment' && context.insideComment) {
     throw new Error('Nested comments are not allowed');
   }
 
-  // Special handling for "if" tag
-  if (tag === 'if') {
-    // "if" tag requires $bind
-    if (!hasBinding(rest)) {
-      throw new Error('"if" tag requires $bind attribute to specify the condition');
+  // Special handling for "$if" tag
+  if (tag === '$if') {
+    // "$if" tag requires $check
+    if (!hasCheck(rest)) {
+      throw new Error('"$if" tag requires $check attribute to specify the condition');
     }
     
-    validateBindExpression(rest.$bind);
-    const bound = getProperty(data, rest.$bind, parents);
-    const { $bind, $children = [], $not, ...bindAttrs } = rest;
+    validateCheckExpression(rest.$check);
+    const checkValue = getProperty(data, rest.$check, parents);
+    const { $check, $children = [], ...restAttrs } = rest;
     
-    // Check if any non-reserved attributes were provided
-    const hasAttrs = Object.keys(bindAttrs).length > 0;
-    if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+    // Check if any non-reserved attributes were provided (excluding operators and modifiers)
+    const reservedKeys = new Set(['$not', '$<', '$>', '$=', '$in', '$and', '$or', '$then', '$else']);
+    const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
+    if (nonReservedAttrs.length > 0) {
+      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $children');
     }
     
-    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
-    const condition = $not ? !Boolean(bound) : Boolean(bound);
+    // Evaluate condition using new operator-based logic
+    const condition = evaluateCondition(checkValue, rest);
     
     // Only render children if condition is true
     if (!condition) {
@@ -163,7 +167,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   const childContext = {
     ...context,
-    insideComment: tag === 'comment' || context.insideComment,
+    insideComment: tag === '$comment' || context.insideComment,
     level: (context.level || 0) + 1
   };
 
