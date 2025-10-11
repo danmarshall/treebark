@@ -104,6 +104,9 @@ div:
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
+- Current object access: `{{.}}` → the current data object itself
+- Current object property: `{{.length}}` or `{{.name}}` → properties of the current object
+- Current object nested property: `{{.user.isAdmin}}` → nested properties of the current object
 - Parent access: `{{..parentProp}}` → access parent binding context  
 - Multi-level parent access: `{{../..grandparentProp}}` → access multiple levels up  
 - Escaping:  
@@ -185,6 +188,9 @@ For complex array scenarios where you need a wrapper element or nested structure
 **$bind supports property access patterns:**
 - **Literal property:** `$bind: "products"`
 - **Nested property:** `$bind: "catalog.products"` (single dots for nested object access)
+- **Current object:** `$bind: "."` (binds to the current data object itself)
+- **Current object property:** `$bind: ".length"` or `$bind: ".name"` (accesses properties of the current object)
+- **Current object nested property:** `$bind: ".user.isAdmin"` (accesses nested properties of the current object)
 
 **Note:** `$bind` uses literal property paths only - no interpolation or parent context access. For parent property access, use interpolation `{{..prop}}` in content/attributes instead.
 
@@ -483,6 +489,36 @@ Nested if tags for complex conditions:
 }
 ```
 → `<div class="status"><p>No items available</p></div>`
+
+**Checking array length with `.length`:**
+```javascript
+{
+  template: [
+    {
+      if: {
+        $bind: '.length',
+        $not: true,
+        $children: [
+          { p: 'No items available' }
+        ]
+      }
+    },
+    {
+      if: {
+        $bind: '.length',
+        $children: [
+          { p: 'Items available: {{.length}}' }
+        ]
+      }
+    }
+  ],
+  data: []
+}
+```
+→ `<p>No items available</p>`
+
+With data `[1, 2, 3]`:
+→ `<p>Items available: 3</p>`
 
 **Restrictions:**
 - The `if` tag **requires** a `$bind` attribute
