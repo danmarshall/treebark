@@ -341,9 +341,9 @@ describe('String Renderer', () => {
         template: {
           div: {
             $children: [
-              { comment: 'Start of content' },
+              { $comment: 'Start of content' },
               { h1: 'Title' },
-              { comment: 'End of content' }
+              { $comment: 'End of content' }
             ]
           }
         }
@@ -356,11 +356,11 @@ describe('String Renderer', () => {
         template: {
           div: {
             $children: [
-              { comment: 'Outer comment' },
+              { $comment: 'Outer comment' },
               {
                 section: {
                   $children: [
-                    { comment: 'Inner comment' },
+                    { $comment: 'Inner comment' },
                     { p: 'Content' }
                   ]
                 }
@@ -507,7 +507,7 @@ describe('String Renderer', () => {
     test('renders comment surrounding nested content', () => {
       const result = renderToString({
         template: {
-          comment: {
+          $comment: {
             $children: [
               'Before content',
               {
@@ -562,25 +562,25 @@ describe('String Renderer', () => {
           div: {
             class: 'container',
             $children: [
-              { comment: 'Container start' },
+              { $comment: 'Container start' },
               {
                 section: {
                   $children: [
-                    { comment: 'Section content' },
+                    { $comment: 'Section content' },
                     {
                       article: {
                         $children: [
-                          { comment: 'Article metadata' },
+                          { $comment: 'Article metadata' },
                           { h1: 'Title' },
                           { p: 'Content' },
-                          { comment: 'Article end' }
+                          { $comment: 'Article end' }
                         ]
                       }
                     }
                   ]
                 }
               },
-              { comment: 'Container end' }
+              { $comment: 'Container end' }
             ]
           }
         }
@@ -594,7 +594,7 @@ describe('String Renderer', () => {
           div: {
             $children: [
               {
-                comment: {
+                $comment: {
                   $children: [
                     'Start: ',
                     { h2: 'Welcome' },
@@ -621,7 +621,7 @@ describe('String Renderer', () => {
     test('comments with mixed text and HTML content indent properly', () => {
       const result = renderToString({
         template: {
-          comment: {
+          $comment: {
             $children: [
               'Debug info:',
               { div: { class: 'debug', $children: [{ span: 'value: 42' }] } },
@@ -639,7 +639,7 @@ describe('String Renderer', () => {
           div: {
             $children: [
               {
-                comment: {
+                $comment: {
                   $children: [
                     {
                       section: {

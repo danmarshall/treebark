@@ -615,12 +615,12 @@ export const parentPropertyTests: TestCase[] = [
 export const commentTests: TestCase[] = [
   {
     name: 'renders basic comment',
-    input: { template: { comment: 'This is a comment' } }
+    input: { template: { $comment: 'This is a comment' } }
   },
   {
     name: 'renders comment with interpolation',
     input: { 
-      template: { comment: 'User: {{name}}' },
+      template: { $comment: 'User: {{name}}' },
       data: { name: 'Alice' }
     }
   },
@@ -628,7 +628,7 @@ export const commentTests: TestCase[] = [
     name: 'renders comment containing other tags',
     input: {
       template: {
-        comment: {
+        $comment: {
           $children: [
             'Start: ',
             { span: 'highlighted text' },
@@ -640,16 +640,16 @@ export const commentTests: TestCase[] = [
   },
   {
     name: 'renders empty comment',
-    input: { template: { comment: '' } }
+    input: { template: { $comment: '' } }
   },
   {
     name: 'renders comment with special characters',
-    input: { template: { comment: 'Special chars: & < > " \'' } }
+    input: { template: { $comment: 'Special chars: & < > " \'' } }
   },
   {
     name: 'safely handles malicious interpolation',
     input: { 
-      template: { comment: 'User input: {{input}}' },
+      template: { $comment: 'User input: {{input}}' },
       data: { input: 'evil --> <script>alert(1)</script>' }
     }
   }
@@ -660,10 +660,10 @@ export const commentErrorTests: ErrorTestCase[] = [
     name: 'prevents nested comments',
     input: {
       template: {
-        comment: {
+        $comment: {
           $children: [
             'Outer comment with ',
-            { comment: 'nested comment' },
+            { $comment: 'nested comment' },
             ' inside'
           ]
         }
@@ -725,7 +725,7 @@ export const bindValidationErrorTests: ErrorTestCase[] = [
 ];
 
 
-// "if" tag test cases
+// "$if" tag test cases
 export const ifTagTests: TestCase[] = [
   {
     name: 'renders children when condition is truthy (true)',
@@ -734,8 +734,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $children: [
                   { p: 'Message is shown' }
                 ]
@@ -754,8 +754,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'userName',
+              $if: {
+                $check: 'userName',
                 $children: [
                   { p: 'Hello {{userName}}' }
                 ]
@@ -774,8 +774,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'count',
+              $if: {
+                $check: 'count',
                 $children: [
                   { p: 'Count: {{count}}' }
                 ]
@@ -795,8 +795,8 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $children: [
                   { p: 'This should not appear' }
                 ]
@@ -816,8 +816,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
+              $if: {
+                $check: 'value',
                 $children: [
                   { p: 'This should not appear' }
                 ]
@@ -836,8 +836,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
+              $if: {
+                $check: 'value',
                 $children: [
                   { p: 'This should not appear' }
                 ]
@@ -856,8 +856,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
+              $if: {
+                $check: 'value',
                 $children: [
                   { p: 'This should not appear' }
                 ]
@@ -876,8 +876,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
+              $if: {
+                $check: 'value',
                 $children: [
                   { p: 'This should not appear' }
                 ]
@@ -896,8 +896,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'user.isAdmin',
+              $if: {
+                $check: 'user.isAdmin',
                 $children: [
                   { p: 'Admin panel' }
                 ]
@@ -916,8 +916,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showContent',
+              $if: {
+                $check: 'showContent',
                 $children: [
                   { h1: 'Title' },
                   { p: 'Paragraph 1' },
@@ -938,13 +938,13 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'level1',
+              $if: {
+                $check: 'level1',
                 $children: [
                   { p: 'Level 1 visible' },
                   {
-                    if: {
-                      $bind: 'level2',
+                    $if: {
+                      $check: 'level2',
                       $children: [
                         { p: 'Level 2 visible' }
                       ]
@@ -963,8 +963,8 @@ export const ifTagTests: TestCase[] = [
     name: 'works at root level',
     input: {
       template: {
-        if: {
-          $bind: 'show',
+        $if: {
+          $check: 'show',
           $children: [
             { div: 'Content' }
           ]
@@ -977,8 +977,8 @@ export const ifTagTests: TestCase[] = [
     name: 'renders nothing at root level when falsy',
     input: {
       template: {
-        if: {
-          $bind: 'show',
+        $if: {
+          $check: 'show',
           $children: [
             { div: 'Content' }
           ]
@@ -994,8 +994,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $not: true,
                 $children: [
                   { p: 'Message is hidden, showing this instead' }
@@ -1016,8 +1016,8 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $not: true,
                 $children: [
                   { p: 'This should not appear' }
@@ -1038,8 +1038,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'user.isGuest',
+              $if: {
+                $check: 'user.isGuest',
                 $not: true,
                 $children: [
                   { p: 'Welcome back, member!' }
@@ -1059,8 +1059,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'count',
+              $if: {
+                $check: 'count',
                 $not: true,
                 $children: [
                   { p: 'No items' }
@@ -1080,8 +1080,8 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'message',
+              $if: {
+                $check: 'message',
                 $not: true,
                 $children: [
                   { p: 'No message provided' }
@@ -1103,8 +1103,8 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'show',
+              $if: {
+                $check: 'show',
                 $children: [
                   { p: 'First' },
                   { p: 'Second' },
@@ -1133,8 +1133,8 @@ export const ifTagTests: TestCase[] = [
                 class: 'inner',
                 $children: [
                   {
-                    if: {
-                      $bind: 'show',
+                    $if: {
+                      $check: 'show',
                       $children: [
                         { p: 'First' },
                         { p: 'Second' },
@@ -1157,10 +1157,10 @@ export const ifTagTests: TestCase[] = [
 
 export const ifTagErrorTests: ErrorTestCase[] = [
   {
-    name: 'throws error when if tag has no $bind',
+    name: 'throws error when $if tag has no $check',
     input: {
       template: {
-        if: {
+        $if: {
           $children: [
             { p: 'Content' }
           ]
@@ -1168,14 +1168,14 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       },
       data: {}
     },
-    expectedError: '"if" tag requires $bind attribute'
+    expectedError: '"$if" tag requires $check attribute'
   },
   {
-    name: 'throws error when if tag has attributes',
+    name: 'throws error when $if tag has attributes',
     input: {
       template: {
-        if: {
-          $bind: 'show',
+        $if: {
+          $check: 'show',
           class: 'my-class',
           $children: [
             { p: 'Content' }
@@ -1184,7 +1184,7 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       },
       data: { show: true }
     },
-    expectedError: '"if" tag does not support attributes'
+    expectedError: '"$if" tag does not support attributes'
   }
 ];
 
