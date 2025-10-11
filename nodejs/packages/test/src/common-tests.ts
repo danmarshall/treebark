@@ -725,6 +725,470 @@ export const bindValidationErrorTests: ErrorTestCase[] = [
 ];
 
 
+// "if" tag test cases
+export const ifTagTests: TestCase[] = [
+  {
+    name: 'renders children when condition is truthy (true)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showMessage',
+                $children: [
+                  { p: 'Message is shown' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showMessage: true }
+    }
+  },
+  {
+    name: 'renders children when condition is truthy (non-empty string)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'userName',
+                $children: [
+                  { p: 'Hello {{userName}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { userName: 'Alice' }
+    }
+  },
+  {
+    name: 'renders children when condition is truthy (number)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'count',
+                $children: [
+                  { p: 'Count: {{count}}' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 5 }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (false)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'showMessage',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { showMessage: false }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (null)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: null }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (undefined)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: undefined }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (empty string)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: '' }
+    }
+  },
+  {
+    name: 'does not render children when condition is falsy (zero)',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'value',
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { value: 0 }
+    }
+  },
+  {
+    name: 'works with nested property access',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'user.isAdmin',
+                $children: [
+                  { p: 'Admin panel' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { user: { isAdmin: true } }
+    }
+  },
+  {
+    name: 'works with multiple children',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showContent',
+                $children: [
+                  { h1: 'Title' },
+                  { p: 'Paragraph 1' },
+                  { p: 'Paragraph 2' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showContent: true }
+    }
+  },
+  {
+    name: 'works with nested if tags',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'level1',
+                $children: [
+                  { p: 'Level 1 visible' },
+                  {
+                    if: {
+                      $bind: 'level2',
+                      $children: [
+                        { p: 'Level 2 visible' }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { level1: true, level2: true }
+    }
+  },
+  {
+    name: 'works at root level',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          $children: [
+            { div: 'Content' }
+          ]
+        }
+      },
+      data: { show: true }
+    }
+  },
+  {
+    name: 'renders nothing at root level when falsy',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          $children: [
+            { div: 'Content' }
+          ]
+        }
+      },
+      data: { show: false }
+    }
+  },
+  {
+    name: 'renders children with $not when condition is falsy',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'showMessage',
+                $not: true,
+                $children: [
+                  { p: 'Message is hidden, showing this instead' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { showMessage: false }
+    }
+  },
+  {
+    name: 'does not render children with $not when condition is truthy',
+    input: {
+      template: {
+        div: {
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'showMessage',
+                $not: true,
+                $children: [
+                  { p: 'This should not appear' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { showMessage: true }
+    }
+  },
+  {
+    name: 'works with $not and nested properties',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'user.isGuest',
+                $not: true,
+                $children: [
+                  { p: 'Welcome back, member!' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { user: { isGuest: false } }
+    }
+  },
+  {
+    name: 'works with $not and zero',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'count',
+                $not: true,
+                $children: [
+                  { p: 'No items' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { count: 0 }
+    }
+  },
+  {
+    name: 'works with $not and empty string',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              if: {
+                $bind: 'message',
+                $not: true,
+                $children: [
+                  { p: 'No message provided' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { message: '' }
+    }
+  },
+  {
+    name: 'preserves indentation with multiple children (one level)',
+    input: {
+      template: {
+        div: {
+          class: 'container',
+          $children: [
+            { p: 'Before' },
+            {
+              if: {
+                $bind: 'show',
+                $children: [
+                  { p: 'First' },
+                  { p: 'Second' },
+                  { p: 'Third' }
+                ]
+              }
+            },
+            { p: 'After' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    options: { indent: true }
+  },
+  {
+    name: 'preserves indentation with multiple children (two levels)',
+    input: {
+      template: {
+        div: {
+          class: 'outer',
+          $children: [
+            { h1: 'Title' },
+            {
+              div: {
+                class: 'inner',
+                $children: [
+                  {
+                    if: {
+                      $bind: 'show',
+                      $children: [
+                        { p: 'First' },
+                        { p: 'Second' },
+                        { p: 'Third' }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            { p: 'Footer' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    options: { indent: true }
+  }
+];
+
+export const ifTagErrorTests: ErrorTestCase[] = [
+  {
+    name: 'throws error when if tag has no $bind',
+    input: {
+      template: {
+        if: {
+          $children: [
+            { p: 'Content' }
+          ]
+        }
+      },
+      data: {}
+    },
+    expectedError: '"if" tag requires $bind attribute'
+  },
+  {
+    name: 'throws error when if tag has attributes',
+    input: {
+      template: {
+        if: {
+          $bind: 'show',
+          class: 'my-class',
+          $children: [
+            { p: 'Content' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"if" tag does not support attributes'
+  }
+];
+
+
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
   test(testCase.name, () => {

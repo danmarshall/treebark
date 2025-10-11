@@ -249,12 +249,15 @@ For complex array scenarios where you need a wrapper element or nested structure
 
 ## 10. Tag Whitelist  
 
-Allowed tags:  
+**Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `comment`  
+`a`, `img`
+
+**Special tags:**  
+`comment`, `if`
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
@@ -299,3 +302,190 @@ comment:
     - span: "highlighted text"
     - " :End"
 ```  
+
+---
+
+## 12. Conditional Rendering with "if" Tag
+
+The `if` tag provides conditional rendering based on the truthiness of a data property. It acts as a transparent container that renders its children only when a specified condition is truthy.
+
+**Key Features:**
+- Uses `$bind` to specify the condition to check
+- Supports `$not` to invert the condition (render when falsy)
+- Does not render itself as an HTML element
+- Only renders children when the condition is truthy (or falsy with `$not`)
+- Follows JavaScript truthiness rules
+- Cannot have attributes (only `$bind`, `$not`, and `$children`)
+
+**Basic usage:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $bind: 'showMessage',
+            $children: [
+              { p: 'This message is conditionally shown' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { showMessage: true }
+}
+```
+
+**Negation with `$not`:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $bind: 'isGuest',
+            $not: true,
+            $children: [
+              { p: 'Welcome back, member!' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { isGuest: false }
+}
+```
+→ Renders the paragraph because `isGuest` is false and `$not` inverts the check
+
+**Truthiness rules:**
+The `if` tag follows standard JavaScript truthiness:
+- **Truthy values:** `true`, non-empty strings, non-zero numbers, objects, arrays
+- **Falsy values:** `false`, `null`, `undefined`, `0`, `""` (empty string), `NaN`
+
+**Examples:**
+
+Conditional rendering with boolean:
+```javascript
+{
+  template: {
+    if: {
+      $bind: 'isLoggedIn',
+      $children: [
+        { div: 'Welcome back!' }
+      ]
+    }
+  },
+  data: { isLoggedIn: true }
+}
+```
+→ `<div>Welcome back!</div>`
+
+Conditional rendering with nested property:
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $bind: 'user.isAdmin',
+            $children: [
+              { p: 'Admin panel access' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { user: { isAdmin: true } }
+}
+```
+→ `<div><p>Admin panel access</p></div>`
+
+When condition is falsy, nothing is rendered:
+```javascript
+{
+  template: {
+    if: {
+      $bind: 'showBanner',
+      $children: [
+        { div: 'Banner content' }
+      ]
+    }
+  },
+  data: { showBanner: false }
+}
+```
+→ `` (empty string)
+
+Nested if tags for complex conditions:
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          if: {
+            $bind: 'hasPermissions',
+            $children: [
+              { h2: 'Protected content' },
+              {
+                if: {
+                  $bind: 'isVerified',
+                  $children: [
+                    { p: 'Verified user content' }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { hasPermissions: true, isVerified: true }
+}
+```
+→ `<div><h2>Protected content</h2><p>Verified user content</p></div>`
+
+**Using `$not` for "unless" behavior:**
+```javascript
+{
+  template: {
+    div: {
+      class: 'status',
+      $children: [
+        {
+          if: {
+            $bind: 'count',
+            $not: true,
+            $children: [
+              { p: 'No items available' }
+            ]
+          }
+        },
+        {
+          if: {
+            $bind: 'count',
+            $children: [
+              { p: 'Items found: {{count}}' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { count: 0 }
+}
+```
+→ `<div class="status"><p>No items available</p></div>`
+
+**Restrictions:**
+- The `if` tag **requires** a `$bind` attribute
+- The `if` tag **cannot** have any other attributes (like `class`, `id`, etc.)
+- The optional `$not` attribute must be a boolean (`true` or `false`)
+- If you need a wrapper element with attributes, use a regular tag inside the `if` tag's children  

@@ -70,6 +70,44 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     throw new Error('Nested comments are not allowed');
   }
   
+  // Special handling for "if" tag
+  if (tag === 'if') {
+    // "if" tag requires $bind
+    if (!hasBinding(rest)) {
+      throw new Error('"if" tag requires $bind attribute to specify the condition');
+    }
+    
+    validateBindExpression(rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
+    const { $bind, $children = [], $not, ...bindAttrs } = rest;
+    
+    // Check if any non-reserved attributes were provided
+    const hasAttrs = Object.keys(bindAttrs).length > 0;
+    if (hasAttrs) {
+      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+    }
+    
+    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
+    const condition = $not ? !Boolean(bound) : Boolean(bound);
+    
+    // Only render children if condition is true
+    if (!condition) {
+      return [];
+    }
+    
+    // Render children without wrapping element
+    const results: Node[] = [];
+    for (const child of $children) {
+      const nodes = render(child, data, context);
+      if (Array.isArray(nodes)) {
+        results.push(...nodes);
+      } else {
+        results.push(nodes);
+      }
+    }
+    return results;
+  }
+  
   // Inline validateChildren: Validate that void tags don't have children
   const hasChildren = children.length > 0;
   const isVoid = VOID_TAGS.has(tag);

@@ -17,6 +17,8 @@ import {
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
+  ifTagTests,
+  ifTagErrorTests,
   createTest,
   createErrorTest,
   TestCase
@@ -452,6 +454,146 @@ describe('DOM Renderer', () => {
     });
 
     bindValidationErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToDOM);
+    });
+  });
+
+  // "if" tag tests
+  describe('"if" Tag', () => {
+    ifTagTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        switch (tc.name) {
+          case 'renders children when condition is truthy (true)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.tagName).toBe('DIV');
+            expect(div.querySelector('p')?.textContent).toBe('Message is shown');
+            break;
+          }
+          case 'renders children when condition is truthy (non-empty string)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Hello Alice');
+            break;
+          }
+          case 'renders children when condition is truthy (number)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Count: 5');
+            break;
+          }
+          case 'does not render children when condition is falsy (false)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('After');
+            break;
+          }
+          case 'does not render children when condition is falsy (null)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.childNodes.length).toBe(0);
+            break;
+          }
+          case 'does not render children when condition is falsy (undefined)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.childNodes.length).toBe(0);
+            break;
+          }
+          case 'does not render children when condition is falsy (empty string)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.childNodes.length).toBe(0);
+            break;
+          }
+          case 'does not render children when condition is falsy (zero)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.childNodes.length).toBe(0);
+            break;
+          }
+          case 'works with nested property access': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Admin panel');
+            break;
+          }
+          case 'works with multiple children': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('h1')?.textContent).toBe('Title');
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Paragraph 1');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('Paragraph 2');
+            break;
+          }
+          case 'works with nested if tags': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Level 1 visible');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('Level 2 visible');
+            break;
+          }
+          case 'works at root level': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.tagName).toBe('DIV');
+            expect(div.textContent).toBe('Content');
+            break;
+          }
+          case 'renders nothing at root level when falsy': {
+            expect(fragment.childNodes.length).toBe(0);
+            break;
+          }
+          case 'renders children with $not when condition is falsy': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Message is hidden, showing this instead');
+            break;
+          }
+          case 'does not render children with $not when condition is truthy': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('After');
+            break;
+          }
+          case 'works with $not and nested properties': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Welcome back, member!');
+            break;
+          }
+          case 'works with $not and zero': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('No items');
+            break;
+          }
+          case 'works with $not and empty string': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('No message provided');
+            break;
+          }
+          case 'preserves indentation with multiple children (one level)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.className).toBe('container');
+            const paragraphs = div.querySelectorAll('p');
+            expect(paragraphs.length).toBe(5);
+            expect(paragraphs[0].textContent).toBe('Before');
+            expect(paragraphs[1].textContent).toBe('First');
+            expect(paragraphs[2].textContent).toBe('Second');
+            expect(paragraphs[3].textContent).toBe('Third');
+            expect(paragraphs[4].textContent).toBe('After');
+            break;
+          }
+          case 'preserves indentation with multiple children (two levels)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.className).toBe('outer');
+            expect(div.querySelector('h1')?.textContent).toBe('Title');
+            const inner = div.querySelector('.inner');
+            expect(inner).toBeTruthy();
+            const paragraphs = inner?.querySelectorAll('p');
+            expect(paragraphs?.length).toBe(3);
+            expect(paragraphs?.[0].textContent).toBe('First');
+            expect(paragraphs?.[1].textContent).toBe('Second');
+            expect(paragraphs?.[2].textContent).toBe('Third');
+            expect(div.querySelector('div + p')?.textContent).toBe('Footer');
+            break;
+          }
+        }
+      });
+    });
+
+    ifTagErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToDOM);
     });
   });

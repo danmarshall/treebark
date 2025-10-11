@@ -113,6 +113,50 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     throw new Error('Nested comments are not allowed');
   }
 
+  // Special handling for "if" tag
+  if (tag === 'if') {
+    // "if" tag requires $bind
+    if (!hasBinding(rest)) {
+      throw new Error('"if" tag requires $bind attribute to specify the condition');
+    }
+    
+    validateBindExpression(rest.$bind);
+    const bound = getProperty(data, rest.$bind, parents);
+    const { $bind, $children = [], $not, ...bindAttrs } = rest;
+    
+    // Check if any non-reserved attributes were provided
+    const hasAttrs = Object.keys(bindAttrs).length > 0;
+    if (hasAttrs) {
+      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+    }
+    
+    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
+    const condition = $not ? !Boolean(bound) : Boolean(bound);
+    
+    // Only render children if condition is true
+    if (!condition) {
+      return '';
+    }
+    
+    // Render children without wrapping tag
+    if (!context.indentStr) {
+      // No indentation: simple join
+      return $children.map(child => render(child, data, context)).join('');
+    }
+    
+    // With indentation: each child needs proper indentation since they won't go
+    // through the normal processContent flow individually
+    const currentLevel = context.level || 0;
+    const indent = context.indentStr.repeat(currentLevel);
+    
+    return $children.map((child, index) => {
+      const content = render(child, data, context);
+      // Only the first child might get indented by parent's processContent,
+      // so we need to add indentation to subsequent children
+      return index === 0 ? content : indent + content;
+    }).join('\n');
+  }
+
   if (VOID_TAGS.has(tag) && children.length > 0) {
     throw new Error(`Tag "${tag}" is a void element and cannot have children`);
   }
@@ -125,6 +169,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Helper to process rendered content into IndentedOutput
   const processContent = (content: string): IndentedOutput[] => {
+    // Skip empty content to avoid blank lines
+    if (content === '') {
+      return [];
+    }
     if (context.indentStr && content.includes('\n') && !content.includes('<')) {
       return content.split('\n').map(line => [childContext.level, line]);
     }

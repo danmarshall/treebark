@@ -31,13 +31,16 @@
     "tr",
     "th",
     "td",
-    "a",
-    "comment"
+    "a"
+  ]);
+  const SPECIAL_TAGS = /* @__PURE__ */ new Set([
+    "comment",
+    "if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
     "img"
   ]);
-  const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...VOID_TAGS]);
+  const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
   const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
   const TAG_SPECIFIC_ATTRS = {
     "a": /* @__PURE__ */ new Set(["href", "target", "rel"]),
@@ -197,6 +200,31 @@
     if (tag === "comment" && context.insideComment) {
       throw new Error("Nested comments are not allowed");
     }
+    if (tag === "if") {
+      if (!hasBinding(rest)) {
+        throw new Error('"if" tag requires $bind attribute to specify the condition');
+      }
+      validateBindExpression(rest.$bind);
+      const bound = getProperty(data, rest.$bind, parents);
+      const { $bind, $children = [], $not, ...bindAttrs } = rest;
+      const hasAttrs = Object.keys(bindAttrs).length > 0;
+      if (hasAttrs) {
+        throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
+      }
+      const condition = $not ? !Boolean(bound) : Boolean(bound);
+      if (!condition) {
+        return "";
+      }
+      if (!context.indentStr) {
+        return $children.map((child) => render(child, data, context)).join("");
+      }
+      const currentLevel = context.level || 0;
+      const indent = context.indentStr.repeat(currentLevel);
+      return $children.map((child, index) => {
+        const content = render(child, data, context);
+        return index === 0 ? content : indent + content;
+      }).join("\n");
+    }
     if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
     }
@@ -206,6 +234,9 @@
       level: (context.level || 0) + 1
     };
     const processContent = (content) => {
+      if (content === "") {
+        return [];
+      }
       if (context.indentStr && content.includes("\n") && !content.includes("<")) {
         return content.split("\n").map((line) => [childContext.level, line]);
       }

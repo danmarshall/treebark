@@ -60,8 +60,11 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `comment` (see below)  
-> Note: `comment` is a virtual tag used to emit HTML comments and cannot be nested inside another `comment`.
+`a`, `img`, `comment`, `if`
+
+**Special tags:**  
+- `comment` — Emits HTML comments. Cannot be nested inside another `comment`.
+- `if` — Conditional rendering based on data properties. See [Conditional Rendering](#conditional-rendering) below.
 
 ### Allowed Attributes
 
@@ -78,6 +81,7 @@ This means the implementation is featherweight.
 
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element’s children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
+- `$not`: Boolean (used with `if` tag only). Inverts the condition check.
 
 ## ✨ Examples  
 
@@ -593,6 +597,93 @@ Output:
 ```
 
 **Note:** Comments cannot be nested - attempting to place a `comment` tag inside another `comment` will result in an error.
+
+### Conditional Rendering
+
+The `if` tag provides conditional rendering based on data properties. It doesn't render itself as an HTML element—it only renders its children when the condition is truthy.
+
+**Basic example:**
+```json
+{
+  "div": {
+    "$children": [
+      { "p": "This is always visible" },
+      {
+        "if": {
+          "$bind": "showMessage",
+          "$children": [
+            { "p": "This is conditionally visible" }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+With `data: { showMessage: true }`, outputs:
+```html
+<div>
+  <p>This is always visible</p>
+  <p>This is conditionally visible</p>
+</div>
+```
+
+With `data: { showMessage: false }`, outputs:
+```html
+<div>
+  <p>This is always visible</p>
+</div>
+```
+
+**Negation with `$not`:**
+
+Use `$not: true` to invert the condition (render when falsy):
+
+```json
+{
+  "div": {
+    "$children": [
+      {
+        "if": {
+          "$bind": "count",
+          "$not": true,
+          "$children": [
+            { "p": "No items available" }
+          ]
+        }
+      },
+      {
+        "if": {
+          "$bind": "count",
+          "$children": [
+            { "p": "Items found: {{count}}" }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+With `data: { count: 0 }`, outputs:
+```html
+<div>
+  <p>No items available</p>
+</div>
+```
+
+With `data: { count: 5 }`, outputs:
+```html
+<div>
+  <p>Items found: 5</p>
+</div>
+```
+
+**Truthiness rules:**
+The `if` tag follows JavaScript truthiness: 
+- **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
+- **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
 
 ## 📝 Format Notes
 
