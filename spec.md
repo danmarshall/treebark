@@ -311,7 +311,7 @@ The `$if` tag provides advanced conditional rendering based on data properties. 
 
 **Key Features:**
 - Uses `$check` to specify the property to check
-- Supports comparison operators: `$<`, `$>`, `$=`, `$in`
+- Supports comparison operators: `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`
 - Operators can be stacked (multiple operators)
 - Supports `$not` to invert the final result
 - Uses AND logic by default (`$and: true`), can switch to OR logic (`$or: true`)
@@ -468,10 +468,45 @@ When no operators are provided, performs a standard JavaScript truthiness check:
 ```
 → `<p>Has special privileges</p>`
 
+#### Less Than or Equal (`$<=`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$<=': 18,
+      $children: [
+        { p: 'Youth (18 or under)' }
+      ]
+    }
+  },
+  data: { age: 18 }
+}
+```
+→ `<p>Youth (18 or under)</p>`
+
+#### Greater Than or Equal (`$>=`)
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'score',
+      '$>=': 90,
+      $children: [
+        { p: 'Excellent performance!' }
+      ]
+    }
+  },
+  data: { score: 90 }
+}
+```
+→ `<p>Excellent performance!</p>`
+
 ### Stacking Operators
 
 Multiple operators can be used together. By default, they use AND logic (all must be true):
 
+**Using exclusive bounds (`$>` and `$<`):**
 ```javascript
 {
   template: {
@@ -480,14 +515,32 @@ Multiple operators can be used together. By default, they use AND logic (all mus
       '$>': 18,
       '$<': 65,
       $children: [
-        { p: 'Working age adult' }
+        { p: 'Working age adult (19-64)' }
       ]
     }
   },
   data: { age: 30 }
 }
 ```
-→ `<p>Working age adult</p>` (renders because age > 18 AND age < 65)
+→ `<p>Working age adult (19-64)</p>` (renders because age > 18 AND age < 65)
+
+**Using inclusive bounds (`$>=` and `$<=`):**
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'age',
+      '$>=': 18,
+      '$<=': 65,
+      $children: [
+        { p: 'Working age adult (18-65 inclusive)' }
+      ]
+    }
+  },
+  data: { age: 18 }
+}
+```
+→ `<p>Working age adult (18-65 inclusive)</p>` (renders because age >= 18 AND age <= 65)
 
 ### OR Logic
 
@@ -763,7 +816,7 @@ Attribute values can be conditional objects that use the same operator system as
 Conditional attributes support all the same modifiers and operators as `$if` tags:
 - `$not`: Invert the condition
 - `$and` / `$or`: Combine multiple operators
-- `$<`, `$>`, `$=`, `$in`: Comparison operators
+- `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`: Comparison operators
 
 ```javascript
 {
@@ -786,5 +839,5 @@ Conditional attributes support all the same modifiers and operators as `$if` tag
 **Restrictions:**
 - The `$if` tag **requires** a `$check` attribute
 - The `$if` tag **cannot** have regular HTML attributes (like `class`, `id`, etc.)
-- Only special operators (`$<`, `$>`, `$=`, `$in`) and modifiers (`$not`, `$and`, `$or`) are allowed
+- Only special operators (`$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`) and modifiers (`$not`, `$and`, `$or`) are allowed
 - If you need a wrapper element with attributes, use a regular tag inside the `$if` tag's children  

@@ -1340,6 +1340,242 @@ export const ifTagOperatorTests: TestCase[] = [
     }
   },
   {
+    name: 'less than or equal operator: renders when less than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $children: [
+                  { p: 'Youth' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 15 }
+    }
+  },
+  {
+    name: 'less than or equal operator: renders when equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $children: [
+                  { p: 'Youth' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 18 }
+    }
+  },
+  {
+    name: 'less than or equal operator: does not render when greater than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $children: [
+                  { p: 'Youth' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 20 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: renders when greater than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $children: [
+                  { p: 'Excellent' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: renders when equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $children: [
+                  { p: 'Excellent' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 90 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: does not render when less than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $children: [
+                  { p: 'Excellent' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 85 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders for inclusive range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $children: [
+                  { p: 'Working age adult' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 18 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders for middle of range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $children: [
+                  { p: 'Working age adult' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 40 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders at upper bound',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $children: [
+                  { p: 'Working age adult' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 65 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: does not render below range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $children: [
+                  { p: 'Working age adult' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 17 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: does not render above range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $children: [
+                  { p: 'Working age adult' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 66 }
+    }
+  },
+  {
     name: 'multiple operators with AND (default): all must be true',
     input: {
       template: {

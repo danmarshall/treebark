@@ -89,6 +89,8 @@ This means the implementation is featherweight.
 - `$else`: Single template object or string. Content/value when condition is false.
 - `$<`: Less than comparison.
 - `$>`: Greater than comparison.
+- `$<=`: Less than or equal comparison.
+- `$>=`: Greater than or equal comparison.
 - `$=`: Strict equality comparison (===).
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
@@ -699,8 +701,31 @@ The `$if` tag supports powerful comparison operators that can be stacked:
 Available operators:
 - `$<`: Less than
 - `$>`: Greater than
+- `$<=`: Less than or equal
+- `$>=`: Greater than or equal
 - `$=`: Strict equality (===)
 - `$in`: Array membership
+
+**Using `$>=` and `$<=` for inclusive ranges:**
+
+```json
+{
+  "div": {
+    "$children": [
+      {
+        "$if": {
+          "$check": "age",
+          "$>=": 18,
+          "$<=": 65,
+          "$then": { "p": "Working age adult (18-65 inclusive)" }
+        }
+      }
+    ]
+  }
+}
+```
+
+With `data: { age: 18 }` or `{ age: 65 }`, the condition is true (inclusive bounds).
 
 **Array membership example:**
 

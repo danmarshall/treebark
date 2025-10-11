@@ -9,6 +9,8 @@ export type ConditionalValue = {
   // Operators
   '$<'?: unknown;
   '$>'?: unknown;
+  '$<='?: unknown;
+  '$>='?: unknown;
   '$='?: unknown;
   $in?: unknown[];
   // Modifiers
@@ -29,6 +31,8 @@ export type TemplateAttributes = {
   // Operators for $if tag
   '$<'?: unknown;
   '$>'?: unknown;
+  '$<='?: unknown;
+  '$>='?: unknown;
   '$='?: unknown;
   $in?: unknown[];
   // Modifiers for $if tag
@@ -252,6 +256,8 @@ export function evaluateCondition(
   // Collect operators
   if ('$<' in attrs) operators.push({ key: '$<', value: attrs['$<'] });
   if ('$>' in attrs) operators.push({ key: '$>', value: attrs['$>'] });
+  if ('$<=' in attrs) operators.push({ key: '$<=', value: attrs['$<='] });
+  if ('$>=' in attrs) operators.push({ key: '$>=', value: attrs['$>='] });
   if ('$=' in attrs) operators.push({ key: '$=', value: attrs['$='] });
   if ('$in' in attrs) operators.push({ key: '$in', value: attrs['$in'] });
   
@@ -268,6 +274,10 @@ export function evaluateCondition(
         return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue < op.value;
       case '$>':
         return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue > op.value;
+      case '$<=':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue <= op.value;
+      case '$>=':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue >= op.value;
       case '$=':
         return checkValue === op.value;
       case '$in':
