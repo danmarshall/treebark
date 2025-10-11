@@ -1,5 +1,5 @@
 // Common types, constants, and utilities shared between string and DOM renderers
-export type Data = Record<string, unknown>;
+export type Data = Record<string, unknown> | Record<string, unknown>[];
 
 // Non-recursive template structure types
 // Template attributes defined first to avoid circular references
@@ -72,17 +72,17 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
   if (path === '.') {
     return obj;
   }
-  
+
   // Handle parent property access patterns
   let currentObj: unknown = obj;
   let remainingPath = path;
-  
+
   // Process parent references (..)
   while (remainingPath.startsWith('..')) {
     // Count consecutive parent references
     let parentLevels = 0;
     let tempPath = remainingPath;
-    
+
     // Count leading .. patterns
     while (tempPath.startsWith('..')) {
       parentLevels++;
@@ -92,7 +92,7 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
         tempPath = tempPath.substring(1);
       }
     }
-    
+
     // Navigate up the parent chain
     if (parentLevels <= parents.length) {
       currentObj = parents[parents.length - parentLevels];
@@ -101,13 +101,13 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
       return undefined;
     }
   }
-  
+
   // If there's remaining path, process it normally
   if (remainingPath) {
-    return remainingPath.split('.').reduce((o: unknown, k: string): unknown => 
+    return remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
       (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentObj);
   }
-  
+
   return currentObj;
 }
 
@@ -145,11 +145,11 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 export function validateAttribute(key: string, tag: string): void {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
-  
+
   // Check tag-specific attributes
   const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
   const isTagSpecific = tagAttrs && tagAttrs.has(key);
-  
+
   if (!isGlobal && !isTagSpecific) {
     throw new Error(`Attribute "${key}" is not allowed on tag "${tag}"`);
   }
@@ -177,7 +177,7 @@ export function validateBindExpression(bindValue: string): void {
   if (bindValue === '.') {
     return;
   }
-  
+
   if (bindValue.includes('..')) {
     throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
   }
@@ -193,17 +193,17 @@ export function templateHasCurrentObjectBinding(template: TemplateElement): bool
   if (Array.isArray(template) || typeof template !== 'object' || template === null) {
     return false;
   }
-  
+
   const entries = Object.entries(template);
   if (entries.length === 0) {
     return false;
   }
-  
+
   const [, rest] = entries[0];
   if (!rest || typeof rest !== 'object' || Array.isArray(rest)) {
     return false;
   }
-  
+
   return '$bind' in rest && rest.$bind === '.';
 }
 
@@ -228,10 +228,10 @@ export function parseTemplateObject(templateObj: TemplateObject): {
     throw new Error('Template object must have at least one tag');
   }
   const [tag, rest] = firstEntry;
-  
+
   const children = typeof rest === 'string' ? [rest] : Array.isArray(rest) ? rest : (rest as TemplateAttributes)?.$children || [];
-  const attrs = rest && typeof rest === "object" && !Array.isArray(rest) 
+  const attrs = rest && typeof rest === "object" && !Array.isArray(rest)
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
-    
+
   return { tag, rest, children, attrs };
 }
