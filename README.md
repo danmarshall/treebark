@@ -83,18 +83,14 @@ This means the implementation is featherweight.
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
 
-**Conditional rendering (`$if` tag):**
-- `$check`: String. Property path to check (replaces `$bind` for `$if` tags).
-- `$then`: Single template object or string. Content to render when condition is true.
-- `$else`: Single template object or string. Content to render when condition is false.
-
-**Comparison operators (used in `$if` tag and conditional attributes):**
+**Conditional keys (used in `$if` tag and conditional attribute values):**
+- `$check`: String. Property path to check.
+- `$then`: Single template object or string. Content/value when condition is true.
+- `$else`: Single template object or string. Content/value when condition is false.
 - `$<`: Less than comparison.
 - `$>`: Greater than comparison.
 - `$=`: Strict equality comparison (===).
 - `$in`: Array membership check.
-
-**Logic modifiers (used in `$if` tag and conditional attributes):**
 - `$not`: Boolean. Inverts the entire condition result.
 - `$and`: Boolean (default: true). Combines multiple operators with AND logic.
 - `$or`: Boolean. Combines multiple operators with OR logic.
