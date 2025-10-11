@@ -18,6 +18,7 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
+  ifTagOperatorTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -587,6 +588,87 @@ describe('DOM Renderer', () => {
             expect(paragraphs?.[1].textContent).toBe('Second');
             expect(paragraphs?.[2].textContent).toBe('Third');
             expect(div.querySelector('div + p')?.textContent).toBe('Footer');
+            break;
+          }
+        }
+      });
+    });
+
+    ifTagOperatorTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        switch (tc.name) {
+          case 'works with $condition instead of $bind': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Using $condition');
+            break;
+          }
+          case 'works with $condition and $not': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Not hidden');
+            break;
+          }
+          case 'works with $equals operator (string match)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Status is active');
+            break;
+          }
+          case 'does not render when $equals does not match': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('After');
+            break;
+          }
+          case 'works with $equals operator (number match)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Count is exactly 5');
+            break;
+          }
+          case 'works with $equals operator (boolean match)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Is active');
+            break;
+          }
+          case 'works with $equals and $not (inverted equality)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Status is not inactive');
+            break;
+          }
+          case 'works with $notEquals operator': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Status is not inactive');
+            break;
+          }
+          case 'does not render when $notEquals matches': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelectorAll('p').length).toBe(2);
+            expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
+            expect(div.querySelectorAll('p')[1].textContent).toBe('After');
+            break;
+          }
+          case 'works with $notEquals and $not (double negation)': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Status is active (double negation)');
+            break;
+          }
+          case 'works with $equals checking null': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Value is null');
+            break;
+          }
+          case 'works with $equals checking 0': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Count is zero');
+            break;
+          }
+          case 'works with $equals checking empty string': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Message is empty');
+            break;
+          }
+          case 'backward compatibility: $bind still works with operators': {
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.querySelector('p')?.textContent).toBe('Ready to go');
             break;
           }
         }
