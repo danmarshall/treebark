@@ -315,8 +315,60 @@ The `$if` tag provides advanced conditional rendering based on data properties. 
 - Operators can be stacked (multiple operators)
 - Supports `$not` to invert the final result
 - Uses AND logic by default (`$and: true`), can switch to OR logic (`$or: true`)
+- Supports `$thenChildren` and `$elseChildren` for explicit if/else branching
 - Does not render itself as an HTML element
 - Cannot have regular HTML attributes (only special operators and modifiers)
+
+### If/Else Branching with $thenChildren and $elseChildren
+
+The `$if` tag supports explicit if/else branching using `$thenChildren` and `$elseChildren`:
+
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        {
+          $if: {
+            $check: 'isLoggedIn',
+            $thenChildren: [
+              { p: 'Welcome back!' }
+            ],
+            $elseChildren: [
+              { p: 'Please log in' }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: { isLoggedIn: true }
+}
+```
+→ `<div><p>Welcome back!</p></div>` when `isLoggedIn` is true
+→ `<div><p>Please log in</p></div>` when `isLoggedIn` is false
+
+**With operators:**
+```javascript
+{
+  template: {
+    $if: {
+      $check: 'score',
+      '$>': 90,
+      $thenChildren: [
+        { p: { class: 'excellent', $children: ['Excellent!'] } }
+      ],
+      $elseChildren: [
+        { p: { class: 'good', $children: ['Good effort!'] } }
+      ]
+    }
+  },
+  data: { score: 95 }
+}
+```
+→ `<p class="excellent">Excellent!</p>`
+
+**Backward compatibility:** `$children` still works and is equivalent to `$thenChildren` (no else branch).
 
 ### Basic Truthiness Check
 
@@ -621,6 +673,115 @@ Nested $if tags for complex conditions:
 }
 ```
 → `<div class="status"><p>No items available</p></div>`
+
+### Conditional Attribute Values
+
+Attribute values can be conditional objects that use the same operator system as `$if` tags. This allows dynamic attribute values based on data conditions.
+
+**Basic conditional attribute:**
+```javascript
+{
+  template: {
+    div: {
+      class: {
+        $check: 'isActive',
+        $then: 'active',
+        $else: 'inactive'
+      },
+      $children: ['User status']
+    }
+  },
+  data: { isActive: true }
+}
+```
+→ `<div class="active">User status</div>` when `isActive` is true
+→ `<div class="inactive">User status</div>` when `isActive` is false
+
+**With operators:**
+```javascript
+{
+  template: {
+    div: {
+      class: {
+        $check: 'score',
+        '$>': 90,
+        $then: 'excellent',
+        $else: 'good'
+      },
+      $children: ['Score display']
+    }
+  },
+  data: { score: 95 }
+}
+```
+→ `<div class="excellent">Score display</div>`
+
+**With $in operator:**
+```javascript
+{
+  template: {
+    div: {
+      class: {
+        $check: 'role',
+        $in: ['admin', 'moderator'],
+        $then: 'privileged',
+        $else: 'regular'
+      },
+      $children: ['User panel']
+    }
+  },
+  data: { role: 'admin' }
+}
+```
+→ `<div class="privileged">User panel</div>`
+
+**Multiple conditional attributes:**
+```javascript
+{
+  template: {
+    div: {
+      class: {
+        $check: 'theme',
+        '$=': 'dark',
+        $then: 'dark-mode',
+        $else: 'light-mode'
+      },
+      'data-theme': {
+        $check: 'theme',
+        $then: '{{theme}}',
+        $else: 'default'
+      },
+      $children: ['Themed content']
+    }
+  },
+  data: { theme: 'dark' }
+}
+```
+→ `<div class="dark-mode" data-theme="dark">Themed content</div>`
+
+**With modifiers:**
+Conditional attributes support all the same modifiers and operators as `$if` tags:
+- `$not`: Invert the condition
+- `$and` / `$or`: Combine multiple operators
+- `$<`, `$>`, `$=`, `$in`: Comparison operators
+
+```javascript
+{
+  template: {
+    div: {
+      class: {
+        $check: 'isGuest',
+        $not: true,
+        $then: 'member',
+        $else: 'guest'
+      },
+      $children: ['User']
+    }
+  },
+  data: { isGuest: false }
+}
+```
+→ `<div class="member">User</div>`
 
 **Restrictions:**
 - The `$if` tag **requires** a `$check` attribute
