@@ -13,6 +13,8 @@ import {
   validateBindExpression,
   validateCheckExpression,
   evaluateCondition,
+  isConditionalValue,
+  evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
@@ -82,26 +84,28 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     validateCheckExpression(rest.$check);
     const checkValue = getProperty(data, rest.$check, parents);
-    const { $check, $children = [], ...restAttrs } = rest;
+    const { $check, $thenChildren, $elseChildren, $children, ...restAttrs } = rest;
+    
+    // Support both old ($children) and new ($thenChildren/$elseChildren) syntax
+    const thenChildren = $thenChildren || $children || [];
+    const elseChildren = $elseChildren || [];
     
     // Check if any non-reserved attributes were provided (excluding operators and modifiers)
-    const reservedKeys = new Set(['$not', '$<', '$>', '$=', '$in', '$and', '$or', '$then', '$else']);
+    const reservedKeys = new Set(['$not', '$<', '$>', '$=', '$in', '$and', '$or', '$then', '$else', '$thenChildren', '$elseChildren']);
     const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
     if (nonReservedAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $children');
+      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $thenChildren/$elseChildren');
     }
     
     // Evaluate condition using new operator-based logic
     const condition = evaluateCondition(checkValue, rest);
     
-    // Only render children if condition is true
-    if (!condition) {
-      return [];
-    }
+    // Render appropriate children based on condition
+    const childrenToRender = condition ? thenChildren : elseChildren;
     
     // Render children without wrapping element
     const results: Node[] = [];
-    for (const child of $children) {
+    for (const child of childrenToRender) {
       const nodes = render(child, data, context);
       if (Array.isArray(nodes)) {
         results.push(...nodes);
@@ -183,7 +187,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): void {
   Object.entries(attrs).forEach(([key, value]) => {
     validateAttribute(key, tag);
-    element.setAttribute(key, interpolate(String(value), data, false, parents));
+    
+    // Check if value is a conditional value
+    if (isConditionalValue(value)) {
+      const evaluatedValue = evaluateConditionalValue(value, data, parents);
+      element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents));
+    } else {
+      element.setAttribute(key, interpolate(String(value), data, false, parents));
+    }
   });
 }
 

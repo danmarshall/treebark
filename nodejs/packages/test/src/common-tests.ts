@@ -1463,6 +1463,206 @@ export const ifTagOperatorTests: TestCase[] = [
   }
 ];
 
+// $thenChildren and $elseChildren tests
+export const ifTagThenElseTests: TestCase[] = [
+  {
+    name: 'renders $thenChildren when condition is true',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'isActive',
+                $thenChildren: [
+                  { p: 'Active user' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'renders $elseChildren when condition is false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'isActive',
+                $thenChildren: [
+                  { p: 'Active user' }
+                ],
+                $elseChildren: [
+                  { p: 'Inactive user' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { isActive: false }
+    }
+  },
+  {
+    name: 'renders $thenChildren when condition is true with both branches',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>': 90,
+                $thenChildren: [
+                  { p: 'Excellent!' }
+                ],
+                $elseChildren: [
+                  { p: 'Keep trying!' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'renders empty when $elseChildren not provided and condition false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'show',
+                $thenChildren: [
+                  { p: 'Content' }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      data: { show: false }
+    }
+  }
+];
+
+// Conditional attribute value tests
+export const conditionalAttributeTests: TestCase[] = [
+  {
+    name: 'conditional attribute with $then and $else',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isActive',
+            $then: 'active',
+            $else: 'inactive'
+          },
+          $children: ['Content']
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'conditional attribute evaluates to $else when false',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isActive',
+            $then: 'active',
+            $else: 'inactive'
+          },
+          $children: ['Content']
+        }
+      },
+      data: { isActive: false }
+    }
+  },
+  {
+    name: 'conditional attribute with operator',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'score',
+            '$>': 90,
+            $then: 'excellent',
+            $else: 'good'
+          },
+          $children: ['Score display']
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'conditional attribute with $in operator',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'role',
+            $in: ['admin', 'moderator'],
+            $then: 'privileged',
+            $else: 'regular'
+          },
+          $children: ['User']
+        }
+      },
+      data: { role: 'admin' }
+    }
+  },
+  {
+    name: 'conditional attribute with $not modifier',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isGuest',
+            $not: true,
+            $then: 'member',
+            $else: 'guest'
+          },
+          $children: ['User']
+        }
+      },
+      data: { isGuest: false }
+    }
+  },
+  {
+    name: 'multiple attributes with conditionals',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'theme',
+            '$=': 'dark',
+            $then: 'dark-mode',
+            $else: 'light-mode'
+          },
+          'data-theme': {
+            $check: 'theme',
+            $then: '{{theme}}',
+            $else: 'default'
+          },
+          $children: ['Themed content']
+        }
+      },
+      data: { theme: 'dark' }
+    }
+  }
+];
+
 export const ifTagErrorTests: ErrorTestCase[] = [
   {
     name: 'throws error when $if tag has no $check',

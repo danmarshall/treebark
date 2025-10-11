@@ -161,6 +161,19 @@
     }
     return attrs.$not ? !finalResult : finalResult;
   }
+  function isConditionalValue(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
+  }
+  function evaluateConditionalValue(value, data, parents = []) {
+    validateCheckExpression(value.$check);
+    const checkValue = getProperty(data, value.$check, parents);
+    const condition = evaluateCondition(checkValue, value);
+    if (condition) {
+      return value.$then !== void 0 ? value.$then : "";
+    } else {
+      return value.$else !== void 0 ? value.$else : "";
+    }
+  }
   function templateHasCurrentObjectBinding(template) {
     if (Array.isArray(template) || typeof template !== "object" || template === null) {
       return false;
@@ -253,22 +266,22 @@
       }
       validateCheckExpression(rest.$check);
       const checkValue = getProperty(data, rest.$check, parents);
-      const { $check, $children = [], ...restAttrs } = rest;
-      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$=", "$in", "$and", "$or", "$then", "$else"]);
+      const { $check, $thenChildren, $elseChildren, $children, ...restAttrs } = rest;
+      const thenChildren = $thenChildren || $children || [];
+      const elseChildren = $elseChildren || [];
+      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$=", "$in", "$and", "$or", "$then", "$else", "$thenChildren", "$elseChildren"]);
       const nonReservedAttrs = Object.keys(restAttrs).filter((key) => !reservedKeys.has(key));
       if (nonReservedAttrs.length > 0) {
-        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $children');
+        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $thenChildren/$elseChildren');
       }
       const condition = evaluateCondition(checkValue, rest);
-      if (!condition) {
-        return "";
-      }
+      const childrenToRender = condition ? thenChildren : elseChildren;
       if (!context.indentStr) {
-        return $children.map((child) => render(child, data, context)).join("");
+        return childrenToRender.map((child) => render(child, data, context)).join("");
       }
       const currentLevel = context.level || 0;
       const indent = context.indentStr.repeat(currentLevel);
-      return $children.map((child, index) => {
+      return childrenToRender.map((child, index) => {
         const content = render(child, data, context);
         return index === 0 ? content : indent + content;
       }).join("\n");
@@ -321,7 +334,14 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
-    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => {
+      if (isConditionalValue(v)) {
+        const evaluatedValue = evaluateConditionalValue(v, data, parents);
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+      } else {
+        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+      }
+    }).join(" ");
     return pairs ? " " + pairs : "";
   }
   function treebarkPlugin(md, options = {}) {

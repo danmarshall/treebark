@@ -1,12 +1,30 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown> | Record<string, unknown>[];
 
+// Conditional value type for attribute values
+export type ConditionalValue = {
+  $check: string;
+  $then?: unknown;
+  $else?: unknown;
+  // Operators
+  '$<'?: unknown;
+  '$>'?: unknown;
+  '$='?: unknown;
+  $in?: unknown[];
+  // Modifiers
+  $not?: boolean;
+  $and?: boolean;
+  $or?: boolean;
+};
+
 // Non-recursive template structure types
 // Template attributes defined first to avoid circular references
 export type TemplateAttributes = {
   $bind?: string;
-  $check?: string;  // v2.0: replaces $bind for $if tag
+  $check?: string;  // v2.0: for $if tag
   $children?: (string | TemplateObject)[];
+  $thenChildren?: (string | TemplateObject)[]; // v2.0: children when condition is true
+  $elseChildren?: (string | TemplateObject)[]; // v2.0: children when condition is false
   $not?: boolean;
   // Operators for $if tag
   '$<'?: unknown;
@@ -16,7 +34,7 @@ export type TemplateAttributes = {
   // Modifiers for $if tag
   $and?: boolean;
   $or?: boolean;
-  // Conditional values
+  // Conditional values (deprecated in favor of $thenChildren/$elseChildren)
   $then?: unknown;
   $else?: unknown;
   [key: string]: unknown;
@@ -230,7 +248,7 @@ export function validateCheckExpression(checkValue: string): void {
  */
 export function evaluateCondition(
   checkValue: unknown,
-  attrs: TemplateAttributes
+  attrs: TemplateAttributes | ConditionalValue
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
   
@@ -276,6 +294,38 @@ export function evaluateCondition(
   
   // Apply negation if $not is true
   return attrs.$not ? !finalResult : finalResult;
+}
+
+/**
+ * Check if a value is a conditional value object
+ */
+export function isConditionalValue(value: unknown): value is ConditionalValue {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as ConditionalValue).$check === 'string'
+  );
+}
+
+/**
+ * Evaluate a conditional value and return $then or $else based on condition
+ */
+export function evaluateConditionalValue(
+  value: ConditionalValue,
+  data: Data,
+  parents: Data[] = []
+): unknown {
+  validateCheckExpression(value.$check);
+  const checkValue = getProperty(data, value.$check, parents);
+  const condition = evaluateCondition(checkValue, value);
+  
+  if (condition) {
+    return value.$then !== undefined ? value.$then : '';
+  } else {
+    return value.$else !== undefined ? value.$else : '';
+  }
 }
 
 /**

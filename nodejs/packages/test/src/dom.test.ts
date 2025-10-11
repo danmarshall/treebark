@@ -19,6 +19,8 @@ import {
   bindValidationErrorTests,
   ifTagTests,
   ifTagOperatorTests,
+  ifTagThenElseTests,
+  conditionalAttributeTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -640,6 +642,55 @@ describe('DOM Renderer', () => {
             break;
           case 'complex condition: multiple operators with OR and $not':
             expect(div.querySelector('p')?.textContent).toBe('Valid status');
+            break;
+        }
+      });
+    });
+
+    // $thenChildren and $elseChildren tests
+    ifTagThenElseTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'renders $thenChildren when condition is true':
+            expect(div.querySelector('p')?.textContent).toBe('Active user');
+            break;
+          case 'renders $elseChildren when condition is false':
+            expect(div.querySelector('p')?.textContent).toBe('Inactive user');
+            break;
+          case 'renders $thenChildren when condition is true with both branches':
+            expect(div.querySelector('p')?.textContent).toBe('Excellent!');
+            break;
+          case 'renders empty when $elseChildren not provided and condition false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+        }
+      });
+    });
+
+    // Conditional attribute tests
+    conditionalAttributeTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'conditional attribute with $then and $else':
+            expect(div.className).toBe('active');
+            break;
+          case 'conditional attribute evaluates to $else when false':
+            expect(div.className).toBe('inactive');
+            break;
+          case 'conditional attribute with operator':
+            expect(div.className).toBe('excellent');
+            break;
+          case 'conditional attribute with $in operator':
+            expect(div.className).toBe('privileged');
+            break;
+          case 'conditional attribute with $not modifier':
+            expect(div.className).toBe('member');
+            break;
+          case 'multiple attributes with conditionals':
+            expect(div.className).toBe('dark-mode');
+            expect(div.getAttribute('data-theme')).toBe('dark');
             break;
         }
       });

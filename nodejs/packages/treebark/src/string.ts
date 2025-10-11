@@ -13,6 +13,8 @@ import {
   validateBindExpression,
   validateCheckExpression,
   evaluateCondition,
+  isConditionalValue,
+  evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions
@@ -125,27 +127,29 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     validateCheckExpression(rest.$check);
     const checkValue = getProperty(data, rest.$check, parents);
-    const { $check, $children = [], ...restAttrs } = rest;
+    const { $check, $thenChildren, $elseChildren, $children, ...restAttrs } = rest;
+    
+    // Support both old ($children) and new ($thenChildren/$elseChildren) syntax
+    const thenChildren = $thenChildren || $children || [];
+    const elseChildren = $elseChildren || [];
     
     // Check if any non-reserved attributes were provided (excluding operators and modifiers)
-    const reservedKeys = new Set(['$not', '$<', '$>', '$=', '$in', '$and', '$or', '$then', '$else']);
+    const reservedKeys = new Set(['$not', '$<', '$>', '$=', '$in', '$and', '$or', '$then', '$else', '$thenChildren', '$elseChildren']);
     const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
     if (nonReservedAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $children');
+      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $thenChildren/$elseChildren');
     }
     
     // Evaluate condition using new operator-based logic
     const condition = evaluateCondition(checkValue, rest);
     
-    // Only render children if condition is true
-    if (!condition) {
-      return '';
-    }
+    // Render appropriate children based on condition
+    const childrenToRender = condition ? thenChildren : elseChildren;
     
     // Render children without wrapping tag
     if (!context.indentStr) {
       // No indentation: simple join
-      return $children.map(child => render(child, data, context)).join('');
+      return childrenToRender.map(child => render(child, data, context)).join('');
     }
     
     // With indentation: each child needs proper indentation since they won't go
@@ -153,7 +157,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const currentLevel = context.level || 0;
     const indent = context.indentStr.repeat(currentLevel);
     
-    return $children.map((child, index) => {
+    return childrenToRender.map((child, index) => {
       const content = render(child, data, context);
       // Only the first child might get indented by parent's processContent,
       // so we need to add indentation to subsequent children
@@ -225,7 +229,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => (validateAttribute(key, tag), true))
-    .map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`)
+    .map(([k, v]) => {
+      // Check if value is a conditional value
+      if (isConditionalValue(v)) {
+        const evaluatedValue = evaluateConditionalValue(v, data, parents);
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+      } else {
+        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+      }
+    })
     .join(" ");
   return pairs ? " " + pairs : "";
 }
