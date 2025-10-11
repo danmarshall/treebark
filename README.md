@@ -747,7 +747,7 @@ By default, multiple operators use AND logic. Use `$or: true` for OR logic:
 
 **Negation with `$not`:**
 
-Use `$not: true` to invert the entire condition result:
+Use `$not: true` to invert the entire condition result. This is useful when you want to negate a complex condition:
 
 ```json
 {
@@ -755,10 +755,11 @@ Use `$not: true` to invert the entire condition result:
     "$children": [
       {
         "$if": {
-          "$check": "count",
+          "$check": "age",
+          "$>": 18,
+          "$<": 65,
           "$not": true,
-          "$then": { "p": "No items available" },
-          "$else": { "p": "Items found: {{count}}" }
+          "$then": { "p": "Outside working age range" }
         }
       }
     ]
@@ -766,17 +767,16 @@ Use `$not: true` to invert the entire condition result:
 }
 ```
 
-With `data: { count: 0 }`, outputs:
+With `data: { age: 15 }`, outputs:
 ```html
 <div>
-  <p>No items available</p>
+  <p>Outside working age range</p>
 </div>
 ```
 
-With `data: { count: 5 }`, outputs:
+With `data: { age: 25 }`, outputs:
 ```html
 <div>
-  <p>Items found: 5</p>
 </div>
 ```
 
@@ -839,6 +839,8 @@ Since `$then` and `$else` output single elements, wrap multiple elements in a co
 The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
+
+## 📝 Format Notes
 
 Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the *Parent Property Access* example template (above) as YAML for comparison:
 
