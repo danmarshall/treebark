@@ -382,7 +382,7 @@
         }
     },
     "conditional-if-basic": {
-        "label": "Conditional: Basic 'if' Tag",
+        "label": "Conditional: Basic $if Tag",
         "template": {
             "div": {
                 "class": "user-greeting",
@@ -391,8 +391,8 @@
                         "h2": "User Dashboard"
                     },
                     {
-                        "if": {
-                            "$bind": "isLoggedIn",
+                        "$if": {
+                            "$check": "isLoggedIn",
                             "$children": [
                                 {
                                     "p": "Welcome back, {{username}}!"
@@ -409,8 +409,8 @@
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "isLoggedIn",
+                        "$if": {
+                            "$check": "isLoggedIn",
                             "$not": true,
                             "$children": [
                                 {
@@ -448,8 +448,8 @@
                         "p": "Role: {{user.role}}"
                     },
                     {
-                        "if": {
-                            "$bind": "user.isAdmin",
+                        "$if": {
+                            "$check": "user.isAdmin",
                             "$children": [
                                 {
                                     "div": {
@@ -497,8 +497,8 @@
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "user.isPremium",
+                        "$if": {
+                            "$check": "user.isPremium",
                             "$children": [
                                 {
                                     "div": {
@@ -548,8 +548,8 @@
                                                 "p": "Price: {{price}}"
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "inStock",
+                                                "$if": {
+                                                    "$check": "inStock",
                                                     "$children": [
                                                         {
                                                             "p": {
@@ -563,8 +563,8 @@
                                                 }
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "inStock",
+                                                "$if": {
+                                                    "$check": "inStock",
                                                     "$not": true,
                                                     "$children": [
                                                         {
@@ -620,8 +620,8 @@
                         "h2": "Document Access"
                     },
                     {
-                        "if": {
-                            "$bind": "hasPermission",
+                        "$if": {
+                            "$check": "hasPermission",
                             "$children": [
                                 {
                                     "div": {
@@ -634,8 +634,8 @@
                                                 "p": "This is protected content."
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "isVerified",
+                                                "$if": {
+                                                    "$check": "isVerified",
                                                     "$children": [
                                                         {
                                                             "div": {
@@ -654,8 +654,8 @@
                                                 }
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "isVerified",
+                                                "$if": {
+                                                    "$check": "isVerified",
                                                     "$not": true,
                                                     "$children": [
                                                         {
@@ -676,8 +676,8 @@
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "hasPermission",
+                        "$if": {
+                            "$check": "hasPermission",
                             "$not": true,
                             "$children": [
                                 {
@@ -702,6 +702,291 @@
         "data": {
             "hasPermission": true,
             "isVerified": true
+        }
+    },
+    "conditional-then-else": {
+        "label": "Conditional: $then and $else Branching",
+        "template": {
+            "div": {
+                "class": "auth-status",
+                "$children": [
+                    {
+                        "h2": "Authentication Status"
+                    },
+                    {
+                        "$if": {
+                            "$check": "isLoggedIn",
+                            "$then": {
+                                "div": {
+                                    "class": "logged-in",
+                                    "$children": [
+                                        {
+                                            "p": "Hello, {{username}}!"
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/logout",
+                                                "$children": [
+                                                    "Logout"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "div": {
+                                    "class": "logged-out",
+                                    "$children": [
+                                        {
+                                            "p": "Please log in to continue."
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/login",
+                                                "class": "btn",
+                                                "$children": [
+                                                    "Login"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "isLoggedIn": true,
+            "username": "Alice"
+        }
+    },
+    "conditional-comparison-operators": {
+        "label": "Conditional: Comparison Operators",
+        "template": {
+            "div": {
+                "class": "access-control",
+                "$children": [
+                    {
+                        "h2": "Age-Based Access (Age: {{age}})"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$<": 13,
+                            "$then": {
+                                "p": {
+                                    "style": "color: red;",
+                                    "$children": [
+                                        "❌ Child account - Restricted access"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 13,
+                            "$<": 18,
+                            "$then": {
+                                "p": {
+                                    "style": "color: orange;",
+                                    "$children": [
+                                        "⚠️ Teen account - Limited access"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 18,
+                            "$then": {
+                                "p": {
+                                    "style": "color: green;",
+                                    "$children": [
+                                        "✓ Full access granted"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Role-Based Access"
+                    },
+                    {
+                        "$if": {
+                            "$check": "role",
+                            "$in": [
+                                "admin",
+                                "moderator",
+                                "editor"
+                            ],
+                            "$then": {
+                                "p": {
+                                    "style": "color: blue;",
+                                    "$children": [
+                                        "⭐ Special privileges granted"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Standard user privileges"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "age": 25,
+            "role": "admin"
+        }
+    },
+    "conditional-join-or": {
+        "label": "Conditional: OR Logic with $join",
+        "template": {
+            "div": {
+                "class": "pricing",
+                "$children": [
+                    {
+                        "h2": "Ticket Pricing"
+                    },
+                    {
+                        "p": "Age: {{age}}"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 18,
+                            "$<=": 65,
+                            "$then": {
+                                "p": {
+                                    "style": "color: green;",
+                                    "$children": [
+                                        "✓ Standard adult rate: $50"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Discounted rate available"
+                            }
+                        }
+                    },
+                    {
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Discount Eligibility (OR Logic)"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$<": 18,
+                            "$>": 65,
+                            "$join": "OR",
+                            "$then": {
+                                "p": {
+                                    "style": "color: blue;",
+                                    "$children": [
+                                        "🎉 Special discount: $30 (child or senior)"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Standard rate: $50"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "age": 70
+        }
+    },
+    "conditional-attribute-values": {
+        "label": "Conditional: Attribute Values",
+        "template": {
+            "div": {
+                "class": "status-dashboard",
+                "$children": [
+                    {
+                        "h2": "Server Status Dashboard"
+                    },
+                    {
+                        "div": {
+                            "class": {
+                                "$check": "status",
+                                "$=": "online",
+                                "$then": "status-online",
+                                "$else": "status-offline"
+                            },
+                            "style": {
+                                "$check": "status",
+                                "$=": "online",
+                                "$then": "color: green; font-weight: bold;",
+                                "$else": "color: red; font-weight: bold;"
+                            },
+                            "$children": [
+                                {
+                                    "strong": "Server Status: "
+                                },
+                                {
+                                    "span": "{{status}}"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Performance Score: {{score}}"
+                    },
+                    {
+                        "div": {
+                            "class": {
+                                "$check": "score",
+                                "$>=": 90,
+                                "$then": "score-excellent",
+                                "$else": "score-average"
+                            },
+                            "style": {
+                                "$check": "score",
+                                "$>=": 90,
+                                "$then": "color: green; font-weight: bold;",
+                                "$else": "color: orange;"
+                            },
+                            "$children": [
+                                {
+                                    "$if": {
+                                        "$check": "score",
+                                        "$>=": 90,
+                                        "$then": {
+                                            "span": "⭐ Excellent Performance"
+                                        },
+                                        "$else": {
+                                            "span": "Average Performance"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "status": "online",
+            "score": 95
         }
     }
 }
