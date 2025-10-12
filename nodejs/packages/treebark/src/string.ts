@@ -17,7 +17,8 @@ import {
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions,
-  Conditional
+  Conditional,
+  processConditional
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -120,47 +121,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Special handling for "$if" tag
   if (tag === '$if') {
-    // Type cast to Conditional since we know this is a $if tag
-    const conditional = rest as Conditional;
-    
-    // "$if" tag requires $check
-    if (!conditional.$check) {
-      throw new Error('"$if" tag requires $check attribute to specify the condition');
-    }
-    
-    validateCheckExpression(conditional.$check);
-    const checkValue = getProperty(data, conditional.$check, parents);
-    
-    // Extract properties - $if should only have conditional properties, not $children
-    const { $check, $then, $else, $not, '$<': lt, '$>': gt, '$<=': lte, '$>=': gte, '$=': eq, $in, $join } = conditional;
-    
-    // $if tag does not support $children - only $then/$else
-    if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
-      throw new Error('"$if" tag does not support $children, use $then and $else instead');
-    }
-    
-    // Validate $then and $else are not arrays
-    if ($then !== undefined && Array.isArray($then)) {
-      throw new Error('"$if" tag $then must be a string or single element object, not an array');
-    }
-    if ($else !== undefined && Array.isArray($else)) {
-      throw new Error('"$if" tag $else must be a string or single element object, not an array');
-    }
-    
-    // Check if any non-conditional properties were provided
-    // Get all keys from rest and check if there are any beyond the Conditional properties
-    const allKeys = typeof rest === 'object' && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
-    const conditionalKeys = new Set(['$check', '$then', '$else', '$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join']);
-    const nonConditionalAttrs = allKeys.filter(k => !conditionalKeys.has(k));
-    if (nonConditionalAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
-    }
-    
-    // Evaluate condition using conditional logic
-    const condition = evaluateCondition(checkValue, conditional);
-    
-    // Get the value to render based on condition
-    const valueToRender = condition ? $then : $else;
+    const { valueToRender } = processConditional(rest, data, parents);
     
     // If no value to render, return empty string
     if (valueToRender === undefined) {

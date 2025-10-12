@@ -210,6 +210,33 @@
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
+  function processConditional(rest, data, parents = []) {
+    const conditional = rest;
+    if (!conditional.$check) {
+      throw new Error('"$if" tag requires $check attribute to specify the condition');
+    }
+    validateCheckExpression(conditional.$check);
+    const checkValue = getProperty(data, conditional.$check, parents);
+    if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
+      throw new Error('"$if" tag does not support $children, use $then and $else instead');
+    }
+    const { $check, $then, $else } = conditional;
+    if ($then !== void 0 && Array.isArray($then)) {
+      throw new Error('"$if" tag $then must be a string or single element object, not an array');
+    }
+    if ($else !== void 0 && Array.isArray($else)) {
+      throw new Error('"$if" tag $else must be a string or single element object, not an array');
+    }
+    const allKeys = typeof rest === "object" && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
+    const conditionalKeys = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$join"]);
+    const nonConditionalAttrs = allKeys.filter((k) => !conditionalKeys.has(k));
+    if (nonConditionalAttrs.length > 0) {
+      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
+    }
+    const condition = evaluateCondition(checkValue, conditional);
+    const valueToRender = condition ? $then : $else;
+    return { valueToRender };
+  }
   const flattenOutput = (output, indentStr) => {
     if (!indentStr) {
       return output.length <= 1 ? output[0]?.[1] ?? "" : output.reduce((acc, [, content]) => acc + content, "");
@@ -266,30 +293,7 @@
       throw new Error("Nested comments are not allowed");
     }
     if (tag === "$if") {
-      const conditional = rest;
-      if (!conditional.$check) {
-        throw new Error('"$if" tag requires $check attribute to specify the condition');
-      }
-      validateCheckExpression(conditional.$check);
-      const checkValue = getProperty(data, conditional.$check, parents);
-      const { $check, $then, $else, $not, "$<": lt, "$>": gt, "$<=": lte, "$>=": gte, "$=": eq, $in, $join } = conditional;
-      if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
-        throw new Error('"$if" tag does not support $children, use $then and $else instead');
-      }
-      if ($then !== void 0 && Array.isArray($then)) {
-        throw new Error('"$if" tag $then must be a string or single element object, not an array');
-      }
-      if ($else !== void 0 && Array.isArray($else)) {
-        throw new Error('"$if" tag $else must be a string or single element object, not an array');
-      }
-      const allKeys = typeof rest === "object" && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
-      const conditionalKeys = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$join"]);
-      const nonConditionalAttrs = allKeys.filter((k) => !conditionalKeys.has(k));
-      if (nonConditionalAttrs.length > 0) {
-        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
-      }
-      const condition = evaluateCondition(checkValue, conditional);
-      const valueToRender = condition ? $then : $else;
+      const { valueToRender } = processConditional(rest, data, parents);
       if (valueToRender === void 0) {
         return "";
       }
