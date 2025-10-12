@@ -1,6 +1,6 @@
 {
   "name": "markdown-it-treebark",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Markdown-it plugin for treebark template rendering",
   "type": "module",
   "main": "./dist/index.js",
