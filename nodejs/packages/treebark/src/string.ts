@@ -134,10 +134,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const elseValue = $else;
     
     // Check if any non-reserved attributes were provided (excluding operators and modifiers)
-    const reservedKeys = new Set(['$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$stack', '$then', '$else']);
+    const reservedKeys = new Set(['$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join', '$then', '$else']);
     const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
     if (nonReservedAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $stack), and $then/$else');
+      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
     }
     
     // Evaluate condition using new operator-based logic

@@ -158,7 +158,7 @@
           return false;
       }
     });
-    const useOr = attrs.$stack === "OR";
+    const useOr = attrs.$join === "OR";
     let finalResult;
     if (useOr) {
       finalResult = results.some((r) => r);
@@ -275,10 +275,10 @@
       const { $check, $then, $else, $children, ...restAttrs } = rest;
       const thenValue = $then !== void 0 ? $then : $children && $children.length > 0 ? $children[0] : void 0;
       const elseValue = $else;
-      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$stack", "$then", "$else"]);
+      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$join", "$then", "$else"]);
       const nonReservedAttrs = Object.keys(restAttrs).filter((key) => !reservedKeys.has(key));
       if (nonReservedAttrs.length > 0) {
-        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $stack), and $then/$else');
+        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
       }
       const condition = evaluateCondition(checkValue, rest);
       const valueToRender = condition ? thenValue : elseValue;

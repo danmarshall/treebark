@@ -314,7 +314,7 @@ The `$if` tag provides advanced conditional rendering based on data properties. 
 - Supports comparison operators: `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`
 - Operators can be stacked (multiple operators)
 - Supports `$not` to invert the final result
-- Uses AND logic by default, can switch to OR logic with `$stack: "OR"`
+- Uses AND logic by default, can switch to OR logic with `$join: "OR"`
 - Supports `$thenChildren` and `$elseChildren` for explicit if/else branching
 - Does not render itself as an HTML element
 - Cannot have regular HTML attributes (only special operators and modifiers)
@@ -544,7 +544,7 @@ Multiple operators can be used together. By default, they use AND logic (all mus
 
 ### OR Logic
 
-Use `$stack: "OR"` to change from AND to OR logic (at least one must be true):
+Use `$join: "OR"` to change from AND to OR logic (at least one must be true):
 
 ```javascript
 {
@@ -553,7 +553,7 @@ Use `$stack: "OR"` to change from AND to OR logic (at least one must be true):
       $check: 'age',
       '$<': 18,
       '$>': 65,
-      $stack: 'OR',
+      $join: 'OR',
       $children: [
         { p: 'Non-working age' }
       ]
@@ -597,7 +597,7 @@ The `$not` modifier inverts the entire result after all operators are evaluated:
             $check: 'user.status',
             '$=': 'pending',
             $in: ['error', 'failed'],
-            $stack: 'OR',
+            $join: 'OR',
             $not: true,
             $children: [
               { p: 'Valid user status' }
@@ -815,7 +815,7 @@ Attribute values can be conditional objects that use the same operator system as
 **With modifiers:**
 Conditional attributes support all the same modifiers and operators as `$if` tags:
 - `$not`: Invert the condition
-- `$stack`: Combine multiple operators with "AND" or "OR"
+- `$join`: Combine multiple operators with "AND" or "OR"
 - `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`: Comparison operators
 
 ```javascript
@@ -839,5 +839,5 @@ Conditional attributes support all the same modifiers and operators as `$if` tag
 **Restrictions:**
 - The `$if` tag **requires** a `$check` attribute
 - The `$if` tag **cannot** have regular HTML attributes (like `class`, `id`, etc.)
-- Only special operators (`$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`) and modifiers (`$not`, `$stack`) are allowed
+- Only special operators (`$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`) and modifiers (`$not`, `$join`) are allowed
 - If you need a wrapper element with attributes, use a regular tag inside the `$if` tag's children
