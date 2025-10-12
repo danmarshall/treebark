@@ -38,7 +38,9 @@
     "$if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
-    "img"
+    "img",
+    "br",
+    "hr"
   ]);
   const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
   const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
