@@ -9,7 +9,6 @@ import {
   interpolate, 
   validateAttribute, 
   hasBinding,
-  hasCheck,
   validateBindExpression,
   validateCheckExpression,
   evaluateCondition,
@@ -17,7 +16,8 @@ import {
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  Conditional
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -77,17 +77,22 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Special handling for "$if" tag
   if (tag === '$if') {
+    // Type cast to Conditional since we know this is a $if tag
+    const conditional = rest as Conditional;
+    
     // "$if" tag requires $check
-    if (!hasCheck(rest)) {
+    if (!conditional.$check) {
       throw new Error('"$if" tag requires $check attribute to specify the condition');
     }
     
-    validateCheckExpression(rest.$check);
-    const checkValue = getProperty(data, rest.$check, parents);
-    const { $check, $then, $else, $children, ...restAttrs } = rest;
+    validateCheckExpression(conditional.$check);
+    const checkValue = getProperty(data, conditional.$check, parents);
+    
+    // Extract properties - $if should only have conditional properties, not $children
+    const { $check, $then, $else, $not, '$<': lt, '$>': gt, '$<=': lte, '$>=': gte, '$=': eq, $in, $join } = conditional;
     
     // $if tag does not support $children - only $then/$else
-    if ($children !== undefined) {
+    if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
       throw new Error('"$if" tag does not support $children, use $then and $else instead');
     }
     
@@ -99,21 +104,20 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       throw new Error('"$if" tag $else must be a string or single element object, not an array');
     }
     
-    const thenValue = $then;
-    const elseValue = $else;
-    
-    // Check if any non-reserved attributes were provided (excluding operators and modifiers)
-    const reservedKeys = new Set(['$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join', '$then', '$else']);
-    const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
-    if (nonReservedAttrs.length > 0) {
+    // Check if any non-conditional properties were provided
+    // Get all keys from rest and check if there are any beyond the Conditional properties
+    const allKeys = typeof rest === 'object' && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
+    const conditionalKeys = new Set(['$check', '$then', '$else', '$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join']);
+    const nonConditionalAttrs = allKeys.filter(k => !conditionalKeys.has(k));
+    if (nonConditionalAttrs.length > 0) {
       throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
     }
     
-    // Evaluate condition using new operator-based logic
-    const condition = evaluateCondition(checkValue, rest);
+    // Evaluate condition using conditional logic
+    const condition = evaluateCondition(checkValue, conditional);
     
     // Get the value to render based on condition
-    const valueToRender = condition ? thenValue : elseValue;
+    const valueToRender = condition ? $then : $else;
     
     // If no value to render, return empty
     if (valueToRender === undefined) {

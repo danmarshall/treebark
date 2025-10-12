@@ -1,7 +1,24 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown> | Record<string, unknown>[];
 
-// Conditional value type for attribute values
+// Conditional type for $if tag - shared structure with ConditionalValue
+export type Conditional = {
+  $check: string;
+  $then?: string | TemplateObject; // Single element when condition is true
+  $else?: string | TemplateObject; // Single element when condition is false
+  // Operators
+  '$<'?: unknown;
+  '$>'?: unknown;
+  '$<='?: unknown;
+  '$>='?: unknown;
+  '$='?: unknown;
+  $in?: unknown[];
+  // Modifiers
+  $not?: boolean;
+  $join?: 'AND' | 'OR';
+};
+
+// Conditional value type for attribute values (same structure as Conditional but $then/$else are unknown)
 export type ConditionalValue = {
   $check: string;
   $then?: unknown;
@@ -19,28 +36,18 @@ export type ConditionalValue = {
 };
 
 // Non-recursive template structure types
-// Template attributes defined first to avoid circular references
+// Template attributes for regular tags (not $if)
 export type TemplateAttributes = {
   $bind?: string;
-  $check?: string;  // v2.0: for $if tag
   $children?: (string | TemplateObject)[];
-  $then?: string | TemplateObject; // v2.0: single element when condition is true
-  $else?: string | TemplateObject; // v2.0: single element when condition is false
-  $not?: boolean;
-  // Operators for $if tag
-  '$<'?: unknown;
-  '$>'?: unknown;
-  '$<='?: unknown;
-  '$>='?: unknown;
-  '$='?: unknown;
-  $in?: unknown[];
-  // Modifiers for $if tag
-  $join?: 'AND' | 'OR';
   [key: string]: unknown;
 };
 
 // Template object maps tag names to content
-export type TemplateObject = { [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes };
+// Special case: $if tag uses Conditional type instead of TemplateAttributes
+export type TemplateObject = { 
+  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | Conditional;
+};
 
 // Template element is either a string or an object
 export type TemplateElement = string | TemplateObject;
@@ -242,14 +249,14 @@ export function validateCheckExpression(checkValue: string): void {
 }
 
 /**
- * Evaluate conditional logic for $if tag
+ * Evaluate conditional logic for $if tag and conditional attributes
  * Supports operators: $<, $>, $<=, $>=, $=, $in
  * Supports modifiers: $not, $join
  * Default behavior: truthy check when no operators
  */
 export function evaluateCondition(
   checkValue: unknown,
-  attrs: TemplateAttributes | ConditionalValue
+  attrs: Conditional | ConditionalValue
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
   
