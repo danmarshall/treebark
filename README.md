@@ -60,7 +60,12 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`
+`a`, `img`, `br`, `hr`
+
+**Void tags (self-closing):**  
+- `img` — Image element. Use with attributes: `{ img: { src: 'photo.jpg', alt: 'Photo' } }`
+- `br` — Line break. Use with empty object: `{ br: {} }`
+- `hr` — Horizontal rule. Use with empty object: `{ hr: {} }`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
