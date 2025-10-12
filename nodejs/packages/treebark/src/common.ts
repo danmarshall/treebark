@@ -74,7 +74,9 @@ export const SPECIAL_TAGS = new Set([
 
 // Void tags that cannot have children and are self-closing
 export const VOID_TAGS = new Set([
-  'img'
+  'img',
+  'br',
+  'hr'
 ]);
 
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
