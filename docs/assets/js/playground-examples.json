@@ -204,7 +204,7 @@
                         "span": {
                             "class": "icon",
                             "$children": [
-                                "📧"
+                                "\ud83d\udce7"
                             ]
                         }
                     },
@@ -263,7 +263,7 @@
                 "$bind": "products",
                 "$children": [
                     {
-                        "li": "{{name}} — {{price}}"
+                        "li": "{{name}} \u2014 {{price}}"
                     }
                 ]
             }
@@ -288,7 +288,7 @@
                 "$bind": ".",
                 "$children": [
                     {
-                        "li": "{{name}} — {{price}}"
+                        "li": "{{name}} \u2014 {{price}}"
                     }
                 ]
             }
@@ -393,38 +393,46 @@
                     {
                         "$if": {
                             "$check": "isLoggedIn",
-                            "$children": [
-                                {
-                                    "p": "Welcome back, {{username}}!"
-                                },
-                                {
-                                    "a": {
-                                        "href": "/profile",
-                                        "$children": [
-                                            "View Profile"
-                                        ]
-                                    }
+                            "$then": {
+                                "div": {
+                                    "$children": [
+                                        {
+                                            "p": "Welcome back, {{username}}!"
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/profile",
+                                                "$children": [
+                                                    "View Profile"
+                                                ]
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     },
                     {
                         "$if": {
                             "$check": "isLoggedIn",
                             "$not": true,
-                            "$children": [
-                                {
-                                    "p": "Please log in to continue."
-                                },
-                                {
-                                    "a": {
-                                        "href": "/login",
-                                        "$children": [
-                                            "Login"
-                                        ]
-                                    }
+                            "$then": {
+                                "div": {
+                                    "$children": [
+                                        {
+                                            "p": "Please log in to continue."
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/login",
+                                                "$children": [
+                                                    "Login"
+                                                ]
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     }
                 ]
@@ -450,66 +458,62 @@
                     {
                         "$if": {
                             "$check": "user.isAdmin",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "admin-panel",
-                                        "$children": [
-                                            {
-                                                "h3": "Admin Tools"
-                                            },
-                                            {
-                                                "ul": [
-                                                    {
-                                                        "li": {
-                                                            "$children": [
-                                                                {
-                                                                    "a": {
-                                                                        "href": "/admin/users",
-                                                                        "$children": [
-                                                                            "Manage Users"
-                                                                        ]
-                                                                    }
+                            "$then": {
+                                "div": {
+                                    "class": "admin-panel",
+                                    "$children": [
+                                        {
+                                            "h3": "Admin Tools"
+                                        },
+                                        {
+                                            "ul": [
+                                                {
+                                                    "li": {
+                                                        "$children": [
+                                                            {
+                                                                "a": {
+                                                                    "href": "/admin/users",
+                                                                    "$children": [
+                                                                        "Manage Users"
+                                                                    ]
                                                                 }
-                                                            ]
-                                                        }
-                                                    },
-                                                    {
-                                                        "li": {
-                                                            "$children": [
-                                                                {
-                                                                    "a": {
-                                                                        "href": "/admin/settings",
-                                                                        "$children": [
-                                                                            "System Settings"
-                                                                        ]
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
+                                                            }
+                                                        ]
                                                     }
-                                                ]
-                                            }
-                                        ]
-                                    }
+                                                },
+                                                {
+                                                    "li": {
+                                                        "$children": [
+                                                            {
+                                                                "a": {
+                                                                    "href": "/admin/settings",
+                                                                    "$children": [
+                                                                        "System Settings"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     },
                     {
                         "$if": {
                             "$check": "user.isPremium",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "premium-badge",
-                                        "style": "background: gold; padding: 5px;",
-                                        "$children": [
-                                            "⭐ Premium Member"
-                                        ]
-                                    }
+                            "$then": {
+                                "div": {
+                                    "class": "premium-badge",
+                                    "style": "background: gold; padding: 5px;",
+                                    "$children": [
+                                        "\u2b50 Premium Member"
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     }
                 ]
@@ -550,32 +554,28 @@
                                             {
                                                 "$if": {
                                                     "$check": "inStock",
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: green;",
-                                                                "$children": [
-                                                                    "✓ In Stock ({{quantity}} available)"
-                                                                ]
-                                                            }
+                                                    "$then": {
+                                                        "p": {
+                                                            "style": "color: green;",
+                                                            "$children": [
+                                                                "\u2713 In Stock ({{quantity}} available)"
+                                                            ]
                                                         }
-                                                    ]
+                                                    }
                                                 }
                                             },
                                             {
                                                 "$if": {
                                                     "$check": "inStock",
                                                     "$not": true,
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: red;",
-                                                                "$children": [
-                                                                    "✗ Out of Stock"
-                                                                ]
-                                                            }
+                                                    "$then": {
+                                                        "p": {
+                                                            "style": "color: red;",
+                                                            "$children": [
+                                                                "\u2717 Out of Stock"
+                                                            ]
                                                         }
-                                                    ]
+                                                    }
                                                 }
                                             }
                                         ]
@@ -622,78 +622,70 @@
                     {
                         "$if": {
                             "$check": "hasPermission",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "content-area",
-                                        "$children": [
-                                            {
-                                                "h3": "Secure Document"
-                                            },
-                                            {
-                                                "p": "This is protected content."
-                                            },
-                                            {
-                                                "$if": {
-                                                    "$check": "isVerified",
-                                                    "$children": [
-                                                        {
-                                                            "div": {
-                                                                "style": "background: lightgreen; padding: 10px;",
-                                                                "$children": [
-                                                                    {
-                                                                        "strong": "✓ Verified Access"
-                                                                    },
-                                                                    {
-                                                                        "p": "You have full access to this document."
-                                                                    }
-                                                                ]
+                            "$then": {
+                                "div": {
+                                    "class": "content-area",
+                                    "$children": [
+                                        {
+                                            "h3": "Secure Document"
+                                        },
+                                        {
+                                            "p": "This is protected content."
+                                        },
+                                        {
+                                            "$if": {
+                                                "$check": "isVerified",
+                                                "$then": {
+                                                    "div": {
+                                                        "style": "background: lightgreen; padding: 10px;",
+                                                        "$children": [
+                                                            {
+                                                                "strong": "\u2713 Verified Access"
+                                                            },
+                                                            {
+                                                                "p": "You have full access to this document."
                                                             }
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                "$if": {
-                                                    "$check": "isVerified",
-                                                    "$not": true,
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: orange;",
-                                                                "$children": [
-                                                                    "⚠ Limited access - verification pending"
-                                                                ]
-                                                            }
-                                                        }
-                                                    ]
+                                                        ]
+                                                    }
                                                 }
                                             }
-                                        ]
-                                    }
+                                        },
+                                        {
+                                            "$if": {
+                                                "$check": "isVerified",
+                                                "$not": true,
+                                                "$then": {
+                                                    "p": {
+                                                        "style": "color: orange;",
+                                                        "$children": [
+                                                            "\u26a0 Limited access - verification pending"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     },
                     {
                         "$if": {
                             "$check": "hasPermission",
                             "$not": true,
-                            "$children": [
-                                {
-                                    "div": {
-                                        "style": "background: #ffe0e0; padding: 15px; border: 2px solid red;",
-                                        "$children": [
-                                            {
-                                                "strong": "Access Denied"
-                                            },
-                                            {
-                                                "p": "You do not have permission to view this content."
-                                            }
-                                        ]
-                                    }
+                            "$then": {
+                                "div": {
+                                    "style": "background: #ffe0e0; padding: 15px; border: 2px solid red;",
+                                    "$children": [
+                                        {
+                                            "strong": "Access Denied"
+                                        },
+                                        {
+                                            "p": "You do not have permission to view this content."
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     }
                 ]
@@ -780,7 +772,7 @@
                                 "p": {
                                     "style": "color: red;",
                                     "$children": [
-                                        "❌ Child account - Restricted access"
+                                        "\u274c Child account - Restricted access"
                                     ]
                                 }
                             }
@@ -795,7 +787,7 @@
                                 "p": {
                                     "style": "color: orange;",
                                     "$children": [
-                                        "⚠️ Teen account - Limited access"
+                                        "\u26a0\ufe0f Teen account - Limited access"
                                     ]
                                 }
                             }
@@ -809,7 +801,7 @@
                                 "p": {
                                     "style": "color: green;",
                                     "$children": [
-                                        "✓ Full access granted"
+                                        "\u2713 Full access granted"
                                     ]
                                 }
                             }
@@ -833,7 +825,7 @@
                                 "p": {
                                     "style": "color: blue;",
                                     "$children": [
-                                        "⭐ Special privileges granted"
+                                        "\u2b50 Special privileges granted"
                                     ]
                                 }
                             },
@@ -871,7 +863,7 @@
                                 "p": {
                                     "style": "color: green;",
                                     "$children": [
-                                        "✓ Standard adult rate: $50"
+                                        "\u2713 Standard adult rate: $50"
                                     ]
                                 }
                             },
@@ -896,7 +888,7 @@
                                 "p": {
                                     "style": "color: blue;",
                                     "$children": [
-                                        "🎉 Special discount: $30 (child or senior)"
+                                        "\ud83c\udf89 Special discount: $30 (child or senior)"
                                     ]
                                 }
                             },
@@ -971,7 +963,7 @@
                                         "$check": "score",
                                         "$>=": 90,
                                         "$then": {
-                                            "span": "⭐ Excellent Performance"
+                                            "span": "\u2b50 Excellent Performance"
                                         },
                                         "$else": {
                                             "span": "Average Performance"

@@ -86,8 +86,20 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const checkValue = getProperty(data, rest.$check, parents);
     const { $check, $then, $else, $children, ...restAttrs } = rest;
     
-    // Support both new ($then/$else) and old ($children) syntax for backward compatibility
-    const thenValue = $then !== undefined ? $then : ($children && $children.length > 0 ? $children[0] : undefined);
+    // $if tag does not support $children - only $then/$else
+    if ($children !== undefined) {
+      throw new Error('"$if" tag does not support $children, use $then and $else instead');
+    }
+    
+    // Validate $then and $else are not arrays
+    if ($then !== undefined && Array.isArray($then)) {
+      throw new Error('"$if" tag $then must be a string or single element object, not an array');
+    }
+    if ($else !== undefined && Array.isArray($else)) {
+      throw new Error('"$if" tag $else must be a string or single element object, not an array');
+    }
+    
+    const thenValue = $then;
     const elseValue = $else;
     
     // Check if any non-reserved attributes were provided (excluding operators and modifiers)

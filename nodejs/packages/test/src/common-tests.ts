@@ -736,9 +736,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'showMessage',
-                $children: [
+                $then:
                   { p: 'Message is shown' }
-                ]
               }
             }
           ]
@@ -756,9 +755,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'userName',
-                $children: [
+                $then:
                   { p: 'Hello {{userName}}' }
-                ]
               }
             }
           ]
@@ -776,9 +774,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'count',
-                $children: [
+                $then:
                   { p: 'Count: {{count}}' }
-                ]
               }
             }
           ]
@@ -797,9 +794,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'showMessage',
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             },
             { p: 'After' }
@@ -818,9 +814,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'value',
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -838,9 +833,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'value',
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -858,9 +852,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'value',
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -878,9 +871,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'value',
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -898,9 +890,8 @@ export const ifTagTests: TestCase[] = [
             {
               $if: {
                 $check: 'user.isAdmin',
-                $children: [
+                $then:
                   { p: 'Admin panel' }
-                ]
               }
             }
           ]
@@ -971,9 +962,8 @@ export const ifTagTests: TestCase[] = [
       template: {
         $if: {
           $check: 'show',
-          $children: [
+          $then:
             { div: 'Content' }
-          ]
         }
       },
       data: { show: true }
@@ -985,9 +975,8 @@ export const ifTagTests: TestCase[] = [
       template: {
         $if: {
           $check: 'show',
-          $children: [
+          $then:
             { div: 'Content' }
-          ]
         }
       },
       data: { show: false }
@@ -1003,9 +992,8 @@ export const ifTagTests: TestCase[] = [
               $if: {
                 $check: 'showMessage',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Message is hidden, showing this instead' }
-                ]
               }
             }
           ]
@@ -1025,9 +1013,8 @@ export const ifTagTests: TestCase[] = [
               $if: {
                 $check: 'showMessage',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             },
             { p: 'After' }
@@ -1047,9 +1034,8 @@ export const ifTagTests: TestCase[] = [
               $if: {
                 $check: 'user.isGuest',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Welcome back, member!' }
-                ]
               }
             }
           ]
@@ -1068,9 +1054,8 @@ export const ifTagTests: TestCase[] = [
               $if: {
                 $check: 'count',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'No items' }
-                ]
               }
             }
           ]
@@ -1089,9 +1074,8 @@ export const ifTagTests: TestCase[] = [
               $if: {
                 $check: 'message',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'No message provided' }
-                ]
               }
             }
           ]
@@ -1181,9 +1165,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'age',
                 '$<': 18,
-                $children: [
+                $then:
                   { p: 'Minor' }
-                ]
               }
             }
           ]
@@ -1202,9 +1185,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'age',
                 '$<': 18,
-                $children: [
+                $then:
                   { p: 'Minor' }
-                ]
               }
             }
           ]
@@ -1223,9 +1205,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>': 90,
-                $children: [
+                $then:
                   { p: 'Excellent' }
-                ]
               }
             }
           ]
@@ -1244,9 +1225,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>': 90,
-                $children: [
+                $then:
                   { p: 'Excellent' }
-                ]
               }
             }
           ]
@@ -1265,9 +1245,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'status',
                 '$=': 'active',
-                $children: [
+                $then:
                   { p: 'User is active' }
-                ]
               }
             }
           ]
@@ -1286,9 +1265,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'status',
                 '$=': 'active',
-                $children: [
+                $then:
                   { p: 'User is active' }
-                ]
               }
             }
           ]
@@ -1307,9 +1285,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'role',
                 $in: ['admin', 'moderator', 'editor'],
-                $children: [
+                $then:
                   { p: 'Has special privileges' }
-                ]
               }
             }
           ]
@@ -1328,9 +1305,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'role',
                 $in: ['admin', 'moderator', 'editor'],
-                $children: [
+                $then:
                   { p: 'Has special privileges' }
-                ]
               }
             }
           ]
@@ -1349,9 +1325,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'age',
                 '$<=': 18,
-                $children: [
+                $then:
                   { p: 'Youth' }
-                ]
               }
             }
           ]
@@ -1370,9 +1345,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'age',
                 '$<=': 18,
-                $children: [
+                $then:
                   { p: 'Youth' }
-                ]
               }
             }
           ]
@@ -1391,9 +1365,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'age',
                 '$<=': 18,
-                $children: [
+                $then:
                   { p: 'Youth' }
-                ]
               }
             }
           ]
@@ -1412,9 +1385,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>=': 90,
-                $children: [
+                $then:
                   { p: 'Excellent' }
-                ]
               }
             }
           ]
@@ -1433,9 +1405,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>=': 90,
-                $children: [
+                $then:
                   { p: 'Excellent' }
-                ]
               }
             }
           ]
@@ -1454,9 +1425,8 @@ export const ifTagOperatorTests: TestCase[] = [
               $if: {
                 $check: 'score',
                 '$>=': 90,
-                $children: [
+                $then:
                   { p: 'Excellent' }
-                ]
               }
             }
           ]
@@ -1476,9 +1446,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>=': 18,
                 '$<=': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1498,9 +1467,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>=': 18,
                 '$<=': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1520,9 +1488,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>=': 18,
                 '$<=': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1542,9 +1509,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>=': 18,
                 '$<=': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1564,9 +1530,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>=': 18,
                 '$<=': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1586,9 +1551,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>': 18,
                 '$<': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1608,9 +1572,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$>': 18,
                 '$<': 65,
-                $children: [
+                $then:
                   { p: 'Working age adult' }
-                ]
               }
             }
           ]
@@ -1631,9 +1594,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 '$<': 18,
                 '$>': 65,
                 $join: 'OR',
-                $children: [
+                $then:
                   { p: 'Non-working age' }
-                ]
               }
             }
           ]
@@ -1654,9 +1616,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 '$<': 18,
                 '$>': 65,
                 $join: 'OR',
-                $children: [
+                $then:
                   { p: 'Non-working age' }
-                ]
               }
             }
           ]
@@ -1676,9 +1637,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$<': 18,
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Adult' }
-                ]
               }
             }
           ]
@@ -1700,9 +1660,8 @@ export const ifTagOperatorTests: TestCase[] = [
                 $in: ['error', 'failed'],
                 $join: 'OR',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Valid status' }
-                ]
               }
             }
           ]
@@ -1907,9 +1866,8 @@ export const ifTagErrorTests: ErrorTestCase[] = [
     input: {
       template: {
         $if: {
-          $children: [
+          $then:
             { p: 'Content' }
-          ]
         }
       },
       data: {}
@@ -1923,6 +1881,20 @@ export const ifTagErrorTests: ErrorTestCase[] = [
         $if: {
           $check: 'show',
           class: 'my-class',
+          $then:
+            { p: 'Content' }
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"$if" tag does not support attributes'
+  },
+  {
+    name: 'throws error when $if tag has $children',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
           $children: [
             { p: 'Content' }
           ]
@@ -1930,7 +1902,40 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       },
       data: { show: true }
     },
-    expectedError: '"$if" tag does not support attributes'
+    expectedError: '"$if" tag does not support $children, use $then and $else instead'
+  },
+  {
+    name: 'throws error when $if tag $then is an array',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $then: [
+            { p: 'First' },
+            { p: 'Second' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"$if" tag $then must be a string or single element object, not an array'
+  },
+  {
+    name: 'throws error when $if tag $else is an array',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $then: { p: 'Visible' },
+          $else: [
+            { p: 'First' },
+            { p: 'Second' }
+          ]
+        }
+      },
+      data: { show: false }
+    },
+    expectedError: '"$if" tag $else must be a string or single element object, not an array'
   }
 ];
 

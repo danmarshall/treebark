@@ -275,7 +275,16 @@
       validateCheckExpression(rest.$check);
       const checkValue = getProperty(data, rest.$check, parents);
       const { $check, $then, $else, $children, ...restAttrs } = rest;
-      const thenValue = $then !== void 0 ? $then : $children && $children.length > 0 ? $children[0] : void 0;
+      if ($children !== void 0) {
+        throw new Error('"$if" tag does not support $children, use $then and $else instead');
+      }
+      if ($then !== void 0 && Array.isArray($then)) {
+        throw new Error('"$if" tag $then must be a string or single element object, not an array');
+      }
+      if ($else !== void 0 && Array.isArray($else)) {
+        throw new Error('"$if" tag $else must be a string or single element object, not an array');
+      }
+      const thenValue = $then;
       const elseValue = $else;
       const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$join", "$then", "$else"]);
       const nonReservedAttrs = Object.keys(restAttrs).filter((key) => !reservedKeys.has(key));
