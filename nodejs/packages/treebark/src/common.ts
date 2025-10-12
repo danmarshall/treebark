@@ -15,8 +15,7 @@ export type ConditionalValue = {
   $in?: unknown[];
   // Modifiers
   $not?: boolean;
-  $and?: boolean;
-  $or?: boolean;
+  $stack?: 'AND' | 'OR';
 };
 
 // Non-recursive template structure types
@@ -36,8 +35,7 @@ export type TemplateAttributes = {
   '$='?: unknown;
   $in?: unknown[];
   // Modifiers for $if tag
-  $and?: boolean;
-  $or?: boolean;
+  $stack?: 'AND' | 'OR';
   [key: string]: unknown;
 };
 
@@ -243,8 +241,8 @@ export function validateCheckExpression(checkValue: string): void {
 
 /**
  * Evaluate conditional logic for $if tag
- * Supports operators: $<, $>, $=, $in
- * Supports modifiers: $not, $and, $or
+ * Supports operators: $<, $>, $<=, $>=, $=, $in
+ * Supports modifiers: $not, $stack
  * Default behavior: truthy check when no operators
  */
 export function evaluateCondition(
@@ -287,8 +285,8 @@ export function evaluateCondition(
     }
   });
   
-  // Combine results using AND or OR logic
-  const useOr = attrs.$or === true;
+  // Combine results using AND or OR logic (default is AND)
+  const useOr = attrs.$stack === 'OR';
   let finalResult: boolean;
   
   if (useOr) {

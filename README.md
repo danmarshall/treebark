@@ -94,8 +94,7 @@ This means the implementation is featherweight.
 - `$=`: Strict equality comparison (===).
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
-- `$and`: Boolean (default: true). Combines multiple operators with AND logic.
-- `$or`: Boolean. Combines multiple operators with OR logic.
+- `$stack`: "AND" | "OR". Combines multiple operators (default: "AND").
 
 ## ✨ Examples  
 
@@ -748,7 +747,7 @@ With `data: { age: 18 }` or `{ age: 65 }`, the condition is true (inclusive boun
 
 **Combining operators with OR logic:**
 
-By default, multiple operators use AND logic. Use `$or: true` for OR logic:
+By default, multiple operators use AND logic. Use `$stack: "OR"` for OR logic:
 
 ```json
 {
@@ -759,7 +758,7 @@ By default, multiple operators use AND logic. Use `$or: true` for OR logic:
           "$check": "age",
           "$<": 18,
           "$>": 65,
-          "$or": true,
+          "$stack": "OR",
           "$then": { "p": "Discounted rate applies" }
         }
       }

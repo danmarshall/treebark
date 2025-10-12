@@ -1630,7 +1630,7 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$<': 18,
                 '$>': 65,
-                $or: true,
+                $stack: 'OR',
                 $children: [
                   { p: 'Non-working age' }
                 ]
@@ -1653,7 +1653,7 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'age',
                 '$<': 18,
                 '$>': 65,
-                $or: true,
+                $stack: 'OR',
                 $children: [
                   { p: 'Non-working age' }
                 ]
@@ -1698,7 +1698,7 @@ export const ifTagOperatorTests: TestCase[] = [
                 $check: 'status',
                 '$=': 'pending',
                 $in: ['error', 'failed'],
-                $or: true,
+                $stack: 'OR',
                 $not: true,
                 $children: [
                   { p: 'Valid status' }

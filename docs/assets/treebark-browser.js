@@ -132,6 +132,8 @@
     const operators = [];
     if ("$<" in attrs) operators.push({ key: "$<", value: attrs["$<"] });
     if ("$>" in attrs) operators.push({ key: "$>", value: attrs["$>"] });
+    if ("$<=" in attrs) operators.push({ key: "$<=", value: attrs["$<="] });
+    if ("$>=" in attrs) operators.push({ key: "$>=", value: attrs["$>="] });
     if ("$=" in attrs) operators.push({ key: "$=", value: attrs["$="] });
     if ("$in" in attrs) operators.push({ key: "$in", value: attrs["$in"] });
     if (operators.length === 0) {
@@ -144,6 +146,10 @@
           return typeof checkValue === "number" && typeof op.value === "number" && checkValue < op.value;
         case "$>":
           return typeof checkValue === "number" && typeof op.value === "number" && checkValue > op.value;
+        case "$<=":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue <= op.value;
+        case "$>=":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue >= op.value;
         case "$=":
           return checkValue === op.value;
         case "$in":
@@ -152,7 +158,7 @@
           return false;
       }
     });
-    const useOr = attrs.$or === true;
+    const useOr = attrs.$stack === "OR";
     let finalResult;
     if (useOr) {
       finalResult = results.some((r) => r);
@@ -266,25 +272,20 @@
       }
       validateCheckExpression(rest.$check);
       const checkValue = getProperty(data, rest.$check, parents);
-      const { $check, $thenChildren, $elseChildren, $children, ...restAttrs } = rest;
-      const thenChildren = $thenChildren || $children || [];
-      const elseChildren = $elseChildren || [];
-      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$=", "$in", "$and", "$or", "$then", "$else", "$thenChildren", "$elseChildren"]);
+      const { $check, $then, $else, $children, ...restAttrs } = rest;
+      const thenValue = $then !== void 0 ? $then : $children && $children.length > 0 ? $children[0] : void 0;
+      const elseValue = $else;
+      const reservedKeys = /* @__PURE__ */ new Set(["$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$stack", "$then", "$else"]);
       const nonReservedAttrs = Object.keys(restAttrs).filter((key) => !reservedKeys.has(key));
       if (nonReservedAttrs.length > 0) {
-        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $=, $in), modifiers ($not, $and, $or), and $thenChildren/$elseChildren');
+        throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $stack), and $then/$else');
       }
       const condition = evaluateCondition(checkValue, rest);
-      const childrenToRender = condition ? thenChildren : elseChildren;
-      if (!context.indentStr) {
-        return childrenToRender.map((child) => render(child, data, context)).join("");
+      const valueToRender = condition ? thenValue : elseValue;
+      if (valueToRender === void 0) {
+        return "";
       }
-      const currentLevel = context.level || 0;
-      const indent = context.indentStr.repeat(currentLevel);
-      return childrenToRender.map((child, index) => {
-        const content = render(child, data, context);
-        return index === 0 ? content : indent + content;
-      }).join("\n");
+      return render(valueToRender, data, context);
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
