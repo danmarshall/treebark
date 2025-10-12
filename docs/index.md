@@ -66,7 +66,7 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`
+`a`, `img`, `br`, `hr`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
@@ -183,6 +183,34 @@ For elements with both attributes and simple text content, you can also use this
 Output:
 ```html
 <a href="https://example.com" target="_blank">Visit our site</a>
+```
+
+#### Tags without attributes
+For `br` & `hr` tags, use an empty object:
+
+```json
+{
+  "div": {
+    "$children": [
+      "Line one",
+      { "br": {} },
+      "Line two",
+      { "hr": {} },
+      "Footer text"
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  Line one
+  <br>
+  Line two
+  <hr>
+  Footer text
+</div>
 ```
 
 ### Mixed Content  
