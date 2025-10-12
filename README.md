@@ -62,11 +62,6 @@ This means the implementation is featherweight.
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
 `a`, `img`, `br`, `hr`
 
-**Void tags (self-closing):**  
-- `img` — Image element. Use with attributes: `{ img: { src: 'photo.jpg', alt: 'Photo' } }`
-- `br` — Line break. Use with empty object: `{ br: {} }`
-- `hr` — Horizontal rule. Use with empty object: `{ hr: {} }`
-
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
 - `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering) below.
@@ -182,6 +177,34 @@ For elements with both attributes and simple text content, you can also use this
 Output:
 ```html
 <a href="https://example.com" target="_blank">Visit our site</a>
+```
+
+#### Tags without attributes
+For `br` & `hr` tags, use an empty object:
+
+```json
+{
+  "div": {
+    "$children": [
+      "Line one",
+      { "br": {} },
+      "Line two",
+      { "hr": {} },
+      "Footer text"
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  Line one
+  <br>
+  Line two
+  <hr>
+  Footer text
+</div>
 ```
 
 ### Mixed Content  
