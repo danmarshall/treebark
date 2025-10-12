@@ -60,7 +60,7 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `$comment`, `$if`
+`a`, `img`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
