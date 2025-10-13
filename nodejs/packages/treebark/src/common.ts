@@ -15,18 +15,18 @@ export type ConditionalBase<T> = {
   '$<='?: number;
   '$>='?: number;
   // Equality operators (can compare any value)
-  '$='?: unknown;
-  $in?: unknown[];
+  '$='?: PrimitiveValue;
+  $in?: PrimitiveValue[];
   // Modifiers
   $not?: boolean;
   $join?: 'AND' | 'OR';
 };
 
 // Conditional type for $if tag - T can be string or TemplateObject
-export type Conditional = ConditionalBase<string | TemplateObject>;
+export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject>;
 
 // Conditional value type for attribute values - T is restricted to primitives
-export type ConditionalValue = ConditionalBase<PrimitiveValue>;
+export type ConditionalValue = ConditionalBase<string>;
 
 // Non-recursive template structure types
 // Template attributes for regular tags (not $if)
@@ -38,8 +38,8 @@ export type TemplateAttributes = {
 
 // Template object maps tag names to content
 // Special case: $if tag uses Conditional type instead of TemplateAttributes
-export type TemplateObject = { 
-  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | Conditional;
+export type TemplateObject = {
+  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate;
 };
 
 // Template element is either a string or an object
@@ -93,6 +93,10 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'td': new Set(['scope', 'colspan', 'rowspan']),
   'blockquote': new Set(['cite'])
 };
+
+export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
+
+export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
 /**
  * Get a nested property from an object using dot notation
@@ -249,24 +253,23 @@ export function validateCheckExpression(checkValue: string): void {
  */
 export function evaluateCondition(
   checkValue: unknown,
-  attrs: Conditional | ConditionalValue
+  attrs: ConditionalValueOrTemplate | ConditionalValue
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
-  
+
   // Collect operators
-  if ('$<' in attrs) operators.push({ key: '$<', value: attrs['$<'] });
-  if ('$>' in attrs) operators.push({ key: '$>', value: attrs['$>'] });
-  if ('$<=' in attrs) operators.push({ key: '$<=', value: attrs['$<='] });
-  if ('$>=' in attrs) operators.push({ key: '$>=', value: attrs['$>='] });
-  if ('$=' in attrs) operators.push({ key: '$=', value: attrs['$='] });
-  if ('$in' in attrs) operators.push({ key: '$in', value: attrs['$in'] });
-  
+  for (const op of OPERATORS) {
+    if (op in attrs) {
+      operators.push({ key: op, value: (attrs as Record<string, unknown>)[op] });
+    }
+  }
+
   // If no operators, use truthy check
   if (operators.length === 0) {
     const result = Boolean(checkValue);
     return attrs.$not ? !result : result;
   }
-  
+
   // Evaluate each operator
   const results = operators.map(op => {
     switch (op.key) {
@@ -286,11 +289,11 @@ export function evaluateCondition(
         return false;
     }
   });
-  
+
   // Combine results using AND or OR logic (default is AND)
   const useOr = attrs.$join === 'OR';
   let finalResult: boolean;
-  
+
   if (useOr) {
     // OR logic: at least one must be true
     finalResult = results.some(r => r);
@@ -298,7 +301,7 @@ export function evaluateCondition(
     // AND logic (default): all must be true
     finalResult = results.every(r => r);
   }
-  
+
   // Apply negation if $not is true
   return attrs.$not ? !finalResult : finalResult;
 }
@@ -323,11 +326,11 @@ export function evaluateConditionalValue(
   value: ConditionalValue,
   data: Data,
   parents: Data[] = []
-): PrimitiveValue {
+): string {
   validateCheckExpression(value.$check);
   const checkValue = getProperty(data, value.$check, parents);
   const condition = evaluateCondition(checkValue, value);
-  
+
   if (condition) {
     return value.$then !== undefined ? value.$then : '';
   } else {
@@ -390,29 +393,29 @@ export function parseTemplateObject(templateObj: TemplateObject): {
  * Returns the validated conditional and the value to render based on condition
  */
 export function processConditional(
-  rest: string | (string | TemplateObject)[] | TemplateAttributes | Conditional,
+  rest: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
   data: Data,
   parents: Data[] = []
 ): { valueToRender: string | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
-  const conditional = rest as Conditional;
-  
+  const conditional = rest as ConditionalValueOrTemplate;
+
   // "$if" tag requires $check
   if (!conditional.$check) {
     throw new Error('"$if" tag requires $check attribute to specify the condition');
   }
-  
+
   validateCheckExpression(conditional.$check);
   const checkValue = getProperty(data, conditional.$check, parents);
-  
+
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
     throw new Error('"$if" tag does not support $children, use $then and $else instead');
   }
-  
+
   // Extract properties for validation
-  const { $check, $then, $else } = conditional;
-  
+  const { $then, $else } = conditional;
+
   // Validate $then and $else are not arrays
   if ($then !== undefined && Array.isArray($then)) {
     throw new Error('"$if" tag $then must be a string or single element object, not an array');
@@ -420,21 +423,21 @@ export function processConditional(
   if ($else !== undefined && Array.isArray($else)) {
     throw new Error('"$if" tag $else must be a string or single element object, not an array');
   }
-  
+
   // Check if any non-conditional properties were provided
   // Get all keys from rest and check if there are any beyond the Conditional properties
   const allKeys = typeof rest === 'object' && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
-  const conditionalKeys = new Set(['$check', '$then', '$else', '$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join']);
-  const nonConditionalAttrs = allKeys.filter(k => !conditionalKeys.has(k));
+
+  const nonConditionalAttrs = allKeys.filter(k => !CONDITIONALKEYS.has(k));
   if (nonConditionalAttrs.length > 0) {
-    throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
+    throw new Error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
   }
-  
+
   // Evaluate condition using conditional logic
   const condition = evaluateCondition(checkValue, conditional);
-  
+
   // Get the value to render based on condition
   const valueToRender = condition ? $then : $else;
-  
+
   return { valueToRender };
 }
