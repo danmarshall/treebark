@@ -28,6 +28,19 @@ export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject
 // Conditional value type for attribute values - T is restricted to primitives
 export type ConditionalValue = ConditionalBase<string>;
 
+// Type-safe tag names - union of all allowed tags
+export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
+  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
+  'ul' | 'ol' | 'li' |
+  'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
+  'a';
+
+export type VoidTag = 'img' | 'br' | 'hr';
+
+export type SpecialTag = '$comment' | '$if';
+
+export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
+
 // Non-recursive template structure types
 // Template attributes for regular tags (not $if)
 export type TemplateAttributes = {
@@ -36,11 +49,24 @@ export type TemplateAttributes = {
   [key: string]: unknown;
 };
 
+// Template object for $if tag - only allows conditional properties
+export type IfTemplateObject = {
+  $if: ConditionalValueOrTemplate;
+};
+
+// Template object for regular tags - allows string content, array content, or attributes
+export type RegularTemplateObject = {
+  [K in Exclude<AllowedTag, '$if'>]?: string | (string | TemplateObject)[] | TemplateAttributes;
+};
+
+// Template object for $comment tag - can have string content, array content, or attributes (for children)
+export type CommentTemplateObject = {
+  $comment: string | (string | TemplateObject)[] | TemplateAttributes;
+};
+
 // Template object maps tag names to content
 // Special case: $if tag uses Conditional type instead of TemplateAttributes
-export type TemplateObject = {
-  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate;
-};
+export type TemplateObject = IfTemplateObject | RegularTemplateObject;
 
 // Template element is either a string or an object
 export type TemplateElement = string | TemplateObject;
