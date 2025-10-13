@@ -1,61 +1,15 @@
-// Common types, constants, and utilities shared between string and DOM renderers
-export type Data = Record<string, unknown> | Record<string, unknown>[];
+// Common utilities shared between string and DOM renderers
+// Type definitions are in types.ts
 
-// Primitive value type for attribute values
-export type PrimitiveValue = string | number | boolean;
-
-// Generic conditional type shared by $if tag and conditional attribute values
-export type ConditionalBase<T> = {
-  $check: string;
-  $then?: T;
-  $else?: T;
-  // Comparison operators (require numbers)
-  '$<'?: number;
-  '$>'?: number;
-  '$<='?: number;
-  '$>='?: number;
-  // Equality operators (can compare any value)
-  '$='?: PrimitiveValue;
-  $in?: PrimitiveValue[];
-  // Modifiers
-  $not?: boolean;
-  $join?: 'AND' | 'OR';
-};
-
-// Conditional type for $if tag - T can be string or TemplateObject
-export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject>;
-
-// Conditional value type for attribute values - T is restricted to primitives
-export type ConditionalValue = ConditionalBase<string>;
-
-// Non-recursive template structure types
-// Template attributes for regular tags (not $if)
-export type TemplateAttributes = {
-  $bind?: string;
-  $children?: (string | TemplateObject)[];
-  [key: string]: unknown;
-};
-
-// Template object maps tag names to content
-// Special case: $if tag uses Conditional type instead of TemplateAttributes
-export type TemplateObject = {
-  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate;
-};
-
-// Template element is either a string or an object
-export type TemplateElement = string | TemplateObject;
-
-// API input types
-export interface TreebarkInput {
-  template: TemplateElement | TemplateElement[];
-  data?: Data;
-}
-
-// Options interface for render functions
-export interface RenderOptions {
-  data?: Data;
-  indent?: string | number | boolean;
-}
+import type {
+  Data,
+  ConditionalValueOrTemplate,
+  ConditionalValue,
+  TemplateObject,
+  TemplateElement,
+  TemplateAttributes,
+  TreebarkInput,
+} from './types.js';
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([

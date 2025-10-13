@@ -1,7 +1,5 @@
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject } from './types.js';
 import {
-  TemplateElement,
-  TreebarkInput,
-  Data,
   ALLOWED_TAGS,
   VOID_TAGS,
   getProperty,
@@ -14,7 +12,6 @@ import {
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions,
   processConditional
 } from './common.js';
 
@@ -164,7 +161,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     if (!Array.isArray(bound)) {
       const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
       const newParents = [...parents, data];
-      return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+      return render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
     }
 
     // Array binding case
