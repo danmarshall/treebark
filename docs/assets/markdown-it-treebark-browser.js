@@ -52,6 +52,8 @@
     "td": /* @__PURE__ */ new Set(["scope", "colspan", "rowspan"]),
     "blockquote": /* @__PURE__ */ new Set(["cite"])
   };
+  const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
+  const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
   function getProperty(obj, path, parents = []) {
     if (path === ".") {
       return obj;
@@ -129,12 +131,11 @@
   }
   function evaluateCondition(checkValue, attrs) {
     const operators = [];
-    if ("$<" in attrs) operators.push({ key: "$<", value: attrs["$<"] });
-    if ("$>" in attrs) operators.push({ key: "$>", value: attrs["$>"] });
-    if ("$<=" in attrs) operators.push({ key: "$<=", value: attrs["$<="] });
-    if ("$>=" in attrs) operators.push({ key: "$>=", value: attrs["$>="] });
-    if ("$=" in attrs) operators.push({ key: "$=", value: attrs["$="] });
-    if ("$in" in attrs) operators.push({ key: "$in", value: attrs["$in"] });
+    for (const op of OPERATORS) {
+      if (op in attrs) {
+        operators.push({ key: op, value: attrs[op] });
+      }
+    }
     if (operators.length === 0) {
       const result = Boolean(checkValue);
       return attrs.$not ? !result : result;
@@ -220,7 +221,7 @@
     if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
       throw new Error('"$if" tag does not support $children, use $then and $else instead');
     }
-    const { $check, $then, $else } = conditional;
+    const { $then, $else } = conditional;
     if ($then !== void 0 && Array.isArray($then)) {
       throw new Error('"$if" tag $then must be a string or single element object, not an array');
     }
@@ -228,10 +229,9 @@
       throw new Error('"$if" tag $else must be a string or single element object, not an array');
     }
     const allKeys = typeof rest === "object" && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
-    const conditionalKeys = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$<", "$>", "$<=", "$>=", "$=", "$in", "$join"]);
-    const nonConditionalAttrs = allKeys.filter((k) => !conditionalKeys.has(k));
+    const nonConditionalAttrs = allKeys.filter((k) => !CONDITIONALKEYS.has(k));
     if (nonConditionalAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
+      throw new Error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(", ")}. Allowed: ${[...CONDITIONALKEYS].join(", ")}`);
     }
     const condition = evaluateCondition(checkValue, conditional);
     const valueToRender = condition ? $then : $else;
