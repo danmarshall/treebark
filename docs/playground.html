@@ -4,24 +4,9 @@ title: Interactive Playground
 description: Try Treebark interactively with real-time examples and customizable templates
 ---
 
-<h1>🛝 Interactive Playground</h1>
+<h1>Interactive Playground</h1>
 
 <p>Experiment with Treebark templates and data in real-time. Choose from built-in examples or create your own!</p>
-
-<div class="controls">
-    <div class="control-group">
-        <label for="indent-type">Indent:</label>
-        <select id="indent-type">
-            <option value="none">None</option>
-            <option value="spaces" selected>Spaces</option>
-            <option value="tabs">Tabs</option>
-        </select>
-    </div>
-    <div class="control-group">
-        <label for="indent-size">Size:</label>
-        <input type="number" id="indent-size" min="1" max="8" value="2">
-    </div>
-</div>
 
 <div class="control-group">
     <label for="example-select">Load Example:</label>
@@ -56,7 +41,17 @@ description: Try Treebark interactively with real-time examples and customizable
     
     <div class="output-panel">
         <div class="output-header">
-            Generated HTML
+            <span>Generated HTML</span>
+            <div class="output-controls">
+                <label for="indent-type">Indent:</label>
+                <select id="indent-type">
+                    <option value="none">None</option>
+                    <option value="spaces" selected>Spaces</option>
+                    <option value="tabs">Tabs</option>
+                </select>
+                <label for="indent-size">Size:</label>
+                <input type="number" id="indent-size" min="1" max="8" value="2">
+            </div>
         </div>
         <div class="output-content" id="html-output">
             <!-- Generated HTML will appear here -->
