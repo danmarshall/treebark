@@ -9,17 +9,6 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/type-safety-demo.ts",
-    "validate-types.mjs",
-    "type-examples.ts",
-    "typescript-errors-expected.ts",
-    "test-comment-issues.mjs",
-    "test-typescript-issues.ts",
-    "test-typescript-improvements.ts",
-    "test-attribute-validation.ts",
-    "test-tag-specific-attrs.mjs",
-    "test-new-tag-types.ts",
-    "test-mandatory-keys.ts",
-    "test-mandatory-keys-error.ts"
+    "src/type-safety-demo.ts"
   ]
 }
