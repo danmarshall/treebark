@@ -41,71 +41,109 @@ export type SpecialTag = '$comment' | '$if';
 
 export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
 
-// Non-recursive template structure types
-// Template attributes for container tags (can have children)
-export type ContainerTemplateAttributes = {
+// Global attributes that can be used on any tag
+type GlobalAttrs = {
+  id?: string;
+  class?: string;
+  style?: string;
+  title?: string;
+  role?: string;
+  [key: `data-${string}`]: unknown;
+  [key: `aria-${string}`]: unknown;
+};
+
+// Base attributes that can be used on container tags
+type BaseContainerAttrs = GlobalAttrs & {
   $bind?: string;
   $children?: (string | TemplateObject)[];
-  [key: string]: unknown;
-} & {
-  // Explicitly mark conditional keys as not allowed
-  $check?: never;
-  $then?: never;
-  $else?: never;
-  '$<'?: never;
-  '$>'?: never;
-  '$<='?: never;
-  '$>='?: never;
-  '$='?: never;
-  $in?: never;
-  $not?: never;
-  $join?: never;
 };
 
-// Template attributes for void tags (cannot have children)
-export type VoidTemplateAttributes = {
+// Base attributes for void tags (no children allowed)
+type BaseVoidAttrs = GlobalAttrs & {
   $bind?: string;
-  [key: string]: unknown;
-} & {
-  $children?: never;  // Prevent $children in void tags
-  // Explicitly mark conditional keys as not allowed
-  $check?: never;
-  $then?: never;
-  $else?: never;
-  '$<'?: never;
-  '$>'?: never;
-  '$<='?: never;
-  '$>='?: never;
-  '$='?: never;
-  $in?: never;
-  $not?: never;
-  $join?: never;
 };
 
-// Generic template attributes (for backwards compatibility in some contexts)
-export type TemplateAttributes = ContainerTemplateAttributes;
+// Tag-specific attribute types
+type DivAttrs = BaseContainerAttrs;
+type SpanAttrs = BaseContainerAttrs;
+type PAttrs = BaseContainerAttrs;
+type HeaderAttrs = BaseContainerAttrs;
+type FooterAttrs = BaseContainerAttrs;
+type MainAttrs = BaseContainerAttrs;
+type SectionAttrs = BaseContainerAttrs;
+type ArticleAttrs = BaseContainerAttrs;
+type H1Attrs = BaseContainerAttrs;
+type H2Attrs = BaseContainerAttrs;
+type H3Attrs = BaseContainerAttrs;
+type H4Attrs = BaseContainerAttrs;
+type H5Attrs = BaseContainerAttrs;
+type H6Attrs = BaseContainerAttrs;
+type StrongAttrs = BaseContainerAttrs;
+type EmAttrs = BaseContainerAttrs;
+type BlockquoteAttrs = BaseContainerAttrs & { cite?: string };
+type CodeAttrs = BaseContainerAttrs;
+type PreAttrs = BaseContainerAttrs;
+type UlAttrs = BaseContainerAttrs;
+type OlAttrs = BaseContainerAttrs;
+type LiAttrs = BaseContainerAttrs;
+type TableAttrs = BaseContainerAttrs & { summary?: string };
+type TheadAttrs = BaseContainerAttrs;
+type TbodyAttrs = BaseContainerAttrs;
+type TrAttrs = BaseContainerAttrs;
+type ThAttrs = BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string };
+type TdAttrs = BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string };
+type AAttrs = BaseContainerAttrs & { href?: string; target?: string; rel?: string };
+type CommentAttrs = BaseContainerAttrs;
+
+// Void tag attribute types
+type ImgAttrs = BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string };
+type BrAttrs = BaseVoidAttrs;
+type HrAttrs = BaseVoidAttrs;
+
+// Generic template attributes (for backwards compatibility)
+export type TemplateAttributes = BaseContainerAttrs;
 
 // Template object for $if tag - only allows conditional properties
 export type IfTemplateObject = {
   $if: ConditionalValueOrTemplate;
 };
 
-// Template object for container tags - can have children
-export type ContainerTemplateObject = {
-  [K in ContainerTag | '$comment']?: string | (string | TemplateObject)[] | ContainerTemplateAttributes;
+// Template object with specific types for each tag
+export type TemplateObject = IfTemplateObject | {
+  div?: string | (string | TemplateObject)[] | DivAttrs;
+  span?: string | (string | TemplateObject)[] | SpanAttrs;
+  p?: string | (string | TemplateObject)[] | PAttrs;
+  header?: string | (string | TemplateObject)[] | HeaderAttrs;
+  footer?: string | (string | TemplateObject)[] | FooterAttrs;
+  main?: string | (string | TemplateObject)[] | MainAttrs;
+  section?: string | (string | TemplateObject)[] | SectionAttrs;
+  article?: string | (string | TemplateObject)[] | ArticleAttrs;
+  h1?: string | (string | TemplateObject)[] | H1Attrs;
+  h2?: string | (string | TemplateObject)[] | H2Attrs;
+  h3?: string | (string | TemplateObject)[] | H3Attrs;
+  h4?: string | (string | TemplateObject)[] | H4Attrs;
+  h5?: string | (string | TemplateObject)[] | H5Attrs;
+  h6?: string | (string | TemplateObject)[] | H6Attrs;
+  strong?: string | (string | TemplateObject)[] | StrongAttrs;
+  em?: string | (string | TemplateObject)[] | EmAttrs;
+  blockquote?: string | (string | TemplateObject)[] | BlockquoteAttrs;
+  code?: string | (string | TemplateObject)[] | CodeAttrs;
+  pre?: string | (string | TemplateObject)[] | PreAttrs;
+  ul?: string | (string | TemplateObject)[] | UlAttrs;
+  ol?: string | (string | TemplateObject)[] | OlAttrs;
+  li?: string | (string | TemplateObject)[] | LiAttrs;
+  table?: string | (string | TemplateObject)[] | TableAttrs;
+  thead?: string | (string | TemplateObject)[] | TheadAttrs;
+  tbody?: string | (string | TemplateObject)[] | TbodyAttrs;
+  tr?: string | (string | TemplateObject)[] | TrAttrs;
+  th?: string | (string | TemplateObject)[] | ThAttrs;
+  td?: string | (string | TemplateObject)[] | TdAttrs;
+  a?: string | (string | TemplateObject)[] | AAttrs;
+  img?: string | (string | TemplateObject)[] | ImgAttrs;
+  br?: string | (string | TemplateObject)[] | BrAttrs;
+  hr?: string | (string | TemplateObject)[] | HrAttrs;
+  $comment?: string | (string | TemplateObject)[] | CommentAttrs;
 };
-
-// Template object for void tags - cannot have children
-export type VoidTemplateObject = {
-  [K in VoidTag]?: string | (string | TemplateObject)[] | VoidTemplateAttributes;
-};
-
-// Template object for regular tags (non-$if)
-export type RegularTemplateObject = ContainerTemplateObject & VoidTemplateObject;
-
-// Template object maps tag names to content
-// Special case: $if tag uses Conditional type instead of TemplateAttributes
-export type TemplateObject = IfTemplateObject | RegularTemplateObject;
 
 // Template element is either a string or an object
 export type TemplateElement = string | TemplateObject;

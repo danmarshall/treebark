@@ -15,6 +15,8 @@
     "typescript-errors-expected.ts",
     "test-comment-issues.mjs",
     "test-typescript-issues.ts",
-    "test-typescript-improvements.ts"
+    "test-typescript-improvements.ts",
+    "test-attribute-validation.ts",
+    "test-tag-specific-attrs.mjs"
   ]
 }

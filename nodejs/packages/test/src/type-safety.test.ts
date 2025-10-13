@@ -237,4 +237,56 @@ describe('Type Safety', () => {
       expect(result).toBe('<div>Result</div>');
     });
   });
+
+  describe('Tag-specific attribute validation', () => {
+    it('should reject src attribute on a tag at runtime', () => {
+      const template = {
+        a: {
+          src: 'should not be allowed'
+        }
+      } as any;
+      expect(() => renderToString({ template }))
+        .toThrow('Attribute "src" is not allowed on tag "a"');
+    });
+
+    it('should reject href attribute on img tag at runtime', () => {
+      const template = {
+        img: {
+          href: 'should not be allowed'
+        }
+      } as any;
+      expect(() => renderToString({ template }))
+        .toThrow('Attribute "href" is not allowed on tag "img"');
+    });
+
+    it('should accept valid a tag attributes', () => {
+      const template: TemplateObject = {
+        a: {
+          href: 'http://example.com',
+          target: '_blank',
+          rel: 'noopener'
+        }
+      };
+      const result = renderToString({ template });
+      expect(result).toContain('href="http://example.com"');
+      expect(result).toContain('target="_blank"');
+      expect(result).toContain('rel="noopener"');
+    });
+
+    it('should accept valid img tag attributes', () => {
+      const template: TemplateObject = {
+        img: {
+          src: 'image.jpg',
+          alt: 'An image',
+          width: '100',
+          height: '100'
+        }
+      };
+      const result = renderToString({ template });
+      expect(result).toContain('src="image.jpg"');
+      expect(result).toContain('alt="An image"');
+      expect(result).toContain('width="100"');
+      expect(result).toContain('height="100"');
+    });
+  });
 });
