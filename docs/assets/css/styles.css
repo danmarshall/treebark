@@ -1,53 +1,63 @@
-/* Base styles from default.html */
+/* CSS Variables */
+:root {
+    --pine-resin: #4C6B3A;
+    --dune-sand-top: #F6E1B8;
+    --dune-sand-bottom: #D5A06C;
+    --accent-text: #402A15;
+}
+
+/* Base styles from newdesign.html */
 body {
-    font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', sans-serif;
     line-height: 1.6;
-    color: #2d2d2d;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    background: #faf9f7;
+    color: #1A1A1A;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0 2.5rem;
+    background: linear-gradient(to bottom, var(--dune-sand-top), var(--dune-sand-bottom));
 }
 
 .header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    padding: 1rem 0;
-    margin-bottom: 2rem;
-    border-bottom: 3px solid #4a7c3a;
-    position: relative;
-}
-
-.header::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4a7c3a 0%, #5a9147 50%, #4a7c3a 100%);
+    padding: 1.25rem 0;
+    background: transparent;
 }
 
 .header-title {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0;
+    font-family: 'Fraunces', serif;
 }
 
-.header h1 {
-    font-size: 2rem;
-    margin: 0;
-    color: #4a2f18;
-    font-family: 'Stoke', serif;
-    font-weight: 400;
+.header-title a {
+    color: var(--pine-resin);
+    text-decoration: none;
+}
+
+.header-title a:hover {
+    color: var(--pine-resin);
 }
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
-    color: #4a2f18;
-    font-family: 'Stoke', serif;
-    font-weight: 400;
+    color: var(--accent-text);
+    font-family: 'Fraunces', serif;
+}
+
+/* Main content heading styles */
+.content h1 {
+    font-size: 2rem;
+}
+
+.content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--accent-text);
 }
 
 /* don't duplicate heading. the id has a hyphen because the readme heading starts with an emoji */
@@ -59,106 +69,109 @@ h1#-treebark + blockquote {
     display: none;
 }
 
-.header .tagline {
-    font-size: 0.9rem;
-    color: #6b6b6b;
-    font-style: italic;
-    margin: 0;
-    font-family: 'Stoke', serif;
-}
-
 .github-link {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     padding: 0.5rem 1rem;
-    background: #3d7e3d;
-    color: #faf9f7;
+    background: var(--pine-resin);
+    color: white;
     text-decoration: none;
     border-radius: 4px;
     transition: background 0.3s;
-    font-size: 0.9rem;
+    font-size: 1rem;
     white-space: nowrap;
-    font-family: 'Stoke', serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .github-link:visited {
-    color: #faf9f7;
+    color: white;
 }
 
 .github-link:hover {
-    background: #2d6e2d;
-    color: #faf9f7;
+    background: #3d5a2e;
+    color: white;
+}
+
+.github-icon {
+    display: inline-block;
+    vertical-align: text-bottom;
 }
 
 .header-nav {
     display: flex;
     align-items: baseline;
-    gap: 1rem;
+    gap: 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--pine-resin);
 }
 
 .nav-link {
-    color: #2d6e2d;
+    color: var(--pine-resin);
     text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: color 0.3s;
-    font-family: 'Stoke', serif;
+    transition: all 0.3s;
 }
 
 .nav-link:hover, .nav-link.active {
-    color: #1f4d1f;
-}
-
-.nav-link.active {
-    font-weight: 600;
+    text-decoration: underline;
 }
 
 .content {
+    flex-grow: 1;
+    max-width: 48rem;
     margin: 0 auto;
+    padding: 2.5rem 0;
+}
+
+.content p {
+    margin-bottom: 1.5rem;
+    line-height: 1.625;
+    font-family: 'Inter', sans-serif;
 }
 
 /* Links */
 a {
-    color: #2d6e2d;
+    color: var(--pine-resin);
     transition: color 0.2s;
 }
 
 a:hover {
-    color: #1f4d1f;
+    color: #3d5a2e;
 }
 
 a:visited {
-    color: #3d7e3d;
+    color: #5a7c47;
 }
 
 code {
-    background: #f0ede8;
+    background: rgba(0, 0, 0, 0.05);
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
-    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
-    color: #4a2f18;
-    font-size: 0.9em;
+    font-family: 'Monaco', 'Courier New', monospace;
+    color: #111;
+    font-size: 0.875rem;
 }
 
 /* Basic pre elements (not inside highlight containers) */
 pre:not(.highlight) {
-    background: #f7f5f2;
-    padding: 1rem;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
     overflow-x: auto;
-    border-left: 4px solid #6b4423;
-    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9em;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: #111;
 }
 
 /* Jekyll syntax highlighting containers */
 .highlight {
-    background: #f7f5f2;
-    padding: 1rem;
-    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
     overflow-x: auto;
-    border-left: 4px solid #6b4423;
-    font-family: 'JetBrains Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9em;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.875rem;
 }
 
 /* Remove styling from pre inside highlight to avoid conflicts */
@@ -233,7 +246,7 @@ pre:not(.highlight) {
 .highlight .il { color: #005cc5; } /* Literal.Number.Integer.Long */
 
 blockquote {
-    border-left: 4px solid #6b4423;
+    border-left: 4px solid var(--accent-text);
     margin: 0;
     padding-left: 1rem;
     color: #6b6b6b;
@@ -242,11 +255,14 @@ blockquote {
 
 .footer {
     text-align: center;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid #4a7c3a;
-    color: #6b6b6b;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    opacity: 0.8;
+    color: #2A2A2A;
+    margin: 4rem 0;
+}
+
+.footer strong {
+    font-weight: 600;
 }
 
 /* Playground-specific styles */
@@ -260,18 +276,18 @@ blockquote {
 }
 
 .editor-panel {
-    border: 1px solid #d4cfc7;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 8px;
-    background: #f7f5f2;
+    background: rgba(255, 255, 255, 0.85);
     display: flex;
     flex-direction: column;
 }
 
 .editor-header {
-    background: #4a7c3a;
-    color: #faf9f7;
+    background: var(--pine-resin);
+    color: white;
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid #4a7c3a;
+    border-bottom: 1px solid var(--pine-resin);
     border-radius: 8px 8px 0 0;
     font-weight: bold;
     display: flex;
@@ -292,13 +308,13 @@ blockquote {
 }
 
 .editor-textarea:focus {
-    box-shadow: inset 0 0 0 2px #6b4423;
+    box-shadow: inset 0 0 0 2px var(--pine-resin);
 }
 
 .output-panel {
     grid-row: 1 / 3;
     grid-column: 2;
-    border: 1px solid #6b4423;
+    border: 1px solid var(--accent-text);
     border-radius: 8px;
     background: #fff;
     display: flex;
@@ -307,8 +323,8 @@ blockquote {
 }
 
 .output-header {
-    background: #6b4423;
-    color: #faf9f7;
+    background: var(--accent-text);
+    color: white;
     padding: 0.5rem 1rem;
     border-radius: 8px 8px 0 0;
     font-weight: bold;
@@ -320,7 +336,7 @@ blockquote {
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
     overflow: auto;
-    background: #f7f5f2;
+    background: rgba(255, 255, 255, 0.85);
     white-space: pre;
     overflow-x: auto;
     min-width: 0;
@@ -332,9 +348,9 @@ blockquote {
     gap: 1rem;
     margin: 1rem 0;
     padding: 1rem;
-    background: #f7f5f2;
+    background: rgba(255, 255, 255, 0.85);
     border-radius: 8px;
-    border: 1px solid #d4cfc7;
+    border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .control-group {
@@ -345,13 +361,13 @@ blockquote {
 
 .control-group label {
     font-weight: bold;
-    color: #2d2d2d;
+    color: #1A1A1A;
 }
 
 .control-group select,
 .control-group input {
     padding: 0.25rem 0.5rem;
-    border: 1px solid #d4cfc7;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 4px;
     font-size: 0.9rem;
 }
@@ -365,8 +381,8 @@ blockquote {
 
 .example-btn {
     padding: 0.5rem 1rem;
-    background: #3d7e3d;
-    color: #faf9f7;
+    background: var(--pine-resin);
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -375,7 +391,7 @@ blockquote {
 }
 
 .example-btn:hover {
-    background: #2d6e2d;
+    background: #3d5a2e;
 }
 
 .error-display {
@@ -392,16 +408,16 @@ blockquote {
 
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
+    body {
+        padding: 0 1rem;
+    }
+    
     .header {
         flex-direction: column;
         align-items: flex-start;
         height: auto;
         padding: 1rem 0;
         gap: 0.5rem;
-    }
-    
-    .header-title {
-        gap: 0.25rem;
     }
     
     .header-nav {
