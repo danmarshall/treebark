@@ -1,4 +1,4 @@
-# 🌳 Treebark  
+# Treebark  
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
@@ -21,7 +21,7 @@ Output:
 </div>
 ```
 
-## 🚧 Problem  
+## Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
 Markdown was originally designed as a **superset of HTML** — you could drop raw `<div>`s, `<table>`s, or even `<script>`s straight into your content.  
@@ -32,7 +32,7 @@ But for **safety and consistency**, many Markdown parsers (especially in CMSs, w
 - Structured layouts like tables or cards are awkward or impossible.  
 - Allowing raw HTML invites XSS and security issues.  
 
-## 🌳 Solution  
+## Solution  
 
 **Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
 
@@ -40,7 +40,7 @@ But for **safety and consistency**, many Markdown parsers (especially in CMSs, w
 - Fits naturally into Markdown fenced code blocks.  
 - Flexible enough for both **static content** and **data-bound apps**.  
 
-#### 💡 Key Insight  
+#### Key Insight  
 
 Templates don’t need a parser or compiler.  
 
@@ -96,7 +96,7 @@ This means the implementation is featherweight.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
 
-## ✨ Examples  
+## Examples  
 
 ### Nested Elements
 
@@ -890,7 +890,7 @@ The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
 
-## 📝 Format Notes
+## Format Notes
 
 Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the *Parent Property Access* example template (above) as YAML for comparison:
 
@@ -918,7 +918,7 @@ div:
                                   - "{{name}} - {{price}}"
 ```
 
-## 📦 Available Libraries
+## Available Libraries
 
 ### Implementations
 
@@ -927,7 +927,7 @@ div:
   - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 
-## 📛 Name Origin
+## Name Origin
 
 Why "Treebark"?  
 It’s a blend of **trees** (for tree-structured data), **handlebars** (for templating), and **Markup/Markdown** (the content format).
