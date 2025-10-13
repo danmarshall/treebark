@@ -212,36 +212,21 @@ export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAt
 }
 
 /**
- * Validate $bind expression - no parent context access or interpolation
+ * Generic validator for simple path-like expressions used by $bind and $check
+ * Disallows parent context access (..) and interpolation ({{...}}).
+ * Allows single dot "." to refer to current object.
  */
-export function validateBindExpression(bindValue: string): void {
-  // Allow single dot "." to bind to current data object
-  if (bindValue === '.') {
+export function validatePathExpression(value: string, label: string): void {
+  // Allow single dot "." to refer to current data object
+  if (value === '.') {
     return;
   }
 
-  if (bindValue.includes('..')) {
-    throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+  if (value.includes('..')) {
+    throw new Error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
   }
-  if (bindValue.includes('{{')) {
-    throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
-  }
-}
-
-/**
- * Validate $check expression - no parent context access or interpolation (for $if tag)
- */
-export function validateCheckExpression(checkValue: string): void {
-  // Allow single dot "." to check current data object
-  if (checkValue === '.') {
-    return;
-  }
-
-  if (checkValue.includes('..')) {
-    throw new Error(`$check does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $check: "${checkValue}"`);
-  }
-  if (checkValue.includes('{{')) {
-    throw new Error(`$check does not support interpolation {{...}} - use literal property paths only. Invalid: $check: "${checkValue}"`);
+  if (value.includes('{{')) {
+    throw new Error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
   }
 }
 
@@ -327,7 +312,7 @@ export function evaluateConditionalValue(
   data: Data,
   parents: Data[] = []
 ): string {
-  validateCheckExpression(value.$check);
+  validatePathExpression(value.$check, '$check');
   const checkValue = getProperty(data, value.$check, parents);
   const condition = evaluateCondition(checkValue, value);
 
@@ -405,7 +390,7 @@ export function processConditional(
     throw new Error('"$if" tag requires $check attribute to specify the condition');
   }
 
-  validateCheckExpression(conditional.$check);
+  validatePathExpression(conditional.$check, '$check');
   const checkValue = getProperty(data, conditional.$check, parents);
 
   // $if tag does not support $children - only $then/$else

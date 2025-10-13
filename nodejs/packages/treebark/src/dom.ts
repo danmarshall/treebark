@@ -8,7 +8,7 @@ import {
   interpolate, 
   validateAttribute, 
   hasBinding,
-  validateBindExpression,
+  validatePathExpression,
   isConditionalValue,
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
@@ -105,7 +105,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    validateBindExpression(rest.$bind);
+    validatePathExpression(rest.$bind, '$bind');
     
     // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);

@@ -9,7 +9,7 @@ import {
   escape,
   validateAttribute,
   hasBinding,
-  validateBindExpression,
+  validatePathExpression,
   isConditionalValue,
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
@@ -156,7 +156,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Handle $bind
   if (hasBinding(rest)) {
-    validateBindExpression(rest.$bind);
+    validatePathExpression(rest.$bind, '$bind');
     
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
