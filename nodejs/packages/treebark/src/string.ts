@@ -9,10 +9,13 @@ import {
   escape,
   validateAttribute,
   hasBinding,
-  validateBindExpression,
+  validatePathExpression,
+  isConditionalValue,
+  evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  processConditional
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -78,8 +81,8 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   // For wrapped content, need to add parent indent before closing tag
   const parentIndent = formattedContent.startsWith('\n') && indentStr ? indentStr.repeat(level || 0) : '';
 
-  // Special handling for comment tags
-  if (tag === 'comment') {
+  // Special handling for $comment tags
+  if (tag === '$comment') {
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
@@ -109,52 +112,21 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     throw new Error(`Tag "${tag}" is not allowed`);
   }
 
-  if (tag === 'comment' && context.insideComment) {
+  if (tag === '$comment' && context.insideComment) {
     throw new Error('Nested comments are not allowed');
   }
 
-  // Special handling for "if" tag
-  if (tag === 'if') {
-    // "if" tag requires $bind
-    if (!hasBinding(rest)) {
-      throw new Error('"if" tag requires $bind attribute to specify the condition');
-    }
+  // Special handling for "$if" tag
+  if (tag === '$if') {
+    const { valueToRender } = processConditional(rest, data, parents);
     
-    validateBindExpression(rest.$bind);
-    const bound = getProperty(data, rest.$bind, parents);
-    const { $bind, $children = [], $not, ...bindAttrs } = rest;
-    
-    // Check if any non-reserved attributes were provided
-    const hasAttrs = Object.keys(bindAttrs).length > 0;
-    if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
-    }
-    
-    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
-    const condition = $not ? !Boolean(bound) : Boolean(bound);
-    
-    // Only render children if condition is true
-    if (!condition) {
+    // If no value to render, return empty string
+    if (valueToRender === undefined) {
       return '';
     }
     
-    // Render children without wrapping tag
-    if (!context.indentStr) {
-      // No indentation: simple join
-      return $children.map(child => render(child, data, context)).join('');
-    }
-    
-    // With indentation: each child needs proper indentation since they won't go
-    // through the normal processContent flow individually
-    const currentLevel = context.level || 0;
-    const indent = context.indentStr.repeat(currentLevel);
-    
-    return $children.map((child, index) => {
-      const content = render(child, data, context);
-      // Only the first child might get indented by parent's processContent,
-      // so we need to add indentation to subsequent children
-      return index === 0 ? content : indent + content;
-    }).join('\n');
+    // Render the single element
+    return render(valueToRender, data, context);
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {
@@ -163,7 +135,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   const childContext = {
     ...context,
-    insideComment: tag === 'comment' || context.insideComment,
+    insideComment: tag === '$comment' || context.insideComment,
     level: (context.level || 0) + 1
   };
 
@@ -184,7 +156,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Handle $bind
   if (hasBinding(rest)) {
-    validateBindExpression(rest.$bind);
+    validatePathExpression(rest.$bind, '$bind');
     
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
@@ -221,7 +193,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => (validateAttribute(key, tag), true))
-    .map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`)
+    .map(([k, v]) => {
+      // Check if value is a conditional value
+      if (isConditionalValue(v)) {
+        const evaluatedValue = evaluateConditionalValue(v, data, parents);
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+      } else {
+        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+      }
+    })
     .join(" ");
   return pairs ? " " + pairs : "";
 }

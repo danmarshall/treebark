@@ -615,12 +615,12 @@ export const parentPropertyTests: TestCase[] = [
 export const commentTests: TestCase[] = [
   {
     name: 'renders basic comment',
-    input: { template: { comment: 'This is a comment' } }
+    input: { template: { $comment: 'This is a comment' } }
   },
   {
     name: 'renders comment with interpolation',
     input: { 
-      template: { comment: 'User: {{name}}' },
+      template: { $comment: 'User: {{name}}' },
       data: { name: 'Alice' }
     }
   },
@@ -628,7 +628,7 @@ export const commentTests: TestCase[] = [
     name: 'renders comment containing other tags',
     input: {
       template: {
-        comment: {
+        $comment: {
           $children: [
             'Start: ',
             { span: 'highlighted text' },
@@ -640,16 +640,16 @@ export const commentTests: TestCase[] = [
   },
   {
     name: 'renders empty comment',
-    input: { template: { comment: '' } }
+    input: { template: { $comment: '' } }
   },
   {
     name: 'renders comment with special characters',
-    input: { template: { comment: 'Special chars: & < > " \'' } }
+    input: { template: { $comment: 'Special chars: & < > " \'' } }
   },
   {
     name: 'safely handles malicious interpolation',
     input: { 
-      template: { comment: 'User input: {{input}}' },
+      template: { $comment: 'User input: {{input}}' },
       data: { input: 'evil --> <script>alert(1)</script>' }
     }
   }
@@ -660,10 +660,10 @@ export const commentErrorTests: ErrorTestCase[] = [
     name: 'prevents nested comments',
     input: {
       template: {
-        comment: {
+        $comment: {
           $children: [
             'Outer comment with ',
-            { comment: 'nested comment' },
+            { $comment: 'nested comment' },
             ' inside'
           ]
         }
@@ -725,7 +725,7 @@ export const bindValidationErrorTests: ErrorTestCase[] = [
 ];
 
 
-// "if" tag test cases
+// "$if" tag test cases
 export const ifTagTests: TestCase[] = [
   {
     name: 'renders children when condition is truthy (true)',
@@ -734,11 +734,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showMessage',
-                $children: [
+              $if: {
+                $check: 'showMessage',
+                $then:
                   { p: 'Message is shown' }
-                ]
               }
             }
           ]
@@ -754,11 +753,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'userName',
-                $children: [
+              $if: {
+                $check: 'userName',
+                $then:
                   { p: 'Hello {{userName}}' }
-                ]
               }
             }
           ]
@@ -774,11 +772,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'count',
-                $children: [
+              $if: {
+                $check: 'count',
+                $then:
                   { p: 'Count: {{count}}' }
-                ]
               }
             }
           ]
@@ -795,11 +792,10 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'showMessage',
-                $children: [
+              $if: {
+                $check: 'showMessage',
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             },
             { p: 'After' }
@@ -816,11 +812,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
-                $children: [
+              $if: {
+                $check: 'value',
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -836,11 +831,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
-                $children: [
+              $if: {
+                $check: 'value',
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -856,11 +850,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
-                $children: [
+              $if: {
+                $check: 'value',
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -876,11 +869,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'value',
-                $children: [
+              $if: {
+                $check: 'value',
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             }
           ]
@@ -896,11 +888,10 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'user.isAdmin',
-                $children: [
+              $if: {
+                $check: 'user.isAdmin',
+                $then:
                   { p: 'Admin panel' }
-                ]
               }
             }
           ]
@@ -910,19 +901,23 @@ export const ifTagTests: TestCase[] = [
     }
   },
   {
-    name: 'works with multiple children',
+    name: 'works with multiple children (wrapped in div)',
     input: {
       template: {
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showContent',
-                $children: [
-                  { h1: 'Title' },
-                  { p: 'Paragraph 1' },
-                  { p: 'Paragraph 2' }
-                ]
+              $if: {
+                $check: 'showContent',
+                $then: {
+                  div: {
+                    $children: [
+                      { h1: 'Title' },
+                      { p: 'Paragraph 1' },
+                      { p: 'Paragraph 2' }
+                    ]
+                  }
+                }
               }
             }
           ]
@@ -938,19 +933,21 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'level1',
-                $children: [
-                  { p: 'Level 1 visible' },
-                  {
-                    if: {
-                      $bind: 'level2',
-                      $children: [
-                        { p: 'Level 2 visible' }
-                      ]
-                    }
+              $if: {
+                $check: 'level1',
+                $then: {
+                  div: {
+                    $children: [
+                      { p: 'Level 1 visible' },
+                      {
+                        $if: {
+                          $check: 'level2',
+                          $then: { p: 'Level 2 visible' }
+                        }
+                      }
+                    ]
                   }
-                ]
+                }
               }
             }
           ]
@@ -963,11 +960,10 @@ export const ifTagTests: TestCase[] = [
     name: 'works at root level',
     input: {
       template: {
-        if: {
-          $bind: 'show',
-          $children: [
+        $if: {
+          $check: 'show',
+          $then:
             { div: 'Content' }
-          ]
         }
       },
       data: { show: true }
@@ -977,11 +973,10 @@ export const ifTagTests: TestCase[] = [
     name: 'renders nothing at root level when falsy',
     input: {
       template: {
-        if: {
-          $bind: 'show',
-          $children: [
+        $if: {
+          $check: 'show',
+          $then:
             { div: 'Content' }
-          ]
         }
       },
       data: { show: false }
@@ -994,12 +989,11 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Message is hidden, showing this instead' }
-                ]
               }
             }
           ]
@@ -1016,12 +1010,11 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'showMessage',
+              $if: {
+                $check: 'showMessage',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'This should not appear' }
-                ]
               }
             },
             { p: 'After' }
@@ -1038,12 +1031,11 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'user.isGuest',
+              $if: {
+                $check: 'user.isGuest',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'Welcome back, member!' }
-                ]
               }
             }
           ]
@@ -1059,12 +1051,11 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'count',
+              $if: {
+                $check: 'count',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'No items' }
-                ]
               }
             }
           ]
@@ -1080,12 +1071,11 @@ export const ifTagTests: TestCase[] = [
         div: {
           $children: [
             {
-              if: {
-                $bind: 'message',
+              $if: {
+                $check: 'message',
                 $not: true,
-                $children: [
+                $then:
                   { p: 'No message provided' }
-                ]
               }
             }
           ]
@@ -1103,13 +1093,17 @@ export const ifTagTests: TestCase[] = [
           $children: [
             { p: 'Before' },
             {
-              if: {
-                $bind: 'show',
-                $children: [
-                  { p: 'First' },
-                  { p: 'Second' },
-                  { p: 'Third' }
-                ]
+              $if: {
+                $check: 'show',
+                $then: {
+                  div: {
+                    $children: [
+                      { p: 'First' },
+                      { p: 'Second' },
+                      { p: 'Third' }
+                    ]
+                  }
+                }
               }
             },
             { p: 'After' }
@@ -1133,13 +1127,17 @@ export const ifTagTests: TestCase[] = [
                 class: 'inner',
                 $children: [
                   {
-                    if: {
-                      $bind: 'show',
-                      $children: [
-                        { p: 'First' },
-                        { p: 'Second' },
-                        { p: 'Third' }
-                      ]
+                    $if: {
+                      $check: 'show',
+                      $then: {
+                        div: {
+                          $children: [
+                            { p: 'First' },
+                            { p: 'Second' },
+                            { p: 'Third' }
+                          ]
+                        }
+                      }
                     }
                   }
                 ]
@@ -1155,28 +1153,748 @@ export const ifTagTests: TestCase[] = [
   }
 ];
 
-export const ifTagErrorTests: ErrorTestCase[] = [
+// Operator tests for $if tag (v2.0)
+export const ifTagOperatorTests: TestCase[] = [
   {
-    name: 'throws error when if tag has no $bind',
+    name: 'less than operator: renders when true',
     input: {
       template: {
-        if: {
+        div: {
           $children: [
-            { p: 'Content' }
+            {
+              $if: {
+                $check: 'age',
+                '$<': 18,
+                $then:
+                  { p: 'Minor' }
+              }
+            }
           ]
+        }
+      },
+      data: { age: 15 }
+    }
+  },
+  {
+    name: 'less than operator: does not render when false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<': 18,
+                $then:
+                  { p: 'Minor' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 20 }
+    }
+  },
+  {
+    name: 'greater than operator: renders when true',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>': 90,
+                $then:
+                  { p: 'Excellent' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'greater than operator: does not render when false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>': 90,
+                $then:
+                  { p: 'Excellent' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 85 }
+    }
+  },
+  {
+    name: 'equals operator: renders when equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'status',
+                '$=': 'active',
+                $then:
+                  { p: 'User is active' }
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  },
+  {
+    name: 'equals operator: does not render when not equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'status',
+                '$=': 'active',
+                $then:
+                  { p: 'User is active' }
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'inactive' }
+    }
+  },
+  {
+    name: '$in operator: renders when value is in array',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'role',
+                $in: ['admin', 'moderator', 'editor'],
+                $then:
+                  { p: 'Has special privileges' }
+              }
+            }
+          ]
+        }
+      },
+      data: { role: 'admin' }
+    }
+  },
+  {
+    name: '$in operator: does not render when value is not in array',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'role',
+                $in: ['admin', 'moderator', 'editor'],
+                $then:
+                  { p: 'Has special privileges' }
+              }
+            }
+          ]
+        }
+      },
+      data: { role: 'user' }
+    }
+  },
+  {
+    name: 'less than or equal operator: renders when less than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $then:
+                  { p: 'Youth' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 15 }
+    }
+  },
+  {
+    name: 'less than or equal operator: renders when equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $then:
+                  { p: 'Youth' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 18 }
+    }
+  },
+  {
+    name: 'less than or equal operator: does not render when greater than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<=': 18,
+                $then:
+                  { p: 'Youth' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 20 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: renders when greater than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $then:
+                  { p: 'Excellent' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: renders when equal',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $then:
+                  { p: 'Excellent' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 90 }
+    }
+  },
+  {
+    name: 'greater than or equal operator: does not render when less than',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>=': 90,
+                $then:
+                  { p: 'Excellent' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 85 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders for inclusive range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 18 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders for middle of range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 40 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: renders at upper bound',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 65 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: does not render below range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 17 }
+    }
+  },
+  {
+    name: 'stacking $>= and $<=: does not render above range',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>=': 18,
+                '$<=': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 66 }
+    }
+  },
+  {
+    name: 'multiple operators with AND (default): all must be true',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>': 18,
+                '$<': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 30 }
+    }
+  },
+  {
+    name: 'multiple operators with AND: does not render if one is false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$>': 18,
+                '$<': 65,
+                $then:
+                  { p: 'Working age adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 70 }
+    }
+  },
+  {
+    name: 'multiple operators with OR: renders if one is true',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<': 18,
+                '$>': 65,
+                $join: 'OR',
+                $then:
+                  { p: 'Non-working age' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 70 }
+    }
+  },
+  {
+    name: 'multiple operators with OR: does not render if all are false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<': 18,
+                '$>': 65,
+                $join: 'OR',
+                $then:
+                  { p: 'Non-working age' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 30 }
+    }
+  },
+  {
+    name: 'operator with $not: inverts result',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'age',
+                '$<': 18,
+                $not: true,
+                $then:
+                  { p: 'Adult' }
+              }
+            }
+          ]
+        }
+      },
+      data: { age: 25 }
+    }
+  },
+  {
+    name: 'complex condition: multiple operators with OR and $not',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'status',
+                '$=': 'pending',
+                $in: ['error', 'failed'],
+                $join: 'OR',
+                $not: true,
+                $then:
+                  { p: 'Valid status' }
+              }
+            }
+          ]
+        }
+      },
+      data: { status: 'active' }
+    }
+  }
+];
+
+// $then and $else tests
+export const ifTagThenElseTests: TestCase[] = [
+  {
+    name: 'renders $then when condition is true',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'isActive',
+                $then: { p: 'Active user' }
+              }
+            }
+          ]
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'renders $else when condition is false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'isActive',
+                $then: { p: 'Active user' },
+                $else: { p: 'Inactive user' }
+              }
+            }
+          ]
+        }
+      },
+      data: { isActive: false }
+    }
+  },
+  {
+    name: 'renders $then when condition is true with both branches',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'score',
+                '$>': 90,
+                $then: { p: 'Excellent!' },
+                $else: { p: 'Keep trying!' }
+              }
+            }
+          ]
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'renders empty when $else not provided and condition false',
+    input: {
+      template: {
+        div: {
+          $children: [
+            {
+              $if: {
+                $check: 'show',
+                $then: { p: 'Content' }
+              }
+            }
+          ]
+        }
+      },
+      data: { show: false }
+    }
+  }
+];
+
+// Conditional attribute value tests
+export const conditionalAttributeTests: TestCase[] = [
+  {
+    name: 'conditional attribute with $then and $else',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isActive',
+            $then: 'active',
+            $else: 'inactive'
+          },
+          $children: ['Content']
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'conditional attribute evaluates to $else when false',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isActive',
+            $then: 'active',
+            $else: 'inactive'
+          },
+          $children: ['Content']
+        }
+      },
+      data: { isActive: false }
+    }
+  },
+  {
+    name: 'conditional attribute with operator',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'score',
+            '$>': 90,
+            $then: 'excellent',
+            $else: 'good'
+          },
+          $children: ['Score display']
+        }
+      },
+      data: { score: 95 }
+    }
+  },
+  {
+    name: 'conditional attribute with $in operator',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'role',
+            $in: ['admin', 'moderator'],
+            $then: 'privileged',
+            $else: 'regular'
+          },
+          $children: ['User']
+        }
+      },
+      data: { role: 'admin' }
+    }
+  },
+  {
+    name: 'conditional attribute with $not modifier',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'isGuest',
+            $not: true,
+            $then: 'member',
+            $else: 'guest'
+          },
+          $children: ['User']
+        }
+      },
+      data: { isGuest: false }
+    }
+  },
+  {
+    name: 'multiple attributes with conditionals',
+    input: {
+      template: {
+        div: {
+          class: {
+            $check: 'theme',
+            '$=': 'dark',
+            $then: 'dark-mode',
+            $else: 'light-mode'
+          },
+          'data-theme': {
+            $check: 'theme',
+            $then: '{{theme}}',
+            $else: 'default'
+          },
+          $children: ['Themed content']
+        }
+      },
+      data: { theme: 'dark' }
+    }
+  }
+];
+
+export const ifTagErrorTests: ErrorTestCase[] = [
+  {
+    name: 'throws error when $if tag has no $check',
+    input: {
+      template: {
+        $if: {
+          $then:
+            { p: 'Content' }
         }
       },
       data: {}
     },
-    expectedError: '"if" tag requires $bind attribute'
+    expectedError: '"$if" tag requires $check attribute'
   },
   {
-    name: 'throws error when if tag has attributes',
+    name: 'throws error when $if tag has attributes',
     input: {
       template: {
-        if: {
-          $bind: 'show',
+        $if: {
+          $check: 'show',
           class: 'my-class',
+          $then:
+            { p: 'Content' }
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"$if" tag does not support attributes'
+  },
+  {
+    name: 'throws error when $if tag has $children',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
           $children: [
             { p: 'Content' }
           ]
@@ -1184,7 +1902,40 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       },
       data: { show: true }
     },
-    expectedError: '"if" tag does not support attributes'
+    expectedError: '"$if" tag does not support $children, use $then and $else instead'
+  },
+  {
+    name: 'throws error when $if tag $then is an array',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $then: [
+            { p: 'First' },
+            { p: 'Second' }
+          ]
+        }
+      },
+      data: { show: true }
+    },
+    expectedError: '"$if" tag $then must be a string or single element object, not an array'
+  },
+  {
+    name: 'throws error when $if tag $else is an array',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $then: { p: 'Visible' },
+          $else: [
+            { p: 'First' },
+            { p: 'Second' }
+          ]
+        }
+      },
+      data: { show: false }
+    },
+    expectedError: '"$if" tag $else must be a string or single element object, not an array'
   }
 ];
 

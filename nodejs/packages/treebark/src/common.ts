@@ -1,17 +1,46 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown> | Record<string, unknown>[];
 
+// Primitive value type for attribute values
+export type PrimitiveValue = string | number | boolean;
+
+// Generic conditional type shared by $if tag and conditional attribute values
+export type ConditionalBase<T> = {
+  $check: string;
+  $then?: T;
+  $else?: T;
+  // Comparison operators (require numbers)
+  '$<'?: number;
+  '$>'?: number;
+  '$<='?: number;
+  '$>='?: number;
+  // Equality operators (can compare any value)
+  '$='?: PrimitiveValue;
+  $in?: PrimitiveValue[];
+  // Modifiers
+  $not?: boolean;
+  $join?: 'AND' | 'OR';
+};
+
+// Conditional type for $if tag - T can be string or TemplateObject
+export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject>;
+
+// Conditional value type for attribute values - T is restricted to primitives
+export type ConditionalValue = ConditionalBase<string>;
+
 // Non-recursive template structure types
-// Template attributes defined first to avoid circular references
+// Template attributes for regular tags (not $if)
 export type TemplateAttributes = {
   $bind?: string;
   $children?: (string | TemplateObject)[];
-  $not?: boolean;
   [key: string]: unknown;
 };
 
 // Template object maps tag names to content
-export type TemplateObject = { [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes };
+// Special case: $if tag uses Conditional type instead of TemplateAttributes
+export type TemplateObject = {
+  [tag: string]: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate;
+};
 
 // Template element is either a string or an object
 export type TemplateElement = string | TemplateObject;
@@ -39,13 +68,15 @@ export const CONTAINER_TAGS = new Set([
 
 // Special tags that have unique behavior
 export const SPECIAL_TAGS = new Set([
-  'comment',
-  'if'
+  '$comment',
+  '$if'
 ]);
 
 // Void tags that cannot have children and are self-closing
 export const VOID_TAGS = new Set([
-  'img'
+  'img',
+  'br',
+  'hr'
 ]);
 
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
@@ -62,6 +93,10 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'td': new Set(['scope', 'colspan', 'rowspan']),
   'blockquote': new Set(['cite'])
 };
+
+export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
+
+export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
 /**
  * Get a nested property from an object using dot notation
@@ -170,19 +205,121 @@ export function hasBinding(rest: string | (string | TemplateObject)[] | Template
 }
 
 /**
- * Validate $bind expression - no parent context access or interpolation
+ * Check if a template object has a $check structure (for $if tag)
  */
-export function validateBindExpression(bindValue: string): void {
-  // Allow single dot "." to bind to current data object
-  if (bindValue === '.') {
+export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $check: string } {
+  return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$check' in rest;
+}
+
+/**
+ * Generic validator for simple path-like expressions used by $bind and $check
+ * Disallows parent context access (..) and interpolation ({{...}}).
+ * Allows single dot "." to refer to current object.
+ */
+export function validatePathExpression(value: string, label: string): void {
+  // Allow single dot "." to refer to current data object
+  if (value === '.') {
     return;
   }
 
-  if (bindValue.includes('..')) {
-    throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+  if (value.includes('..')) {
+    throw new Error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
   }
-  if (bindValue.includes('{{')) {
-    throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+  if (value.includes('{{')) {
+    throw new Error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+  }
+}
+
+/**
+ * Evaluate conditional logic for $if tag and conditional attributes
+ * Supports operators: $<, $>, $<=, $>=, $=, $in
+ * Supports modifiers: $not, $join
+ * Default behavior: truthy check when no operators
+ */
+export function evaluateCondition(
+  checkValue: unknown,
+  attrs: ConditionalValueOrTemplate | ConditionalValue
+): boolean {
+  const operators: { key: string; value: unknown }[] = [];
+
+  // Collect operators
+  for (const op of OPERATORS) {
+    if (op in attrs) {
+      operators.push({ key: op, value: (attrs as Record<string, unknown>)[op] });
+    }
+  }
+
+  // If no operators, use truthy check
+  if (operators.length === 0) {
+    const result = Boolean(checkValue);
+    return attrs.$not ? !result : result;
+  }
+
+  // Evaluate each operator
+  const results = operators.map(op => {
+    switch (op.key) {
+      case '$<':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue < op.value;
+      case '$>':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue > op.value;
+      case '$<=':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue <= op.value;
+      case '$>=':
+        return typeof checkValue === 'number' && typeof op.value === 'number' && checkValue >= op.value;
+      case '$=':
+        return checkValue === op.value;
+      case '$in':
+        return Array.isArray(op.value) && op.value.includes(checkValue);
+      default:
+        return false;
+    }
+  });
+
+  // Combine results using AND or OR logic (default is AND)
+  const useOr = attrs.$join === 'OR';
+  let finalResult: boolean;
+
+  if (useOr) {
+    // OR logic: at least one must be true
+    finalResult = results.some(r => r);
+  } else {
+    // AND logic (default): all must be true
+    finalResult = results.every(r => r);
+  }
+
+  // Apply negation if $not is true
+  return attrs.$not ? !finalResult : finalResult;
+}
+
+/**
+ * Check if a value is a conditional value object
+ */
+export function isConditionalValue(value: unknown): value is ConditionalValue {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as ConditionalValue).$check === 'string'
+  );
+}
+
+/**
+ * Evaluate a conditional value and return $then or $else based on condition
+ */
+export function evaluateConditionalValue(
+  value: ConditionalValue,
+  data: Data,
+  parents: Data[] = []
+): string {
+  validatePathExpression(value.$check, '$check');
+  const checkValue = getProperty(data, value.$check, parents);
+  const condition = evaluateCondition(checkValue, value);
+
+  if (condition) {
+    return value.$then !== undefined ? value.$then : '';
+  } else {
+    return value.$else !== undefined ? value.$else : '';
   }
 }
 
@@ -234,4 +371,58 @@ export function parseTemplateObject(templateObj: TemplateObject): {
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
 
   return { tag, rest, children, attrs };
+}
+
+/**
+ * Validate and process a $if tag's conditional attributes
+ * Returns the validated conditional and the value to render based on condition
+ */
+export function processConditional(
+  rest: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
+  data: Data,
+  parents: Data[] = []
+): { valueToRender: string | TemplateObject | undefined } {
+  // Type cast to Conditional since we know this is a $if tag
+  const conditional = rest as ConditionalValueOrTemplate;
+
+  // "$if" tag requires $check
+  if (!conditional.$check) {
+    throw new Error('"$if" tag requires $check attribute to specify the condition');
+  }
+
+  validatePathExpression(conditional.$check, '$check');
+  const checkValue = getProperty(data, conditional.$check, parents);
+
+  // $if tag does not support $children - only $then/$else
+  if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
+    throw new Error('"$if" tag does not support $children, use $then and $else instead');
+  }
+
+  // Extract properties for validation
+  const { $then, $else } = conditional;
+
+  // Validate $then and $else are not arrays
+  if ($then !== undefined && Array.isArray($then)) {
+    throw new Error('"$if" tag $then must be a string or single element object, not an array');
+  }
+  if ($else !== undefined && Array.isArray($else)) {
+    throw new Error('"$if" tag $else must be a string or single element object, not an array');
+  }
+
+  // Check if any non-conditional properties were provided
+  // Get all keys from rest and check if there are any beyond the Conditional properties
+  const allKeys = typeof rest === 'object' && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
+
+  const nonConditionalAttrs = allKeys.filter(k => !CONDITIONALKEYS.has(k));
+  if (nonConditionalAttrs.length > 0) {
+    throw new Error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
+  }
+
+  // Evaluate condition using conditional logic
+  const condition = evaluateCondition(checkValue, conditional);
+
+  // Get the value to render based on condition
+  const valueToRender = condition ? $then : $else;
+
+  return { valueToRender };
 }

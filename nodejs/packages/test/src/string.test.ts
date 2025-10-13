@@ -15,6 +15,9 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
+  ifTagOperatorTests,
+  ifTagThenElseTests,
+  conditionalAttributeTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -341,9 +344,9 @@ describe('String Renderer', () => {
         template: {
           div: {
             $children: [
-              { comment: 'Start of content' },
+              { $comment: 'Start of content' },
               { h1: 'Title' },
-              { comment: 'End of content' }
+              { $comment: 'End of content' }
             ]
           }
         }
@@ -356,11 +359,11 @@ describe('String Renderer', () => {
         template: {
           div: {
             $children: [
-              { comment: 'Outer comment' },
+              { $comment: 'Outer comment' },
               {
                 section: {
                   $children: [
-                    { comment: 'Inner comment' },
+                    { $comment: 'Inner comment' },
                     { p: 'Content' }
                   ]
                 }
@@ -507,7 +510,7 @@ describe('String Renderer', () => {
     test('renders comment surrounding nested content', () => {
       const result = renderToString({
         template: {
-          comment: {
+          $comment: {
             $children: [
               'Before content',
               {
@@ -562,25 +565,25 @@ describe('String Renderer', () => {
           div: {
             class: 'container',
             $children: [
-              { comment: 'Container start' },
+              { $comment: 'Container start' },
               {
                 section: {
                   $children: [
-                    { comment: 'Section content' },
+                    { $comment: 'Section content' },
                     {
                       article: {
                         $children: [
-                          { comment: 'Article metadata' },
+                          { $comment: 'Article metadata' },
                           { h1: 'Title' },
                           { p: 'Content' },
-                          { comment: 'Article end' }
+                          { $comment: 'Article end' }
                         ]
                       }
                     }
                   ]
                 }
               },
-              { comment: 'Container end' }
+              { $comment: 'Container end' }
             ]
           }
         }
@@ -594,7 +597,7 @@ describe('String Renderer', () => {
           div: {
             $children: [
               {
-                comment: {
+                $comment: {
                   $children: [
                     'Start: ',
                     { h2: 'Welcome' },
@@ -621,7 +624,7 @@ describe('String Renderer', () => {
     test('comments with mixed text and HTML content indent properly', () => {
       const result = renderToString({
         template: {
-          comment: {
+          $comment: {
             $children: [
               'Debug info:',
               { div: { class: 'debug', $children: [{ span: 'value: 42' }] } },
@@ -639,7 +642,7 @@ describe('String Renderer', () => {
           div: {
             $children: [
               {
-                comment: {
+                $comment: {
                   $children: [
                     {
                       section: {
@@ -698,11 +701,11 @@ describe('String Renderer', () => {
           case 'works with nested property access':
             expect(result).toBe('<div><p>Admin panel</p></div>');
             break;
-          case 'works with multiple children':
-            expect(result).toBe('<div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div>');
+          case 'works with multiple children (wrapped in div)':
+            expect(result).toBe('<div><div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div></div>');
             break;
           case 'works with nested if tags':
-            expect(result).toBe('<div><p>Level 1 visible</p><p>Level 2 visible</p></div>');
+            expect(result).toBe('<div><div><p>Level 1 visible</p><p>Level 2 visible</p></div></div>');
             break;
           case 'works at root level':
             expect(result).toBe('<div>Content</div>');
@@ -726,10 +729,106 @@ describe('String Renderer', () => {
             expect(result).toBe('<div><p>No message provided</p></div>');
             break;
           case 'preserves indentation with multiple children (one level)':
-            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <p>First</p>\n  <p>Second</p>\n  <p>Third</p>\n  <p>After</p>\n</div>');
+            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <div>\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>After</p>\n</div>');
             break;
           case 'preserves indentation with multiple children (two levels)':
-            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>Footer</p>\n</div>');
+            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div>');
+            break;
+        }
+      });
+    });
+
+    // Operator tests
+    ifTagOperatorTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'less than operator: renders when true':
+            expect(result).toBe('<div><p>Minor</p></div>');
+            break;
+          case 'less than operator: does not render when false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'greater than operator: renders when true':
+            expect(result).toBe('<div><p>Excellent</p></div>');
+            break;
+          case 'greater than operator: does not render when false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'equals operator: renders when equal':
+            expect(result).toBe('<div><p>User is active</p></div>');
+            break;
+          case 'equals operator: does not render when not equal':
+            expect(result).toBe('<div></div>');
+            break;
+          case '$in operator: renders when value is in array':
+            expect(result).toBe('<div><p>Has special privileges</p></div>');
+            break;
+          case '$in operator: does not render when value is not in array':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'multiple operators with AND (default): all must be true':
+            expect(result).toBe('<div><p>Working age adult</p></div>');
+            break;
+          case 'multiple operators with AND: does not render if one is false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'multiple operators with OR: renders if one is true':
+            expect(result).toBe('<div><p>Non-working age</p></div>');
+            break;
+          case 'multiple operators with OR: does not render if all are false':
+            expect(result).toBe('<div></div>');
+            break;
+          case 'operator with $not: inverts result':
+            expect(result).toBe('<div><p>Adult</p></div>');
+            break;
+          case 'complex condition: multiple operators with OR and $not':
+            expect(result).toBe('<div><p>Valid status</p></div>');
+            break;
+        }
+      });
+    });
+
+    // $then and $else tests
+    ifTagThenElseTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders $then when condition is true':
+            expect(result).toBe('<div><p>Active user</p></div>');
+            break;
+          case 'renders $else when condition is false':
+            expect(result).toBe('<div><p>Inactive user</p></div>');
+            break;
+          case 'renders $then when condition is true with both branches':
+            expect(result).toBe('<div><p>Excellent!</p></div>');
+            break;
+          case 'renders empty when $else not provided and condition false':
+            expect(result).toBe('<div></div>');
+            break;
+        }
+      });
+    });
+
+    // Conditional attribute tests
+    conditionalAttributeTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'conditional attribute with $then and $else':
+            expect(result).toBe('<div class="active">Content</div>');
+            break;
+          case 'conditional attribute evaluates to $else when false':
+            expect(result).toBe('<div class="inactive">Content</div>');
+            break;
+          case 'conditional attribute with operator':
+            expect(result).toBe('<div class="excellent">Score display</div>');
+            break;
+          case 'conditional attribute with $in operator':
+            expect(result).toBe('<div class="privileged">User</div>');
+            break;
+          case 'conditional attribute with $not modifier':
+            expect(result).toBe('<div class="member">User</div>');
+            break;
+          case 'multiple attributes with conditionals':
+            expect(result).toBe('<div class="dark-mode" data-theme="dark">Themed content</div>');
             break;
         }
       });

@@ -1,6 +1,6 @@
 // Simplified Treebark - tiny recursive walker + pluggable formatters
 import { renderToString } from './string.js';
-import { TemplateElement, TemplateObject, TreebarkInput, Data, RenderOptions } from './common.js';
+import { TreebarkInput, RenderOptions } from './common.js';
 
 export { renderToString } from './string.js';
 export { renderToDOM } from './dom.js';

@@ -18,6 +18,9 @@ import {
   commentErrorTests,
   bindValidationErrorTests,
   ifTagTests,
+  ifTagOperatorTests,
+  ifTagThenElseTests,
+  conditionalAttributeTests,
   ifTagErrorTests,
   createTest,
   createErrorTest,
@@ -511,19 +514,21 @@ describe('DOM Renderer', () => {
             expect(div.querySelector('p')?.textContent).toBe('Admin panel');
             break;
           }
-          case 'works with multiple children': {
-            const div = fragment.firstChild as HTMLElement;
-            expect(div.querySelector('h1')?.textContent).toBe('Title');
-            expect(div.querySelectorAll('p').length).toBe(2);
-            expect(div.querySelectorAll('p')[0].textContent).toBe('Paragraph 1');
-            expect(div.querySelectorAll('p')[1].textContent).toBe('Paragraph 2');
+          case 'works with multiple children (wrapped in div)': {
+            const outerDiv = fragment.firstChild as HTMLElement;
+            const innerDiv = outerDiv.firstChild as HTMLElement;
+            expect(innerDiv.querySelector('h1')?.textContent).toBe('Title');
+            expect(innerDiv.querySelectorAll('p').length).toBe(2);
+            expect(innerDiv.querySelectorAll('p')[0].textContent).toBe('Paragraph 1');
+            expect(innerDiv.querySelectorAll('p')[1].textContent).toBe('Paragraph 2');
             break;
           }
           case 'works with nested if tags': {
-            const div = fragment.firstChild as HTMLElement;
-            expect(div.querySelectorAll('p').length).toBe(2);
-            expect(div.querySelectorAll('p')[0].textContent).toBe('Level 1 visible');
-            expect(div.querySelectorAll('p')[1].textContent).toBe('Level 2 visible');
+            const outerDiv = fragment.firstChild as HTMLElement;
+            const innerDiv = outerDiv.firstChild as HTMLElement;
+            expect(innerDiv.querySelectorAll('p').length).toBe(2);
+            expect(innerDiv.querySelectorAll('p')[0].textContent).toBe('Level 1 visible');
+            expect(innerDiv.querySelectorAll('p')[1].textContent).toBe('Level 2 visible');
             break;
           }
           case 'works at root level': {
@@ -564,10 +569,10 @@ describe('DOM Renderer', () => {
             break;
           }
           case 'preserves indentation with multiple children (one level)': {
-            const div = fragment.firstChild as HTMLElement;
-            expect(div.className).toBe('container');
-            const paragraphs = div.querySelectorAll('p');
-            expect(paragraphs.length).toBe(5);
+            const outerDiv = fragment.firstChild as HTMLElement;
+            expect(outerDiv.className).toBe('container');
+            const paragraphs = outerDiv.querySelectorAll('p');
+            expect(paragraphs.length).toBe(5); // Before, First, Second, Third, After
             expect(paragraphs[0].textContent).toBe('Before');
             expect(paragraphs[1].textContent).toBe('First');
             expect(paragraphs[2].textContent).toBe('Second');
@@ -576,19 +581,119 @@ describe('DOM Renderer', () => {
             break;
           }
           case 'preserves indentation with multiple children (two levels)': {
-            const div = fragment.firstChild as HTMLElement;
-            expect(div.className).toBe('outer');
-            expect(div.querySelector('h1')?.textContent).toBe('Title');
-            const inner = div.querySelector('.inner');
+            const outerDiv = fragment.firstChild as HTMLElement;
+            expect(outerDiv.className).toBe('outer');
+            expect(outerDiv.querySelector('h1')?.textContent).toBe('Title');
+            const inner = outerDiv.querySelector('.inner');
             expect(inner).toBeTruthy();
             const paragraphs = inner?.querySelectorAll('p');
             expect(paragraphs?.length).toBe(3);
             expect(paragraphs?.[0].textContent).toBe('First');
             expect(paragraphs?.[1].textContent).toBe('Second');
             expect(paragraphs?.[2].textContent).toBe('Third');
-            expect(div.querySelector('div + p')?.textContent).toBe('Footer');
+            expect(outerDiv.querySelector('.inner + p')?.textContent).toBe('Footer');
             break;
           }
+        }
+      });
+    });
+
+    // Operator tests
+    ifTagOperatorTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'less than operator: renders when true':
+            expect(div.querySelector('p')?.textContent).toBe('Minor');
+            break;
+          case 'less than operator: does not render when false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'greater than operator: renders when true':
+            expect(div.querySelector('p')?.textContent).toBe('Excellent');
+            break;
+          case 'greater than operator: does not render when false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'equals operator: renders when equal':
+            expect(div.querySelector('p')?.textContent).toBe('User is active');
+            break;
+          case 'equals operator: does not render when not equal':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case '$in operator: renders when value is in array':
+            expect(div.querySelector('p')?.textContent).toBe('Has special privileges');
+            break;
+          case '$in operator: does not render when value is not in array':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'multiple operators with AND (default): all must be true':
+            expect(div.querySelector('p')?.textContent).toBe('Working age adult');
+            break;
+          case 'multiple operators with AND: does not render if one is false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'multiple operators with OR: renders if one is true':
+            expect(div.querySelector('p')?.textContent).toBe('Non-working age');
+            break;
+          case 'multiple operators with OR: does not render if all are false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+          case 'operator with $not: inverts result':
+            expect(div.querySelector('p')?.textContent).toBe('Adult');
+            break;
+          case 'complex condition: multiple operators with OR and $not':
+            expect(div.querySelector('p')?.textContent).toBe('Valid status');
+            break;
+        }
+      });
+    });
+
+    // $then and $else tests
+    ifTagThenElseTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'renders $then when condition is true':
+            expect(div.querySelector('p')?.textContent).toBe('Active user');
+            break;
+          case 'renders $else when condition is false':
+            expect(div.querySelector('p')?.textContent).toBe('Inactive user');
+            break;
+          case 'renders $then when condition is true with both branches':
+            expect(div.querySelector('p')?.textContent).toBe('Excellent!');
+            break;
+          case 'renders empty when $else not provided and condition false':
+            expect(div.childNodes.length).toBe(0);
+            break;
+        }
+      });
+    });
+
+    // Conditional attribute tests
+    conditionalAttributeTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const div = fragment.firstChild as HTMLElement;
+        switch (tc.name) {
+          case 'conditional attribute with $then and $else':
+            expect(div.className).toBe('active');
+            break;
+          case 'conditional attribute evaluates to $else when false':
+            expect(div.className).toBe('inactive');
+            break;
+          case 'conditional attribute with operator':
+            expect(div.className).toBe('excellent');
+            break;
+          case 'conditional attribute with $in operator':
+            expect(div.className).toBe('privileged');
+            break;
+          case 'conditional attribute with $not modifier':
+            expect(div.className).toBe('member');
+            break;
+          case 'multiple attributes with conditionals':
+            expect(div.className).toBe('dark-mode');
+            expect(div.getAttribute('data-theme')).toBe('dark');
+            break;
         }
       });
     });

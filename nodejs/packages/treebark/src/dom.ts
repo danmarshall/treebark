@@ -1,6 +1,5 @@
 import { 
   TemplateElement,
-  TemplateObject,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -9,10 +8,13 @@ import {
   interpolate, 
   validateAttribute, 
   hasBinding,
-  validateBindExpression,
+  validatePathExpression,
+  isConditionalValue,
+  evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  processConditional
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -66,46 +68,22 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
   
   // Prevent nested comments
-  if (tag === 'comment' && context.insideComment) {
+  if (tag === '$comment' && context.insideComment) {
     throw new Error('Nested comments are not allowed');
   }
   
-  // Special handling for "if" tag
-  if (tag === 'if') {
-    // "if" tag requires $bind
-    if (!hasBinding(rest)) {
-      throw new Error('"if" tag requires $bind attribute to specify the condition');
-    }
+  // Special handling for "$if" tag
+  if (tag === '$if') {
+    const { valueToRender } = processConditional(rest, data, parents);
     
-    validateBindExpression(rest.$bind);
-    const bound = getProperty(data, rest.$bind, parents);
-    const { $bind, $children = [], $not, ...bindAttrs } = rest;
-    
-    // Check if any non-reserved attributes were provided
-    const hasAttrs = Object.keys(bindAttrs).length > 0;
-    if (hasAttrs) {
-      throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
-    }
-    
-    // Check condition with optional negation (uses JavaScript truthiness via Boolean())
-    const condition = $not ? !Boolean(bound) : Boolean(bound);
-    
-    // Only render children if condition is true
-    if (!condition) {
+    // If no value to render, return empty
+    if (valueToRender === undefined) {
       return [];
     }
     
-    // Render children without wrapping element
-    const results: Node[] = [];
-    for (const child of $children) {
-      const nodes = render(child, data, context);
-      if (Array.isArray(nodes)) {
-        results.push(...nodes);
-      } else {
-        results.push(nodes);
-      }
-    }
-    return results;
+    // Render the single element
+    const nodes = render(valueToRender, data, context);
+    return Array.isArray(nodes) ? nodes : [nodes];
   }
   
   // Inline validateChildren: Validate that void tags don't have children
@@ -115,8 +93,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     throw new Error(`Tag "${tag}" is a void element and cannot have children`);
   }
   
-  // Special handling for comment tags
-  if (tag === 'comment') {
+  // Special handling for $comment tags
+  if (tag === '$comment') {
     // Use string renderer and extract content between <!-- and -->
     const stringResult = renderToString({ template, data }, { /* no options needed for comment rendering */ });
     const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
@@ -127,7 +105,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    validateBindExpression(rest.$bind);
+    validatePathExpression(rest.$bind, '$bind');
     
     // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);
@@ -179,7 +157,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): void {
   Object.entries(attrs).forEach(([key, value]) => {
     validateAttribute(key, tag);
-    element.setAttribute(key, interpolate(String(value), data, false, parents));
+    
+    // Check if value is a conditional value
+    if (isConditionalValue(value)) {
+      const evaluatedValue = evaluateConditionalValue(value, data, parents);
+      element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents));
+    } else {
+      element.setAttribute(key, interpolate(String(value), data, false, parents));
+    }
   });
 }
 

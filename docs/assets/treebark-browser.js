@@ -34,11 +34,13 @@
     "a"
   ]);
   const SPECIAL_TAGS = /* @__PURE__ */ new Set([
-    "comment",
-    "if"
+    "$comment",
+    "$if"
   ]);
   const VOID_TAGS = /* @__PURE__ */ new Set([
-    "img"
+    "img",
+    "br",
+    "hr"
   ]);
   const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
   const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
@@ -50,6 +52,8 @@
     "td": /* @__PURE__ */ new Set(["scope", "colspan", "rowspan"]),
     "blockquote": /* @__PURE__ */ new Set(["cite"])
   };
+  const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
+  const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
   function getProperty(obj, path, parents = []) {
     if (path === ".") {
       return obj;
@@ -103,15 +107,66 @@
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
-  function validateBindExpression(bindValue) {
-    if (bindValue === ".") {
+  function validatePathExpression(value, label) {
+    if (value === ".") {
       return;
     }
-    if (bindValue.includes("..")) {
-      throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+    if (value.includes("..")) {
+      throw new Error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
     }
-    if (bindValue.includes("{{")) {
-      throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
+    if (value.includes("{{")) {
+      throw new Error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+    }
+  }
+  function evaluateCondition(checkValue, attrs) {
+    const operators = [];
+    for (const op of OPERATORS) {
+      if (op in attrs) {
+        operators.push({ key: op, value: attrs[op] });
+      }
+    }
+    if (operators.length === 0) {
+      const result = Boolean(checkValue);
+      return attrs.$not ? !result : result;
+    }
+    const results = operators.map((op) => {
+      switch (op.key) {
+        case "$<":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue < op.value;
+        case "$>":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue > op.value;
+        case "$<=":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue <= op.value;
+        case "$>=":
+          return typeof checkValue === "number" && typeof op.value === "number" && checkValue >= op.value;
+        case "$=":
+          return checkValue === op.value;
+        case "$in":
+          return Array.isArray(op.value) && op.value.includes(checkValue);
+        default:
+          return false;
+      }
+    });
+    const useOr = attrs.$join === "OR";
+    let finalResult;
+    if (useOr) {
+      finalResult = results.some((r) => r);
+    } else {
+      finalResult = results.every((r) => r);
+    }
+    return attrs.$not ? !finalResult : finalResult;
+  }
+  function isConditionalValue(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
+  }
+  function evaluateConditionalValue(value, data, parents = []) {
+    validatePathExpression(value.$check, "$check");
+    const checkValue = getProperty(data, value.$check, parents);
+    const condition = evaluateCondition(checkValue, value);
+    if (condition) {
+      return value.$then !== void 0 ? value.$then : "";
+    } else {
+      return value.$else !== void 0 ? value.$else : "";
     }
   }
   function templateHasCurrentObjectBinding(template) {
@@ -144,6 +199,32 @@
     const children = typeof rest === "string" ? [rest] : Array.isArray(rest) ? rest : rest?.$children || [];
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
+  }
+  function processConditional(rest, data, parents = []) {
+    const conditional = rest;
+    if (!conditional.$check) {
+      throw new Error('"$if" tag requires $check attribute to specify the condition');
+    }
+    validatePathExpression(conditional.$check, "$check");
+    const checkValue = getProperty(data, conditional.$check, parents);
+    if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
+      throw new Error('"$if" tag does not support $children, use $then and $else instead');
+    }
+    const { $then, $else } = conditional;
+    if ($then !== void 0 && Array.isArray($then)) {
+      throw new Error('"$if" tag $then must be a string or single element object, not an array');
+    }
+    if ($else !== void 0 && Array.isArray($else)) {
+      throw new Error('"$if" tag $else must be a string or single element object, not an array');
+    }
+    const allKeys = typeof rest === "object" && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
+    const nonConditionalAttrs = allKeys.filter((k) => !CONDITIONALKEYS.has(k));
+    if (nonConditionalAttrs.length > 0) {
+      throw new Error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(", ")}. Allowed: ${[...CONDITIONALKEYS].join(", ")}`);
+    }
+    const condition = evaluateCondition(checkValue, conditional);
+    const valueToRender = condition ? $then : $else;
+    return { valueToRender };
   }
   const flattenOutput = (output, indentStr) => {
     if (!indentStr) {
@@ -178,7 +259,7 @@
   function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = []) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
     const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
-    if (tag === "comment") {
+    if (tag === "$comment") {
       return `<!--${formattedContent}${parentIndent}-->`;
     }
     const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
@@ -197,40 +278,22 @@
     if (!ALLOWED_TAGS.has(tag)) {
       throw new Error(`Tag "${tag}" is not allowed`);
     }
-    if (tag === "comment" && context.insideComment) {
+    if (tag === "$comment" && context.insideComment) {
       throw new Error("Nested comments are not allowed");
     }
-    if (tag === "if") {
-      if (!hasBinding(rest)) {
-        throw new Error('"if" tag requires $bind attribute to specify the condition');
-      }
-      validateBindExpression(rest.$bind);
-      const bound = getProperty(data, rest.$bind, parents);
-      const { $bind, $children = [], $not, ...bindAttrs } = rest;
-      const hasAttrs = Object.keys(bindAttrs).length > 0;
-      if (hasAttrs) {
-        throw new Error('"if" tag does not support attributes, only $bind, $not, and $children');
-      }
-      const condition = $not ? !Boolean(bound) : Boolean(bound);
-      if (!condition) {
+    if (tag === "$if") {
+      const { valueToRender } = processConditional(rest, data, parents);
+      if (valueToRender === void 0) {
         return "";
       }
-      if (!context.indentStr) {
-        return $children.map((child) => render(child, data, context)).join("");
-      }
-      const currentLevel = context.level || 0;
-      const indent = context.indentStr.repeat(currentLevel);
-      return $children.map((child, index) => {
-        const content = render(child, data, context);
-        return index === 0 ? content : indent + content;
-      }).join("\n");
+      return render(valueToRender, data, context);
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
       throw new Error(`Tag "${tag}" is a void element and cannot have children`);
     }
     const childContext = {
       ...context,
-      insideComment: tag === "comment" || context.insideComment,
+      insideComment: tag === "$comment" || context.insideComment,
       level: (context.level || 0) + 1
     };
     const processContent = (content) => {
@@ -245,7 +308,7 @@
     let childrenOutput;
     let contentAttrs;
     if (hasBinding(rest)) {
-      validateBindExpression(rest.$bind);
+      validatePathExpression(rest.$bind, "$bind");
       const bound = getProperty(data, rest.$bind, []);
       const { $bind, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
@@ -273,7 +336,14 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = []) {
-    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => `${k}="${escape(interpolate(String(v), data, false, parents))}"`).join(" ");
+    const pairs = Object.entries(attrs).filter(([key]) => (validateAttribute(key, tag), true)).map(([k, v]) => {
+      if (isConditionalValue(v)) {
+        const evaluatedValue = evaluateConditionalValue(v, data, parents);
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+      } else {
+        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+      }
+    }).join(" ");
     return pairs ? " " + pairs : "";
   }
   exports2.renderToString = renderToString;

@@ -204,7 +204,7 @@
                         "span": {
                             "class": "icon",
                             "$children": [
-                                "📧"
+                                "\ud83d\udce7"
                             ]
                         }
                     },
@@ -263,7 +263,7 @@
                 "$bind": "products",
                 "$children": [
                     {
-                        "li": "{{name}} — {{price}}"
+                        "li": "{{name}} \u2014 {{price}}"
                     }
                 ]
             }
@@ -288,7 +288,7 @@
                 "$bind": ".",
                 "$children": [
                     {
-                        "li": "{{name}} — {{price}}"
+                        "li": "{{name}} \u2014 {{price}}"
                     }
                 ]
             }
@@ -382,7 +382,7 @@
         }
     },
     "conditional-if-basic": {
-        "label": "Conditional: Basic 'if' Tag",
+        "label": "Conditional: Basic $if Tag",
         "template": {
             "div": {
                 "class": "user-greeting",
@@ -391,40 +391,48 @@
                         "h2": "User Dashboard"
                     },
                     {
-                        "if": {
-                            "$bind": "isLoggedIn",
-                            "$children": [
-                                {
-                                    "p": "Welcome back, {{username}}!"
-                                },
-                                {
-                                    "a": {
-                                        "href": "/profile",
-                                        "$children": [
-                                            "View Profile"
-                                        ]
-                                    }
+                        "$if": {
+                            "$check": "isLoggedIn",
+                            "$then": {
+                                "div": {
+                                    "$children": [
+                                        {
+                                            "p": "Welcome back, {{username}}!"
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/profile",
+                                                "$children": [
+                                                    "View Profile"
+                                                ]
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "isLoggedIn",
+                        "$if": {
+                            "$check": "isLoggedIn",
                             "$not": true,
-                            "$children": [
-                                {
-                                    "p": "Please log in to continue."
-                                },
-                                {
-                                    "a": {
-                                        "href": "/login",
-                                        "$children": [
-                                            "Login"
-                                        ]
-                                    }
+                            "$then": {
+                                "div": {
+                                    "$children": [
+                                        {
+                                            "p": "Please log in to continue."
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/login",
+                                                "$children": [
+                                                    "Login"
+                                                ]
+                                            }
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     }
                 ]
@@ -448,68 +456,64 @@
                         "p": "Role: {{user.role}}"
                     },
                     {
-                        "if": {
-                            "$bind": "user.isAdmin",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "admin-panel",
-                                        "$children": [
-                                            {
-                                                "h3": "Admin Tools"
-                                            },
-                                            {
-                                                "ul": [
-                                                    {
-                                                        "li": {
-                                                            "$children": [
-                                                                {
-                                                                    "a": {
-                                                                        "href": "/admin/users",
-                                                                        "$children": [
-                                                                            "Manage Users"
-                                                                        ]
-                                                                    }
+                        "$if": {
+                            "$check": "user.isAdmin",
+                            "$then": {
+                                "div": {
+                                    "class": "admin-panel",
+                                    "$children": [
+                                        {
+                                            "h3": "Admin Tools"
+                                        },
+                                        {
+                                            "ul": [
+                                                {
+                                                    "li": {
+                                                        "$children": [
+                                                            {
+                                                                "a": {
+                                                                    "href": "/admin/users",
+                                                                    "$children": [
+                                                                        "Manage Users"
+                                                                    ]
                                                                 }
-                                                            ]
-                                                        }
-                                                    },
-                                                    {
-                                                        "li": {
-                                                            "$children": [
-                                                                {
-                                                                    "a": {
-                                                                        "href": "/admin/settings",
-                                                                        "$children": [
-                                                                            "System Settings"
-                                                                        ]
-                                                                    }
-                                                                }
-                                                            ]
-                                                        }
+                                                            }
+                                                        ]
                                                     }
-                                                ]
-                                            }
-                                        ]
-                                    }
+                                                },
+                                                {
+                                                    "li": {
+                                                        "$children": [
+                                                            {
+                                                                "a": {
+                                                                    "href": "/admin/settings",
+                                                                    "$children": [
+                                                                        "System Settings"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "user.isPremium",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "premium-badge",
-                                        "style": "background: gold; padding: 5px;",
-                                        "$children": [
-                                            "⭐ Premium Member"
-                                        ]
-                                    }
+                        "$if": {
+                            "$check": "user.isPremium",
+                            "$then": {
+                                "div": {
+                                    "class": "premium-badge",
+                                    "style": "background: gold; padding: 5px;",
+                                    "$children": [
+                                        "\u2b50 Premium Member"
+                                    ]
                                 }
-                            ]
+                            }
                         }
                     }
                 ]
@@ -548,34 +552,30 @@
                                                 "p": "Price: {{price}}"
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "inStock",
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: green;",
-                                                                "$children": [
-                                                                    "✓ In Stock ({{quantity}} available)"
-                                                                ]
-                                                            }
+                                                "$if": {
+                                                    "$check": "inStock",
+                                                    "$then": {
+                                                        "p": {
+                                                            "style": "color: green;",
+                                                            "$children": [
+                                                                "\u2713 In Stock ({{quantity}} available)"
+                                                            ]
                                                         }
-                                                    ]
+                                                    }
                                                 }
                                             },
                                             {
-                                                "if": {
-                                                    "$bind": "inStock",
+                                                "$if": {
+                                                    "$check": "inStock",
                                                     "$not": true,
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: red;",
-                                                                "$children": [
-                                                                    "✗ Out of Stock"
-                                                                ]
-                                                            }
+                                                    "$then": {
+                                                        "p": {
+                                                            "style": "color: red;",
+                                                            "$children": [
+                                                                "\u2717 Out of Stock"
+                                                            ]
                                                         }
-                                                    ]
+                                                    }
                                                 }
                                             }
                                         ]
@@ -620,77 +620,354 @@
                         "h2": "Document Access"
                     },
                     {
-                        "if": {
-                            "$bind": "hasPermission",
-                            "$children": [
-                                {
-                                    "div": {
-                                        "class": "content-area",
-                                        "$children": [
-                                            {
-                                                "h3": "Secure Document"
-                                            },
-                                            {
-                                                "p": "This is protected content."
-                                            },
-                                            {
-                                                "if": {
-                                                    "$bind": "isVerified",
-                                                    "$children": [
-                                                        {
-                                                            "div": {
-                                                                "style": "background: lightgreen; padding: 10px;",
-                                                                "$children": [
-                                                                    {
-                                                                        "strong": "✓ Verified Access"
-                                                                    },
-                                                                    {
-                                                                        "p": "You have full access to this document."
-                                                                    }
-                                                                ]
+                        "$if": {
+                            "$check": "hasPermission",
+                            "$then": {
+                                "div": {
+                                    "class": "content-area",
+                                    "$children": [
+                                        {
+                                            "h3": "Secure Document"
+                                        },
+                                        {
+                                            "p": "This is protected content."
+                                        },
+                                        {
+                                            "$if": {
+                                                "$check": "isVerified",
+                                                "$then": {
+                                                    "div": {
+                                                        "style": "background: lightgreen; padding: 10px;",
+                                                        "$children": [
+                                                            {
+                                                                "strong": "\u2713 Verified Access"
+                                                            },
+                                                            {
+                                                                "p": "You have full access to this document."
                                                             }
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            {
-                                                "if": {
-                                                    "$bind": "isVerified",
-                                                    "$not": true,
-                                                    "$children": [
-                                                        {
-                                                            "p": {
-                                                                "style": "color: orange;",
-                                                                "$children": [
-                                                                    "⚠ Limited access - verification pending"
-                                                                ]
-                                                            }
-                                                        }
-                                                    ]
+                                                        ]
+                                                    }
                                                 }
                                             }
-                                        ]
-                                    }
+                                        },
+                                        {
+                                            "$if": {
+                                                "$check": "isVerified",
+                                                "$not": true,
+                                                "$then": {
+                                                    "p": {
+                                                        "style": "color: orange;",
+                                                        "$children": [
+                                                            "\u26a0 Limited access - verification pending"
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$if": {
+                            "$check": "hasPermission",
+                            "$not": true,
+                            "$then": {
+                                "div": {
+                                    "style": "background: #ffe0e0; padding: 15px; border: 2px solid red;",
+                                    "$children": [
+                                        {
+                                            "strong": "Access Denied"
+                                        },
+                                        {
+                                            "p": "You do not have permission to view this content."
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "hasPermission": true,
+            "isVerified": true
+        }
+    },
+    "conditional-then-else": {
+        "label": "Conditional: $then and $else Branching",
+        "template": {
+            "div": {
+                "class": "auth-status",
+                "$children": [
+                    {
+                        "h2": "Authentication Status"
+                    },
+                    {
+                        "$if": {
+                            "$check": "isLoggedIn",
+                            "$then": {
+                                "div": {
+                                    "class": "logged-in",
+                                    "$children": [
+                                        {
+                                            "p": "Hello, {{username}}!"
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/logout",
+                                                "$children": [
+                                                    "Logout"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "div": {
+                                    "class": "logged-out",
+                                    "$children": [
+                                        {
+                                            "p": "Please log in to continue."
+                                        },
+                                        {
+                                            "a": {
+                                                "href": "/login",
+                                                "class": "btn",
+                                                "$children": [
+                                                    "Login"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "isLoggedIn": true,
+            "username": "Alice"
+        }
+    },
+    "conditional-comparison-operators": {
+        "label": "Conditional: Comparison Operators",
+        "template": {
+            "div": {
+                "class": "access-control",
+                "$children": [
+                    {
+                        "h2": "Age-Based Access (Age: {{age}})"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$<": 13,
+                            "$then": {
+                                "p": {
+                                    "style": "color: red;",
+                                    "$children": [
+                                        "\u274c Child account - Restricted access"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 13,
+                            "$<": 18,
+                            "$then": {
+                                "p": {
+                                    "style": "color: orange;",
+                                    "$children": [
+                                        "\u26a0\ufe0f Teen account - Limited access"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 18,
+                            "$then": {
+                                "p": {
+                                    "style": "color: green;",
+                                    "$children": [
+                                        "\u2713 Full access granted"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Role-Based Access"
+                    },
+                    {
+                        "$if": {
+                            "$check": "role",
+                            "$in": [
+                                "admin",
+                                "moderator",
+                                "editor"
+                            ],
+                            "$then": {
+                                "p": {
+                                    "style": "color: blue;",
+                                    "$children": [
+                                        "\u2b50 Special privileges granted"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Standard user privileges"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "age": 25,
+            "role": "admin"
+        }
+    },
+    "conditional-join-or": {
+        "label": "Conditional: OR Logic with $join",
+        "template": {
+            "div": {
+                "class": "pricing",
+                "$children": [
+                    {
+                        "h2": "Ticket Pricing"
+                    },
+                    {
+                        "p": "Age: {{age}}"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$>=": 18,
+                            "$<=": 65,
+                            "$then": {
+                                "p": {
+                                    "style": "color: green;",
+                                    "$children": [
+                                        "\u2713 Standard adult rate: $50"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Discounted rate available"
+                            }
+                        }
+                    },
+                    {
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Discount Eligibility (OR Logic)"
+                    },
+                    {
+                        "$if": {
+                            "$check": "age",
+                            "$<": 18,
+                            "$>": 65,
+                            "$join": "OR",
+                            "$then": {
+                                "p": {
+                                    "style": "color: blue;",
+                                    "$children": [
+                                        "\ud83c\udf89 Special discount: $30 (child or senior)"
+                                    ]
+                                }
+                            },
+                            "$else": {
+                                "p": "Standard rate: $50"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "data": {
+            "age": 70
+        }
+    },
+    "conditional-attribute-values": {
+        "label": "Conditional: Attribute Values",
+        "template": {
+            "div": {
+                "class": "status-dashboard",
+                "$children": [
+                    {
+                        "h2": "Server Status Dashboard"
+                    },
+                    {
+                        "div": {
+                            "class": {
+                                "$check": "status",
+                                "$=": "online",
+                                "$then": "status-online",
+                                "$else": "status-offline"
+                            },
+                            "style": {
+                                "$check": "status",
+                                "$=": "online",
+                                "$then": "color: green; font-weight: bold;",
+                                "$else": "color: red; font-weight: bold;"
+                            },
+                            "$children": [
+                                {
+                                    "strong": "Server Status: "
+                                },
+                                {
+                                    "span": "{{status}}"
                                 }
                             ]
                         }
                     },
                     {
-                        "if": {
-                            "$bind": "hasPermission",
-                            "$not": true,
+                        "hr": {}
+                    },
+                    {
+                        "h3": "Performance Score: {{score}}"
+                    },
+                    {
+                        "div": {
+                            "class": {
+                                "$check": "score",
+                                "$>=": 90,
+                                "$then": "score-excellent",
+                                "$else": "score-average"
+                            },
+                            "style": {
+                                "$check": "score",
+                                "$>=": 90,
+                                "$then": "color: green; font-weight: bold;",
+                                "$else": "color: orange;"
+                            },
                             "$children": [
                                 {
-                                    "div": {
-                                        "style": "background: #ffe0e0; padding: 15px; border: 2px solid red;",
-                                        "$children": [
-                                            {
-                                                "strong": "Access Denied"
-                                            },
-                                            {
-                                                "p": "You do not have permission to view this content."
-                                            }
-                                        ]
+                                    "$if": {
+                                        "$check": "score",
+                                        "$>=": 90,
+                                        "$then": {
+                                            "span": "\u2b50 Excellent Performance"
+                                        },
+                                        "$else": {
+                                            "span": "Average Performance"
+                                        }
                                     }
                                 }
                             ]
@@ -700,8 +977,8 @@
             }
         },
         "data": {
-            "hasPermission": true,
-            "isVerified": true
+            "status": "online",
+            "score": 95
         }
     }
 }
