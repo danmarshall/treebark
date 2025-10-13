@@ -17,6 +17,7 @@
     "test-typescript-issues.ts",
     "test-typescript-improvements.ts",
     "test-attribute-validation.ts",
-    "test-tag-specific-attrs.mjs"
+    "test-tag-specific-attrs.mjs",
+    "test-new-tag-types.ts"
   ]
 }

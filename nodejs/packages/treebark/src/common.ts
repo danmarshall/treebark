@@ -1,164 +1,70 @@
-// Common types, constants, and utilities shared between string and DOM renderers
-export type Data = Record<string, unknown> | Record<string, unknown>[];
+// Common utilities shared between string and DOM renderers
+// Type definitions are in types.ts
 
-// Primitive value type for attribute values
-export type PrimitiveValue = string | number | boolean;
+import type {
+  Data,
+  PrimitiveValue,
+  ConditionalValueOrTemplate,
+  ConditionalValue,
+  TemplateObject,
+  TemplateElement,
+  TemplateAttributes,
+  TreebarkInput,
+  RenderOptions
+} from './types.js';
 
-// Generic conditional type shared by $if tag and conditional attribute values
-export type ConditionalBase<T> = {
-  $check: string;
-  $then: T;
-  $else?: T;
-  // Comparison operators (require numbers)
-  '$<'?: number;
-  '$>'?: number;
-  '$<='?: number;
-  '$>='?: number;
-  // Equality operators (can compare any value)
-  '$='?: PrimitiveValue;
-  $in?: PrimitiveValue[];
-  // Modifiers
-  $not?: boolean;
-  $join?: 'AND' | 'OR';
-};
+// Re-export types for backwards compatibility
+export type {
+  Data,
+  PrimitiveValue,
+  ConditionalValueOrTemplate,
+  ConditionalValue,
+  TemplateObject,
+  TemplateElement,
+  TemplateAttributes,
+  TreebarkInput,
+  RenderOptions,
+  // Export tag types
+  DivTag,
+  SpanTag,
+  PTag,
+  HeaderTag,
+  FooterTag,
+  MainTag,
+  SectionTag,
+  ArticleTag,
+  H1Tag,
+  H2Tag,
+  H3Tag,
+  H4Tag,
+  H5Tag,
+  H6Tag,
+  StrongTag,
+  EmTag,
+  BlockquoteTag,
+  CodeTag,
+  PreTag,
+  UlTag,
+  OlTag,
+  LiTag,
+  TableTag,
+  TheadTag,
+  TbodyTag,
+  TrTag,
+  ThTag,
+  TdTag,
+  ATag,
+  ImgTag,
+  BrTag,
+  HrTag,
+  CommentTag,
+  IfTag,
+  ContainerTag,
+  VoidTag,
+  SpecialTag,
+  AllowedTag
+} from './types.js';
 
-// Conditional type for $if tag - T can be string or TemplateObject
-export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject>;
-
-// Conditional value type for attribute values - T is restricted to primitives
-export type ConditionalValue = ConditionalBase<string>;
-
-// Type-safe tag names - union of all allowed tags
-export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
-  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
-  'ul' | 'ol' | 'li' |
-  'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
-  'a';
-
-export type VoidTag = 'img' | 'br' | 'hr';
-
-export type SpecialTag = '$comment' | '$if';
-
-export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
-
-// Global attributes that can be used on any tag
-type GlobalAttrs = {
-  id?: string;
-  class?: string;
-  style?: string;
-  title?: string;
-  role?: string;
-  [key: `data-${string}`]: unknown;
-  [key: `aria-${string}`]: unknown;
-};
-
-// Base attributes that can be used on container tags
-type BaseContainerAttrs = GlobalAttrs & {
-  $bind?: string;
-  $children?: (string | TemplateObject)[];
-};
-
-// Base attributes for void tags (no children allowed)
-type BaseVoidAttrs = GlobalAttrs & {
-  $bind?: string;
-};
-
-// Tag-specific attribute types
-type DivAttrs = BaseContainerAttrs;
-type SpanAttrs = BaseContainerAttrs;
-type PAttrs = BaseContainerAttrs;
-type HeaderAttrs = BaseContainerAttrs;
-type FooterAttrs = BaseContainerAttrs;
-type MainAttrs = BaseContainerAttrs;
-type SectionAttrs = BaseContainerAttrs;
-type ArticleAttrs = BaseContainerAttrs;
-type H1Attrs = BaseContainerAttrs;
-type H2Attrs = BaseContainerAttrs;
-type H3Attrs = BaseContainerAttrs;
-type H4Attrs = BaseContainerAttrs;
-type H5Attrs = BaseContainerAttrs;
-type H6Attrs = BaseContainerAttrs;
-type StrongAttrs = BaseContainerAttrs;
-type EmAttrs = BaseContainerAttrs;
-type BlockquoteAttrs = BaseContainerAttrs & { cite?: string };
-type CodeAttrs = BaseContainerAttrs;
-type PreAttrs = BaseContainerAttrs;
-type UlAttrs = BaseContainerAttrs;
-type OlAttrs = BaseContainerAttrs;
-type LiAttrs = BaseContainerAttrs;
-type TableAttrs = BaseContainerAttrs & { summary?: string };
-type TheadAttrs = BaseContainerAttrs;
-type TbodyAttrs = BaseContainerAttrs;
-type TrAttrs = BaseContainerAttrs;
-type ThAttrs = BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string };
-type TdAttrs = BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string };
-type AAttrs = BaseContainerAttrs & { href?: string; target?: string; rel?: string };
-type CommentAttrs = BaseContainerAttrs;
-
-// Void tag attribute types
-type ImgAttrs = BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string };
-type BrAttrs = BaseVoidAttrs;
-type HrAttrs = BaseVoidAttrs;
-
-// Generic template attributes (for backwards compatibility)
-export type TemplateAttributes = BaseContainerAttrs;
-
-// Template object for $if tag - only allows conditional properties
-export type IfTemplateObject = {
-  $if: ConditionalValueOrTemplate;
-};
-
-// Template object with specific types for each tag
-export type TemplateObject = IfTemplateObject | {
-  div?: string | (string | TemplateObject)[] | DivAttrs;
-  span?: string | (string | TemplateObject)[] | SpanAttrs;
-  p?: string | (string | TemplateObject)[] | PAttrs;
-  header?: string | (string | TemplateObject)[] | HeaderAttrs;
-  footer?: string | (string | TemplateObject)[] | FooterAttrs;
-  main?: string | (string | TemplateObject)[] | MainAttrs;
-  section?: string | (string | TemplateObject)[] | SectionAttrs;
-  article?: string | (string | TemplateObject)[] | ArticleAttrs;
-  h1?: string | (string | TemplateObject)[] | H1Attrs;
-  h2?: string | (string | TemplateObject)[] | H2Attrs;
-  h3?: string | (string | TemplateObject)[] | H3Attrs;
-  h4?: string | (string | TemplateObject)[] | H4Attrs;
-  h5?: string | (string | TemplateObject)[] | H5Attrs;
-  h6?: string | (string | TemplateObject)[] | H6Attrs;
-  strong?: string | (string | TemplateObject)[] | StrongAttrs;
-  em?: string | (string | TemplateObject)[] | EmAttrs;
-  blockquote?: string | (string | TemplateObject)[] | BlockquoteAttrs;
-  code?: string | (string | TemplateObject)[] | CodeAttrs;
-  pre?: string | (string | TemplateObject)[] | PreAttrs;
-  ul?: string | (string | TemplateObject)[] | UlAttrs;
-  ol?: string | (string | TemplateObject)[] | OlAttrs;
-  li?: string | (string | TemplateObject)[] | LiAttrs;
-  table?: string | (string | TemplateObject)[] | TableAttrs;
-  thead?: string | (string | TemplateObject)[] | TheadAttrs;
-  tbody?: string | (string | TemplateObject)[] | TbodyAttrs;
-  tr?: string | (string | TemplateObject)[] | TrAttrs;
-  th?: string | (string | TemplateObject)[] | ThAttrs;
-  td?: string | (string | TemplateObject)[] | TdAttrs;
-  a?: string | (string | TemplateObject)[] | AAttrs;
-  img?: string | (string | TemplateObject)[] | ImgAttrs;
-  br?: string | (string | TemplateObject)[] | BrAttrs;
-  hr?: string | (string | TemplateObject)[] | HrAttrs;
-  $comment?: string | (string | TemplateObject)[] | CommentAttrs;
-};
-
-// Template element is either a string or an object
-export type TemplateElement = string | TemplateObject;
-
-// API input types
-export interface TreebarkInput {
-  template: TemplateElement | TemplateElement[];
-  data?: Data;
-}
-
-// Options interface for render functions
-export interface RenderOptions {
-  data?: Data;
-  indent?: string | number | boolean;
-}
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([
