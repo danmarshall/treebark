@@ -1,8 +1,5 @@
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject } from './types.js';
 import {
-  TemplateElement,
-  TemplateObject,
-  TreebarkInput,
-  Data,
   ALLOWED_TAGS,
   VOID_TAGS,
   getProperty,
@@ -15,7 +12,6 @@ import {
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions,
   processConditional
 } from './common.js';
 

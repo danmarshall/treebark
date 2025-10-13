@@ -3,68 +3,13 @@
 
 import type {
   Data,
-  PrimitiveValue,
   ConditionalValueOrTemplate,
   ConditionalValue,
   TemplateObject,
   TemplateElement,
   TemplateAttributes,
   TreebarkInput,
-  RenderOptions
 } from './types.js';
-
-// Re-export types for backwards compatibility
-export type {
-  Data,
-  PrimitiveValue,
-  ConditionalValueOrTemplate,
-  ConditionalValue,
-  TemplateObject,
-  TemplateElement,
-  TemplateAttributes,
-  TreebarkInput,
-  RenderOptions,
-  // Export tag types
-  DivTag,
-  SpanTag,
-  PTag,
-  HeaderTag,
-  FooterTag,
-  MainTag,
-  SectionTag,
-  ArticleTag,
-  H1Tag,
-  H2Tag,
-  H3Tag,
-  H4Tag,
-  H5Tag,
-  H6Tag,
-  StrongTag,
-  EmTag,
-  BlockquoteTag,
-  CodeTag,
-  PreTag,
-  UlTag,
-  OlTag,
-  LiTag,
-  TableTag,
-  TheadTag,
-  TbodyTag,
-  TrTag,
-  ThTag,
-  TdTag,
-  ATag,
-  ImgTag,
-  BrTag,
-  HrTag,
-  CommentTag,
-  IfTag,
-  ContainerTag,
-  VoidTag,
-  SpecialTag,
-  AllowedTag
-} from './types.js';
-
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([

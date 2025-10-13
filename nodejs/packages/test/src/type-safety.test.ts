@@ -3,8 +3,7 @@
  * These tests verify that TypeScript catches invalid template structures at compile time
  */
 
-import { renderToString } from 'treebark';
-import type { TemplateObject } from 'treebark/src/common.js';
+import { renderToString, TemplateObject } from 'treebark';
 
 describe('Type Safety', () => {
   describe('Valid templates', () => {
