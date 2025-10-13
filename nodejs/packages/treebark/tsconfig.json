@@ -12,6 +12,9 @@
     "src/type-safety-demo.ts",
     "validate-types.mjs",
     "type-examples.ts",
-    "typescript-errors-expected.ts"
+    "typescript-errors-expected.ts",
+    "test-comment-issues.mjs",
+    "test-typescript-issues.ts",
+    "test-typescript-improvements.ts"
   ]
 }

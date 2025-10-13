@@ -164,8 +164,7 @@ describe('Type Safety', () => {
 
     it('should not allow $join in regular tag attributes', () => {
       // Regular tags should not have $join in their attributes
-      // TypeScript won't prevent this at the attribute level (index signature)
-      // but runtime validation catches misuse in $if context
+      // TypeScript now prevents this with proper type checking
       const template: TemplateObject = {
         div: {
           class: 'test',
@@ -174,6 +173,68 @@ describe('Type Safety', () => {
       };
       const result = renderToString({ template });
       expect(result).toBe('<div class="test">content</div>');
+    });
+
+    it('should reject $join in regular tags at runtime', () => {
+      // Even if TypeScript is bypassed, runtime catches it
+      const template = {
+        em: {
+          $join: 'OR',
+          $children: ['text']
+        }
+      } as any;
+      expect(() => renderToString({ template }))
+        .toThrow('Attribute "$join" is not allowed on tag "em"');
+    });
+
+    it('should reject $children in void tags at runtime', () => {
+      // Even if TypeScript is bypassed, runtime catches it
+      const template = {
+        img: {
+          src: 'test.jpg',
+          $children: ['not allowed']
+        }
+      } as any;
+      expect(() => renderToString({ template }))
+        .toThrow('Tag "img" is a void element and cannot have children');
+    });
+
+    it('should reject conditional operators in regular tags at runtime', () => {
+      // Even if TypeScript is bypassed, runtime catches it
+      const template = {
+        div: {
+          $check: 'test',
+          $children: ['text']
+        }
+      } as any;
+      expect(() => renderToString({ template }))
+        .toThrow('Attribute "$check" is not allowed on tag "div"');
+    });
+  });
+
+  describe('Stricter type enforcement from comment feedback', () => {
+    it('should accept valid void tags without $children', () => {
+      const template: TemplateObject = {
+        img: {
+          src: 'image.jpg',
+          alt: 'An image'
+        }
+      };
+      const result = renderToString({ template });
+      expect(result).toContain('<img');
+      expect(result).toContain('src="image.jpg"');
+    });
+
+    it('should require $then in $if tags', () => {
+      // TypeScript now requires $then
+      const template: TemplateObject = {
+        $if: {
+          $check: 'test',
+          $then: { div: 'Result' }
+        }
+      };
+      const result = renderToString({ template, data: { test: true } });
+      expect(result).toBe('<div>Result</div>');
     });
   });
 });

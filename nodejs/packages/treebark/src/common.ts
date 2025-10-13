@@ -42,27 +42,66 @@ export type SpecialTag = '$comment' | '$if';
 export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
 
 // Non-recursive template structure types
-// Template attributes for regular tags (not $if)
-export type TemplateAttributes = {
+// Template attributes for container tags (can have children)
+export type ContainerTemplateAttributes = {
   $bind?: string;
   $children?: (string | TemplateObject)[];
   [key: string]: unknown;
+} & {
+  // Explicitly mark conditional keys as not allowed
+  $check?: never;
+  $then?: never;
+  $else?: never;
+  '$<'?: never;
+  '$>'?: never;
+  '$<='?: never;
+  '$>='?: never;
+  '$='?: never;
+  $in?: never;
+  $not?: never;
+  $join?: never;
 };
+
+// Template attributes for void tags (cannot have children)
+export type VoidTemplateAttributes = {
+  $bind?: string;
+  [key: string]: unknown;
+} & {
+  $children?: never;  // Prevent $children in void tags
+  // Explicitly mark conditional keys as not allowed
+  $check?: never;
+  $then?: never;
+  $else?: never;
+  '$<'?: never;
+  '$>'?: never;
+  '$<='?: never;
+  '$>='?: never;
+  '$='?: never;
+  $in?: never;
+  $not?: never;
+  $join?: never;
+};
+
+// Generic template attributes (for backwards compatibility in some contexts)
+export type TemplateAttributes = ContainerTemplateAttributes;
 
 // Template object for $if tag - only allows conditional properties
 export type IfTemplateObject = {
   $if: ConditionalValueOrTemplate;
 };
 
-// Template object for regular tags - allows string content, array content, or attributes
-export type RegularTemplateObject = {
-  [K in Exclude<AllowedTag, '$if'>]?: string | (string | TemplateObject)[] | TemplateAttributes;
+// Template object for container tags - can have children
+export type ContainerTemplateObject = {
+  [K in ContainerTag | '$comment']?: string | (string | TemplateObject)[] | ContainerTemplateAttributes;
 };
 
-// Template object for $comment tag - can have string content, array content, or attributes (for children)
-export type CommentTemplateObject = {
-  $comment: string | (string | TemplateObject)[] | TemplateAttributes;
+// Template object for void tags - cannot have children
+export type VoidTemplateObject = {
+  [K in VoidTag]?: string | (string | TemplateObject)[] | VoidTemplateAttributes;
 };
+
+// Template object for regular tags (non-$if)
+export type RegularTemplateObject = ContainerTemplateObject & VoidTemplateObject;
 
 // Template object maps tag names to content
 // Special case: $if tag uses Conditional type instead of TemplateAttributes
