@@ -1,5 +1,6 @@
 import { 
   TemplateElement,
+  TemplateObject,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -137,7 +138,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
     // When binding to an object, add current data context to parents for child context
     const newParents = [...parents, data];
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   

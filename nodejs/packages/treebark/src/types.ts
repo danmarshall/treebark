@@ -74,41 +74,41 @@ type BaseVoidAttrs = GlobalAttrs & {
 };
 
 // Tag-specific types with attributes included
-export type DivTag = { div?: TagContent<BaseContainerAttrs> };
-export type SpanTag = { span?: TagContent<BaseContainerAttrs> };
-export type PTag = { p?: TagContent<BaseContainerAttrs> };
-export type HeaderTag = { header?: TagContent<BaseContainerAttrs> };
-export type FooterTag = { footer?: TagContent<BaseContainerAttrs> };
-export type MainTag = { main?: TagContent<BaseContainerAttrs> };
-export type SectionTag = { section?: TagContent<BaseContainerAttrs> };
-export type ArticleTag = { article?: TagContent<BaseContainerAttrs> };
-export type H1Tag = { h1?: TagContent<BaseContainerAttrs> };
-export type H2Tag = { h2?: TagContent<BaseContainerAttrs> };
-export type H3Tag = { h3?: TagContent<BaseContainerAttrs> };
-export type H4Tag = { h4?: TagContent<BaseContainerAttrs> };
-export type H5Tag = { h5?: TagContent<BaseContainerAttrs> };
-export type H6Tag = { h6?: TagContent<BaseContainerAttrs> };
-export type StrongTag = { strong?: TagContent<BaseContainerAttrs> };
-export type EmTag = { em?: TagContent<BaseContainerAttrs> };
-export type BlockquoteTag = { blockquote?: TagContent<BaseContainerAttrs & { cite?: string }> };
-export type CodeTag = { code?: TagContent<BaseContainerAttrs> };
-export type PreTag = { pre?: TagContent<BaseContainerAttrs> };
-export type UlTag = { ul?: TagContent<BaseContainerAttrs> };
-export type OlTag = { ol?: TagContent<BaseContainerAttrs> };
-export type LiTag = { li?: TagContent<BaseContainerAttrs> };
-export type TableTag = { table?: TagContent<BaseContainerAttrs & { summary?: string }> };
-export type TheadTag = { thead?: TagContent<BaseContainerAttrs> };
-export type TbodyTag = { tbody?: TagContent<BaseContainerAttrs> };
-export type TrTag = { tr?: TagContent<BaseContainerAttrs> };
-export type ThTag = { th?: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type TdTag = { td?: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type ATag = { a?: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
-export type CommentTag = { $comment?: TagContent<BaseContainerAttrs> };
+export type DivTag = { div: TagContent<BaseContainerAttrs> };
+export type SpanTag = { span: TagContent<BaseContainerAttrs> };
+export type PTag = { p: TagContent<BaseContainerAttrs> };
+export type HeaderTag = { header: TagContent<BaseContainerAttrs> };
+export type FooterTag = { footer: TagContent<BaseContainerAttrs> };
+export type MainTag = { main: TagContent<BaseContainerAttrs> };
+export type SectionTag = { section: TagContent<BaseContainerAttrs> };
+export type ArticleTag = { article: TagContent<BaseContainerAttrs> };
+export type H1Tag = { h1: TagContent<BaseContainerAttrs> };
+export type H2Tag = { h2: TagContent<BaseContainerAttrs> };
+export type H3Tag = { h3: TagContent<BaseContainerAttrs> };
+export type H4Tag = { h4: TagContent<BaseContainerAttrs> };
+export type H5Tag = { h5: TagContent<BaseContainerAttrs> };
+export type H6Tag = { h6: TagContent<BaseContainerAttrs> };
+export type StrongTag = { strong: TagContent<BaseContainerAttrs> };
+export type EmTag = { em: TagContent<BaseContainerAttrs> };
+export type BlockquoteTag = { blockquote: TagContent<BaseContainerAttrs & { cite?: string }> };
+export type CodeTag = { code: TagContent<BaseContainerAttrs> };
+export type PreTag = { pre: TagContent<BaseContainerAttrs> };
+export type UlTag = { ul: TagContent<BaseContainerAttrs> };
+export type OlTag = { ol: TagContent<BaseContainerAttrs> };
+export type LiTag = { li: TagContent<BaseContainerAttrs> };
+export type TableTag = { table: TagContent<BaseContainerAttrs & { summary?: string }> };
+export type TheadTag = { thead: TagContent<BaseContainerAttrs> };
+export type TbodyTag = { tbody: TagContent<BaseContainerAttrs> };
+export type TrTag = { tr: TagContent<BaseContainerAttrs> };
+export type ThTag = { th: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
+export type TdTag = { td: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
+export type ATag = { a: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
+export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
 
 // Void tag types
-export type ImgTag = { img?: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
-export type BrTag = { br?: TagContent<BaseVoidAttrs> };
-export type HrTag = { hr?: TagContent<BaseVoidAttrs> };
+export type ImgTag = { img: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
+export type BrTag = { br: TagContent<BaseVoidAttrs> };
+export type HrTag = { hr: TagContent<BaseVoidAttrs> };
 
 // $if tag type
 export type IfTag = { $if: ConditionalValueOrTemplate };

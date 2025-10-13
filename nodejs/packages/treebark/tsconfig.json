@@ -18,6 +18,8 @@
     "test-typescript-improvements.ts",
     "test-attribute-validation.ts",
     "test-tag-specific-attrs.mjs",
-    "test-new-tag-types.ts"
+    "test-new-tag-types.ts",
+    "test-mandatory-keys.ts",
+    "test-mandatory-keys-error.ts"
   ]
 }
