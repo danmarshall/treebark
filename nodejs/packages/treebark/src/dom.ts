@@ -1,6 +1,5 @@
 import { 
   TemplateElement,
-  TemplateObject,
   TreebarkInput,
   Data, 
   ALLOWED_TAGS, 
@@ -9,15 +8,13 @@ import {
   interpolate, 
   validateAttribute, 
   hasBinding,
-  hasCheck,
   validateBindExpression,
-  validateCheckExpression,
-  evaluateCondition,
   isConditionalValue,
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
-  RenderOptions
+  RenderOptions,
+  processConditional
 } from './common.js';
 import { renderToString } from './string.js';
 
@@ -77,31 +74,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Special handling for "$if" tag
   if (tag === '$if') {
-    // "$if" tag requires $check
-    if (!hasCheck(rest)) {
-      throw new Error('"$if" tag requires $check attribute to specify the condition');
-    }
-    
-    validateCheckExpression(rest.$check);
-    const checkValue = getProperty(data, rest.$check, parents);
-    const { $check, $then, $else, $children, ...restAttrs } = rest;
-    
-    // Support both new ($then/$else) and old ($children) syntax for backward compatibility
-    const thenValue = $then !== undefined ? $then : ($children && $children.length > 0 ? $children[0] : undefined);
-    const elseValue = $else;
-    
-    // Check if any non-reserved attributes were provided (excluding operators and modifiers)
-    const reservedKeys = new Set(['$not', '$<', '$>', '$<=', '$>=', '$=', '$in', '$join', '$then', '$else']);
-    const nonReservedAttrs = Object.keys(restAttrs).filter(key => !reservedKeys.has(key));
-    if (nonReservedAttrs.length > 0) {
-      throw new Error('"$if" tag does not support attributes, only $check, operators ($<, $>, $<=, $>=, $=, $in), modifiers ($not, $join), and $then/$else');
-    }
-    
-    // Evaluate condition using new operator-based logic
-    const condition = evaluateCondition(checkValue, rest);
-    
-    // Get the value to render based on condition
-    const valueToRender = condition ? thenValue : elseValue;
+    const { valueToRender } = processConditional(rest, data, parents);
     
     // If no value to render, return empty
     if (valueToRender === undefined) {
