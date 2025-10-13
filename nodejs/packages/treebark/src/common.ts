@@ -18,11 +18,11 @@ export type Conditional = {
   $join?: 'AND' | 'OR';
 };
 
-// Conditional value type for attribute values (same structure as Conditional but $then/$else are unknown)
+// Conditional value type for attribute values (same structure as Conditional but $then/$else are primitive types)
 export type ConditionalValue = {
   $check: string;
-  $then?: unknown;
-  $else?: unknown;
+  $then?: string | number | boolean;
+  $else?: string | number | boolean;
   // Operators
   '$<'?: unknown;
   '$>'?: unknown;
@@ -330,7 +330,7 @@ export function evaluateConditionalValue(
   value: ConditionalValue,
   data: Data,
   parents: Data[] = []
-): unknown {
+): string | number | boolean {
   validateCheckExpression(value.$check);
   const checkValue = getProperty(data, value.$check, parents);
   const condition = evaluateCondition(checkValue, value);
