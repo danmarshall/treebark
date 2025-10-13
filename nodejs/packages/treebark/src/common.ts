@@ -1,16 +1,20 @@
 // Common types, constants, and utilities shared between string and DOM renderers
 export type Data = Record<string, unknown> | Record<string, unknown>[];
 
-// Conditional type for $if tag - shared structure with ConditionalValue
-export type Conditional = {
+// Primitive value type for attribute values
+export type PrimitiveValue = string | number | boolean;
+
+// Generic conditional type shared by $if tag and conditional attribute values
+export type ConditionalBase<T> = {
   $check: string;
-  $then?: string | TemplateObject; // Single element when condition is true
-  $else?: string | TemplateObject; // Single element when condition is false
-  // Operators
-  '$<'?: unknown;
-  '$>'?: unknown;
-  '$<='?: unknown;
-  '$>='?: unknown;
+  $then?: T;
+  $else?: T;
+  // Comparison operators (require numbers)
+  '$<'?: number;
+  '$>'?: number;
+  '$<='?: number;
+  '$>='?: number;
+  // Equality operators (can compare any value)
   '$='?: unknown;
   $in?: unknown[];
   // Modifiers
@@ -18,22 +22,11 @@ export type Conditional = {
   $join?: 'AND' | 'OR';
 };
 
-// Conditional value type for attribute values (same structure as Conditional but $then/$else are primitive types)
-export type ConditionalValue = {
-  $check: string;
-  $then?: string | number | boolean;
-  $else?: string | number | boolean;
-  // Operators
-  '$<'?: unknown;
-  '$>'?: unknown;
-  '$<='?: unknown;
-  '$>='?: unknown;
-  '$='?: unknown;
-  $in?: unknown[];
-  // Modifiers
-  $not?: boolean;
-  $join?: 'AND' | 'OR';
-};
+// Conditional type for $if tag - T can be string or TemplateObject
+export type Conditional = ConditionalBase<string | TemplateObject>;
+
+// Conditional value type for attribute values - T is restricted to primitives
+export type ConditionalValue = ConditionalBase<PrimitiveValue>;
 
 // Non-recursive template structure types
 // Template attributes for regular tags (not $if)
@@ -330,7 +323,7 @@ export function evaluateConditionalValue(
   value: ConditionalValue,
   data: Data,
   parents: Data[] = []
-): string | number | boolean {
+): PrimitiveValue {
   validateCheckExpression(value.$check);
   const checkValue = getProperty(data, value.$check, parents);
   const condition = evaluateCondition(checkValue, value);
