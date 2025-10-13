@@ -7,7 +7,7 @@ export type PrimitiveValue = string | number | boolean;
 // Generic conditional type shared by $if tag and conditional attribute values
 export type ConditionalBase<T> = {
   $check: string;
-  $then?: T;
+  $then: T;
   $else?: T;
   // Comparison operators (require numbers)
   '$<'?: number;
