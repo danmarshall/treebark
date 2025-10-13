@@ -2,7 +2,7 @@
 :root {
     --pine-resin: #4C6B3A;
     --dune-sand-top: #F6E1B8;
-    --dune-sand-bottom: #D5A06C;
+    --dune-sand-bottom: #E8C89A;
     --accent-text: #402A15;
 }
 
@@ -51,7 +51,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Main content heading styles */
 .content h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
 }
 
 .content h2 {
@@ -66,36 +66,18 @@ h1#treebark {
 }
 
 h1#treebark + blockquote {
-    display: none;
+    font-family: 'Fraunces', serif;
 }
 
 .github-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    background: var(--pine-resin);
-    color: white;
+    color: var(--pine-resin);
     text-decoration: none;
-    border-radius: 4px;
-    transition: background 0.3s;
-    font-size: 1rem;
-    white-space: nowrap;
+    transition: all 0.3s;
     font-family: 'Inter', sans-serif;
 }
 
-.github-link:visited {
-    color: white;
-}
-
 .github-link:hover {
-    background: #3d5a2e;
-    color: white;
-}
-
-.github-icon {
-    display: inline-block;
-    vertical-align: text-bottom;
+    text-decoration: underline;
 }
 
 .header-nav {
@@ -119,7 +101,7 @@ h1#treebark + blockquote {
 
 .content {
     flex-grow: 1;
-    max-width: 48rem;
+    max-width: 64rem;
     margin: 0 auto;
     padding: 2.5rem 0;
 }
@@ -145,7 +127,6 @@ a:visited {
 }
 
 code {
-    background: rgba(0, 0, 0, 0.05);
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     font-family: 'Monaco', 'Courier New', monospace;
@@ -183,6 +164,11 @@ pre:not(.highlight) {
     border-radius: 0;
     border-left: none;
     margin: 0;
+    box-shadow: none;
+}
+
+.highlight code {
+    background: transparent;
 }
 
 /* Syntax highlighting colors - Rouge/Pygments */
@@ -313,7 +299,7 @@ blockquote {
 }
 
 .editor-textarea:focus {
-    box-shadow: inset 0 0 0 2px var(--pine-resin);
+    box-shadow: 0 0 0 2px var(--pine-resin);
 }
 
 .output-panel {
