@@ -107,26 +107,15 @@
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
-  function validateBindExpression(bindValue) {
-    if (bindValue === ".") {
+  function validatePathExpression(value, label) {
+    if (value === ".") {
       return;
     }
-    if (bindValue.includes("..")) {
-      throw new Error(`$bind does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $bind: "${bindValue}"`);
+    if (value.includes("..")) {
+      throw new Error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
     }
-    if (bindValue.includes("{{")) {
-      throw new Error(`$bind does not support interpolation {{...}} - use literal property paths only. Invalid: $bind: "${bindValue}"`);
-    }
-  }
-  function validateCheckExpression(checkValue) {
-    if (checkValue === ".") {
-      return;
-    }
-    if (checkValue.includes("..")) {
-      throw new Error(`$check does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: $check: "${checkValue}"`);
-    }
-    if (checkValue.includes("{{")) {
-      throw new Error(`$check does not support interpolation {{...}} - use literal property paths only. Invalid: $check: "${checkValue}"`);
+    if (value.includes("{{")) {
+      throw new Error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
     }
   }
   function evaluateCondition(checkValue, attrs) {
@@ -171,7 +160,7 @@
     return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
   }
   function evaluateConditionalValue(value, data, parents = []) {
-    validateCheckExpression(value.$check);
+    validatePathExpression(value.$check, "$check");
     const checkValue = getProperty(data, value.$check, parents);
     const condition = evaluateCondition(checkValue, value);
     if (condition) {
@@ -216,7 +205,7 @@
     if (!conditional.$check) {
       throw new Error('"$if" tag requires $check attribute to specify the condition');
     }
-    validateCheckExpression(conditional.$check);
+    validatePathExpression(conditional.$check, "$check");
     const checkValue = getProperty(data, conditional.$check, parents);
     if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
       throw new Error('"$if" tag does not support $children, use $then and $else instead');
@@ -319,7 +308,7 @@
     let childrenOutput;
     let contentAttrs;
     if (hasBinding(rest)) {
-      validateBindExpression(rest.$bind);
+      validatePathExpression(rest.$bind, "$bind");
       const bound = getProperty(data, rest.$bind, []);
       const { $bind, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
