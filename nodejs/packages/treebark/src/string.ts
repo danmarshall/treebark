@@ -10,14 +10,11 @@ import {
   validateAttribute,
   hasBinding,
   validateBindExpression,
-  validateCheckExpression,
-  evaluateCondition,
   isConditionalValue,
   evaluateConditionalValue,
   templateHasCurrentObjectBinding,
   parseTemplateObject,
   RenderOptions,
-  Conditional,
   processConditional
 } from './common.js';
 
