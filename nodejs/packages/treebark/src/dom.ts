@@ -12,7 +12,6 @@ import {
   parseTemplateObject,
   processConditional
 } from './common.js';
-import { renderToString } from './string.js';
 
 export function renderToDOM(
   input: TreebarkInput, 
@@ -80,9 +79,32 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Special handling for $comment tags
   if (tag === '$comment') {
-    // Use string renderer and extract content between <!-- and -->
-    const stringResult = renderToString({ template, data }, { /* no options needed for comment rendering */ });
-    const commentContent = stringResult.slice(4, -3); // Remove '<!--' and '-->'
+    // Create a temporary container to render children as DOM nodes
+    const tempContainer = document.createElement('div');
+    
+    // Render children into the temp container with insideComment flag set
+    const commentContext = { ...context, insideComment: true };
+    for (const c of children) {
+      const nodes = render(c, data, commentContext);
+      if (Array.isArray(nodes)) {
+        for (const n of nodes) tempContainer.appendChild(n);
+      } else {
+        tempContainer.appendChild(nodes);
+      }
+    }
+    
+    // Build comment content from nodes
+    let commentContent = '';
+    for (const node of tempContainer.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        // For text nodes, use the raw text content
+        commentContent += node.nodeValue;
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // For element nodes, use the HTML serialization
+        commentContent += (node as Element).outerHTML;
+      }
+    }
+    
     return document.createComment(commentContent);
   }
   
