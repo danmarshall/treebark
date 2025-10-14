@@ -167,9 +167,9 @@ function updateOutput() {
         const originalWarn = console.warn;
         const originalLog = console.log;
         
-        console.error = (msg) => logs.push({ level: 'error', message: msg });
-        console.warn = (msg) => logs.push({ level: 'warn', message: msg });
-        console.log = (msg) => logs.push({ level: 'log', message: msg });
+        console.error = (msg) => { logs.push({ level: 'error', message: msg }); originalError(msg); };
+        console.warn = (msg) => { logs.push({ level: 'warn', message: msg }); originalWarn(msg); };
+        console.log = (msg) => { logs.push({ level: 'log', message: msg }); originalLog(msg); };
         
         try {
             // Render using treebark
