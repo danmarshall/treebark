@@ -66,6 +66,15 @@ h1#treebark {
 }
 
 h1#treebark + blockquote {
+    border-left: none;
+    padding-left: 0;
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: bold;
+    color: var(--accent-text);
+}
+
+h1#treebark + blockquote p {
     font-family: 'Fraunces', serif;
 }
 
@@ -103,7 +112,6 @@ h1#treebark + blockquote {
     flex-grow: 1;
     max-width: 64rem;
     margin: 0 auto;
-    padding: 2.5rem 0;
 }
 
 .content p {
@@ -169,6 +177,10 @@ pre:not(.highlight) {
 
 .highlight code {
     background: transparent;
+}
+
+p code, table code, ul code {
+    background: rgba(255, 255, 255, 0.25);
 }
 
 /* Syntax highlighting colors - Rouge/Pygments */
