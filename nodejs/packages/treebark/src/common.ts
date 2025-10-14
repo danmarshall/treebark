@@ -10,11 +10,26 @@ import type {
   TemplateAttributes,
   TreebarkInput,
   Logger,
+  LogLevel,
 } from './types.js';
+
+import { LogLevel as LogLevelEnum } from './types.js';
 
 // Default logger that uses console
 const defaultLogger: Logger = {
-  error: (message: string) => console.error(message)
+  log: (level: LogLevel, message: string) => {
+    switch (level) {
+      case LogLevelEnum.Error:
+        console.error(message);
+        break;
+      case LogLevelEnum.Warn:
+        console.warn(message);
+        break;
+      case LogLevelEnum.Log:
+        console.log(message);
+        break;
+    }
+  }
 };
 
 // Helper to get logger or default
@@ -24,7 +39,7 @@ export function getLogger(logger?: Logger): Logger {
 
 // Helper to log error and return fallback value
 export function logError(logger: Logger | undefined, message: string): void {
-  getLogger(logger).error(message);
+  getLogger(logger).log(LogLevelEnum.Error, message);
 }
 
 // Container tags that can have children and require closing tags

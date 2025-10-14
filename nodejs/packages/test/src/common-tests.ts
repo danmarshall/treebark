@@ -1,6 +1,9 @@
 // Common test data for both DOM and string renderers
 // This file contains shared test cases to eliminate duplication
 
+import { LogLevel } from 'treebark';
+import { jest } from '@jest/globals';
+
 export interface TestCase {
   name: string;
   input: any;
@@ -1933,18 +1936,19 @@ export function createTest(testCase: TestCase, renderFunction: (input: any, opti
 // Utility function to create error test from test case data
 export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input: any, options?: any) => any) {
   test(testCase.name, () => {
-    // Create a mock logger to capture error messages
-    const errors: string[] = [];
+    // Create a mock logger to check events
     const mockLogger = {
-      error: (message: string) => errors.push(message)
+      log: jest.fn()
     };
     
     // Call render function with mock logger
     const result = renderFunction(testCase.input, { ...testCase.options, logger: mockLogger });
     
     // Verify that an error was logged containing the expected message
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors.some(err => err.includes(testCase.expectedError))).toBe(true);
+    expect(mockLogger.log).toHaveBeenCalledWith(
+      LogLevel.Error,
+      expect.stringContaining(testCase.expectedError)
+    );
     
     // For certain critical errors, the entire element should not render
     // For validation errors on nested elements, we allow graceful degradation

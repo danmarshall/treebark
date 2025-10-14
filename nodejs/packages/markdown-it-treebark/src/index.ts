@@ -100,7 +100,9 @@ function renderTreebarkBlock(
   // Create a logger that captures errors
   const errors: string[] = [];
   const logger = {
-    error: (message: string) => errors.push(message)
+    log: (level: any, message: string) => {
+      errors.push(message);
+    }
   };
 
   // Check if template is already in TreebarkInput format
