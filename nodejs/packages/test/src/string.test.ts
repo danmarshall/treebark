@@ -97,9 +97,6 @@ describe('String Renderer', () => {
           case 'handles $bind: "." to bind to current data object (nested)':
             expect(result).toBe('<div><h2>Alice</h2><div><p>Email: alice@example.com</p><p>Role: Admin</p></div></div>');
             break;
-          case 'handles single template with array data':
-            expect(result).toBe('<div class="card"><h3>Laptop</h3><p>Price: $999</p></div><div class="card"><h3>Mouse</h3><p>Price: $25</p></div>');
-            break;
         }
       });
     });

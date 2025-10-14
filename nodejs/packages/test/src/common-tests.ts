@@ -203,24 +203,6 @@ export const bindingTests: TestCase[] = [
         user: { name: 'Alice', email: 'alice@example.com', role: 'Admin' }
       }
     }
-  },
-  {
-    name: 'handles single template with array data',
-    input: {
-      template: {
-        div: {
-          class: 'card',
-          $children: [
-            { h3: '{{name}}' },
-            { p: 'Price: {{price}}' }
-          ]
-        }
-      },
-      data: [
-        { name: 'Laptop', price: '$999' },
-        { name: 'Mouse', price: '$25' }
-      ]
-    }
   }
 ];
 

@@ -195,69 +195,8 @@
             ]
         }
     },
-    "root-array-binding": {
-        "template": {
-            "div": {
-                "class": "notification",
-                "$children": [
-                    {
-                        "span": {
-                            "class": "icon",
-                            "$children": [
-                                "\ud83d\udce7"
-                            ]
-                        }
-                    },
-                    {
-                        "span": {
-                            "$children": [
-                                "{{message}}"
-                            ]
-                        }
-                    }
-                ]
-            }
-        },
-        "data": [
-            {
-                "message": "Welcome to our platform!"
-            },
-            {
-                "message": "Your profile has been updated."
-            },
-            {
-                "message": "New features are now available."
-            }
-        ]
-    },
-    "array-pattern-1-stack": {
-        "label": "Pattern 1: Stack of Cards (no $bind, no $children)",
-        "template": {
-            "div": {
-                "class": "product-card",
-                "$children": [
-                    {
-                        "h2": "{{name}}"
-                    },
-                    {
-                        "p": "Only {{price}}!"
-                    }
-                ]
-            }
-        },
-        "data": [
-            {
-                "name": "Laptop",
-                "price": "$999"
-            },
-            {
-                "name": "Mouse",
-                "price": "$25"
-            }
-        ]
-    },
-    "array-pattern-2-property": {
-        "label": "Pattern 2: $bind to Property (uses both)",
+    "array-bind-property": {
+        "label": "Array Binding: $bind to Property",
         "template": {
             "ul": {
                 "$bind": "products",
@@ -281,8 +220,8 @@
             ]
         }
     },
-    "array-pattern-3-direct": {
-        "label": "Pattern 3: $bind: \".\" Direct Array (uses both)",
+    "array-bind-dot": {
+        "label": "Array Binding: $bind with \".\"",
         "template": {
             "ul": {
                 "$bind": ".",

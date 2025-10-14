@@ -148,17 +148,6 @@ describe('DOM Renderer', () => {
             expect(divDotNested.querySelectorAll('p')[0].textContent).toBe('Email: alice@example.com');
             expect(divDotNested.querySelectorAll('p')[1].textContent).toBe('Role: Admin');
             break;
-          case 'handles single template with array data':
-            expect(fragment.children.length).toBe(2);
-            const firstCard = fragment.children[0] as HTMLElement;
-            const secondCard = fragment.children[1] as HTMLElement;
-            expect(firstCard.className).toBe('card');
-            expect(firstCard.querySelector('h3')?.textContent).toBe('Laptop');
-            expect(firstCard.querySelector('p')?.textContent).toBe('Price: $999');
-            expect(secondCard.className).toBe('card');
-            expect(secondCard.querySelector('h3')?.textContent).toBe('Mouse');
-            expect(secondCard.querySelector('p')?.textContent).toBe('Price: $25');
-            break;
         }
       });
     });

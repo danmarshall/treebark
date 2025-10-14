@@ -10,7 +10,6 @@ import {
   validatePathExpression,
   isConditionalValue,
   evaluateConditionalValue,
-  templateHasCurrentObjectBinding,
   parseTemplateObject,
   processConditional
 } from './common.js';
@@ -57,15 +56,6 @@ export function renderToString(
       typeof options.indent === 'string' ? options.indent : '  ',
     level: 0
   } : {};
-
-  // If template is a single element and data is an array, render template for each data item
-  // UNLESS the template has $bind: "." which means bind to the array itself
-  if (!Array.isArray(input.template) && Array.isArray(input.data) && !templateHasCurrentObjectBinding(input.template)) {
-    const separator = context.indentStr ? '\n' : '';
-    return input.data.map(item =>
-      render(input.template, { ...item, ...options.data }, context)
-    ).join(separator);
-  }
 
   return render(input.template, data, context);
 }

@@ -280,23 +280,6 @@ export function evaluateConditionalValue(
 /**
  * Check if a template has $bind: "." which means bind to current data object
  */
-export function templateHasCurrentObjectBinding(template: TemplateElement): boolean {
-  if (Array.isArray(template) || typeof template !== 'object' || template === null) {
-    return false;
-  }
-
-  const entries = Object.entries(template);
-  if (entries.length === 0) {
-    return false;
-  }
-
-  const [, rest] = entries[0];
-  if (!rest || typeof rest !== 'object' || Array.isArray(rest)) {
-    return false;
-  }
-
-  return '$bind' in rest && rest.$bind === '.';
-}
 
 /**
  * Parse template object structure to extract tag, attributes, and children

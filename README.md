@@ -81,7 +81,7 @@ This means the implementation is featherweight.
 
 **Data binding:**
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
-- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
+- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
 
 **Conditional keys (used in `$if` tag and conditional attribute values):**
 - `$check`: String. Property path to check.
@@ -491,53 +491,15 @@ Output:
 </div>
 ```
 
-### Working with Arrays: Three Patterns
+### Working with Arrays
 
-Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
+To render arrays, use `$bind` to target the array and `$children` to define what to repeat for each item. This gives you a wrapper element (like `<ul>`) around the repeated children.
 
-#### Pattern 1: Stack of Cards (Template + Array Data, No $bind on root)
+The `$bind` value specifies the path to the array:
+- Use a **property name** (e.g., `"products"`) when your data is an object containing an array
+- Use **`"."`** when your data is the array itself
 
-When you provide a single root element template and pass an array as the data value, Treebark renders the template once per array item, changing the data context each time. You do not set `$bind` on the root; normal `$children` inside the template are still used.
-
-**Use when:** You want repeated instances of the same root component (e.g., cards) directly, without an extra wrapper element.
-
-```json
-{
-  "div": {
-    "class": "product-card",
-    "$children": [
-      { "h2": "{{name}}" },
-      { "p": "Only {{price}}!" }
-    ]
-  }
-}
-```
-
-Data:
-```json
-[
-  { "name": "Laptop", "price": "$999" },
-  { "name": "Mouse", "price": "$25" }
-]
-```
-
-Output:
-```html
-<div class="product-card">
-  <h2>Laptop</h2>
-  <p>Only $999!</p>
-</div>
-<div class="product-card">
-  <h2>Mouse</h2>
-  <p>Only $25!</p>
-</div>
-```
-
-#### Pattern 2: $bind to Property in Object (Uses Both $bind and $children)
-
-When your data is an **object containing an array**, use `$bind` to target that property and `$children` to define what to repeat. This gives you a wrapper element (like `<ul>`) around the repeated children.
-
-**Use when:** You want a container element around your array items, like a `<ul>` around `<li>` elements, and your data is structured as an object with properties.
+**Example with property path:**
 
 ```json
 {
@@ -560,19 +522,7 @@ Data:
 }
 ```
 
-Output:
-```html
-<ul>
-  <li>Laptop — $999</li>
-  <li>Phone — $499</li>
-</ul>
-```
-
-#### Pattern 3: $bind: "." to Current Array (Uses Both $bind and $children)
-
-When your data **is the array itself** (not wrapped in an object), use `$bind: "."` to bind directly to the current data and `$children` to define what to repeat. This gives you a wrapper element around array items without needing an object wrapper in your data.
-
-**Use when:** You have a plain array as your data and want a container element around the repeated items.
+**Example with `$bind: "."`:**
 
 ```json
 {
@@ -593,7 +543,7 @@ Data:
 ]
 ```
 
-Output:
+Both examples produce the same output:
 ```html
 <ul>
   <li>Laptop — $999</li>
