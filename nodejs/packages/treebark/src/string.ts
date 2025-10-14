@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject } from './types.js';
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -11,7 +11,8 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  logError
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -54,14 +55,15 @@ export function renderToString(
   const context = options.indent ? {
     indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
       typeof options.indent === 'string' ? options.indent : '  ',
-    level: 0
-  } : {};
+    level: 0,
+    logger: options.logger
+  } : { logger: options.logger };
 
   return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], indentStr?: string, level?: number, parents: Data[] = []): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], indentStr?: string, level?: number, parents: Data[] = [], logger?: Logger): string {
   // Flatten children output into content
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
@@ -73,7 +75,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
-  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents)}>`;
+  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger)}>`;
 
   // Void tags are never closed, regardless of content
   if (VOID_TAGS.has(tag)) {
@@ -84,8 +86,9 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[] } = {}): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger?: Logger } = {}): string {
   const parents = context.parents || [];
+  const logger = context.logger;
   
   if (typeof template === "string") return interpolate(template, data, true, parents);
 
@@ -93,19 +96,25 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return template.map(t => render(t, data, context)).join(context.indentStr ? '\n' : '');
   }
 
-  const { tag, rest, children, attrs } = parseTemplateObject(template);
+  const parsed = parseTemplateObject(template, logger);
+  if (!parsed) {
+    return ''; // Error was logged, return empty string
+  }
+  const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
-    throw new Error(`Tag "${tag}" is not allowed`);
+    logError(logger, `Tag "${tag}" is not allowed`);
+    return '';
   }
 
   if (tag === '$comment' && context.insideComment) {
-    throw new Error('Nested comments are not allowed');
+    logError(logger, 'Nested comments are not allowed');
+    return '';
   }
 
   // Special handling for "$if" tag
   if (tag === '$if') {
-    const { valueToRender } = processConditional(rest, data, parents);
+    const { valueToRender } = processConditional(rest, data, parents, logger);
     
     // If no value to render, return empty string
     if (valueToRender === undefined) {
@@ -117,7 +126,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {
-    throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+    logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+    return '';
   }
 
   const childContext = {
@@ -143,7 +153,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Handle $bind
   if (hasBinding(rest)) {
-    validatePathExpression(rest.$bind, '$bind');
+    if (!validatePathExpression(rest.$bind, '$bind', logger)) {
+      return '';
+    }
     
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
@@ -174,16 +186,16 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     contentAttrs = attrs;
   }
   
-  return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents);
+  return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents, logger);
 }
 
-function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger?: Logger): string {
   const pairs = Object.entries(attrs)
-    .filter(([key]) => (validateAttribute(key, tag), true))
+    .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
       // Check if value is a conditional value
       if (isConditionalValue(v)) {
-        const evaluatedValue = evaluateConditionalValue(v, data, parents);
+        const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
         return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
       } else {
         return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;

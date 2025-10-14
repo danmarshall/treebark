@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger } from './types.js';
 import { 
   ALLOWED_TAGS, 
   VOID_TAGS,
@@ -10,7 +10,8 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  logError
 } from './common.js';
 
 export function renderToDOM(
@@ -24,14 +25,15 @@ export function renderToDOM(
   
   const fragment = document.createDocumentFragment();
   
-  const result = render(input.template, data, {});
+  const result = render(input.template, data, { logger: options.logger });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[] } = {}): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger?: Logger } = {}): Node | Node[] {
   const parents = context.parents || [];
+  const logger = context.logger;
   
   if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents));
   if (Array.isArray(template)) {
@@ -44,21 +46,27 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return results;
   }
   
-  const { tag, rest, children, attrs } = parseTemplateObject(template);
+  const parsed = parseTemplateObject(template, logger);
+  if (!parsed) {
+    return []; // Error was logged, return empty array
+  }
+  const { tag, rest, children, attrs } = parsed;
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
-    throw new Error(`Tag "${tag}" is not allowed`);
+    logError(logger, `Tag "${tag}" is not allowed`);
+    return [];
   }
   
   // Prevent nested comments
   if (tag === '$comment' && context.insideComment) {
-    throw new Error('Nested comments are not allowed');
+    logError(logger, 'Nested comments are not allowed');
+    return [];
   }
   
   // Special handling for "$if" tag
   if (tag === '$if') {
-    const { valueToRender } = processConditional(rest, data, parents);
+    const { valueToRender } = processConditional(rest, data, parents, logger);
     
     // If no value to render, return empty
     if (valueToRender === undefined) {
@@ -74,7 +82,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const hasChildren = children.length > 0;
   const isVoid = VOID_TAGS.has(tag);
   if (isVoid && hasChildren) {
-    throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+    logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+    return [];
   }
   
   // Special handling for $comment tags
@@ -101,16 +110,19 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Handle $bind
   if (hasBinding(rest)) {
-    validatePathExpression(rest.$bind, '$bind');
+    if (!validatePathExpression(rest.$bind, '$bind', logger)) {
+      return [];
+    }
     
     // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, []);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data, tag, parents);
+    setAttrs(element, bindAttrs, data, tag, parents, logger);
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
-      throw new Error(`Tag "${tag}" is a void element and cannot have children`);
+      logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+      return [];
     }
     
     if (Array.isArray(bound)) {
@@ -137,7 +149,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  setAttrs(element, attrs, data, tag, parents);
+  setAttrs(element, attrs, data, tag, parents, logger);
   for (const c of children) {
     const nodes = render(c, data, context);
     if (Array.isArray(nodes)) {
@@ -150,13 +162,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = []): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger?: Logger): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    validateAttribute(key, tag);
+    if (!validateAttribute(key, tag, logger)) {
+      return; // Skip invalid attributes
+    }
     
     // Check if value is a conditional value
     if (isConditionalValue(value)) {
-      const evaluatedValue = evaluateConditionalValue(value, data, parents);
+      const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
       element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents));
     } else {
       element.setAttribute(key, interpolate(String(value), data, false, parents));
