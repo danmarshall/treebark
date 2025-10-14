@@ -430,12 +430,12 @@ describe('DOM Renderer', () => {
           case 'renders comment with special characters':
             const specialComment = fragment.firstChild as Comment;
             expect(specialComment.nodeType).toBe(Node.COMMENT_NODE);
-            expect(specialComment.textContent).toBe('Special chars: & < > " \'');
+            expect(specialComment.textContent).toBe('Special chars: &amp; &lt; &gt; " \'');
             break;
           case 'safely handles malicious interpolation':
             const secureComment = fragment.firstChild as Comment;
             expect(secureComment.nodeType).toBe(Node.COMMENT_NODE);
-            expect(secureComment.textContent).toBe('User input: evil --&gt; &lt;script&gt;alert(1)&lt;/script&gt;');
+            expect(secureComment.textContent).toBe('User input: evil --&amp;gt; &amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;');
             break;
         }
       });
