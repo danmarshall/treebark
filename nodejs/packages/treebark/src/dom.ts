@@ -97,12 +97,13 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     let commentContent = '';
     for (const node of tempContainer.childNodes) {
       if (node.nodeType === Node.TEXT_NODE) {
-        // For text nodes, use the raw text content
-        commentContent += node.nodeValue;
+        // For text nodes, use the raw text content (handle null case)
+        commentContent += node.nodeValue || '';
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         // For element nodes, use the HTML serialization
         commentContent += (node as Element).outerHTML;
       }
+      // Other node types (e.g., comments) are ignored - nested comments are already prevented via insideComment flag
     }
     
     return document.createComment(commentContent);
