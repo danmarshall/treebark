@@ -497,49 +497,11 @@ Output:
 </div>
 ```
 
-### Working with Arrays: Three Patterns
+### Working with Arrays: Two Patterns
 
-Treebark offers three patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
+Treebark offers two patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
 
-#### Pattern 1: Stack of Cards (Template + Array Data, No $bind on root)
-
-When you provide a single root element template and pass an array as the data value, Treebark renders the template once per array item, changing the data context each time. You do not set `$bind` on the root; normal `$children` inside the template are still used.
-
-**Use when:** You want repeated instances of the same root component (e.g., cards) directly, without an extra wrapper element.
-
-```json
-{
-  "div": {
-    "class": "product-card",
-    "$children": [
-      { "h2": "{% raw %}{{name}}{% endraw %}" },
-      { "p": "Only {% raw %}{{price}}{% endraw %}!" }
-    ]
-  }
-}
-```
-
-Data:
-```json
-[
-  { "name": "Laptop", "price": "$999" },
-  { "name": "Mouse", "price": "$25" }
-]
-```
-
-Output:
-```html
-<div class="product-card">
-  <h2>Laptop</h2>
-  <p>Only $999!</p>
-</div>
-<div class="product-card">
-  <h2>Mouse</h2>
-  <p>Only $25!</p>
-</div>
-```
-
-#### Pattern 2: $bind to Property in Object (Uses Both $bind and $children)
+#### Pattern 1: $bind to Property in Object (Uses Both $bind and $children)
 
 When your data is an **object containing an array**, use `$bind` to target that property and `$children` to define what to repeat. This gives you a wrapper element (like `<ul>`) around the repeated children.
 
@@ -574,7 +536,7 @@ Output:
 </ul>
 ```
 
-#### Pattern 3: $bind: "." to Current Array (Uses Both $bind and $children)
+#### Pattern 2: $bind: "." to Current Array (Uses Both $bind and $children)
 
 When your data **is the array itself** (not wrapped in an object), use `$bind: "."` to bind directly to the current data and `$children` to define what to repeat. This gives you a wrapper element around array items without needing an object wrapper in your data.
 

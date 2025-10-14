@@ -38,43 +38,14 @@ interface TreebarkInput {
 
 ---
 
-## 3. Automatic Array Iteration
-
-**New Feature:** When you provide a single template (not an array) with array data, Treebark automatically renders the template once for each data item:
-
-```javascript
-{
-  template: {
-    div: {
-      class: "card",
-      $children: [{ h2: "{{name}}" }]
-    }
-  },
-  data: [
-    { name: "Card 1" },
-    { name: "Card 2" }
-  ]
-}
-```
-
-**Result:** Two `<div class="card">` elements, one for each data item.
-
-**Rules:**
-- Only triggers when `template` is a single element (not array) AND `data` is an array
-- Each array item becomes the data context for one template instance
-- Empty arrays produce no output
-- For more complex scenarios, use `$bind` syntax instead
-
----
-
-## 4. Reserved Keys  
+## 3. Reserved Keys  
 
 - **`$children`** → array of child nodes (strings, nodes, or arrays)  
 - **`$bind`** → bind current node to an array or object property in data  
 
 ---
 
-## 5. Shorthand Array Syntax
+## 4. Shorthand Array Syntax
 
 For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
@@ -100,7 +71,7 @@ div:
 
 ---
 
-## 6. Interpolation  
+## 5. Interpolation  
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
@@ -113,7 +84,7 @@ div:
 
 ---
 
-## 7. Mixed Content  
+## 6. Mixed Content  
 
 - `$children` can contain strings + nodes:  
   ```yaml
@@ -143,7 +114,7 @@ div:
 
 ---
 
-## 8. Attributes  
+## 7. Attributes  
 
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
@@ -158,7 +129,7 @@ div:
 
 ---
 
-## 9. Advanced Array Binding with $bind
+## 8. Advanced Array Binding with $bind
 
 For complex array scenarios where you need a wrapper element or nested structure, use `$bind`:
 
@@ -241,13 +212,9 @@ For complex array scenarios where you need a wrapper element or nested structure
 }
 ```
 
-**When to use $bind vs automatic array iteration:**
-- **Automatic iteration:** Simple case where you want multiple instances of the same template
-- **$bind:** When you need a wrapper element, complex nesting, or binding to nested data properties
-
 ---
 
-## 10. Tag Whitelist  
+## 9. Tag Whitelist  
 
 **Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
@@ -267,7 +234,7 @@ Blocked tags:
 
 ---
 
-## 11. Comments
+## 10. Comments
 
 HTML comments are generated using the `$comment` tag:
 
@@ -305,7 +272,7 @@ $comment:
 
 ---
 
-## 12. Conditional Rendering with "$if" Tag
+## 11. Conditional Rendering with "$if" Tag
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
