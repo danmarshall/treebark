@@ -9,6 +9,7 @@ import type {
   TemplateElement,
   TemplateAttributes,
   TreebarkInput,
+  Logger,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -130,8 +131,9 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 /**
  * Validate that an attribute is allowed for the given tag
+ * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttribute(key: string, tag: string): void {
+export function validateAttribute(key: string, tag: string, logger: Logger): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
@@ -140,8 +142,10 @@ export function validateAttribute(key: string, tag: string): void {
   const isTagSpecific = tagAttrs && tagAttrs.has(key);
 
   if (!isGlobal && !isTagSpecific) {
-    throw new Error(`Attribute "${key}" is not allowed on tag "${tag}"`);
+    logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
+    return false; // Return false to skip the attribute
   }
+  return true;
 }
 
 /**
@@ -169,19 +173,23 @@ export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAt
  * Generic validator for simple path-like expressions used by $bind and $check
  * Disallows parent context access (..) and interpolation ({{...}}).
  * Allows single dot "." to refer to current object.
+ * Returns true if valid, false if invalid (and logs error if logger provided)
  */
-export function validatePathExpression(value: string, label: string): void {
+export function validatePathExpression(value: string, label: string, logger: Logger): boolean {
   // Allow single dot "." to refer to current data object
   if (value === '.') {
-    return;
+    return true;
   }
 
   if (value.includes('..')) {
-    throw new Error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
+    logger.error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
+    return false;
   }
   if (value.includes('{{')) {
-    throw new Error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+    logger.error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+    return false;
   }
+  return true;
 }
 
 /**
@@ -264,9 +272,12 @@ export function isConditionalValue(value: unknown): value is ConditionalValue {
 export function evaluateConditionalValue(
   value: ConditionalValue,
   data: Data,
-  parents: Data[] = []
+  parents: Data[] = [],
+  logger: Logger
 ): string {
-  validatePathExpression(value.$check, '$check');
+  if (!validatePathExpression(value.$check, '$check', logger)) {
+    return '';
+  }
   const checkValue = getProperty(data, value.$check, parents);
   const condition = evaluateCondition(checkValue, value);
 
@@ -283,23 +294,27 @@ export function evaluateConditionalValue(
 
 /**
  * Parse template object structure to extract tag, attributes, and children
+ * Returns undefined if parsing fails (and logs error if logger provided)
  */
-export function parseTemplateObject(templateObj: TemplateObject): {
+export function parseTemplateObject(templateObj: TemplateObject, logger: Logger): {
   tag: string;
   rest: string | (string | TemplateObject)[] | TemplateAttributes;
   children: (string | TemplateObject)[];
   attrs: Record<string, unknown>;
-} {
+} | undefined {
   if (!templateObj || typeof templateObj !== 'object') {
-    throw new Error('Template object cannot be null, undefined, or non-object');
+    logger.error('Template object cannot be null, undefined, or non-object');
+    return undefined;
   }
   const entries = Object.entries(templateObj);
   if (entries.length === 0) {
-    throw new Error('Template object must have at least one tag');
+    logger.error('Template object must have at least one tag');
+    return undefined;
   }
   const firstEntry = entries[0];
   if (!firstEntry) {
-    throw new Error('Template object must have at least one tag');
+    logger.error('Template object must have at least one tag');
+    return undefined;
   }
   const [tag, rest] = firstEntry;
 
@@ -313,26 +328,32 @@ export function parseTemplateObject(templateObj: TemplateObject): {
 /**
  * Validate and process a $if tag's conditional attributes
  * Returns the validated conditional and the value to render based on condition
+ * Returns undefined valueToRender if validation fails (and logs error if logger provided)
  */
 export function processConditional(
   rest: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
   data: Data,
-  parents: Data[] = []
+  parents: Data[] = [],
+  logger: Logger
 ): { valueToRender: string | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
   const conditional = rest as ConditionalValueOrTemplate;
 
   // "$if" tag requires $check
   if (!conditional.$check) {
-    throw new Error('"$if" tag requires $check attribute to specify the condition');
+    logger.error('"$if" tag requires $check attribute to specify the condition');
+    return { valueToRender: undefined };
   }
 
-  validatePathExpression(conditional.$check, '$check');
+  if (!validatePathExpression(conditional.$check, '$check', logger)) {
+    return { valueToRender: undefined };
+  }
   const checkValue = getProperty(data, conditional.$check, parents);
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
-    throw new Error('"$if" tag does not support $children, use $then and $else instead');
+    logger.warn('"$if" tag does not support $children, use $then and $else instead');
+    // Continue processing - $children will be ignored
   }
 
   // Extract properties for validation
@@ -340,10 +361,12 @@ export function processConditional(
 
   // Validate $then and $else are not arrays
   if ($then !== undefined && Array.isArray($then)) {
-    throw new Error('"$if" tag $then must be a string or single element object, not an array');
+    logger.error('"$if" tag $then must be a string or single element object, not an array');
+    return { valueToRender: undefined };
   }
   if ($else !== undefined && Array.isArray($else)) {
-    throw new Error('"$if" tag $else must be a string or single element object, not an array');
+    logger.error('"$if" tag $else must be a string or single element object, not an array');
+    return { valueToRender: undefined };
   }
 
   // Check if any non-conditional properties were provided
@@ -352,7 +375,8 @@ export function processConditional(
 
   const nonConditionalAttrs = allKeys.filter(k => !CONDITIONALKEYS.has(k));
   if (nonConditionalAttrs.length > 0) {
-    throw new Error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
+    logger.warn(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
+    // Continue processing despite invalid attributes
   }
 
   // Evaluate condition using conditional logic

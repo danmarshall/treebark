@@ -4,6 +4,7 @@
  */
 
 import { renderToString, TemplateObject } from 'treebark';
+import { jest } from '@jest/globals';
 
 describe('Type Safety', () => {
   describe('Valid templates', () => {
@@ -80,7 +81,13 @@ describe('Type Safety', () => {
       // We can still construct invalid objects at runtime using 'as any'
       // but the runtime validation should catch them
       const template = { zoo: 'animals' } as any;
-      expect(() => renderToString({ template })).toThrow('Tag "zoo" is not allowed');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Tag "zoo" is not allowed')
+      );
+      expect(result).toBe('');
     });
 
     it('should reject mixing $if with regular tag properties', () => {
@@ -94,8 +101,14 @@ describe('Type Safety', () => {
         }
       } as any;
       
-      expect(() => renderToString({ template, data: { test: true } }))
-        .toThrow(/does not support/);
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template, data: { test: true } }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('does not support')
+      );
+      // Should still process despite warnings
+      expect(result).toBe('yes');
     });
 
     it('should reject invalid attribute keys for specific tags', () => {
@@ -106,8 +119,16 @@ describe('Type Safety', () => {
         }
       };
       
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "invalidAttr" is not allowed on tag "div"');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Attribute "invalidAttr" is not allowed on tag "div"')
+      );
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<div>');
+      expect(result).toContain('content');
+      expect(result).not.toContain('invalidAttr');
     });
   });
 
@@ -182,8 +203,15 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "$join" is not allowed on tag "em"');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Attribute "$join" is not allowed on tag "em"')
+      );
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<em>');
+      expect(result).toContain('text');
     });
 
     it('should reject $children in void tags at runtime', () => {
@@ -194,8 +222,14 @@ describe('Type Safety', () => {
           $children: ['not allowed']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Tag "img" is a void element and cannot have children');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Tag "img" is a void element and cannot have children')
+      );
+      // Should render the img tag without children
+      expect(result).toContain('<img');
     });
 
     it('should reject conditional operators in regular tags at runtime', () => {
@@ -206,8 +240,15 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "$check" is not allowed on tag "div"');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Attribute "$check" is not allowed on tag "div"')
+      );
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<div>');
+      expect(result).toContain('text');
     });
   });
 
@@ -244,8 +285,15 @@ describe('Type Safety', () => {
           src: 'should not be allowed'
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "src" is not allowed on tag "a"');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Attribute "src" is not allowed on tag "a"')
+      );
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<a>');
+      expect(result).not.toContain('src=');
     });
 
     it('should reject href attribute on img tag at runtime', () => {
@@ -254,8 +302,15 @@ describe('Type Safety', () => {
           href: 'should not be allowed'
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "href" is not allowed on tag "img"');
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        
+        expect.stringContaining('Attribute "href" is not allowed on tag "img"')
+      );
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<img>');
+      expect(result).not.toContain('href=');
     });
 
     it('should accept valid a tag attributes', () => {

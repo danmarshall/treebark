@@ -1,6 +1,8 @@
 // Common test data for both DOM and string renderers
 // This file contains shared test cases to eliminate duplication
 
+import { jest } from '@jest/globals';
+
 export interface TestCase {
   name: string;
   input: any;
@@ -212,18 +214,6 @@ export const securityErrorTests: ErrorTestCase[] = [
     name: 'throws error for disallowed tags',
     input: { template: { script: 'alert("xss")' } },
     expectedError: 'Tag "script" is not allowed'
-  },
-  {
-    name: 'throws error for disallowed attributes',
-    input: {
-      template: {
-        div: {
-          onclick: 'alert("xss")',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "onclick" is not allowed'
   }
 ];
 
@@ -324,46 +314,22 @@ export const tagSpecificAttributeTests: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name: 'warns but continues for invalid attribute on tag',
+    input: {
+      template: {
+        div: {
+          src: 'image.jpg',  // Invalid for div, should trigger warning
+          class: 'valid',    // Valid attribute
+          $children: ['Content']
+        }
+      }
+    }
   }
 ];
 
 export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
-  {
-    name: 'throws error for tag-specific attribute on wrong tag',
-    input: {
-      template: {
-        div: {
-          src: 'image.jpg',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "src" is not allowed on tag "div"'
-  },
-  {
-    name: 'throws error for img-specific attribute on div',
-    input: {
-      template: {
-        div: {
-          width: '100',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "width" is not allowed on tag "div"'
-  },
-  {
-    name: 'throws error for a-specific attribute on div',
-    input: {
-      template: {
-        div: {
-          target: '_blank',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "target" is not allowed on tag "div"'
-  }
 ];
 
 // Shorthand array syntax test cases
@@ -428,9 +394,9 @@ export const voidTagTests: TestCase[] = [
   }
 ];
 
-export const voidTagErrorTests: ErrorTestCase[] = [
+export const voidTagWarningTests: TestCase[] = [
   {
-    name: 'prevents children on void tags',
+    name: 'warns about children on void tags and renders tag without children',
     input: {
       template: {
         img: {
@@ -438,17 +404,15 @@ export const voidTagErrorTests: ErrorTestCase[] = [
           $children: ['This should not work']
         }
       }
-    },
-    expectedError: 'Tag "img" is a void element and cannot have children'
+    }
   },
   {
-    name: 'prevents children on void tags with shorthand syntax',
+    name: 'warns about children on void tags with shorthand syntax and renders tag without children',
     input: {
       template: {
         img: ['This should not work']
       }
-    },
-    expectedError: 'Tag "img" is a void element and cannot have children'
+    }
   }
 ];
 
@@ -1132,6 +1096,32 @@ export const ifTagTests: TestCase[] = [
       data: { show: true }
     },
     options: { indent: true }
+  },
+  {
+    name: 'warns but continues when $if tag has unsupported attributes',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          class: 'my-class',  // This should trigger a warning
+          $then: { p: 'Content' }
+        } as any
+      },
+      data: { show: true }
+    }
+  },
+  {
+    name: 'warns but continues when $if tag has $children',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $children: [{ p: 'Ignored' }],  // This should trigger a warning and be ignored
+          $then: { p: 'Content' }
+        } as any
+      },
+      data: { show: true }
+    }
   }
 ];
 
@@ -1857,36 +1847,6 @@ export const ifTagErrorTests: ErrorTestCase[] = [
     expectedError: '"$if" tag requires $check attribute'
   },
   {
-    name: 'throws error when $if tag has attributes',
-    input: {
-      template: {
-        $if: {
-          $check: 'show',
-          class: 'my-class',
-          $then:
-            { p: 'Content' }
-        }
-      },
-      data: { show: true }
-    },
-    expectedError: '"$if" tag does not support attributes'
-  },
-  {
-    name: 'throws error when $if tag has $children',
-    input: {
-      template: {
-        $if: {
-          $check: 'show',
-          $children: [
-            { p: 'Content' }
-          ]
-        }
-      },
-      data: { show: true }
-    },
-    expectedError: '"$if" tag does not support $children, use $then and $else instead'
-  },
-  {
     name: 'throws error when $if tag $then is an array',
     input: {
       template: {
@@ -1933,8 +1893,37 @@ export function createTest(testCase: TestCase, renderFunction: (input: any, opti
 // Utility function to create error test from test case data
 export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input: any, options?: any) => any) {
   test(testCase.name, () => {
-    expect(() => {
-      renderFunction(testCase.input, testCase.options);
-    }).toThrow(testCase.expectedError);
+    // Create a mock logger to check events
+    const mockLogger = {
+      error: jest.fn(),
+      warn: jest.fn(),
+      log: jest.fn()
+    };
+    
+    // Call render function with mock logger
+    const result = renderFunction(testCase.input, { ...testCase.options, logger: mockLogger });
+    
+    // Verify that an error was logged containing the expected message
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining(testCase.expectedError)
+    );
+    
+    // For certain critical errors, the entire element should not render
+    // For validation errors on nested elements, we allow graceful degradation
+    const isCriticalError = 
+      (testCase.expectedError.includes('is not allowed') && testCase.expectedError.includes('Tag ')) ||
+      testCase.expectedError.includes('void element and cannot have children') ||
+      (testCase.expectedError.includes('$if') && !testCase.expectedError.includes('Attribute'));
+    
+    if (isCriticalError) {
+      // Critical errors should result in empty output
+      if (typeof result === 'string') {
+        expect(result).toBe('');
+      } else if (result && typeof result === 'object' && 'childNodes' in result) {
+        // For DOM fragments, check that it's empty
+        expect(result.childNodes.length).toBe(0);
+      }
+    }
+    // For other errors (like $bind validation, nested comments, invalid attributes), we allow graceful degradation
   });
 }

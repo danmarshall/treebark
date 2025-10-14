@@ -129,8 +129,16 @@ export interface TreebarkInput {
   data?: Data;
 }
 
+// Logger interface for error reporting - matches console signature
+export interface Logger {
+  error(message: string): void;
+  warn(message: string): void;
+  log(message: string): void;
+}
+
 // Options interface for render functions
 export interface RenderOptions {
   data?: Data;
   indent?: string | number | boolean;
+  logger?: Logger;
 }

@@ -1,4 +1,5 @@
 import { renderToString, TreebarkInput } from 'treebark';
+import { jest } from '@jest/globals';
 import {
   basicRenderingTests,
   dataInterpolationTests,
@@ -10,7 +11,7 @@ import {
   tagSpecificAttributeErrorTests,
   shorthandArrayTests,
   voidTagTests,
-  voidTagErrorTests,
+  voidTagWarningTests,
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
@@ -158,6 +159,32 @@ describe('String Renderer', () => {
       createErrorTest(testCase, renderToString);
     });
 
+    // Test that dangerous attributes are blocked (logged as warning, not rendered)
+    test('warns and blocks dangerous attributes like onclick', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const result = renderToString({
+        template: {
+          div: {
+            onclick: 'alert("xss")',
+            $children: ['Content']
+          } as any
+        }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attribute "onclick" is not allowed')
+      );
+      // Should render without the dangerous attribute (XSS prevented)
+      expect(result).toBe('<div>Content</div>');
+      expect(result).not.toContain('onclick');
+    });
+
     securityValidTests.forEach(testCase => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
@@ -189,8 +216,38 @@ describe('String Renderer', () => {
           case 'allows tag-specific attributes for blockquote':
             expect(result).toBe('<blockquote cite="https://example.com">Quote text</blockquote>');
             break;
+          case 'warns but continues for invalid attribute on tag':
+            // Should render with valid attributes, invalid ones skipped
+            expect(result).toBe('<div class="valid">Content</div>');
+            break;
         }
       });
+    });
+
+    // Test that warning is logged for invalid attributes
+    test('logs warning for invalid attributes on tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const result = renderToString({
+        template: {
+          div: {
+            src: 'image.jpg',  // Invalid for div
+            class: 'valid',
+            $children: ['Content']
+          } as any
+        }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attribute "src" is not allowed on tag "div"')
+      );
+      // Should still render with valid attributes
+      expect(result).toBe('<div class="valid">Content</div>');
     });
 
     tagSpecificAttributeErrorTests.forEach(testCase => {
@@ -281,8 +338,20 @@ describe('String Renderer', () => {
       });
     });
 
-    voidTagErrorTests.forEach(testCase => {
-      createErrorTest(testCase, renderToString);
+    voidTagWarningTests.forEach(testCase => {
+      test(testCase.name, () => {
+        const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+        const result = renderToString(testCase.input, { logger: mockLogger });
+        
+        // Should warn about void tag with children
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          expect.stringContaining('is a void element and cannot have children')
+        );
+        
+        // Should render the void tag without children
+        expect(result).toBeTruthy();
+        expect(result).toContain('<img');
+      });
     });
 
     test('void tags render without closing tags', () => {
@@ -731,8 +800,70 @@ describe('String Renderer', () => {
           case 'preserves indentation with multiple children (two levels)':
             expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div>');
             break;
+          case 'warns but continues when $if tag has unsupported attributes':
+            // Should still render the content despite the warning
+            expect(result).toBe('<p>Content</p>');
+            break;
+          case 'warns but continues when $if tag has $children':
+            // Should render $then, ignore $children
+            expect(result).toBe('<p>Content</p>');
+            break;
         }
       });
+    });
+
+    // Test that warning is logged for unsupported attributes
+    test('logs warning for unsupported attributes on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const result = renderToString({
+        template: {
+          $if: {
+            $check: 'show',
+            class: 'my-class',  // Unsupported attribute
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support attributes')
+      );
+      // Should still render the content
+      expect(result).toBe('<p>Content</p>');
+    });
+
+    // Test that warning is logged for $children on $if tag
+    test('logs warning for $children on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const result = renderToString({
+        template: {
+          $if: {
+            $check: 'show',
+            $children: [{ p: 'Ignored' }],
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support $children')
+      );
+      // Should render $then, not $children
+      expect(result).toBe('<p>Content</p>');
     });
 
     // Operator tests
