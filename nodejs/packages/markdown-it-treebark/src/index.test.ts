@@ -253,9 +253,10 @@ div: [
 script: "alert('xss')"
 \`\`\`
 `;
+      // With no-throw policy, invalid tags are logged to console and render as empty
+      // The error is not thrown, so no error div is shown
       const result = md.render(markdown);
-      expect(result).toContain('treebark-error');
-      expect(result).toContain('not allowed');
+      expect(result).toBe('\n');
     });
 
     it('should handle empty content', () => {

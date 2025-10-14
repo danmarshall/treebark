@@ -97,31 +97,17 @@ function renderTreebarkBlock(
     throw new Error('Empty or invalid template');
   }
 
-  // Create a logger that captures errors
-  const errors: string[] = [];
-  const logger = {
-    log: (level: any, message: string) => {
-      errors.push(message);
-    }
-  };
-
   // Check if template is already in TreebarkInput format
-  let result: string;
+  // Note: We don't provide a custom logger - let treebark use console.error by default
+  // Any validation errors will be logged to console and rendering will continue gracefully
   if (template && typeof template === 'object' && 'template' in template) {
     // Already in TreebarkInput format, merge with default data
     const mergedData = { ...defaultData, ...template.data };
-    result = renderToString({ template: template.template, data: mergedData }, { indent, logger });
+    return renderToString({ template: template.template, data: mergedData }, { indent });
   } else {
     // Template is a direct template, wrap it in TreebarkInput format
-    result = renderToString({ template: template, data: defaultData }, { indent, logger });
+    return renderToString({ template: template, data: defaultData }, { indent });
   }
-
-  // If there were errors during rendering, throw them so the plugin can catch and display
-  if (errors.length > 0) {
-    throw new Error(errors.join('; '));
-  }
-
-  return result;
 }
 
 /**
