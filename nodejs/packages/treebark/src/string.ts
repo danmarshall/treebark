@@ -11,8 +11,7 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional,
-  logError
+  processConditional
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -103,12 +102,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
-    logError(logger, `Tag "${tag}" is not allowed`);
+    (logger || console).error(`Tag "${tag}" is not allowed`);
     return '';
   }
 
   if (tag === '$comment' && context.insideComment) {
-    logError(logger, 'Nested comments are not allowed');
+    (logger || console).error('Nested comments are not allowed');
     return '';
   }
 
@@ -126,7 +125,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {
-    logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+    (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
     return '';
   }
 

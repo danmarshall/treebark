@@ -10,8 +10,7 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional,
-  logError
+  processConditional
 } from './common.js';
 
 export function renderToDOM(
@@ -54,13 +53,13 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
-    logError(logger, `Tag "${tag}" is not allowed`);
+    (logger || console).error(`Tag "${tag}" is not allowed`);
     return [];
   }
   
   // Prevent nested comments
   if (tag === '$comment' && context.insideComment) {
-    logError(logger, 'Nested comments are not allowed');
+    (logger || console).error('Nested comments are not allowed');
     return [];
   }
   
@@ -82,7 +81,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const hasChildren = children.length > 0;
   const isVoid = VOID_TAGS.has(tag);
   if (isVoid && hasChildren) {
-    logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+    (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
     return [];
   }
   
@@ -121,7 +120,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
-      logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+      (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
       return [];
     }
     

@@ -12,16 +12,6 @@ import type {
   Logger,
 } from './types.js';
 
-// Helper to get logger or default to console
-export function getLogger(logger?: Logger): Logger {
-  return logger || console;
-}
-
-// Helper to log error
-export function logError(logger: Logger | undefined, message: string): void {
-  getLogger(logger).error(message);
-}
-
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([
   'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
@@ -152,7 +142,7 @@ export function validateAttribute(key: string, tag: string, logger?: Logger): bo
   const isTagSpecific = tagAttrs && tagAttrs.has(key);
 
   if (!isGlobal && !isTagSpecific) {
-    logError(logger, `Attribute "${key}" is not allowed on tag "${tag}"`);
+    (logger || console).error(`Attribute "${key}" is not allowed on tag "${tag}"`);
     return false;
   }
   return true;
@@ -192,11 +182,11 @@ export function validatePathExpression(value: string, label: string, logger?: Lo
   }
 
   if (value.includes('..')) {
-    logError(logger, `${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
+    (logger || console).error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
     return false;
   }
   if (value.includes('{{')) {
-    logError(logger, `${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+    (logger || console).error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
     return false;
   }
   return true;
@@ -313,17 +303,17 @@ export function parseTemplateObject(templateObj: TemplateObject, logger?: Logger
   attrs: Record<string, unknown>;
 } | undefined {
   if (!templateObj || typeof templateObj !== 'object') {
-    logError(logger, 'Template object cannot be null, undefined, or non-object');
+    (logger || console).error('Template object cannot be null, undefined, or non-object');
     return undefined;
   }
   const entries = Object.entries(templateObj);
   if (entries.length === 0) {
-    logError(logger, 'Template object must have at least one tag');
+    (logger || console).error('Template object must have at least one tag');
     return undefined;
   }
   const firstEntry = entries[0];
   if (!firstEntry) {
-    logError(logger, 'Template object must have at least one tag');
+    (logger || console).error('Template object must have at least one tag');
     return undefined;
   }
   const [tag, rest] = firstEntry;
@@ -351,7 +341,7 @@ export function processConditional(
 
   // "$if" tag requires $check
   if (!conditional.$check) {
-    logError(logger, '"$if" tag requires $check attribute to specify the condition');
+    (logger || console).error('"$if" tag requires $check attribute to specify the condition');
     return { valueToRender: undefined };
   }
 
@@ -362,7 +352,7 @@ export function processConditional(
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
-    logError(logger, '"$if" tag does not support $children, use $then and $else instead');
+    (logger || console).error('"$if" tag does not support $children, use $then and $else instead');
     return { valueToRender: undefined };
   }
 
@@ -371,11 +361,11 @@ export function processConditional(
 
   // Validate $then and $else are not arrays
   if ($then !== undefined && Array.isArray($then)) {
-    logError(logger, '"$if" tag $then must be a string or single element object, not an array');
+    (logger || console).error('"$if" tag $then must be a string or single element object, not an array');
     return { valueToRender: undefined };
   }
   if ($else !== undefined && Array.isArray($else)) {
-    logError(logger, '"$if" tag $else must be a string or single element object, not an array');
+    (logger || console).error('"$if" tag $else must be a string or single element object, not an array');
     return { valueToRender: undefined };
   }
 
@@ -385,7 +375,7 @@ export function processConditional(
 
   const nonConditionalAttrs = allKeys.filter(k => !CONDITIONALKEYS.has(k));
   if (nonConditionalAttrs.length > 0) {
-    logError(logger, `"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
+    (logger || console).error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
     return { valueToRender: undefined };
   }
 
