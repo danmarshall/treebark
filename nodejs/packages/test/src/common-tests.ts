@@ -1933,8 +1933,35 @@ export function createTest(testCase: TestCase, renderFunction: (input: any, opti
 // Utility function to create error test from test case data
 export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input: any, options?: any) => any) {
   test(testCase.name, () => {
-    expect(() => {
-      renderFunction(testCase.input, testCase.options);
-    }).toThrow(testCase.expectedError);
+    // Create a mock logger to capture error messages
+    const errors: string[] = [];
+    const mockLogger = {
+      error: (message: string) => errors.push(message)
+    };
+    
+    // Call render function with mock logger
+    const result = renderFunction(testCase.input, { ...testCase.options, logger: mockLogger });
+    
+    // Verify that an error was logged containing the expected message
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.some(err => err.includes(testCase.expectedError))).toBe(true);
+    
+    // For certain critical errors, the entire element should not render
+    // For validation errors on nested elements, we allow graceful degradation
+    const isCriticalError = 
+      (testCase.expectedError.includes('is not allowed') && testCase.expectedError.includes('Tag ')) ||
+      testCase.expectedError.includes('void element and cannot have children') ||
+      (testCase.expectedError.includes('$if') && !testCase.expectedError.includes('Attribute'));
+    
+    if (isCriticalError) {
+      // Critical errors should result in empty output
+      if (typeof result === 'string') {
+        expect(result).toBe('');
+      } else if (result && typeof result === 'object' && 'childNodes' in result) {
+        // For DOM fragments, check that it's empty
+        expect(result.childNodes.length).toBe(0);
+      }
+    }
+    // For other errors (like $bind validation, nested comments, invalid attributes), we allow graceful degradation
   });
 }

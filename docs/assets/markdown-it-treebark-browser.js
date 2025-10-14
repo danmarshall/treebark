@@ -408,11 +408,21 @@
     if (!template) {
       throw new Error("Empty or invalid template");
     }
+    const errors = [];
+    const logger = {
+      error: (message) => errors.push(message)
+    };
+    let result;
     if (template && typeof template === "object" && "template" in template) {
       const mergedData = { ...defaultData, ...template.data };
-      return renderToString({ template: template.template, data: mergedData }, { indent });
+      result = renderToString({ template: template.template, data: mergedData }, { indent, logger });
+    } else {
+      result = renderToString({ template, data: defaultData }, { indent, logger });
     }
-    return renderToString({ template, data: defaultData }, { indent });
+    if (errors.length > 0) {
+      throw new Error(errors.join("; "));
+    }
+    return result;
   }
   function escapeHtml(text) {
     const map = {

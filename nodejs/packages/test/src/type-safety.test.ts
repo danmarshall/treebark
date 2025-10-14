@@ -80,7 +80,12 @@ describe('Type Safety', () => {
       // We can still construct invalid objects at runtime using 'as any'
       // but the runtime validation should catch them
       const template = { zoo: 'animals' } as any;
-      expect(() => renderToString({ template })).toThrow('Tag "zoo" is not allowed');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Tag "zoo" is not allowed'))).toBe(true);
+      expect(result).toBe('');
     });
 
     it('should reject mixing $if with regular tag properties', () => {
@@ -94,8 +99,12 @@ describe('Type Safety', () => {
         }
       } as any;
       
-      expect(() => renderToString({ template, data: { test: true } }))
-        .toThrow(/does not support/);
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template, data: { test: true } }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('does not support'))).toBe(true);
+      expect(result).toBe('');
     });
 
     it('should reject invalid attribute keys for specific tags', () => {
@@ -106,8 +115,15 @@ describe('Type Safety', () => {
         }
       };
       
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "invalidAttr" is not allowed on tag "div"');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Attribute "invalidAttr" is not allowed on tag "div"'))).toBe(true);
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<div>');
+      expect(result).toContain('content');
+      expect(result).not.toContain('invalidAttr');
     });
   });
 
@@ -182,8 +198,14 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "$join" is not allowed on tag "em"');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Attribute "$join" is not allowed on tag "em"'))).toBe(true);
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<em>');
+      expect(result).toContain('text');
     });
 
     it('should reject $children in void tags at runtime', () => {
@@ -194,8 +216,12 @@ describe('Type Safety', () => {
           $children: ['not allowed']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Tag "img" is a void element and cannot have children');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Tag "img" is a void element and cannot have children'))).toBe(true);
+      expect(result).toBe('');
     });
 
     it('should reject conditional operators in regular tags at runtime', () => {
@@ -206,8 +232,14 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "$check" is not allowed on tag "div"');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Attribute "$check" is not allowed on tag "div"'))).toBe(true);
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<div>');
+      expect(result).toContain('text');
     });
   });
 
@@ -244,8 +276,14 @@ describe('Type Safety', () => {
           src: 'should not be allowed'
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "src" is not allowed on tag "a"');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Attribute "src" is not allowed on tag "a"'))).toBe(true);
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<a>');
+      expect(result).not.toContain('src=');
     });
 
     it('should reject href attribute on img tag at runtime', () => {
@@ -254,8 +292,14 @@ describe('Type Safety', () => {
           href: 'should not be allowed'
         }
       } as any;
-      expect(() => renderToString({ template }))
-        .toThrow('Attribute "href" is not allowed on tag "img"');
+      const errors: string[] = [];
+      const mockLogger = { error: (msg: string) => errors.push(msg) };
+      const result = renderToString({ template }, { logger: mockLogger });
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(err => err.includes('Attribute "href" is not allowed on tag "img"'))).toBe(true);
+      // Element should still render, just without the invalid attribute (graceful degradation)
+      expect(result).toContain('<img>');
+      expect(result).not.toContain('href=');
     });
 
     it('should accept valid a tag attributes', () => {
