@@ -22,15 +22,18 @@ export function renderToDOM(
     ? input.data 
     : { ...input.data, ...options.data };
   
+  // Set logger to console if not provided
+  const logger = options.logger || console;
+  
   const fragment = document.createDocumentFragment();
   
-  const result = render(input.template, data, { logger: options.logger });
+  const result = render(input.template, data, { logger });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger?: Logger } = {}): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   
@@ -53,13 +56,13 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
-    (logger || console).error(`Tag "${tag}" is not allowed`);
+    logger.error(`Tag "${tag}" is not allowed`);
     return [];
   }
   
   // Prevent nested comments
   if (tag === '$comment' && context.insideComment) {
-    (logger || console).error('Nested comments are not allowed');
+    logger.error('Nested comments are not allowed');
     return [];
   }
   
@@ -81,7 +84,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const hasChildren = children.length > 0;
   const isVoid = VOID_TAGS.has(tag);
   if (isVoid && hasChildren) {
-    (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
+    logger.error(`Tag "${tag}" is a void element and cannot have children`);
     return [];
   }
   
@@ -120,7 +123,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
-      (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
+      logger.error(`Tag "${tag}" is a void element and cannot have children`);
       return [];
     }
     
@@ -161,7 +164,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger?: Logger): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): void {
   Object.entries(attrs).forEach(([key, value]) => {
     if (!validateAttribute(key, tag, logger)) {
       return; // Skip invalid attributes

@@ -50,19 +50,22 @@ export function renderToString(
     ? input.data 
     : { ...input.data, ...options.data };
 
+  // Set logger to console if not provided
+  const logger = options.logger || console;
+
   // Conditionally set indent context
   const context = options.indent ? {
     indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
       typeof options.indent === 'string' ? options.indent : '  ',
     level: 0,
-    logger: options.logger
-  } : { logger: options.logger };
+    logger
+  } : { logger };
 
   return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], indentStr?: string, level?: number, parents: Data[] = [], logger?: Logger): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = []): string {
   // Flatten children output into content
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
@@ -85,7 +88,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger?: Logger } = {}): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger }): string {
   const parents = context.parents || [];
   const logger = context.logger;
   
@@ -102,12 +105,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
-    (logger || console).error(`Tag "${tag}" is not allowed`);
+    logger.error(`Tag "${tag}" is not allowed`);
     return '';
   }
 
   if (tag === '$comment' && context.insideComment) {
-    (logger || console).error('Nested comments are not allowed');
+    logger.error('Nested comments are not allowed');
     return '';
   }
 
@@ -125,7 +128,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {
-    (logger || console).error(`Tag "${tag}" is a void element and cannot have children`);
+    logger.error(`Tag "${tag}" is a void element and cannot have children`);
     return '';
   }
 
@@ -185,10 +188,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     contentAttrs = attrs;
   }
   
-  return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents, logger);
+  return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents);
 }
 
-function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger?: Logger): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
