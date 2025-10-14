@@ -491,15 +491,15 @@ Output:
 </div>
 ```
 
-### Working with Arrays: Two Patterns
+### Working with Arrays
 
-Treebark offers two patterns for rendering arrays, each suited to different template/data structures. Understanding these patterns helps you choose the right approach for your use case.
+To render arrays, use `$bind` to target the array and `$children` to define what to repeat for each item. This gives you a wrapper element (like `<ul>`) around the repeated children.
 
-#### Pattern 1: $bind to Property in Object (Uses Both $bind and $children)
+The `$bind` value specifies the path to the array:
+- Use a **property name** (e.g., `"products"`) when your data is an object containing an array
+- Use **`"."`** when your data is the array itself
 
-When your data is an **object containing an array**, use `$bind` to target that property and `$children` to define what to repeat. This gives you a wrapper element (like `<ul>`) around the repeated children.
-
-**Use when:** You want a container element around your array items, like a `<ul>` around `<li>` elements, and your data is structured as an object with properties.
+**Example with property path:**
 
 ```json
 {
@@ -522,19 +522,7 @@ Data:
 }
 ```
 
-Output:
-```html
-<ul>
-  <li>Laptop — $999</li>
-  <li>Phone — $499</li>
-</ul>
-```
-
-#### Pattern 2: $bind: "." to Current Array (Uses Both $bind and $children)
-
-When your data **is the array itself** (not wrapped in an object), use `$bind: "."` to bind directly to the current data and `$children` to define what to repeat. This gives you a wrapper element around array items without needing an object wrapper in your data.
-
-**Use when:** You have a plain array as your data and want a container element around the repeated items.
+**Example with `$bind: "."`:**
 
 ```json
 {
@@ -555,7 +543,7 @@ Data:
 ]
 ```
 
-Output:
+Both examples produce the same output:
 ```html
 <ul>
   <li>Laptop — $999</li>
