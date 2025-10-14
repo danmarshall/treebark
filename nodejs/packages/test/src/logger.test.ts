@@ -51,12 +51,12 @@ describe('Logger Functionality', () => {
       };
       const result = renderToString({ template }, { logger: mockLogger });
 
-      // Should log 2 errors (one for each invalid attribute)
-      expect(mockLogger.error).toHaveBeenCalledTimes(2);
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      // Should log 2 warnings (one for each invalid attribute)
+      expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('anotherBadAttr')
       );
 
@@ -114,10 +114,11 @@ describe('Logger Functionality', () => {
       } as any;
       const result = renderToString({ template, data: { condition: true } }, { logger: mockLogger });
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringMatching(/\$if.*\$children/)
       );
-      expect(result).toBe('');
+      // Should render $then, ignoring $children
+      expect(result).toBe('<p>Yes</p>');
     });
 
     it('should log $bind validation errors and render parent element', () => {
@@ -194,7 +195,7 @@ describe('Logger Functionality', () => {
       };
       const fragment = renderToDOM({ template }, { logger: mockLogger });
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
 
@@ -296,9 +297,9 @@ describe('Logger Functionality', () => {
         { logger: mockLogger }
       );
 
-      // Should log error for each item (2 items with invalid attribute)
-      expect(mockLogger.error).toHaveBeenCalledTimes(2);
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      // Should log warning for each item (2 items with invalid attribute)
+      expect(mockLogger.warn).toHaveBeenCalledTimes(2);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('badAttr')
       );
 
@@ -338,7 +339,7 @@ describe('Logger Functionality', () => {
         { logger: mockLogger }
       );
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
 

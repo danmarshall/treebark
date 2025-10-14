@@ -131,7 +131,7 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 /**
  * Validate that an attribute is allowed for the given tag
- * Returns true if valid, false if invalid (and logs error if logger provided)
+ * Returns true if valid, false if invalid (logs warning for invalid)
  */
 export function validateAttribute(key: string, tag: string, logger: Logger): boolean {
   // Check global attributes first
@@ -142,8 +142,8 @@ export function validateAttribute(key: string, tag: string, logger: Logger): boo
   const isTagSpecific = tagAttrs && tagAttrs.has(key);
 
   if (!isGlobal && !isTagSpecific) {
-    logger.error(`Attribute "${key}" is not allowed on tag "${tag}"`);
-    return false;
+    logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
+    return false; // Return false to skip the attribute
   }
   return true;
 }
@@ -352,8 +352,8 @@ export function processConditional(
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {
-    logger.error('"$if" tag does not support $children, use $then and $else instead');
-    return { valueToRender: undefined };
+    logger.warn('"$if" tag does not support $children, use $then and $else instead');
+    // Continue processing - $children will be ignored
   }
 
   // Extract properties for validation

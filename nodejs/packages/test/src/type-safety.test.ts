@@ -103,11 +103,12 @@ describe('Type Safety', () => {
       
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template, data: { test: true } }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('does not support')
       );
-      expect(result).toBe('');
+      // Should still process despite warnings
+      expect(result).toBe('yes');
     });
 
     it('should reject invalid attribute keys for specific tags', () => {
@@ -120,7 +121,7 @@ describe('Type Safety', () => {
       
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Attribute "invalidAttr" is not allowed on tag "div"')
       );
@@ -204,7 +205,7 @@ describe('Type Safety', () => {
       } as any;
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Attribute "$join" is not allowed on tag "em"')
       );
@@ -240,7 +241,7 @@ describe('Type Safety', () => {
       } as any;
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Attribute "$check" is not allowed on tag "div"')
       );
@@ -285,7 +286,7 @@ describe('Type Safety', () => {
       } as any;
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Attribute "src" is not allowed on tag "a"')
       );
@@ -302,7 +303,7 @@ describe('Type Safety', () => {
       } as any;
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Attribute "href" is not allowed on tag "img"')
       );

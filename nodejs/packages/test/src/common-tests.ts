@@ -214,18 +214,6 @@ export const securityErrorTests: ErrorTestCase[] = [
     name: 'throws error for disallowed tags',
     input: { template: { script: 'alert("xss")' } },
     expectedError: 'Tag "script" is not allowed'
-  },
-  {
-    name: 'throws error for disallowed attributes',
-    input: {
-      template: {
-        div: {
-          onclick: 'alert("xss")',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "onclick" is not allowed'
   }
 ];
 
@@ -326,46 +314,22 @@ export const tagSpecificAttributeTests: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name: 'warns but continues for invalid attribute on tag',
+    input: {
+      template: {
+        div: {
+          src: 'image.jpg',  // Invalid for div, should trigger warning
+          class: 'valid',    // Valid attribute
+          $children: ['Content']
+        }
+      }
+    }
   }
 ];
 
 export const tagSpecificAttributeErrorTests: ErrorTestCase[] = [
-  {
-    name: 'throws error for tag-specific attribute on wrong tag',
-    input: {
-      template: {
-        div: {
-          src: 'image.jpg',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "src" is not allowed on tag "div"'
-  },
-  {
-    name: 'throws error for img-specific attribute on div',
-    input: {
-      template: {
-        div: {
-          width: '100',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "width" is not allowed on tag "div"'
-  },
-  {
-    name: 'throws error for a-specific attribute on div',
-    input: {
-      template: {
-        div: {
-          target: '_blank',
-          $children: ['Content']
-        }
-      }
-    },
-    expectedError: 'Attribute "target" is not allowed on tag "div"'
-  }
 ];
 
 // Shorthand array syntax test cases
@@ -1147,6 +1111,19 @@ export const ifTagTests: TestCase[] = [
       },
       data: { show: true }
     }
+  },
+  {
+    name: 'warns but continues when $if tag has $children',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          $children: [{ p: 'Ignored' }],  // This should trigger a warning and be ignored
+          $then: { p: 'Content' }
+        } as any
+      },
+      data: { show: true }
+    }
   }
 ];
 
@@ -1870,21 +1847,6 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       data: {}
     },
     expectedError: '"$if" tag requires $check attribute'
-  },
-  {
-    name: 'throws error when $if tag has $children',
-    input: {
-      template: {
-        $if: {
-          $check: 'show',
-          $children: [
-            { p: 'Content' }
-          ]
-        }
-      },
-      data: { show: true }
-    },
-    expectedError: '"$if" tag does not support $children, use $then and $else instead'
   },
   {
     name: 'throws error when $if tag $then is an array',
