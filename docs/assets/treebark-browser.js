@@ -2,15 +2,6 @@
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = {}));
 })(this, (function(exports2) {
   "use strict";
-  const defaultLogger = {
-    error: (message) => console.error(message)
-  };
-  function getLogger(logger) {
-    return logger || defaultLogger;
-  }
-  function logError(logger, message) {
-    getLogger(logger).error(message);
-  }
   const CONTAINER_TAGS = /* @__PURE__ */ new Set([
     "div",
     "span",
@@ -110,7 +101,7 @@
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
     const isTagSpecific = tagAttrs && tagAttrs.has(key);
     if (!isGlobal && !isTagSpecific) {
-      logError(logger, `Attribute "${key}" is not allowed on tag "${tag}"`);
+      logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
     }
     return true;
@@ -123,11 +114,11 @@
       return true;
     }
     if (value.includes("..")) {
-      logError(logger, `${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
+      logger.error(`${label} does not support parent context access (..) - use interpolation {{..prop}} in content/attributes instead. Invalid: ${label}: "${value}"`);
       return false;
     }
     if (value.includes("{{")) {
-      logError(logger, `${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
+      logger.error(`${label} does not support interpolation {{...}} - use literal property paths only. Invalid: ${label}: "${value}"`);
       return false;
     }
     return true;
@@ -187,17 +178,17 @@
   }
   function parseTemplateObject(templateObj, logger) {
     if (!templateObj || typeof templateObj !== "object") {
-      logError(logger, "Template object cannot be null, undefined, or non-object");
+      logger.error("Template object cannot be null, undefined, or non-object");
       return void 0;
     }
     const entries = Object.entries(templateObj);
     if (entries.length === 0) {
-      logError(logger, "Template object must have at least one tag");
+      logger.error("Template object must have at least one tag");
       return void 0;
     }
     const firstEntry = entries[0];
     if (!firstEntry) {
-      logError(logger, "Template object must have at least one tag");
+      logger.error("Template object must have at least one tag");
       return void 0;
     }
     const [tag, rest] = firstEntry;
@@ -208,7 +199,7 @@
   function processConditional(rest, data, parents = [], logger) {
     const conditional = rest;
     if (!conditional.$check) {
-      logError(logger, '"$if" tag requires $check attribute to specify the condition');
+      logger.error('"$if" tag requires $check attribute to specify the condition');
       return { valueToRender: void 0 };
     }
     if (!validatePathExpression(conditional.$check, "$check", logger)) {
@@ -216,23 +207,21 @@
     }
     const checkValue = getProperty(data, conditional.$check, parents);
     if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
-      logError(logger, '"$if" tag does not support $children, use $then and $else instead');
-      return { valueToRender: void 0 };
+      logger.warn('"$if" tag does not support $children, use $then and $else instead');
     }
     const { $then, $else } = conditional;
     if ($then !== void 0 && Array.isArray($then)) {
-      logError(logger, '"$if" tag $then must be a string or single element object, not an array');
+      logger.error('"$if" tag $then must be a string or single element object, not an array');
       return { valueToRender: void 0 };
     }
     if ($else !== void 0 && Array.isArray($else)) {
-      logError(logger, '"$if" tag $else must be a string or single element object, not an array');
+      logger.error('"$if" tag $else must be a string or single element object, not an array');
       return { valueToRender: void 0 };
     }
     const allKeys = typeof rest === "object" && rest !== null && !Array.isArray(rest) ? Object.keys(rest) : [];
     const nonConditionalAttrs = allKeys.filter((k) => !CONDITIONALKEYS.has(k));
     if (nonConditionalAttrs.length > 0) {
-      logError(logger, `"$if" tag does not support attributes: ${nonConditionalAttrs.join(", ")}. Allowed: ${[...CONDITIONALKEYS].join(", ")}`);
-      return { valueToRender: void 0 };
+      logger.warn(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(", ")}. Allowed: ${[...CONDITIONALKEYS].join(", ")}`);
     }
     const condition = evaluateCondition(checkValue, conditional);
     const valueToRender = condition ? $then : $else;
@@ -256,14 +245,15 @@
   };
   function renderToString(input, options = {}) {
     const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };
+    const logger = options.logger || console;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
-      logger: options.logger
-    } : { logger: options.logger };
+      logger
+    } : { logger };
     return render(input.template, data, context);
   }
-  function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = [], logger) {
+  function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = []) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
     const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
     if (tag === "$comment") {
@@ -275,7 +265,7 @@
     }
     return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
   }
-  function render(template, data, context = {}) {
+  function render(template, data, context) {
     const parents = context.parents || [];
     const logger = context.logger;
     if (typeof template === "string") return interpolate(template, data, true, parents);
@@ -288,11 +278,11 @@
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
-      logError(logger, `Tag "${tag}" is not allowed`);
+      logger.error(`Tag "${tag}" is not allowed`);
       return "";
     }
     if (tag === "$comment" && context.insideComment) {
-      logError(logger, "Nested comments are not allowed");
+      logger.error("Nested comments are not allowed");
       return "";
     }
     if (tag === "$if") {
@@ -303,7 +293,7 @@
       return render(valueToRender, data, context);
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
-      logError(logger, `Tag "${tag}" is a void element and cannot have children`);
+      logger.error(`Tag "${tag}" is a void element and cannot have children`);
       return "";
     }
     const childContext = {
@@ -350,7 +340,7 @@
       }
       contentAttrs = attrs;
     }
-    return renderTag(tag, contentAttrs, data, childrenOutput, context.indentStr, context.level, parents, logger);
+    return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents);
   }
   function renderAttrs(attrs, data, tag, parents = [], logger) {
     const pairs = Object.entries(attrs).filter(([key]) => validateAttribute(key, tag, logger)).map(([k, v]) => {
