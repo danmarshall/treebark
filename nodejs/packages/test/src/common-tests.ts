@@ -1134,6 +1134,19 @@ export const ifTagTests: TestCase[] = [
       data: { show: true }
     },
     options: { indent: true }
+  },
+  {
+    name: 'warns but continues when $if tag has unsupported attributes',
+    input: {
+      template: {
+        $if: {
+          $check: 'show',
+          class: 'my-class',  // This should trigger a warning
+          $then: { p: 'Content' }
+        } as any
+      },
+      data: { show: true }
+    }
   }
 ];
 
@@ -1857,21 +1870,6 @@ export const ifTagErrorTests: ErrorTestCase[] = [
       data: {}
     },
     expectedError: '"$if" tag requires $check attribute'
-  },
-  {
-    name: 'throws error when $if tag has attributes',
-    input: {
-      template: {
-        $if: {
-          $check: 'show',
-          class: 'my-class',
-          $then:
-            { p: 'Content' }
-        }
-      },
-      data: { show: true }
-    },
-    expectedError: '"$if" tag does not support attributes'
   },
   {
     name: 'throws error when $if tag has $children',

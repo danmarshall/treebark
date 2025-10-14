@@ -1,4 +1,5 @@
 import { renderToString, TreebarkInput } from 'treebark';
+import { jest } from '@jest/globals';
 import {
   basicRenderingTests,
   dataInterpolationTests,
@@ -731,8 +732,39 @@ describe('String Renderer', () => {
           case 'preserves indentation with multiple children (two levels)':
             expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div>');
             break;
+          case 'warns but continues when $if tag has unsupported attributes':
+            // Should still render the content despite the warning
+            expect(result).toBe('<p>Content</p>');
+            break;
         }
       });
+    });
+
+    // Test that warning is logged for unsupported attributes
+    test('logs warning for unsupported attributes on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const result = renderToString({
+        template: {
+          $if: {
+            $check: 'show',
+            class: 'my-class',  // Unsupported attribute
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support attributes')
+      );
+      // Should still render the content
+      expect(result).toBe('<p>Content</p>');
     });
 
     // Operator tests

@@ -375,8 +375,8 @@ export function processConditional(
 
   const nonConditionalAttrs = allKeys.filter(k => !CONDITIONALKEYS.has(k));
   if (nonConditionalAttrs.length > 0) {
-    logger.error(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
-    return { valueToRender: undefined };
+    logger.warn(`"$if" tag does not support attributes: ${nonConditionalAttrs.join(', ')}. Allowed: ${[...CONDITIONALKEYS].join(', ')}`);
+    // Continue processing despite invalid attributes
   }
 
   // Evaluate condition using conditional logic

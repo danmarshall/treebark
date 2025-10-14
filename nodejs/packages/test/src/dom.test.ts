@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { renderToDOM } from 'treebark';
+import { jest } from '@jest/globals';
 import {
   basicRenderingTests,
   dataInterpolationTests,
@@ -583,8 +584,44 @@ describe('DOM Renderer', () => {
             expect(outerDiv.querySelector('.inner + p')?.textContent).toBe('Footer');
             break;
           }
+          case 'warns but continues when $if tag has unsupported attributes': {
+            // Should still render the content despite the warning
+            const p = fragment.firstChild as HTMLElement;
+            expect(p.tagName).toBe('P');
+            expect(p.textContent).toBe('Content');
+            break;
+          }
         }
       });
+    });
+
+    // Test that warning is logged for unsupported attributes in DOM
+    test('logs warning for unsupported attributes on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          $if: {
+            $check: 'show',
+            class: 'my-class',  // Unsupported attribute
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support attributes')
+      );
+      // Should still render the content
+      const p = fragment.firstChild as HTMLElement;
+      expect(p.tagName).toBe('P');
+      expect(p.textContent).toBe('Content');
     });
 
     // Operator tests
