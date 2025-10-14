@@ -1,13 +1,15 @@
 /**
  * Tests for the logger functionality
  */
-import { renderToString, renderToDOM, LogLevel } from 'treebark';
+import { renderToString, renderToDOM } from 'treebark';
 import { jest } from '@jest/globals';
 
 describe('Logger Functionality', () => {
   describe('String Renderer with Logger', () => {
     it('should use custom logger when provided', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -15,8 +17,7 @@ describe('Logger Functionality', () => {
       const result = renderToString({ template }, { logger: mockLogger });
 
       expect(result).toBe('');
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
     });
@@ -35,6 +36,8 @@ describe('Logger Functionality', () => {
 
     it('should log multiple errors and continue rendering what it can', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -49,13 +52,11 @@ describe('Logger Functionality', () => {
       const result = renderToString({ template }, { logger: mockLogger });
 
       // Should log 2 errors (one for each invalid attribute)
-      expect(mockLogger.log).toHaveBeenCalledTimes(2);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledTimes(2);
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('anotherBadAttr')
       );
 
@@ -68,6 +69,8 @@ describe('Logger Functionality', () => {
 
     it('should handle nested errors gracefully', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -83,9 +86,8 @@ describe('Logger Functionality', () => {
       const result = renderToString({ template }, { logger: mockLogger });
 
       // Should log error for the script tag
-      expect(mockLogger.log).toHaveBeenCalledTimes(1);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
 
@@ -98,6 +100,8 @@ describe('Logger Functionality', () => {
 
     it('should log $if validation errors', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -110,8 +114,7 @@ describe('Logger Functionality', () => {
       } as any;
       const result = renderToString({ template, data: { condition: true } }, { logger: mockLogger });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringMatching(/\$if.*\$children/)
       );
       expect(result).toBe('');
@@ -119,6 +122,8 @@ describe('Logger Functionality', () => {
 
     it('should log $bind validation errors and render parent element', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -135,8 +140,7 @@ describe('Logger Functionality', () => {
         { logger: mockLogger }
       );
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('$bind does not support parent context access')
       );
 
@@ -148,6 +152,8 @@ describe('Logger Functionality', () => {
   describe('DOM Renderer with Logger', () => {
     it('should use custom logger when provided', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -155,8 +161,7 @@ describe('Logger Functionality', () => {
       const fragment = renderToDOM({ template }, { logger: mockLogger });
 
       expect(fragment.childNodes.length).toBe(0);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
     });
@@ -175,6 +180,8 @@ describe('Logger Functionality', () => {
 
     it('should handle invalid attributes gracefully in DOM', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -187,8 +194,7 @@ describe('Logger Functionality', () => {
       };
       const fragment = renderToDOM({ template }, { logger: mockLogger });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
 
@@ -205,6 +211,8 @@ describe('Logger Functionality', () => {
   describe('Graceful Degradation Behavior', () => {
     it('should skip invalid elements but continue rendering siblings', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -218,8 +226,7 @@ describe('Logger Functionality', () => {
       const result = renderToString({ template }, { logger: mockLogger });
 
       // Should log errors for invalid tags
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('script')
       );
 
@@ -232,6 +239,8 @@ describe('Logger Functionality', () => {
 
     it('should render comment with valid children, skipping nested comments', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -246,8 +255,7 @@ describe('Logger Functionality', () => {
       };
       const result = renderToString({ template }, { logger: mockLogger });
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Nested comments are not allowed')
       );
 
@@ -262,6 +270,8 @@ describe('Logger Functionality', () => {
   describe('Logger in Different Contexts', () => {
     it('should pass logger through data binding', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -287,9 +297,8 @@ describe('Logger Functionality', () => {
       );
 
       // Should log error for each item (2 items with invalid attribute)
-      expect(mockLogger.log).toHaveBeenCalledTimes(2);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledTimes(2);
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('badAttr')
       );
 
@@ -302,6 +311,8 @@ describe('Logger Functionality', () => {
 
     it('should pass logger through conditional rendering', () => {
       const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
         log: jest.fn()
       };
 
@@ -327,8 +338,7 @@ describe('Logger Functionality', () => {
         { logger: mockLogger }
       );
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')
       );
 

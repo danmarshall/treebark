@@ -3,7 +3,7 @@
  * These tests verify that TypeScript catches invalid template structures at compile time
  */
 
-import { renderToString, TemplateObject, LogLevel } from 'treebark';
+import { renderToString, TemplateObject } from 'treebark';
 import { jest } from '@jest/globals';
 
 describe('Type Safety', () => {
@@ -81,10 +81,10 @@ describe('Type Safety', () => {
       // We can still construct invalid objects at runtime using 'as any'
       // but the runtime validation should catch them
       const template = { zoo: 'animals' } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Tag "zoo" is not allowed')
       );
       expect(result).toBe('');
@@ -101,10 +101,10 @@ describe('Type Safety', () => {
         }
       } as any;
       
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template, data: { test: true } }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('does not support')
       );
       expect(result).toBe('');
@@ -118,10 +118,10 @@ describe('Type Safety', () => {
         }
       };
       
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Attribute "invalidAttr" is not allowed on tag "div"')
       );
       // Element should still render, just without the invalid attribute (graceful degradation)
@@ -202,10 +202,10 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Attribute "$join" is not allowed on tag "em"')
       );
       // Element should still render, just without the invalid attribute (graceful degradation)
@@ -221,10 +221,10 @@ describe('Type Safety', () => {
           $children: ['not allowed']
         }
       } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Tag "img" is a void element and cannot have children')
       );
       expect(result).toBe('');
@@ -238,10 +238,10 @@ describe('Type Safety', () => {
           $children: ['text']
         }
       } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Attribute "$check" is not allowed on tag "div"')
       );
       // Element should still render, just without the invalid attribute (graceful degradation)
@@ -283,10 +283,10 @@ describe('Type Safety', () => {
           src: 'should not be allowed'
         }
       } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Attribute "src" is not allowed on tag "a"')
       );
       // Element should still render, just without the invalid attribute (graceful degradation)
@@ -300,10 +300,10 @@ describe('Type Safety', () => {
           href: 'should not be allowed'
         }
       } as any;
-      const mockLogger = { log: jest.fn() };
+      const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        LogLevel.Error,
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        
         expect.stringContaining('Attribute "href" is not allowed on tag "img"')
       );
       // Element should still render, just without the invalid attribute (graceful degradation)

@@ -129,16 +129,11 @@ export interface TreebarkInput {
   data?: Data;
 }
 
-// Logger level enum
-export enum LogLevel {
-  Error = 'error',
-  Warn = 'warn',
-  Log = 'log'
-}
-
-// Logger interface for error reporting
+// Logger interface for error reporting - matches console signature
 export interface Logger {
-  log(level: LogLevel, message: string): void;
+  error(message: string): void;
+  warn(message: string): void;
+  log(message: string): void;
 }
 
 // Options interface for render functions

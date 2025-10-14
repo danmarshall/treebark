@@ -1,7 +1,6 @@
 // Common test data for both DOM and string renderers
 // This file contains shared test cases to eliminate duplication
 
-import { LogLevel } from 'treebark';
 import { jest } from '@jest/globals';
 
 export interface TestCase {
@@ -1938,6 +1937,8 @@ export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input:
   test(testCase.name, () => {
     // Create a mock logger to check events
     const mockLogger = {
+      error: jest.fn(),
+      warn: jest.fn(),
       log: jest.fn()
     };
     
@@ -1945,8 +1946,7 @@ export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input:
     const result = renderFunction(testCase.input, { ...testCase.options, logger: mockLogger });
     
     // Verify that an error was logged containing the expected message
-    expect(mockLogger.log).toHaveBeenCalledWith(
-      LogLevel.Error,
+    expect(mockLogger.error).toHaveBeenCalledWith(
       expect.stringContaining(testCase.expectedError)
     );
     
