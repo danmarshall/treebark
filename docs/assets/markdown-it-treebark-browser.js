@@ -169,20 +169,6 @@
       return value.$else !== void 0 ? value.$else : "";
     }
   }
-  function templateHasCurrentObjectBinding(template) {
-    if (Array.isArray(template) || typeof template !== "object" || template === null) {
-      return false;
-    }
-    const entries = Object.entries(template);
-    if (entries.length === 0) {
-      return false;
-    }
-    const [, rest] = entries[0];
-    if (!rest || typeof rest !== "object" || Array.isArray(rest)) {
-      return false;
-    }
-    return "$bind" in rest && rest.$bind === ".";
-  }
   function parseTemplateObject(templateObj) {
     if (!templateObj || typeof templateObj !== "object") {
       throw new Error("Template object cannot be null, undefined, or non-object");
@@ -248,12 +234,6 @@
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0
     } : {};
-    if (!Array.isArray(input.template) && Array.isArray(input.data) && !templateHasCurrentObjectBinding(input.template)) {
-      const separator = context.indentStr ? "\n" : "";
-      return input.data.map(
-        (item) => render(input.template, { ...item, ...options.data }, context)
-      ).join(separator);
-    }
     return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, childrenOutput, indentStr, level, parents = []) {
