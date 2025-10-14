@@ -128,8 +128,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
 
   if (VOID_TAGS.has(tag) && children.length > 0) {
-    logger.error(`Tag "${tag}" is a void element and cannot have children`);
-    return '';
+    logger.warn(`Tag "${tag}" is a void element and cannot have children`);
+    // Continue rendering the void tag without children
   }
 
   const childContext = {
@@ -170,20 +170,26 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
     // Array binding case
     childrenOutput = [];
-    for (const item of bound) {
-      const newParents = [...parents, data];
-      for (const child of $children) {
-        const content = render(child, item as Data, { ...childContext, parents: newParents });
-        childrenOutput.push(...processContent(content));
+    // Skip children for void tags
+    if (!VOID_TAGS.has(tag)) {
+      for (const item of bound) {
+        const newParents = [...parents, data];
+        for (const child of $children) {
+          const content = render(child, item as Data, { ...childContext, parents: newParents });
+          childrenOutput.push(...processContent(content));
+        }
       }
     }
     contentAttrs = bindAttrs;
   } else {
     // Normal children case
     childrenOutput = [];
-    for (const child of children) {
-      const content = render(child, data, { ...childContext, parents });
-      childrenOutput.push(...processContent(content));
+    // Skip children for void tags
+    if (!VOID_TAGS.has(tag)) {
+      for (const child of children) {
+        const content = render(child, data, { ...childContext, parents });
+        childrenOutput.push(...processContent(content));
+      }
     }
     contentAttrs = attrs;
   }

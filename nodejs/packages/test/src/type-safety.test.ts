@@ -224,11 +224,12 @@ describe('Type Safety', () => {
       } as any;
       const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
       const result = renderToString({ template }, { logger: mockLogger });
-      expect(mockLogger.error).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         
         expect.stringContaining('Tag "img" is a void element and cannot have children')
       );
-      expect(result).toBe('');
+      // Should render the img tag without children
+      expect(result).toContain('<img');
     });
 
     it('should reject conditional operators in regular tags at runtime', () => {

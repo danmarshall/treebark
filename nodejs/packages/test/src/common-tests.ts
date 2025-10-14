@@ -394,9 +394,9 @@ export const voidTagTests: TestCase[] = [
   }
 ];
 
-export const voidTagErrorTests: ErrorTestCase[] = [
+export const voidTagWarningTests: TestCase[] = [
   {
-    name: 'prevents children on void tags',
+    name: 'warns about children on void tags and renders tag without children',
     input: {
       template: {
         img: {
@@ -404,17 +404,15 @@ export const voidTagErrorTests: ErrorTestCase[] = [
           $children: ['This should not work']
         }
       }
-    },
-    expectedError: 'Tag "img" is a void element and cannot have children'
+    }
   },
   {
-    name: 'prevents children on void tags with shorthand syntax',
+    name: 'warns about children on void tags with shorthand syntax and renders tag without children',
     input: {
       template: {
         img: ['This should not work']
       }
-    },
-    expectedError: 'Tag "img" is a void element and cannot have children'
+    }
   }
 ];
 

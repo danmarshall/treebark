@@ -11,7 +11,7 @@ import {
   tagSpecificAttributeErrorTests,
   shorthandArrayTests,
   voidTagTests,
-  voidTagErrorTests,
+  voidTagWarningTests,
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
@@ -338,8 +338,20 @@ describe('String Renderer', () => {
       });
     });
 
-    voidTagErrorTests.forEach(testCase => {
-      createErrorTest(testCase, renderToString);
+    voidTagWarningTests.forEach(testCase => {
+      test(testCase.name, () => {
+        const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+        const result = renderToString(testCase.input, { logger: mockLogger });
+        
+        // Should warn about void tag with children
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          expect.stringContaining('is a void element and cannot have children')
+        );
+        
+        // Should render the void tag without children
+        expect(result).toBeTruthy();
+        expect(result).toContain('<img');
+      });
     });
 
     test('void tags render without closing tags', () => {

@@ -84,8 +84,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const hasChildren = children.length > 0;
   const isVoid = VOID_TAGS.has(tag);
   if (isVoid && hasChildren) {
-    logger.error(`Tag "${tag}" is a void element and cannot have children`);
-    return [];
+    logger.warn(`Tag "${tag}" is a void element and cannot have children`);
+    // Continue rendering the void tag without children
   }
   
   // Special handling for $comment tags
@@ -123,20 +123,23 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
-      logger.error(`Tag "${tag}" is a void element and cannot have children`);
-      return [];
+      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
+      // Continue rendering the void tag without children
     }
     
     if (Array.isArray(bound)) {
       for (const item of bound) {
         // For array items, add current data context to parents
         const newParents = [...parents, data];
-        for (const c of $children) {
-          const nodes = render(c, item as Data, { ...context, parents: newParents });
-          if (Array.isArray(nodes)) {
-            for (const n of nodes) element.appendChild(n);
-          } else {
-            element.appendChild(nodes);
+        // Skip children for void tags
+        if (!isVoid) {
+          for (const c of $children) {
+            const nodes = render(c, item as Data, { ...context, parents: newParents });
+            if (Array.isArray(nodes)) {
+              for (const n of nodes) element.appendChild(n);
+            } else {
+              element.appendChild(nodes);
+            }
           }
         }
       }
@@ -152,12 +155,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
   
   setAttrs(element, attrs, data, tag, parents, logger);
-  for (const c of children) {
-    const nodes = render(c, data, context);
-    if (Array.isArray(nodes)) {
-      for (const n of nodes) element.appendChild(n);
-    } else {
-      element.appendChild(nodes);
+  // Skip children for void tags
+  if (!isVoid) {
+    for (const c of children) {
+      const nodes = render(c, data, context);
+      if (Array.isArray(nodes)) {
+        for (const n of nodes) element.appendChild(n);
+      } else {
+        element.appendChild(nodes);
+      }
     }
   }
   

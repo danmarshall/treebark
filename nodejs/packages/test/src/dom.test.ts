@@ -14,7 +14,7 @@ import {
   tagSpecificAttributeErrorTests,
   shorthandArrayTests,
   voidTagTests,
-  voidTagErrorTests,
+  voidTagWarningTests,
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
@@ -445,8 +445,22 @@ describe('DOM Renderer', () => {
       });
     });
 
-    voidTagErrorTests.forEach(testCase => {
-      createErrorTest(testCase, renderToDOM);
+    voidTagWarningTests.forEach(testCase => {
+      test(testCase.name, () => {
+        const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+        const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+        
+        // Should warn about void tag with children
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          expect.stringContaining('is a void element and cannot have children')
+        );
+        
+        // Should render the void tag without children
+        const img = fragment.querySelector('img');
+        expect(img).toBeTruthy();
+        // Should have no child nodes
+        expect(img?.childNodes.length).toBe(0);
+      });
     });
 
     test('void tags render correctly in DOM', () => {

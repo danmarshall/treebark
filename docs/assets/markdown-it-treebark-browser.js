@@ -293,8 +293,7 @@
       return render(valueToRender, data, context);
     }
     if (VOID_TAGS.has(tag) && children.length > 0) {
-      logger.error(`Tag "${tag}" is a void element and cannot have children`);
-      return "";
+      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
     }
     const childContext = {
       ...context,
@@ -324,19 +323,23 @@
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
       childrenOutput = [];
-      for (const item of bound) {
-        const newParents = [...parents, data];
-        for (const child of $children) {
-          const content = render(child, item, { ...childContext, parents: newParents });
-          childrenOutput.push(...processContent(content));
+      if (!VOID_TAGS.has(tag)) {
+        for (const item of bound) {
+          const newParents = [...parents, data];
+          for (const child of $children) {
+            const content = render(child, item, { ...childContext, parents: newParents });
+            childrenOutput.push(...processContent(content));
+          }
         }
       }
       contentAttrs = bindAttrs;
     } else {
       childrenOutput = [];
-      for (const child of children) {
-        const content = render(child, data, { ...childContext, parents });
-        childrenOutput.push(...processContent(content));
+      if (!VOID_TAGS.has(tag)) {
+        for (const child of children) {
+          const content = render(child, data, { ...childContext, parents });
+          childrenOutput.push(...processContent(content));
+        }
       }
       contentAttrs = attrs;
     }
