@@ -162,20 +162,60 @@ function updateOutput() {
             indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
         }
         
-        // Create markdown-it instance with treebark plugin
-        const md = window.markdownit();
+        // Capture console logs
+        const logs = [];
+        const originalConsole = {
+            error: console.error,
+            warn: console.warn,
+            log: console.log
+        };
         
-        // Apply the treebark plugin
-        if (window.MarkdownItTreebark) {
-            md.use(window.MarkdownItTreebark, { data, indent });
-        } else {
-            throw new Error('markdown-it-treebark plugin not loaded');
+        // Override console methods to capture logs
+        console.error = function(...args) {
+            logs.push({ level: 'error', message: args.join(' ') });
+            originalConsole.error.apply(console, args);
+        };
+        console.warn = function(...args) {
+            logs.push({ level: 'warn', message: args.join(' ') });
+            originalConsole.warn.apply(console, args);
+        };
+        console.log = function(...args) {
+            logs.push({ level: 'log', message: args.join(' ') });
+            originalConsole.log.apply(console, args);
+        };
+        
+        try {
+            // Create markdown-it instance with treebark plugin
+            const md = window.markdownit();
+            
+            // Apply the treebark plugin
+            if (window.MarkdownItTreebark) {
+                md.use(window.MarkdownItTreebark, { data, indent });
+            } else {
+                throw new Error('markdown-it-treebark plugin not loaded');
+            }
+            
+            // Render markdown
+            const html = md.render(markdownText);
+            
+            htmlOutput.textContent = html;
+            
+            // Display captured logs if any
+            if (logs.length > 0) {
+                const logMessages = logs.map(log => {
+                    const prefix = log.level === 'error' ? '❌ Error: ' : 
+                                  log.level === 'warn' ? '⚠️ Warning: ' : 'ℹ️ ';
+                    return prefix + log.message;
+                }).join('\n');
+                errorDisplay.textContent = logMessages;
+                errorDisplay.style.display = 'block';
+            }
+        } finally {
+            // Restore original console methods
+            console.error = originalConsole.error;
+            console.warn = originalConsole.warn;
+            console.log = originalConsole.log;
         }
-        
-        // Render markdown
-        const html = md.render(markdownText);
-        
-        htmlOutput.textContent = html;
         
     } catch (error) {
         errorDisplay.textContent = 'Error: ' + error.message;

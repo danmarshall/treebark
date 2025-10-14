@@ -98,14 +98,16 @@ function renderTreebarkBlock(
   }
 
   // Check if template is already in TreebarkInput format
+  // Note: We don't provide a custom logger - let treebark use console.error by default
+  // Any validation errors will be logged to console and rendering will continue gracefully
   if (template && typeof template === 'object' && 'template' in template) {
     // Already in TreebarkInput format, merge with default data
     const mergedData = { ...defaultData, ...template.data };
     return renderToString({ template: template.template, data: mergedData }, { indent });
+  } else {
+    // Template is a direct template, wrap it in TreebarkInput format
+    return renderToString({ template: template, data: defaultData }, { indent });
   }
-
-  // Template is a direct template, wrap it in TreebarkInput format
-  return renderToString({ template: template, data: defaultData }, { indent });
 }
 
 /**

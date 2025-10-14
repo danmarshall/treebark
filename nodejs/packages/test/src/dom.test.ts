@@ -2,6 +2,7 @@
  * @jest-environment jsdom
  */
 import { renderToDOM } from 'treebark';
+import { jest } from '@jest/globals';
 import {
   basicRenderingTests,
   dataInterpolationTests,
@@ -13,7 +14,7 @@ import {
   tagSpecificAttributeErrorTests,
   shorthandArrayTests,
   voidTagTests,
-  voidTagErrorTests,
+  voidTagWarningTests,
   commentTests,
   commentErrorTests,
   bindValidationErrorTests,
@@ -206,6 +207,34 @@ describe('DOM Renderer', () => {
       createErrorTest(testCase, renderToDOM);
     });
 
+    // Test that dangerous attributes are blocked (logged as warning, not rendered)
+    test('warns and blocks dangerous attributes like onclick in DOM', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          div: {
+            onclick: 'alert("xss")',
+            $children: ['Content']
+          } as any
+        }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attribute "onclick" is not allowed')
+      );
+      // Should render without the dangerous attribute (XSS prevented)
+      const div = fragment.firstChild as HTMLElement;
+      expect(div.tagName).toBe('DIV');
+      expect(div.textContent).toBe('Content');
+      expect(div.hasAttribute('onclick')).toBe(false);
+    });
+
     securityValidTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
@@ -261,8 +290,46 @@ describe('DOM Renderer', () => {
             expect(blockquote.getAttribute('cite')).toBe('https://example.com');
             expect(blockquote.textContent).toBe('Quote text');
             break;
+          case 'warns but continues for invalid attribute on tag': {
+            // Should render with valid attributes, invalid ones skipped
+            const div = fragment.firstChild as HTMLElement;
+            expect(div.tagName).toBe('DIV');
+            expect(div.getAttribute('class')).toBe('valid');
+            expect(div.getAttribute('src')).toBeNull(); // Invalid attribute not rendered
+            expect(div.textContent).toBe('Content');
+            break;
+          }
         }
       });
+    });
+
+    // Test that warning is logged for invalid attributes
+    test('logs warning for invalid attributes on tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          div: {
+            src: 'image.jpg',  // Invalid for div
+            class: 'valid',
+            $children: ['Content']
+          } as any
+        }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attribute "src" is not allowed on tag "div"')
+      );
+      // Should still render with valid attributes
+      const div = fragment.firstChild as HTMLElement;
+      expect(div.tagName).toBe('DIV');
+      expect(div.getAttribute('class')).toBe('valid');
+      expect(div.textContent).toBe('Content');
     });
 
     tagSpecificAttributeErrorTests.forEach(testCase => {
@@ -378,8 +445,22 @@ describe('DOM Renderer', () => {
       });
     });
 
-    voidTagErrorTests.forEach(testCase => {
-      createErrorTest(testCase, renderToDOM);
+    voidTagWarningTests.forEach(testCase => {
+      test(testCase.name, () => {
+        const mockLogger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+        const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+        
+        // Should warn about void tag with children
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+          expect.stringContaining('is a void element and cannot have children')
+        );
+        
+        // Should render the void tag without children
+        const img = fragment.querySelector('img');
+        expect(img).toBeTruthy();
+        // Should have no child nodes
+        expect(img?.childNodes.length).toBe(0);
+      });
     });
 
     test('void tags render correctly in DOM', () => {
@@ -583,8 +664,80 @@ describe('DOM Renderer', () => {
             expect(outerDiv.querySelector('.inner + p')?.textContent).toBe('Footer');
             break;
           }
+          case 'warns but continues when $if tag has unsupported attributes': {
+            // Should still render the content despite the warning
+            const p = fragment.firstChild as HTMLElement;
+            expect(p.tagName).toBe('P');
+            expect(p.textContent).toBe('Content');
+            break;
+          }
+          case 'warns but continues when $if tag has $children': {
+            // Should render $then, ignore $children
+            const p = fragment.firstChild as HTMLElement;
+            expect(p.tagName).toBe('P');
+            expect(p.textContent).toBe('Content');
+            break;
+          }
         }
       });
+    });
+
+    // Test that warning is logged for unsupported attributes in DOM
+    test('logs warning for unsupported attributes on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          $if: {
+            $check: 'show',
+            class: 'my-class',  // Unsupported attribute
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support attributes')
+      );
+      // Should still render the content
+      const p = fragment.firstChild as HTMLElement;
+      expect(p.tagName).toBe('P');
+      expect(p.textContent).toBe('Content');
+    });
+
+    // Test that warning is logged for $children on $if tag
+    test('logs warning for $children on $if tag', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          $if: {
+            $check: 'show',
+            $children: [{ p: 'Ignored' }],
+            $then: { p: 'Content' }
+          } as any
+        },
+        data: { show: true }
+      }, { logger: mockLogger });
+
+      // Should log a warning
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('"$if" tag does not support $children')
+      );
+      // Should render $then, not $children
+      const p = fragment.firstChild as HTMLElement;
+      expect(p.tagName).toBe('P');
+      expect(p.textContent).toBe('Content');
     });
 
     // Operator tests

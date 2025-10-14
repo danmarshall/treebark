@@ -104,6 +104,28 @@
             }
           ]
         }
+      },
+      {
+        "displayName": "logger",
+        "testMatch": ["<rootDir>/src/logger.test.ts"],
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "jsdom",
+        "extensionsToTreatAsEsm": [".ts"],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
+              }
+            }
+          ]
+        }
       }
     ]
   }

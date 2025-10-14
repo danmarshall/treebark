@@ -126,6 +126,7 @@ const indentSize = document.getElementById('indent-size');
 function updateOutput() {
     try {
         errorDisplay.style.display = 'none';
+        errorDisplay.innerHTML = '';
         
         const templateText = templateEditor.value.trim();
         const dataText = dataEditor.value.trim();
@@ -160,19 +161,53 @@ function updateOutput() {
             indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
         }
         
-        // Render using treebark
-        const input = { template, data };
-        const options = { indent };
+        // Capture console logs during rendering
+        const logs = [];
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const originalLog = console.log;
         
-        const html = window.Treebark ? window.Treebark.renderToString(input, options) : 'Treebark not loaded';
+        console.error = (msg) => { logs.push({ level: 'error', message: msg }); originalError(msg); };
+        console.warn = (msg) => { logs.push({ level: 'warn', message: msg }); originalWarn(msg); };
+        console.log = (msg) => { logs.push({ level: 'log', message: msg }); originalLog(msg); };
         
-        htmlOutput.textContent = html;
+        try {
+            // Render using treebark
+            const input = { template, data };
+            const options = { indent };
+            
+            const html = window.Treebark ? window.Treebark.renderToString(input, options) : 'Treebark not loaded';
+            
+            htmlOutput.textContent = html;
+        } finally {
+            // Restore original console methods
+            console.error = originalError;
+            console.warn = originalWarn;
+            console.log = originalLog;
+        }
+        
+        // Display captured logs
+        if (logs.length > 0) {
+            const logMessages = logs.map(log => {
+                const icon = log.level === 'error' ? '❌' : log.level === 'warn' ? '⚠️' : 'ℹ️';
+                return `<div class="log-${log.level}">${icon} ${escapeHtml(log.message)}</div>`;
+            }).join('');
+            errorDisplay.innerHTML = logMessages;
+            errorDisplay.style.display = 'block';
+        }
         
     } catch (error) {
-        errorDisplay.textContent = 'Error: ' + error.message;
+        errorDisplay.innerHTML = '<div class="log-error">❌ Error: ' + escapeHtml(error.message) + '</div>';
         errorDisplay.style.display = 'block';
         htmlOutput.textContent = '';
     }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // Load example
