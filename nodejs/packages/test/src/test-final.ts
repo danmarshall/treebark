@@ -13,7 +13,7 @@ const mockLogger = {
 console.log('Test 1: Scalar zero as data');
 const test1 = renderToString({
   template: { div: 'Value: {{.}}' },
-  data: 0 as any
+  data: 0
 }, { logger: mockLogger });
 console.log('Result:', test1);
 console.log('Expected: <div>Value: 0</div>\n');
@@ -22,7 +22,7 @@ console.log('Expected: <div>Value: 0</div>\n');
 console.log('Test 2: Scalar null as data');
 const test2 = renderToString({
   template: { div: 'Value: {{.}}' },
-  data: null as any
+  data: null
 }, { logger: mockLogger });
 console.log('Result:', test2);
 console.log('Expected: <div>Value: </div>\n');
@@ -31,7 +31,7 @@ console.log('Expected: <div>Value: </div>\n');
 console.log('Test 3: Accessing property on scalar (should error)');
 const test3 = renderToString({
   template: { div: 'Value: {{count}}' },
-  data: 42 as any
+  data: 42
 }, { logger: mockLogger });
 console.log('Result:', test3);
 console.log('Expected: Error logged + <div>Value: </div>\n');

@@ -1,8 +1,8 @@
 // Type definitions for treebark templates
 // This file contains only type definitions, no executable code
 
-// Data type for template rendering - can be object, array, primitive, null, or undefined
-export type Data = Record<string, unknown> | Record<string, unknown>[] | string | number | boolean | null | undefined;
+// Data type for template rendering - accepts any value
+export type Data = unknown;
 
 // Primitive value type for attribute values
 export type PrimitiveValue = string | number | boolean;

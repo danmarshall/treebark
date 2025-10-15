@@ -22,7 +22,7 @@ console.log('Expected: <div>Count: </div>\n');
 console.log('Test 3: Zero as data');
 const test3 = renderToString({
   template: { div: 'Value: {{.}}' },
-  data: 0 as any
+  data: 0
 });
 console.log('Result:', test3);
 console.log('Expected: <div>Value: 0</div>\n');
@@ -31,7 +31,7 @@ console.log('Expected: <div>Value: 0</div>\n');
 console.log('Test 4: null as data');
 const test4 = renderToString({
   template: { div: 'Value: {{.}}' },
-  data: null as any
+  data: null
 });
 console.log('Result:', test4);
 console.log('Expected: <div>Value: </div>\n');
