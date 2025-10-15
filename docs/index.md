@@ -27,6 +27,29 @@ Output:
 </div>
 ```
 
+## Table of Contents
+
+- [Problem](#problem)
+- [Solution](#solution)
+  - [Key Insight](#key-insight)
+  - [Allowed Tags](#allowed-tags)
+  - [Allowed Attributes](#allowed-attributes)
+  - [Special Keys](#special-keys)
+- [Examples](#examples)
+  - [Nested Elements](#nested-elements)
+  - [Attributes](#attributes)
+  - [Mixed Content](#mixed-content)
+  - [With Data Binding](#with-data-binding)
+  - [Binding with $bind](#binding-with-bind)
+  - [Parent Property Access](#parent-property-access)
+  - [Working with Arrays](#working-with-arrays)
+  - [Comments](#comments)
+  - [Conditional Rendering](#conditional-rendering)
+- [Format Notes](#format-notes)
+- [Available Libraries](#available-libraries)
+  - [Implementations](#implementations)
+- [Name Origin](#name-origin)
+
 ## Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
 
@@ -87,7 +110,7 @@ This means the implementation is featherweight.
 
 **Data binding:**
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
-- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
+- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
 
 **Conditional keys (used in `$if` tag and conditional attribute values):**
 - `$check`: String. Property path to check.
@@ -112,7 +135,7 @@ For nodes without attributes, you can use a shorthand array syntax:
 {
   "div": [
     { "h2": "Welcome" },
-    { "p": "This is much cleaner!" },
+    { "p": "Using shorthand array syntax" },
     {
       "ul": [
         { "li": "Item 1" },
@@ -130,7 +153,7 @@ You can also use a `$children` element to define child elements:
   "div": {
     "$children": [
       { "h2": "Welcome" }, 
-      { "p": "This is much cleaner!" },
+      { "p": "Using $children syntax" },
       {
         "ul": {
           "$children": [
@@ -146,7 +169,7 @@ You can also use a `$children` element to define child elements:
 
 Output:
 ```html
-<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+<div><h2>Welcome</h2><p>Using $children syntax</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
 ```
 
 ### Attributes
