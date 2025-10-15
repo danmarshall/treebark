@@ -62,7 +62,7 @@ Treebark follows a **no-throw policy**. Instead of throwing exceptions, errors a
 - Invalid tags are skipped and an error is logged
 - Invalid attributes are skipped and a warning is logged
 - Nested comments are skipped and an error is logged
-- Invalid conditional syntax logs an error and the element is skipped
+- Invalid conditional syntax is logged as an error and the element is skipped
 
 Treebark renders as much valid content as possible, only skipping problematic elements.
 
