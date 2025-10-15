@@ -462,6 +462,7 @@ blockquote {
         font-size: 1.125rem;
     }
     
+    /* Hero tagline blockquote - matches h1 size as it replaces the hidden h1#treebark */
     h1#treebark + blockquote {
         font-size: 1.25rem;
     }
