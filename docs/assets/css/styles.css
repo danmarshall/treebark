@@ -467,6 +467,25 @@ blockquote {
         font-size: 1.25rem;
     }
     
+    /* Constrain content width to prevent horizontal scrolling */
+    .content {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    /* Reduce code block font size on mobile */
+    code {
+        font-size: 0.75rem;
+    }
+    
+    pre:not(.highlight),
+    .highlight {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+    
     .playground-container {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
