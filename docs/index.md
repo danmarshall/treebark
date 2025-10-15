@@ -8,6 +8,30 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
+## Table of Contents
+
+- [Hello World](#hello-world)
+- [Problem](#problem)
+- [Solution](#solution)
+  - [Key Insight](#key-insight)
+  - [Allowed Tags](#allowed-tags)
+  - [Allowed Attributes](#allowed-attributes)
+  - [Special Keys](#special-keys)
+- [Examples](#examples)
+  - [Nested Elements](#nested-elements)
+  - [Attributes](#attributes)
+  - [Mixed Content](#mixed-content)
+  - [With Data Binding](#with-data-binding)
+  - [Binding with $bind](#binding-with-bind)
+  - [Parent Property Access](#parent-property-access)
+  - [Working with Arrays](#working-with-arrays)
+  - [Comments](#comments)
+  - [Conditional Rendering](#conditional-rendering)
+- [Format Notes](#format-notes)
+- [Available Libraries](#available-libraries)
+  - [Implementations](#implementations)
+- [Name Origin](#name-origin)
+
 ### Hello World
 
 ```json
@@ -87,7 +111,7 @@ This means the implementation is featherweight.
 
 **Data binding:**
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
-- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item (the element itself is not duplicated unless the bound node is the root template).
+- `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
 
 **Conditional keys (used in `$if` tag and conditional attribute values):**
 - `$check`: String. Property path to check.
