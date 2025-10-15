@@ -17,7 +17,9 @@ export function renderToDOM(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  const data = input.data || {};
+  // Use empty object as default only when data is undefined
+  // Allow null, 0, false, empty string as valid data values
+  const data = input.data === undefined ? {} : input.data;
   
   // Set logger to console if not provided
   const logger = options.logger || console;
@@ -34,7 +36,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const parents = context.parents || [];
   const logger = context.logger;
   
-  if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents));
+  if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents, logger));
   if (Array.isArray(template)) {
     const results: Node[] = [];
     for (const t of template) {
@@ -114,7 +116,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     // $bind uses literal property paths only - no parent context access
-    const bound = getProperty(data, rest.$bind, []);
+    const bound = getProperty(data, rest.$bind, [], logger);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag, parents, logger);
     
@@ -141,6 +143,12 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
         }
       }
       return element;
+    }
+    
+    // Check if bound is a primitive and we're trying to access children
+    if (bound !== null && bound !== undefined && typeof bound !== 'object') {
+      logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
+      return [];
     }
     
     // For object binding, bound should be a Data object
@@ -176,9 +184,9 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     // Check if value is a conditional value
     if (isConditionalValue(value)) {
       const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
-      element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents));
+      element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents, logger));
     } else {
-      element.setAttribute(key, interpolate(String(value), data, false, parents));
+      element.setAttribute(key, interpolate(String(value), data, false, parents, logger));
     }
   });
 }

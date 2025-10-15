@@ -57,7 +57,7 @@ export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$jo
  * Get a nested property from an object using dot notation
  * Supports parent property access with .. notation
  */
-export function getProperty(obj: Data, path: string, parents: Data[] = []): unknown {
+export function getProperty(obj: Data, path: string, parents: Data[] = [], logger?: Logger): unknown {
   // Special case: "." means the current object itself
   if (path === '.') {
     return obj;
@@ -94,6 +94,11 @@ export function getProperty(obj: Data, path: string, parents: Data[] = []): unkn
 
   // If there's remaining path, process it normally
   if (remainingPath) {
+    // Log error if trying to access property on a primitive (number, string, boolean)
+    if (logger && typeof currentObj !== 'object' && currentObj !== null && currentObj !== undefined) {
+      logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentObj}"`);
+      return undefined;
+    }
     return remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
       (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentObj);
   }
@@ -111,7 +116,7 @@ export function escape(s: string): string {
 /**
  * Interpolate template variables in a string
  */
-export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = []): string {
+export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = [], logger?: Logger): string {
   // Use non-overlapping alternation with restricted character class to avoid ReDoS vulnerability
   // [^{]*? prevents the regex from matching opening braces in the content, eliminating polynomial backtracking
   // First alternative matches {{{...}}} for escaping, second matches {{...}} for interpolation
@@ -123,7 +128,7 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
     }
     // Otherwise, we matched {{...}}
     const trimmed = normalExpr.trim();
-    const val = getProperty(data, trimmed, parents);
+    const val = getProperty(data, trimmed, parents, logger);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }

@@ -45,7 +45,9 @@ export function renderToString(
   input: TreebarkInput,
   options: RenderOptions = {}
 ): string {
-  const data = input.data || {};
+  // Use empty object as default only when data is undefined
+  // Allow null, 0, false, empty string as valid data values
+  const data = input.data === undefined ? {} : input.data;
 
   // Set logger to console if not provided
   const logger = options.logger || console;
@@ -89,7 +91,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const parents = context.parents || [];
   const logger = context.logger;
   
-  if (typeof template === "string") return interpolate(template, data, true, parents);
+  if (typeof template === "string") return interpolate(template, data, true, parents, logger);
 
   if (Array.isArray(template)) {
     return template.map(t => render(t, data, context)).join(context.indentStr ? '\n' : '');
@@ -156,10 +158,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return '';
     }
     
-    const bound = getProperty(data, rest.$bind, []);
+    const bound = getProperty(data, rest.$bind, [], logger);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
+      // Check if bound is a primitive and we're trying to access children
+      if (bound !== null && bound !== undefined && typeof bound !== 'object') {
+        logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
+        return '';
+      }
       const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
       const newParents = [...parents, data];
       return render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
@@ -201,9 +208,9 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       // Check if value is a conditional value
       if (isConditionalValue(v)) {
         const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents, logger))}"`;
       } else {
-        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+        return `${k}="${escape(interpolate(String(v), data, false, parents, logger))}"`;
       }
     })
     .join(" ");
