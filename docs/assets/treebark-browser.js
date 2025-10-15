@@ -54,11 +54,11 @@
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
-  function getProperty(obj, path, parents = [], logger) {
+  function getProperty(data, path, parents = [], logger) {
     if (path === ".") {
-      return obj;
+      return data;
     }
-    let currentObj = obj;
+    let currentData = data;
     let remainingPath = path;
     while (remainingPath.startsWith("..")) {
       let parentLevels = 0;
@@ -71,20 +71,20 @@
         }
       }
       if (parentLevels <= parents.length) {
-        currentObj = parents[parents.length - parentLevels];
+        currentData = parents[parents.length - parentLevels];
         remainingPath = tempPath.startsWith(".") ? tempPath.substring(1) : tempPath;
       } else {
         return void 0;
       }
     }
     if (remainingPath) {
-      if (logger && typeof currentObj !== "object" && currentObj !== null && currentObj !== void 0) {
-        logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentObj}"`);
+      if (logger && typeof currentData !== "object" && currentData !== null && currentData !== void 0) {
+        logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
         return void 0;
       }
-      return remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentObj);
+      return remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentData);
     }
-    return currentObj;
+    return currentData;
   }
   function escape(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);

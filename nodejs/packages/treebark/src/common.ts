@@ -54,17 +54,17 @@ export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
 /**
- * Get a nested property from an object using dot notation
+ * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
  */
-export function getProperty(obj: Data, path: string, parents: Data[] = [], logger?: Logger): unknown {
-  // Special case: "." means the current object itself
+export function getProperty(data: Data, path: string, parents: Data[] = [], logger?: Logger): unknown {
+  // Special case: "." means the current data value itself
   if (path === '.') {
-    return obj;
+    return data;
   }
 
   // Handle parent property access patterns
-  let currentObj: unknown = obj;
+  let currentData: unknown = data;
   let remainingPath = path;
 
   // Process parent references (..)
@@ -85,7 +85,7 @@ export function getProperty(obj: Data, path: string, parents: Data[] = [], logge
 
     // Navigate up the parent chain
     if (parentLevels <= parents.length) {
-      currentObj = parents[parents.length - parentLevels];
+      currentData = parents[parents.length - parentLevels];
       remainingPath = tempPath.startsWith('.') ? tempPath.substring(1) : tempPath;
     } else {
       return undefined;
@@ -95,15 +95,15 @@ export function getProperty(obj: Data, path: string, parents: Data[] = [], logge
   // If there's remaining path, process it normally
   if (remainingPath) {
     // Log error if trying to access property on a primitive (number, string, boolean)
-    if (logger && typeof currentObj !== 'object' && currentObj !== null && currentObj !== undefined) {
-      logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentObj}"`);
+    if (logger && typeof currentData !== 'object' && currentData !== null && currentData !== undefined) {
+      logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
       return undefined;
     }
     return remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
-      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentObj);
+      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentData);
   }
 
-  return currentObj;
+  return currentData;
 }
 
 /**
