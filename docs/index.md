@@ -8,9 +8,27 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 
 > Safe HTML tree structures for Markdown and content-driven apps.
 
+### Hello World
+
+```json
+{
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
+}
+```
+
+Output:
+```html
+<div>
+  <h1>Hello world</h1>
+  <p>Welcome to treebark templates</p>
+</div>
+```
+
 ## Table of Contents
 
-- [Hello World](#hello-world)
 - [Problem](#problem)
 - [Solution](#solution)
   - [Key Insight](#key-insight)
@@ -31,25 +49,6 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 - [Available Libraries](#available-libraries)
   - [Implementations](#implementations)
 - [Name Origin](#name-origin)
-
-### Hello World
-
-```json
-{
-  "div": [
-    { "h1": "Hello world" },
-    { "p": "Welcome to treebark templates" }
-  ]
-}
-```
-
-Output:
-```html
-<div>
-  <h1>Hello world</h1>
-  <p>Welcome to treebark templates</p>
-</div>
-```
 
 ## Problem  
 You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
@@ -136,7 +135,7 @@ For nodes without attributes, you can use a shorthand array syntax:
 {
   "div": [
     { "h2": "Welcome" },
-    { "p": "This is much cleaner!" },
+    { "p": "Using shorthand array syntax" },
     {
       "ul": [
         { "li": "Item 1" },
@@ -154,7 +153,7 @@ You can also use a `$children` element to define child elements:
   "div": {
     "$children": [
       { "h2": "Welcome" }, 
-      { "p": "This is much cleaner!" },
+      { "p": "Using $children syntax" },
       {
         "ul": {
           "$children": [
@@ -170,7 +169,7 @@ You can also use a `$children` element to define child elements:
 
 Output:
 ```html
-<div><h2>Welcome</h2><p>This is much cleaner!</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
+<div><h2>Welcome</h2><p>Using $children syntax</p><ul><li>Item 1</li><li>Item 2</li></ul></div>
 ```
 
 ### Attributes
