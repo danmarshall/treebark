@@ -876,22 +876,7 @@ Treebark follows a **no-throw policy**: instead of throwing exceptions, errors a
 
 **Default behavior:** By default, errors and warnings are logged to `console`.
 
-**Custom logger:** You can provide a custom logger by passing it in the `options` parameter:
-
-```javascript
-import { renderToString } from 'treebark';
-
-const customLogger = {
-  error: (message) => { /* handle error */ },
-  warn: (message) => { /* handle warning */ },
-  log: (message) => { /* handle info */ }
-};
-
-const result = renderToString(
-  { template: { div: "Hello" } },
-  { logger: customLogger }
-);
-```
+**Custom logger:** You can provide a custom logger by passing it in the `options` parameter.
 
 **When errors occur:**
 - **Invalid tags** (e.g., `script`, `onclick`): The element is skipped, and an error is logged
