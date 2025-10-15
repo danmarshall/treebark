@@ -62,7 +62,7 @@ Treebark follows a **no-throw policy**. Instead of throwing exceptions, errors a
 - Invalid tags are skipped and an error is logged
 - Invalid attributes are skipped and a warning is logged
 - Nested comments are skipped and an error is logged
-- Invalid conditional syntax is logged and the element is skipped
+- Invalid conditional syntax logs an error and the element is skipped
 
 Treebark renders as much valid content as possible, only skipping problematic elements.
 
@@ -285,7 +285,7 @@ $comment: "This is a comment"
 **Features:**
 - Support interpolation: `$comment: "Generated on {{date}}"`
 - Support mixed content with `$children`
-- Cannot be nested (attempting to place a `$comment` inside another `$comment` will log an error and skip the nested comment)
+- Cannot be nested (attempting to place a `$comment` inside another `$comment` logs an error and skips rendering the nested comment)
 
 **Examples:**
 
