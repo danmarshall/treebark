@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it';
-import { renderToString, Logger } from 'treebark';
+import { renderToString, Logger, RenderOptions } from 'treebark';
 
 export interface TreebarkPluginOptions {
   /**
@@ -105,7 +105,7 @@ function renderTreebarkBlock(
   }
 
   // Create render options with logger if provided
-  const renderOptions: { indent?: string | number | boolean; logger?: Logger } = { indent };
+  const renderOptions: RenderOptions = { indent };
   if (logger) {
     renderOptions.logger = logger;
   }
