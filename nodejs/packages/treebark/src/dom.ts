@@ -17,9 +17,7 @@ export function renderToDOM(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  // Use empty object as default only when data is undefined
-  // Allow null, 0, false, empty string as valid data values
-  const data = input.data === undefined ? {} : input.data;
+  const data = input.data;
   
   // Set logger to console if not provided
   const logger = options.logger || console;

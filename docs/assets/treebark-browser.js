@@ -54,7 +54,7 @@
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
-  function getProperty(obj, path, parents = []) {
+  function getProperty(obj, path, parents = [], logger) {
     if (path === ".") {
       return obj;
     }
@@ -78,6 +78,10 @@
       }
     }
     if (remainingPath) {
+      if (logger && typeof currentObj !== "object" && currentObj !== null && currentObj !== void 0) {
+        logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentObj}"`);
+        return void 0;
+      }
       return remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentObj);
     }
     return currentObj;
@@ -85,14 +89,14 @@
   function escape(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
-  function interpolate(tpl, data, escapeHtml = true, parents = []) {
+  function interpolate(tpl, data, escapeHtml = true, parents = [], logger) {
     return tpl.replace(/\{\{\{([^{]*?)\}\}\}|\{\{([^{]*?)\}\}/g, (match, escapedExpr, normalExpr) => {
       if (escapedExpr !== void 0) {
         const trimmed2 = escapedExpr.trim();
         return `{{${trimmed2}}}`;
       }
       const trimmed = normalExpr.trim();
-      const val = getProperty(data, trimmed, parents);
+      const val = getProperty(data, trimmed, parents, logger);
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
@@ -244,7 +248,7 @@
     return result;
   };
   function renderToString(input, options = {}) {
-    const data = input.data || {};
+    const data = input.data;
     const logger = options.logger || console;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
@@ -268,7 +272,7 @@
   function render(template, data, context) {
     const parents = context.parents || [];
     const logger = context.logger;
-    if (typeof template === "string") return interpolate(template, data, true, parents);
+    if (typeof template === "string") return interpolate(template, data, true, parents, logger);
     if (Array.isArray(template)) {
       return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
     }
@@ -315,9 +319,13 @@
       if (!validatePathExpression(rest.$bind, "$bind", logger)) {
         return "";
       }
-      const bound = getProperty(data, rest.$bind, []);
+      const bound = getProperty(data, rest.$bind, [], logger);
       const { $bind, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
+        if (bound !== null && bound !== void 0 && typeof bound !== "object") {
+          logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
+          return "";
+        }
         const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
@@ -349,9 +357,9 @@
     const pairs = Object.entries(attrs).filter(([key]) => validateAttribute(key, tag, logger)).map(([k, v]) => {
       if (isConditionalValue(v)) {
         const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents))}"`;
+        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents, logger))}"`;
       } else {
-        return `${k}="${escape(interpolate(String(v), data, false, parents))}"`;
+        return `${k}="${escape(interpolate(String(v), data, false, parents, logger))}"`;
       }
     }).join(" ");
     return pairs ? " " + pairs : "";
