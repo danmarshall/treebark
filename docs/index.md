@@ -879,8 +879,8 @@ Treebark follows a **no-throw policy**: instead of throwing exceptions, errors a
 **Custom logger:** You can provide a custom logger by passing it in the `options` parameter.
 
 **When errors occur:**
-- **Invalid tags** (e.g., `script`, `onclick`): The element is skipped, and an error is logged
-- **Invalid attributes**: The attribute is skipped, and a warning is logged
+- **Invalid tags** (e.g., `script`): The element is skipped, and an error is logged
+- **Invalid attributes**: (e.g., `onclick`) The attribute is skipped, and a warning is logged
 - **Invalid conditional syntax**: The element is skipped, and an error is logged
 - **Nested comments**: The nested comment is skipped, and an error is logged
 
