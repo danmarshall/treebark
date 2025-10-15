@@ -138,7 +138,6 @@ export interface Logger {
 
 // Options interface for render functions
 export interface RenderOptions {
-  data?: Data;
   indent?: string | number | boolean;
   logger?: Logger;
 }

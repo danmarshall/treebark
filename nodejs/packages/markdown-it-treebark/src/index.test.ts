@@ -1,7 +1,7 @@
 import MarkdownIt from 'markdown-it';
 import treebarkPlugin from './index';
 import yaml from 'js-yaml';
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('markdown-it-treebark plugin', () => {
   let md: MarkdownIt;
@@ -355,6 +355,115 @@ div:
 `;
       const result = md.render(markdown);
       expect(result).toContain('<div class="card"><h2>Product Card</h2></div>');
+    });
+  });
+
+  describe('Logger functionality', () => {
+    it('should use custom logger when provided', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const mdWithLogger = new MarkdownIt();
+      mdWithLogger.use(treebarkPlugin, { yaml, logger: mockLogger });
+
+      const markdown = `
+\`\`\`treebark
+script: "alert('xss')"
+\`\`\`
+`;
+      const result = mdWithLogger.render(markdown);
+
+      // Invalid tag should be logged to custom logger
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Tag "script" is not allowed')
+      );
+      expect(result).toBe('\n');
+    });
+
+    it('should pass logger through to treebark renderer for invalid attributes', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const mdWithLogger = new MarkdownIt();
+      mdWithLogger.use(treebarkPlugin, { yaml, logger: mockLogger });
+
+      const markdown = `
+\`\`\`treebark
+div:
+  onclick: "alert('bad')"
+  class: "valid"
+  $children:
+    - "Content"
+\`\`\`
+`;
+      const result = mdWithLogger.render(markdown);
+
+      // Invalid attribute should be logged to custom logger
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Attribute "onclick" is not allowed')
+      );
+      expect(result).toContain('<div class="valid">Content</div>');
+    });
+
+    it('should use console logger when no logger provided', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const mdDefault = new MarkdownIt();
+      mdDefault.use(treebarkPlugin, { yaml });
+
+      const markdown = `
+\`\`\`treebark
+script: "alert('xss')"
+\`\`\`
+`;
+      const result = mdDefault.render(markdown);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Tag "script" is not allowed')
+      );
+      expect(result).toBe('\n');
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should pass logger through for nested invalid elements', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const mdWithLogger = new MarkdownIt();
+      mdWithLogger.use(treebarkPlugin, { yaml, logger: mockLogger });
+
+      const markdown = `
+\`\`\`treebark
+div:
+  $children:
+    - p: "Valid paragraph"
+    - script: "Bad script"
+    - span: "Valid span"
+\`\`\`
+`;
+      const result = mdWithLogger.render(markdown);
+
+      // Should log error for the script tag
+      expect(mockLogger.error).toHaveBeenCalledTimes(1);
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Tag "script" is not allowed')
+      );
+
+      // Should render valid children
+      expect(result).toContain('<div>');
+      expect(result).toContain('<p>Valid paragraph</p>');
+      expect(result).toContain('<span>Valid span</span>');
+      expect(result).not.toContain('script');
     });
   });
 });

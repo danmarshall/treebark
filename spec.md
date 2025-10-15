@@ -11,6 +11,21 @@ interface TreebarkInput {
 }
 ```
 
+Rendering functions also accept optional `RenderOptions`:
+
+```typescript
+interface RenderOptions {
+  indent?: string | number | boolean;  // Indentation for string renderer
+  logger?: Logger;       // Custom logger for error/warning messages
+}
+
+interface Logger {
+  error(message: string): void;
+  warn(message: string): void;
+  log(message: string): void;
+}
+```
+
 ### Examples:
 
 **Simple template:**
@@ -28,9 +43,31 @@ interface TreebarkInput {
 }
 ```
 
+**With custom logger:**
+```javascript
+renderToString(
+  { template: { div: "Hello" } },
+  { logger: customLogger }
+)
+```
+
 ---
 
-## 2. Node Types  
+## 2. Error Handling
+
+Treebark follows a **no-throw policy**. Instead of throwing exceptions, errors and warnings are sent to a logger (defaults to `console`).
+
+**Behavior when errors occur:**
+- Invalid tags are skipped and an error is logged
+- Invalid attributes are skipped and a warning is logged
+- Nested comments are skipped and an error is logged
+- Invalid conditional syntax is logged as an error and the element is skipped
+
+Treebark renders as much valid content as possible, only skipping problematic elements.
+
+---
+
+## 3. Node Types  
 
 - **Tag Node:** `{ "div": { ... } }`  
 - **Array (fragment):** `[ node, node, ... ]` → renders siblings with no wrapper  
@@ -38,14 +75,14 @@ interface TreebarkInput {
 
 ---
 
-## 3. Reserved Keys  
+## 4. Reserved Keys  
 
 - **`$children`** → array of child nodes (strings, nodes, or arrays)  
 - **`$bind`** → bind current node to an array or object property in data  
 
 ---
 
-## 4. Shorthand Array Syntax
+## 5. Shorthand Array Syntax
 
 For nodes without attributes, you can use a shorthand array syntax instead of `$children`:
 
@@ -71,7 +108,7 @@ div:
 
 ---
 
-## 5. Interpolation  
+## 6. Interpolation  
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
@@ -84,7 +121,7 @@ div:
 
 ---
 
-## 6. Mixed Content  
+## 7. Mixed Content  
 
 - `$children` can contain strings + nodes:  
   ```yaml
@@ -114,7 +151,7 @@ div:
 
 ---
 
-## 7. Attributes  
+## 8. Attributes  
 
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
@@ -129,7 +166,7 @@ div:
 
 ---
 
-## 8. Advanced Array Binding with $bind
+## 9. Advanced Array Binding with $bind
 
 For complex array scenarios where you need a wrapper element or nested structure, use `$bind`:
 
@@ -214,7 +251,7 @@ For complex array scenarios where you need a wrapper element or nested structure
 
 ---
 
-## 9. Tag Whitelist  
+## 10. Tag Whitelist  
 
 **Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
@@ -234,7 +271,7 @@ Blocked tags:
 
 ---
 
-## 10. Comments
+## 11. Comments
 
 HTML comments are generated using the `$comment` tag:
 
@@ -247,7 +284,7 @@ $comment: "This is a comment"
 **Features:**
 - Support interpolation: `$comment: "Generated on {{date}}"`
 - Support mixed content with `$children`
-- Cannot be nested (attempting to place a `$comment` inside another `$comment` throws an error)
+- Cannot be nested (attempting to place a `$comment` inside another `$comment` logs an error and skips rendering the nested comment)
 
 **Examples:**
 
@@ -272,7 +309,7 @@ $comment:
 
 ---
 
-## 11. Conditional Rendering with "$if" Tag
+## 12. Conditional Rendering with "$if" Tag
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 

@@ -92,6 +92,13 @@ md.use(treebarkPlugin, {
   // indent: 4      // Use 4 spaces for indentation
   // indent: '\t'   // Use tabs for indentation
   // indent: false  // No indentation (default)
+
+  // Custom logger for error/warning messages (optional)
+  logger: {
+    error: (msg) => console.error('Treebark Error:', msg),
+    warn: (msg) => console.warn('Treebark Warning:', msg),
+    log: (msg) => console.log('Treebark:', msg)
+  }
 });
 ```
 
@@ -148,6 +155,38 @@ md.use(treebarkPlugin, { indent: false });
   <p>A simple card component</p>
 </div>
 ```
+
+### Custom Logger
+
+By default, treebark logs errors and warnings to the console. You can provide a custom logger to handle these messages differently:
+
+```javascript
+// Custom logger that captures messages
+const logger = {
+  error: (message) => {
+    // Handle error messages (e.g., invalid tags)
+    myErrorHandler(message);
+  },
+  warn: (message) => {
+    // Handle warning messages (e.g., invalid attributes)
+    myWarningHandler(message);
+  },
+  log: (message) => {
+    // Handle info messages
+    myLogHandler(message);
+  }
+};
+
+md.use(treebarkPlugin, { yaml, logger });
+```
+
+**Use cases for custom loggers:**
+- Capture and display validation errors in a UI
+- Log errors to an analytics service
+- Silent mode (no-op logger) for production
+- Collect all errors for batch processing
+
+**No-throw policy:** Treebark follows a no-throw policy. Instead of throwing exceptions, it logs errors and continues rendering valid content. This means your markdown will always render, even if some treebark blocks have errors.
 
 ## Examples
 
@@ -317,8 +356,30 @@ Treebark is safe by default and only allows whitelisted HTML tags and attributes
 
 ## Error Handling
 
+Treebark follows a **no-throw policy**: errors are logged (not thrown) and rendering continues with valid content.
 
-If a treebark block contains invalid YAML/JSON or violates safety rules, an error message will be displayed instead of the content:
+**Default behavior:** Invalid tags and attributes are logged to the console, but the markdown-it plugin catches any parsing errors and displays them in the rendered output.
+
+### Parsing Errors
+
+If a treebark block contains invalid YAML/JSON, an error message will be displayed:
+
+````markdown
+```treebark
+{ invalid json
+```
+````
+
+Renders to:
+```html
+<div class="treebark-error">
+  <strong>Treebark Error:</strong> Failed to parse as JSON: Unexpected token...
+</div>
+```
+
+### Validation Errors
+
+If a treebark block violates safety rules, the invalid elements are skipped and errors are logged to the console (or your custom logger):
 
 ````markdown
 ```treebark
@@ -326,11 +387,19 @@ script: "alert('xss attempt')"
 ```
 ````
 
-Renders to:
-```html
-<div class="treebark-error">
-  <strong>Treebark Error:</strong> Tag "script" is not allowed
-</div>
+This renders as an empty string (`\n`) because the `script` tag is not allowed. The error "Tag 'script' is not allowed" is logged to the console.
+
+**To capture validation errors**, provide a custom logger:
+
+```javascript
+const errors = [];
+md.use(treebarkPlugin, {
+  logger: {
+    error: (msg) => errors.push(msg),
+    warn: (msg) => console.warn(msg),
+    log: (msg) => console.log(msg)
+  }
+});
 ```
 
 ## License
