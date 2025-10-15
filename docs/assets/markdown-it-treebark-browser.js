@@ -244,7 +244,7 @@
     return result;
   };
   function renderToString(input, options = {}) {
-    const data = Array.isArray(input.data) ? input.data : { ...input.data, ...options.data };
+    const data = input.data || {};
     const logger = options.logger || console;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",

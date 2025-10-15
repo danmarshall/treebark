@@ -15,7 +15,6 @@ Rendering functions also accept optional `RenderOptions`:
 
 ```typescript
 interface RenderOptions {
-  data?: Data;           // Additional data to merge with input.data
   indent?: string | number | boolean;  // Indentation for string renderer
   logger?: Logger;       // Custom logger for error/warning messages
 }

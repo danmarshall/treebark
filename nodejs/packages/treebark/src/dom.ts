@@ -17,10 +17,7 @@ export function renderToDOM(
   input: TreebarkInput, 
   options: RenderOptions = {}
 ): DocumentFragment {
-  // Preserve arrays as arrays, only spread objects
-  const data = Array.isArray(input.data) 
-    ? input.data 
-    : { ...input.data, ...options.data };
+  const data = input.data || {};
   
   // Set logger to console if not provided
   const logger = options.logger || console;
