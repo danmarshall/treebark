@@ -401,10 +401,7 @@
     if (!template) {
       throw new Error("Empty or invalid template");
     }
-    const renderOptions = { indent };
-    if (logger) {
-      renderOptions.logger = logger;
-    }
+    const renderOptions = { indent, logger };
     if (template && typeof template === "object" && "template" in template) {
       const mergedData = { ...defaultData, ...template.data };
       return renderToString({ template: template.template, data: mergedData }, renderOptions);

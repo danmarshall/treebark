@@ -104,11 +104,8 @@ function renderTreebarkBlock(
     throw new Error('Empty or invalid template');
   }
 
-  // Create render options with logger if provided
-  const renderOptions: RenderOptions = { indent };
-  if (logger) {
-    renderOptions.logger = logger;
-  }
+  // Create render options
+  const renderOptions: RenderOptions = { indent, logger };
 
   // Check if template is already in TreebarkInput format
   if (template && typeof template === 'object' && 'template' in template) {
