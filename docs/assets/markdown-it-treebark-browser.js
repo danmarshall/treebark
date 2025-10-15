@@ -357,14 +357,14 @@
     return pairs ? " " + pairs : "";
   }
   function treebarkPlugin(md, options = {}) {
-    const { data = {}, yaml, indent } = options;
+    const { data = {}, yaml, indent, logger } = options;
     const originalFence = md.renderer.rules.fence;
     md.renderer.rules.fence = function(tokens, idx, options2, env, renderer) {
       const token = tokens[idx];
       const info = token.info ? token.info.trim() : "";
       if (info === "treebark" || info.startsWith("treebark ")) {
         try {
-          return renderTreebarkBlock(token.content, data, yaml, indent) + "\n";
+          return renderTreebarkBlock(token.content, data, yaml, indent, logger) + "\n";
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : "Unknown error";
           return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>
@@ -374,7 +374,7 @@
       return originalFence ? originalFence(tokens, idx, options2, env, renderer) : "";
     };
   }
-  function renderTreebarkBlock(content, defaultData, yaml, indent) {
+  function renderTreebarkBlock(content, defaultData, yaml, indent, logger) {
     let template;
     let yamlError = null;
     if (!content.trim()) {
@@ -401,11 +401,15 @@
     if (!template) {
       throw new Error("Empty or invalid template");
     }
+    const renderOptions = { indent };
+    if (logger) {
+      renderOptions.logger = logger;
+    }
     if (template && typeof template === "object" && "template" in template) {
       const mergedData = { ...defaultData, ...template.data };
-      return renderToString({ template: template.template, data: mergedData }, { indent });
+      return renderToString({ template: template.template, data: mergedData }, renderOptions);
     } else {
-      return renderToString({ template, data: defaultData }, { indent });
+      return renderToString({ template, data: defaultData }, renderOptions);
     }
   }
   function escapeHtml(text) {

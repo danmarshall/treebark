@@ -1,5 +1,5 @@
 import MarkdownIt from 'markdown-it';
-import { renderToString } from 'treebark';
+import { renderToString, Logger } from 'treebark';
 
 export interface TreebarkPluginOptions {
   /**
@@ -23,13 +23,19 @@ export interface TreebarkPluginOptions {
    * - false/undefined: no indentation (default)
    */
   indent?: string | number | boolean;
+
+  /**
+   * Custom logger for error/warning messages
+   * Defaults to console if not provided
+   */
+  logger?: Logger;
 }
 
 /**
  * Markdown-it plugin for rendering treebark templates
  */
 export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOptions = {}) {
-  const { data = {}, yaml, indent } = options;
+  const { data = {}, yaml, indent, logger } = options;
 
   // Store the original fence rule
   const originalFence = md.renderer.rules.fence;
@@ -41,7 +47,7 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, yaml, indent) + '\n';
+        return renderTreebarkBlock(token.content, data, yaml, indent, logger) + '\n';
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -61,7 +67,8 @@ function renderTreebarkBlock(
   content: string,
   defaultData: Record<string, any>,
   yaml?: { load: (content: string) => any },
-  indent?: string | number | boolean
+  indent?: string | number | boolean,
+  logger?: Logger
 ): string {
   let template: any;
   let yamlError: Error | null = null;
@@ -97,16 +104,20 @@ function renderTreebarkBlock(
     throw new Error('Empty or invalid template');
   }
 
+  // Create render options with logger if provided
+  const renderOptions: { indent?: string | number | boolean; logger?: Logger } = { indent };
+  if (logger) {
+    renderOptions.logger = logger;
+  }
+
   // Check if template is already in TreebarkInput format
-  // Note: We don't provide a custom logger - let treebark use console.error by default
-  // Any validation errors will be logged to console and rendering will continue gracefully
   if (template && typeof template === 'object' && 'template' in template) {
     // Already in TreebarkInput format, merge with default data
     const mergedData = { ...defaultData, ...template.data };
-    return renderToString({ template: template.template, data: mergedData }, { indent });
+    return renderToString({ template: template.template, data: mergedData }, renderOptions);
   } else {
     // Template is a direct template, wrap it in TreebarkInput format
-    return renderToString({ template: template, data: defaultData }, { indent });
+    return renderToString({ template: template, data: defaultData }, renderOptions);
   }
 }
 
