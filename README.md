@@ -880,6 +880,22 @@ Treebark follows a **no-throw policy**: instead of throwing exceptions, errors a
 
 Treebark will render as much valid content as possible, skipping only the problematic elements while logging issues for debugging.
 
+## Security Considerations
+
+While Treebark provides security by design (whitelisted tags, validated attributes, HTML-escaped content), there are important considerations when using the `style` attribute with user-generated or untrusted content.
+
+**Key security features:**
+- ✅ Whitelisted tags only (no `<script>`, `<iframe>`, etc.)
+- ✅ Validated attribute names (no `onclick`, `onerror`, etc.)
+- ✅ HTML-escaped interpolated content
+- ⚠️ Style attribute values are NOT sanitized
+
+The `style` attribute can contain CSS that may pose security risks such as CSS injection attacks, data exfiltration, or UI redressing. See [SECURITY.md](SECURITY.md) for detailed information about:
+- CSS injection attack vectors
+- Safe usage recommendations
+- Content Security Policy guidelines
+- When to implement additional CSS sanitization
+
 ## Format Notes
 
 Notice in some JSON examples above there can be a "long tail" of closing braces for deep trees. You can write much cleaner syntax if you use YAML, then convert to JSON. Here's the *Parent Property Access* example template (above) as YAML for comparison:
