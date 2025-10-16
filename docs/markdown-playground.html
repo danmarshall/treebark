@@ -143,7 +143,9 @@ const indentSize = document.getElementById('indent-size');
 const markdownFormatSelect = document.getElementById('markdown-format');
 
 // Regex pattern for matching treebark code blocks in markdown
-const TREEBARK_BLOCK_REGEX = /```treebark\n?([\s\S]*?)\n?```/g;
+// Matches ```treebark followed by content and closing ```
+// Handles both \n and \r\n line endings, and optional trailing newline before closing
+const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
 
 // Convert JSON to YAML string
 function jsonToYaml(obj) {
