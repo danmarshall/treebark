@@ -232,6 +232,227 @@ export const securityValidTests: TestCase[] = [
   }
 ];
 
+// Style object tests
+export const styleObjectTests: TestCase[] = [
+  {
+    name: 'renders style object with single property',
+    input: {
+      template: {
+        div: {
+          style: { color: 'red' },
+          $children: ['Styled content']
+        }
+      }
+    }
+  },
+  {
+    name: 'renders style object with multiple properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            color: 'red',
+            backgroundColor: 'blue',
+            fontSize: '14px'
+          },
+          $children: ['Multiple styles']
+        }
+      }
+    }
+  },
+  {
+    name: 'converts camelCase to kebab-case',
+    input: {
+      template: {
+        div: {
+          style: {
+            fontSize: '16px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            borderRadius: '5px'
+          },
+          $children: ['CamelCase conversion']
+        }
+      }
+    }
+  },
+  {
+    name: 'handles numeric values',
+    input: {
+      template: {
+        div: {
+          style: {
+            width: '100px',
+            height: '50px',
+            opacity: '0.5',
+            zIndex: '10'
+          },
+          $children: ['Numeric values']
+        }
+      }
+    }
+  },
+  {
+    name: 'skips null and undefined style values',
+    input: {
+      template: {
+        div: {
+          style: {
+            color: 'red',
+            backgroundColor: null,
+            fontSize: undefined,
+            padding: '10px'
+          },
+          $children: ['Skip null/undefined']
+        }
+      }
+    }
+  },
+  {
+    name: 'works with flexbox properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '10px'
+          },
+          $children: ['Flexbox']
+        }
+      }
+    }
+  },
+  {
+    name: 'works with grid properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '20px'
+          },
+          $children: ['Grid layout']
+        }
+      }
+    }
+  },
+  {
+    name: 'handles conditional style object',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'isActive',
+            $then: { color: 'green', fontWeight: 'bold' },
+            $else: { color: 'gray' }
+          },
+          $children: ['Conditional style']
+        }
+      },
+      data: { isActive: true }
+    }
+  }
+];
+
+export const styleObjectWarningTests: TestCase[] = [
+  {
+    name: 'warns for disallowed CSS property',
+    input: {
+      template: {
+        div: {
+          style: {
+            color: 'red',
+            unsafeProperty: 'value'
+          },
+          $children: ['Unknown property']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks url() in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            backgroundImage: 'url(https://evil.com/track.gif)'
+          },
+          $children: ['URL blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks expression() in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            width: 'expression(alert(1))'
+          },
+          $children: ['Expression blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks javascript: protocol in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            background: 'javascript:alert(1)'
+          },
+          $children: ['JavaScript protocol blocked']
+        }
+      }
+    }
+  }
+];
+
+export const styleObjectErrorTests: ErrorTestCase[] = [
+  {
+    name: 'rejects string-based style attribute',
+    input: {
+      template: {
+        div: {
+          style: 'color: red',
+          $children: ['String style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  },
+  {
+    name: 'rejects array as style attribute',
+    input: {
+      template: {
+        div: {
+          style: ['color: red'],
+          $children: ['Array style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  },
+  {
+    name: 'rejects number as style attribute',
+    input: {
+      template: {
+        div: {
+          style: 123,
+          $children: ['Number style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  }
+];
+
 // Tag-specific attribute test cases
 export const tagSpecificAttributeTests: TestCase[] = [
   {
@@ -267,7 +488,7 @@ export const tagSpecificAttributeTests: TestCase[] = [
         span: {
           id: 'test-id',
           class: 'test-class',
-          style: 'color: red',
+          style: { color: 'red' },
           title: 'Test title',
           role: 'button',
           $children: ['Content']

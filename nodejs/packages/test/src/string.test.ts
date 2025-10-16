@@ -20,6 +20,9 @@ import {
   ifTagThenElseTests,
   conditionalAttributeTests,
   ifTagErrorTests,
+  styleObjectTests,
+  styleObjectWarningTests,
+  styleObjectErrorTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -963,6 +966,74 @@ describe('String Renderer', () => {
     });
 
     ifTagErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToString);
+    });
+  });
+
+  // Style object tests
+  describe('Style Objects', () => {
+    styleObjectTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'renders style object with single property':
+            expect(result).toBe('<div style="color: red">Styled content</div>');
+            break;
+          case 'renders style object with multiple properties':
+            expect(result).toBe('<div style="color: red; background-color: blue; font-size: 14px">Multiple styles</div>');
+            break;
+          case 'converts camelCase to kebab-case':
+            expect(result).toBe('<div style="font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px">CamelCase conversion</div>');
+            break;
+          case 'handles numeric values':
+            expect(result).toBe('<div style="width: 100px; height: 50px; opacity: 0.5; z-index: 10">Numeric values</div>');
+            break;
+          case 'skips null and undefined style values':
+            expect(result).toBe('<div style="color: red; padding: 10px">Skip null/undefined</div>');
+            break;
+          case 'works with flexbox properties':
+            expect(result).toBe('<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px">Flexbox</div>');
+            break;
+          case 'works with grid properties':
+            expect(result).toBe('<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">Grid layout</div>');
+            break;
+          case 'handles conditional style object':
+            expect(result).toBe('<div style="color: green; font-weight: bold">Conditional style</div>');
+            break;
+        }
+      });
+    });
+
+    // Style warning tests
+    styleObjectWarningTests.forEach(testCase => {
+      test(`warns for ${testCase.name}`, () => {
+        const mockLogger = {
+          error: jest.fn(),
+          warn: jest.fn(),
+          log: jest.fn()
+        };
+
+        const result = renderToString(testCase.input, { logger: mockLogger });
+        
+        // Should log a warning
+        expect(mockLogger.warn).toHaveBeenCalled();
+        
+        // Result should not contain the dangerous content
+        switch (testCase.name) {
+          case 'warns for disallowed CSS property':
+            expect(result).toBe('<div style="color: red">Unknown property</div>');
+            break;
+          case 'blocks url() in style object values':
+          case 'blocks expression() in style object values':
+          case 'blocks javascript: protocol in style object values':
+            // Style attribute should be omitted entirely
+            expect(result).not.toContain('style=');
+            break;
+        }
+      });
+    });
+
+    // Style error tests
+    styleObjectErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToString);
     });
   });

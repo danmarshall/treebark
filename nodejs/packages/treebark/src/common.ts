@@ -53,6 +53,70 @@ export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
+// Allowed CSS properties for structured style objects
+// This is a comprehensive list of safe, commonly-used CSS properties
+export const ALLOWED_CSS_PROPERTIES = new Set([
+  // Layout & Display
+  'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
+  'float', 'clear', 'overflow', 'overflow-x', 'overflow-y', 'visibility',
+  
+  // Box Model
+  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  'box-sizing',
+  
+  // Border
+  'border', 'border-width', 'border-style', 'border-color', 'border-radius',
+  'border-top', 'border-right', 'border-bottom', 'border-left',
+  'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+  'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
+  'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+  'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
+  'outline', 'outline-width', 'outline-style', 'outline-color', 'outline-offset',
+  
+  // Background
+  'background', 'background-color', 'background-position', 'background-size',
+  'background-repeat', 'background-attachment', 'background-clip', 'background-origin',
+  
+  // Text & Font
+  'color', 'font', 'font-family', 'font-size', 'font-weight', 'font-style',
+  'font-variant', 'line-height', 'letter-spacing', 'word-spacing',
+  'text-align', 'text-decoration', 'text-indent', 'text-transform',
+  'text-shadow', 'text-overflow', 'white-space', 'word-wrap', 'word-break',
+  'vertical-align', 'direction', 'unicode-bidi',
+  
+  // Lists
+  'list-style', 'list-style-type', 'list-style-position',
+  
+  // Tables
+  'border-collapse', 'border-spacing', 'caption-side', 'empty-cells', 'table-layout',
+  
+  // Flexbox
+  'flex', 'flex-direction', 'flex-wrap', 'flex-flow', 'justify-content',
+  'align-items', 'align-content', 'align-self', 'flex-grow', 'flex-shrink', 'flex-basis',
+  'order', 'gap', 'row-gap', 'column-gap',
+  
+  // Grid
+  'grid', 'grid-template', 'grid-template-columns', 'grid-template-rows', 'grid-template-areas',
+  'grid-column', 'grid-row', 'grid-area', 'grid-auto-columns', 'grid-auto-rows',
+  'grid-auto-flow', 'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
+  
+  // Transform & Animation
+  'transform', 'transform-origin', 'transition', 'transition-property',
+  'transition-duration', 'transition-timing-function', 'transition-delay',
+  'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
+  'animation-delay', 'animation-iteration-count', 'animation-direction',
+  'animation-fill-mode', 'animation-play-state',
+  
+  // Effects
+  'opacity', 'box-shadow', 'filter', 'backdrop-filter',
+  
+  // Other
+  'cursor', 'pointer-events', 'resize', 'user-select', 'content',
+  'quotes', 'counter-reset', 'counter-increment', 'object-fit', 'object-position'
+]);
+
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
@@ -133,6 +197,76 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
   });
 }
 
+
+/**
+ * Convert camelCase to kebab-case for CSS property names
+ */
+function camelToKebab(str: string): string {
+  return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+}
+
+/**
+ * Convert a style object to a CSS string
+ * Validates CSS properties against whitelist and escapes values
+ */
+export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
+  const cssDeclarations: string[] = [];
+  
+  for (const [prop, value] of Object.entries(styleObj)) {
+    // Convert camelCase to kebab-case (e.g., fontSize -> font-size)
+    const cssProp = camelToKebab(prop);
+    
+    // Validate against whitelist
+    if (!ALLOWED_CSS_PROPERTIES.has(cssProp)) {
+      logger.warn(`CSS property "${prop}" (${cssProp}) is not in the allowed list`);
+      continue;
+    }
+    
+    // Skip null/undefined values
+    if (value == null) {
+      continue;
+    }
+    
+    // Convert value to string and sanitize
+    const cssValue = String(value).trim();
+    
+    // Basic validation: block obviously dangerous patterns
+    // Note: url() and other complex values should be avoided in object format
+    if (/url\s*\(/i.test(cssValue) || 
+        /expression\s*\(/i.test(cssValue) ||
+        /javascript:/i.test(cssValue) ||
+        /@import/i.test(cssValue)) {
+      logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
+      continue;
+    }
+    
+    cssDeclarations.push(`${cssProp}: ${cssValue}`);
+  }
+  
+  return cssDeclarations.join('; ');
+}
+
+/**
+ * Process style attribute value - only accepts objects for safety
+ * Returns CSS string or empty string if invalid
+ */
+export function processStyleAttribute(value: unknown, data: Data, parents: Data[], logger: Logger): string {
+  // Handle conditional style values
+  if (isConditionalValue(value)) {
+    const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
+    // Recursively process the evaluated value
+    return processStyleAttribute(evaluatedValue, data, parents, logger);
+  }
+  
+  // Only accept objects for style attribute
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return styleObjectToString(value as Record<string, unknown>, logger);
+  }
+  
+  // Reject non-object values
+  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { color: "red", fontSize: "14px" }`);
+  return '';
+}
 
 /**
  * Validate that an attribute is allowed for the given tag

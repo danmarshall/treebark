@@ -6,6 +6,7 @@ import {
   interpolate,
   escape,
   validateAttribute,
+  processStyleAttribute,
   hasBinding,
   validatePathExpression,
   isConditionalValue,
@@ -203,14 +204,28 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
   const pairs = Object.entries(attrs)
     .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
-      // Check if value is a conditional value
-      if (isConditionalValue(v)) {
-        const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-        return `${k}="${escape(interpolate(String(evaluatedValue), data, false, parents, logger))}"`;
+      let attrValue: string;
+      
+      // Special handling for style attribute
+      if (k === 'style') {
+        attrValue = processStyleAttribute(v, data, parents, logger);
+        // If processing resulted in empty string, skip the attribute
+        if (!attrValue) {
+          return null;
+        }
       } else {
-        return `${k}="${escape(interpolate(String(v), data, false, parents, logger))}"`;
+        // Regular attribute handling
+        if (isConditionalValue(v)) {
+          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
+          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+        } else {
+          attrValue = interpolate(String(v), data, false, parents, logger);
+        }
       }
+      
+      return `${k}="${escape(attrValue)}"`;
     })
+    .filter(pair => pair !== null)
     .join(" ");
   return pairs ? " " + pairs : "";
 }
