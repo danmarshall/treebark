@@ -44,7 +44,7 @@ export type CSSProperties = {
   'right'?: string;
   'bottom'?: string;
   'left'?: string;
-  'z-index'?: string | number;
+  'z-index'?: string;
   'float'?: string;
   'clear'?: string;
   'overflow'?: string;
@@ -158,10 +158,10 @@ export type CSSProperties = {
   'align-items'?: string;
   'align-content'?: string;
   'align-self'?: string;
-  'flex-grow'?: string | number;
-  'flex-shrink'?: string | number;
+  'flex-grow'?: string;
+  'flex-shrink'?: string;
   'flex-basis'?: string;
-  'order'?: string | number;
+  'order'?: string;
   'gap'?: string;
   'row-gap'?: string;
   'column-gap'?: string;
@@ -202,7 +202,7 @@ export type CSSProperties = {
   'animation-play-state'?: string;
   
   // Effects
-  'opacity'?: string | number;
+  'opacity'?: string;
   'box-shadow'?: string;
   'filter'?: string;
   'backdrop-filter'?: string;

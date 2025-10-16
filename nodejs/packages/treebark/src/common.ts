@@ -227,8 +227,11 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     const cssValue = String(value).trim();
     
     // Basic validation: block obviously dangerous patterns
-    // Note: url() and other complex values should be avoided in object format
-    if (/url\s*\(/i.test(cssValue) || 
+    // Allow data: URIs but block external URLs
+    const hasUrl = /url\s*\(/i.test(cssValue);
+    const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
+    
+    if ((hasUrl && !hasDataUri) || 
         /expression\s*\(/i.test(cssValue) ||
         /javascript:/i.test(cssValue) ||
         /@import/i.test(cssValue)) {

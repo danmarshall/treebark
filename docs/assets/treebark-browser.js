@@ -284,7 +284,9 @@
         continue;
       }
       const cssValue = String(value).trim();
-      if (/url\s*\(/i.test(cssValue) || /expression\s*\(/i.test(cssValue) || /javascript:/i.test(cssValue) || /@import/i.test(cssValue)) {
+      const hasUrl = /url\s*\(/i.test(cssValue);
+      const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
+      if (hasUrl && !hasDataUri || /expression\s*\(/i.test(cssValue) || /javascript:/i.test(cssValue) || /@import/i.test(cssValue)) {
         logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
         continue;
       }
