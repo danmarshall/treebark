@@ -20,6 +20,13 @@ description: Try Treebark interactively with real-time examples and customizable
     <div class="editor-panel">
         <div class="editor-header">
             Template Editor
+            <div class="format-selector">
+                <label for="template-format">Format:</label>
+                <select id="template-format" onchange="switchTemplateFormat()">
+                    <option value="json">JSON</option>
+                    <option value="yaml">YAML</option>
+                </select>
+            </div>
         </div>
         <textarea 
             id="template-editor" 
@@ -59,11 +66,12 @@ description: Try Treebark interactively with real-time examples and customizable
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script src="{{ '/assets/treebark-browser.js' | relative_url }}"></script>
 <script>
-// Example templates and data
 // Example templates and data - loaded from external JSON file
 let examples = {};
+let currentTemplateFormat = 'json'; // Track current format
 
 // Load examples from external JSON file to avoid Jekyll processing {{placeholders}}
 async function loadExamples() {
@@ -121,6 +129,55 @@ const htmlOutput = document.getElementById('html-output');
 const errorDisplay = document.getElementById('error-display');
 const indentType = document.getElementById('indent-type');
 const indentSize = document.getElementById('indent-size');
+const templateFormatSelect = document.getElementById('template-format');
+
+// Convert JSON to YAML string
+function jsonToYaml(obj) {
+    return jsyaml.dump(obj, { indent: 2, lineWidth: -1 });
+}
+
+// Convert YAML to JSON object
+function yamlToJson(yamlStr) {
+    return jsyaml.load(yamlStr);
+}
+
+// Switch template format
+function switchTemplateFormat() {
+    const newFormat = templateFormatSelect.value;
+    const currentContent = templateEditor.value.trim();
+    
+    if (!currentContent) {
+        currentTemplateFormat = newFormat;
+        return;
+    }
+    
+    try {
+        let template;
+        
+        // Parse current content based on current format
+        if (currentTemplateFormat === 'json') {
+            template = JSON.parse(currentContent);
+        } else {
+            template = yamlToJson(currentContent);
+        }
+        
+        // Convert to new format
+        if (newFormat === 'json') {
+            templateEditor.value = JSON.stringify(template, null, 2);
+        } else {
+            templateEditor.value = jsonToYaml(template);
+        }
+        
+        currentTemplateFormat = newFormat;
+        updateOutput();
+    } catch (e) {
+        // If conversion fails, just switch format without converting
+        // This allows users to start fresh in the new format
+        errorDisplay.innerHTML = '<div class="log-warn">⚠️ Could not convert format: ' + escapeHtml(e.message) + '.</div>';
+        errorDisplay.style.display = 'block';
+        currentTemplateFormat = newFormat;
+    }
+}
 
 // Update output when inputs change
 function updateOutput() {
@@ -139,9 +196,13 @@ function updateOutput() {
         // Parse template
         let template;
         try {
-            template = JSON.parse(templateText);
+            if (currentTemplateFormat === 'json') {
+                template = JSON.parse(templateText);
+            } else {
+                template = yamlToJson(templateText);
+            }
         } catch (e) {
-            throw new Error('Invalid JSON in template: ' + e.message);
+            throw new Error('Invalid ' + currentTemplateFormat.toUpperCase() + ' in template: ' + e.message);
         }
         
         // Parse data
@@ -214,7 +275,12 @@ function escapeHtml(text) {
 function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
-        templateEditor.value = JSON.stringify(example.template, null, 2);
+        // Display template in the current format
+        if (currentTemplateFormat === 'json') {
+            templateEditor.value = JSON.stringify(example.template, null, 2);
+        } else {
+            templateEditor.value = jsonToYaml(example.template);
+        }
         dataEditor.value = JSON.stringify(example.data, null, 2);
         updateOutput();
     }

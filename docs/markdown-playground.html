@@ -20,6 +20,13 @@ description: Try the markdown-it-treebark plugin interactively with real-time re
     <div class="editor-panel">
         <div class="editor-header">
             Markdown Editor
+            <div class="format-selector">
+                <label for="markdown-format">Treebark Format:</label>
+                <select id="markdown-format" onchange="switchMarkdownFormat()">
+                    <option value="json">JSON</option>
+                    <option value="yaml">YAML</option>
+                </select>
+            </div>
         </div>
         <textarea 
             id="markdown-editor" 
@@ -59,11 +66,13 @@ description: Try the markdown-it-treebark plugin interactively with real-time re
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 <script src="{{ '/assets/markdown-it-treebark-browser.js' | relative_url }}"></script>
 <script>
 // Examples
 let examples = {};
+let currentMarkdownFormat = 'json'; // Track current format for treebark blocks
 
 // Load examples
 async function loadExamples() {
@@ -131,6 +140,75 @@ const htmlOutput = document.getElementById('html-output');
 const errorDisplay = document.getElementById('error-display');
 const indentType = document.getElementById('indent-type');
 const indentSize = document.getElementById('indent-size');
+const markdownFormatSelect = document.getElementById('markdown-format');
+
+// Regex pattern for matching treebark code blocks in markdown
+// Matches ```treebark followed by content and closing ```
+// Handles both \n and \r\n line endings, and optional trailing newline before closing
+const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
+
+// Convert JSON to YAML string
+function jsonToYaml(obj) {
+    return jsyaml.dump(obj, { indent: 2, lineWidth: -1 });
+}
+
+// Convert YAML to JSON object
+function yamlToJson(yamlStr) {
+    return jsyaml.load(yamlStr);
+}
+
+// Switch markdown treebark format
+function switchMarkdownFormat() {
+    const newFormat = markdownFormatSelect.value;
+    const currentContent = markdownEditor.value;
+    
+    if (!currentContent || !currentContent.includes('```treebark')) {
+        currentMarkdownFormat = newFormat;
+        return;
+    }
+    
+    try {
+        // Convert treebark code blocks in markdown
+        const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
+            try {
+                // Trim the code to handle edge cases
+                const trimmedCode = code.trim();
+                if (!trimmedCode) {
+                    return match; // Keep empty blocks unchanged
+                }
+                
+                let template;
+                
+                // Parse current code block based on current format
+                if (currentMarkdownFormat === 'json') {
+                    template = JSON.parse(trimmedCode);
+                } else {
+                    template = yamlToJson(trimmedCode);
+                }
+                
+                // Convert to new format
+                let newCode;
+                if (newFormat === 'json') {
+                    newCode = JSON.stringify(template, null, 2);
+                } else {
+                    newCode = jsonToYaml(template);
+                }
+                
+                return '```treebark\n' + newCode + '\n```';
+            } catch (e) {
+                // If this block fails to convert, return it unchanged
+                return match;
+            }
+        });
+        
+        markdownEditor.value = converted;
+        currentMarkdownFormat = newFormat;
+        updateOutput();
+    } catch (e) {
+        errorDisplay.textContent = 'Error converting format: ' + e.message;
+        errorDisplay.style.display = 'block';
+    }
+}
 
 // Update output when inputs change
 function updateOutput() {
@@ -228,7 +306,26 @@ function updateOutput() {
 function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
-        markdownEditor.value = example.markdown || '';
+        let markdown = example.markdown || '';
+        
+        // If switching to YAML format, convert treebark code blocks
+        if (currentMarkdownFormat === 'yaml' && markdown.includes('```treebark')) {
+            markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
+                try {
+                    const trimmedCode = code.trim();
+                    if (!trimmedCode) {
+                        return match;
+                    }
+                    const template = JSON.parse(trimmedCode);
+                    const yamlCode = jsonToYaml(template);
+                    return '```treebark\n' + yamlCode + '\n```';
+                } catch (e) {
+                    return match;
+                }
+            });
+        }
+        
+        markdownEditor.value = markdown;
         dataEditor.value = JSON.stringify(example.data || {}, null, 2);
         updateOutput();
     }
