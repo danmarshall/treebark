@@ -981,8 +981,8 @@ describe('String Renderer', () => {
           case 'renders style object with multiple properties':
             expect(result).toBe('<div style="color: red; background-color: blue; font-size: 14px">Multiple styles</div>');
             break;
-          case 'converts camelCase to kebab-case':
-            expect(result).toBe('<div style="font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px">CamelCase conversion</div>');
+          case 'handles kebab-case CSS properties':
+            expect(result).toBe('<div style="font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px">Kebab-case properties</div>');
             break;
           case 'handles numeric values':
             expect(result).toBe('<div style="width: 100px; height: 50px; opacity: 0.5; z-index: 10">Numeric values</div>');

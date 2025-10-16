@@ -272,15 +272,12 @@
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
-  function camelToKebab(str) {
-    return str.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-  }
   function styleObjectToString(styleObj, logger) {
     const cssDeclarations = [];
     for (const [prop, value] of Object.entries(styleObj)) {
-      const cssProp = camelToKebab(prop);
+      const cssProp = prop;
       if (!ALLOWED_CSS_PROPERTIES.has(cssProp)) {
-        logger.warn(`CSS property "${prop}" (${cssProp}) is not in the allowed list`);
+        logger.warn(`CSS property "${prop}" is not in the allowed list`);
         continue;
       }
       if (value == null) {
@@ -295,15 +292,27 @@
     }
     return cssDeclarations.join("; ");
   }
+  function isConditionalStyleValue(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string" && ("$then" in value || "$else" in value);
+  }
   function processStyleAttribute(value, data, parents, logger) {
-    if (isConditionalValue(value)) {
-      const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
-      return processStyleAttribute(evaluatedValue, data, parents, logger);
+    if (isConditionalStyleValue(value)) {
+      const conditional = value;
+      if (!validatePathExpression(conditional.$check, "$check", logger)) {
+        return "";
+      }
+      const checkValue = getProperty(data, conditional.$check, parents);
+      const condition = evaluateCondition(checkValue, conditional);
+      const resultValue = condition ? conditional.$then : conditional.$else;
+      if (resultValue === void 0) {
+        return "";
+      }
+      return processStyleAttribute(resultValue, data, parents, logger);
     }
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       return styleObjectToString(value, logger);
     }
-    logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { color: "red", fontSize: "14px" }`);
+    logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
     return "";
   }
   function validateAttribute(key, tag, logger) {

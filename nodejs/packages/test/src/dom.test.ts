@@ -862,7 +862,7 @@ describe('DOM Renderer', () => {
           case 'renders style object with multiple properties':
             expect(element.getAttribute('style')).toBe('color: red; background-color: blue; font-size: 14px');
             break;
-          case 'converts camelCase to kebab-case':
+          case 'handles kebab-case CSS properties':
             expect(element.getAttribute('style')).toBe('font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px');
             break;
           case 'handles numeric values':

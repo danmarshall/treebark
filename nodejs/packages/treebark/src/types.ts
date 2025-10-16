@@ -35,6 +35,194 @@ export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject
 // Conditional value type for attribute values - T is restricted to primitives
 export type ConditionalValue = ConditionalBase<string>;
 
+// CSS Style properties as an object with kebab-case property names (matching actual CSS)
+export type CSSProperties = {
+  // Layout & Display
+  'display'?: string;
+  'position'?: string;
+  'top'?: string;
+  'right'?: string;
+  'bottom'?: string;
+  'left'?: string;
+  'z-index'?: string | number;
+  'float'?: string;
+  'clear'?: string;
+  'overflow'?: string;
+  'overflow-x'?: string;
+  'overflow-y'?: string;
+  'visibility'?: string;
+  
+  // Box Model
+  'width'?: string;
+  'height'?: string;
+  'min-width'?: string;
+  'min-height'?: string;
+  'max-width'?: string;
+  'max-height'?: string;
+  'margin'?: string;
+  'margin-top'?: string;
+  'margin-right'?: string;
+  'margin-bottom'?: string;
+  'margin-left'?: string;
+  'padding'?: string;
+  'padding-top'?: string;
+  'padding-right'?: string;
+  'padding-bottom'?: string;
+  'padding-left'?: string;
+  'box-sizing'?: string;
+  
+  // Border
+  'border'?: string;
+  'border-width'?: string;
+  'border-style'?: string;
+  'border-color'?: string;
+  'border-radius'?: string;
+  'border-top'?: string;
+  'border-right'?: string;
+  'border-bottom'?: string;
+  'border-left'?: string;
+  'border-top-width'?: string;
+  'border-right-width'?: string;
+  'border-bottom-width'?: string;
+  'border-left-width'?: string;
+  'border-top-style'?: string;
+  'border-right-style'?: string;
+  'border-bottom-style'?: string;
+  'border-left-style'?: string;
+  'border-top-color'?: string;
+  'border-right-color'?: string;
+  'border-bottom-color'?: string;
+  'border-left-color'?: string;
+  'border-top-left-radius'?: string;
+  'border-top-right-radius'?: string;
+  'border-bottom-left-radius'?: string;
+  'border-bottom-right-radius'?: string;
+  'outline'?: string;
+  'outline-width'?: string;
+  'outline-style'?: string;
+  'outline-color'?: string;
+  'outline-offset'?: string;
+  
+  // Background
+  'background'?: string;
+  'background-color'?: string;
+  'background-position'?: string;
+  'background-size'?: string;
+  'background-repeat'?: string;
+  'background-attachment'?: string;
+  'background-clip'?: string;
+  'background-origin'?: string;
+  
+  // Text & Font
+  'color'?: string;
+  'font'?: string;
+  'font-family'?: string;
+  'font-size'?: string;
+  'font-weight'?: string;
+  'font-style'?: string;
+  'font-variant'?: string;
+  'line-height'?: string;
+  'letter-spacing'?: string;
+  'word-spacing'?: string;
+  'text-align'?: string;
+  'text-decoration'?: string;
+  'text-indent'?: string;
+  'text-transform'?: string;
+  'text-shadow'?: string;
+  'text-overflow'?: string;
+  'white-space'?: string;
+  'word-wrap'?: string;
+  'word-break'?: string;
+  'vertical-align'?: string;
+  'direction'?: string;
+  'unicode-bidi'?: string;
+  
+  // Lists
+  'list-style'?: string;
+  'list-style-type'?: string;
+  'list-style-position'?: string;
+  
+  // Tables
+  'border-collapse'?: string;
+  'border-spacing'?: string;
+  'caption-side'?: string;
+  'empty-cells'?: string;
+  'table-layout'?: string;
+  
+  // Flexbox
+  'flex'?: string;
+  'flex-direction'?: string;
+  'flex-wrap'?: string;
+  'flex-flow'?: string;
+  'justify-content'?: string;
+  'align-items'?: string;
+  'align-content'?: string;
+  'align-self'?: string;
+  'flex-grow'?: string | number;
+  'flex-shrink'?: string | number;
+  'flex-basis'?: string;
+  'order'?: string | number;
+  'gap'?: string;
+  'row-gap'?: string;
+  'column-gap'?: string;
+  
+  // Grid
+  'grid'?: string;
+  'grid-template'?: string;
+  'grid-template-columns'?: string;
+  'grid-template-rows'?: string;
+  'grid-template-areas'?: string;
+  'grid-column'?: string;
+  'grid-row'?: string;
+  'grid-area'?: string;
+  'grid-auto-columns'?: string;
+  'grid-auto-rows'?: string;
+  'grid-auto-flow'?: string;
+  'grid-column-start'?: string;
+  'grid-column-end'?: string;
+  'grid-row-start'?: string;
+  'grid-row-end'?: string;
+  
+  // Transform & Animation
+  'transform'?: string;
+  'transform-origin'?: string;
+  'transition'?: string;
+  'transition-property'?: string;
+  'transition-duration'?: string;
+  'transition-timing-function'?: string;
+  'transition-delay'?: string;
+  'animation'?: string;
+  'animation-name'?: string;
+  'animation-duration'?: string;
+  'animation-timing-function'?: string;
+  'animation-delay'?: string;
+  'animation-iteration-count'?: string;
+  'animation-direction'?: string;
+  'animation-fill-mode'?: string;
+  'animation-play-state'?: string;
+  
+  // Effects
+  'opacity'?: string | number;
+  'box-shadow'?: string;
+  'filter'?: string;
+  'backdrop-filter'?: string;
+  
+  // Other
+  'cursor'?: string;
+  'pointer-events'?: string;
+  'resize'?: string;
+  'user-select'?: string;
+  'content'?: string;
+  'quotes'?: string;
+  'counter-reset'?: string;
+  'counter-increment'?: string;
+  'object-fit'?: string;
+  'object-position'?: string;
+};
+
+// Style value can be a CSSProperties object or a conditional that returns CSSProperties
+export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
+
 // Type-safe tag names - union of all allowed tags
 export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
   'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
@@ -55,7 +243,7 @@ type TagContent<Attrs> = string | (string | TemplateObject)[] | Attrs;
 type GlobalAttrs = {
   id?: string;
   class?: string;
-  style?: string;
+  style?: StyleValue;
   title?: string;
   role?: string;
   [key: `data-${string}`]: unknown;

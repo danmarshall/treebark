@@ -83,11 +83,18 @@ The `@import` directive can load external stylesheets, which could:
 
 ### Current Behavior
 
-Treebark currently:
+Treebark provides comprehensive security through its design:
 - ✅ **Escapes HTML** in interpolated values (prevents `<script>` injection)
 - ✅ **Validates tag names** (prevents `<script>` tags)
 - ✅ **Validates attribute names** (prevents `onclick`, `onerror`, etc.)
-- ❌ **Does NOT sanitize style attribute values**
+- ✅ **Structured style objects** with whitelist validation (prevents CSS injection)
+
+**Style Attribute Security:**
+As of the latest version, Treebark requires the `style` attribute to be a structured object rather than a string. This provides security by design:
+- Only whitelisted CSS properties are allowed (100+ safe properties)
+- Dangerous properties like `behavior`, `-moz-binding`, and `expression` are blocked
+- Values containing `url()` (except data URIs), `javascript:`, or `@import` are rejected
+- CamelCase property names are automatically converted to kebab-case
 
 ### Recommendations
 

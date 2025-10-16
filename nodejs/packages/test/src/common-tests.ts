@@ -251,9 +251,9 @@ export const styleObjectTests: TestCase[] = [
       template: {
         div: {
           style: {
-            color: 'red',
-            backgroundColor: 'blue',
-            fontSize: '14px'
+            'color': 'red',
+            'background-color': 'blue',
+            'font-size': '14px'
           },
           $children: ['Multiple styles']
         }
@@ -261,17 +261,17 @@ export const styleObjectTests: TestCase[] = [
     }
   },
   {
-    name: 'converts camelCase to kebab-case',
+    name: 'handles kebab-case CSS properties',
     input: {
       template: {
         div: {
           style: {
-            fontSize: '16px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            borderRadius: '5px'
+            'font-size': '16px',
+            'font-weight': 'bold',
+            'text-align': 'center',
+            'border-radius': '5px'
           },
-          $children: ['CamelCase conversion']
+          $children: ['Kebab-case properties']
         }
       }
     }
@@ -282,10 +282,10 @@ export const styleObjectTests: TestCase[] = [
       template: {
         div: {
           style: {
-            width: '100px',
-            height: '50px',
-            opacity: '0.5',
-            zIndex: '10'
+            'width': '100px',
+            'height': '50px',
+            'opacity': '0.5',
+            'z-index': '10'
           },
           $children: ['Numeric values']
         }
@@ -298,10 +298,10 @@ export const styleObjectTests: TestCase[] = [
       template: {
         div: {
           style: {
-            color: 'red',
-            backgroundColor: null,
-            fontSize: undefined,
-            padding: '10px'
+            'color': 'red',
+            'background-color': null,
+            'font-size': undefined,
+            'padding': '10px'
           },
           $children: ['Skip null/undefined']
         }
@@ -314,11 +314,11 @@ export const styleObjectTests: TestCase[] = [
       template: {
         div: {
           style: {
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '10px'
+            'display': 'flex',
+            'flex-direction': 'column',
+            'justify-content': 'center',
+            'align-items': 'center',
+            'gap': '10px'
           },
           $children: ['Flexbox']
         }
@@ -331,9 +331,9 @@ export const styleObjectTests: TestCase[] = [
       template: {
         div: {
           style: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '20px'
+            'display': 'grid',
+            'grid-template-columns': 'repeat(3, 1fr)',
+            'gap': '20px'
           },
           $children: ['Grid layout']
         }
@@ -347,8 +347,8 @@ export const styleObjectTests: TestCase[] = [
         div: {
           style: {
             $check: 'isActive',
-            $then: { color: 'green', fontWeight: 'bold' },
-            $else: { color: 'gray' }
+            $then: { 'color': 'green', 'font-weight': 'bold' },
+            $else: { 'color': 'gray' }
           },
           $children: ['Conditional style']
         }
@@ -365,8 +365,8 @@ export const styleObjectWarningTests: TestCase[] = [
       template: {
         div: {
           style: {
-            color: 'red',
-            unsafeProperty: 'value'
+            'color': 'red',
+            'unsafe-property': 'value'
           },
           $children: ['Unknown property']
         }
@@ -379,7 +379,7 @@ export const styleObjectWarningTests: TestCase[] = [
       template: {
         div: {
           style: {
-            backgroundImage: 'url(https://evil.com/track.gif)'
+            'background-image': 'url(https://evil.com/track.gif)'
           },
           $children: ['URL blocked']
         }
@@ -392,7 +392,7 @@ export const styleObjectWarningTests: TestCase[] = [
       template: {
         div: {
           style: {
-            width: 'expression(alert(1))'
+            'width': 'expression(alert(1))'
           },
           $children: ['Expression blocked']
         }
@@ -405,7 +405,7 @@ export const styleObjectWarningTests: TestCase[] = [
       template: {
         div: {
           style: {
-            background: 'javascript:alert(1)'
+            'background': 'javascript:alert(1)'
           },
           $children: ['JavaScript protocol blocked']
         }

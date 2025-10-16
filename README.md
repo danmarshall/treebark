@@ -94,12 +94,14 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style` (object only), `title`, `aria-*`, `data-*`, `role` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
+
+**Note:** The `style` attribute requires a structured object format for security. String-based styles are not allowed.
 
 ### Special Keys
 
@@ -201,6 +203,80 @@ For elements with both attributes and simple text content, you can also use this
 Output:
 ```html
 <a href="https://example.com" target="_blank">Visit our site</a>
+```
+
+### Styling with Style Objects
+
+For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
+
+**Basic styling:**
+```json
+{
+  "div": {
+    "style": {
+      "color": "red",
+      "font-size": "16px",
+      "padding": "10px"
+    },
+    "$children": ["Styled content"]
+  }
+}
+```
+
+Output:
+```html
+<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
+```
+
+**Key features:**
+- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
+- **Whitelist validation**: Only safe CSS properties are allowed (100+ properties including flexbox, grid, transforms, etc.)
+- **Dangerous patterns blocked**: `url()`, `expression()`, `javascript:`, `@import`, etc.
+- **Type safety**: Values can be strings or numbers
+- **JSON Schema compatible**: Property names work directly in JSON schema validation
+
+**Flexbox example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "flex",
+      "flex-direction": "column",
+      "justify-content": "center",
+      "align-items": "center",
+      "gap": "20px"
+    },
+    "$children": ["Flexbox layout"]
+  }
+}
+```
+
+**Grid example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "grid",
+      "grid-template-columns": "repeat(3, 1fr)",
+      "gap": "10px"
+    },
+    "$children": ["Grid layout"]
+  }
+}
+```
+
+**Conditional styles:**
+```json
+{
+  "div": {
+    "style": {
+      "$check": "isActive",
+      "$then": { "color": "green", "font-weight": "bold" },
+      "$else": { "color": "gray" }
+    },
+    "$children": ["Status"]
+  }
+}
 ```
 
 #### Tags without attributes

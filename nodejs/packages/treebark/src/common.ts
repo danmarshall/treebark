@@ -5,11 +5,14 @@ import type {
   Data,
   ConditionalValueOrTemplate,
   ConditionalValue,
+  ConditionalBase,
   TemplateObject,
   TemplateElement,
   TemplateAttributes,
   TreebarkInput,
   Logger,
+  CSSProperties,
+  StyleValue,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -199,13 +202,6 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 
 /**
- * Convert camelCase to kebab-case for CSS property names
- */
-function camelToKebab(str: string): string {
-  return str.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
-}
-
-/**
  * Convert a style object to a CSS string
  * Validates CSS properties against whitelist and escapes values
  */
@@ -213,12 +209,12 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
   const cssDeclarations: string[] = [];
   
   for (const [prop, value] of Object.entries(styleObj)) {
-    // Convert camelCase to kebab-case (e.g., fontSize -> font-size)
-    const cssProp = camelToKebab(prop);
+    // Property names should already be in kebab-case
+    const cssProp = prop;
     
     // Validate against whitelist
     if (!ALLOWED_CSS_PROPERTIES.has(cssProp)) {
-      logger.warn(`CSS property "${prop}" (${cssProp}) is not in the allowed list`);
+      logger.warn(`CSS property "${prop}" is not in the allowed list`);
       continue;
     }
     
@@ -247,15 +243,39 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
 }
 
 /**
+ * Check if value is a conditional style value
+ */
+function isConditionalStyleValue(value: unknown): value is ConditionalBase<CSSProperties> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as any).$check === 'string' &&
+    ('$then' in value || '$else' in value)
+  );
+}
+
+/**
  * Process style attribute value - only accepts objects for safety
  * Returns CSS string or empty string if invalid
  */
 export function processStyleAttribute(value: unknown, data: Data, parents: Data[], logger: Logger): string {
   // Handle conditional style values
-  if (isConditionalValue(value)) {
-    const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
-    // Recursively process the evaluated value
-    return processStyleAttribute(evaluatedValue, data, parents, logger);
+  if (isConditionalStyleValue(value)) {
+    const conditional = value as ConditionalBase<CSSProperties>;
+    if (!validatePathExpression(conditional.$check, '$check', logger)) {
+      return '';
+    }
+    const checkValue = getProperty(data, conditional.$check, parents);
+    const condition = evaluateCondition(checkValue, conditional);
+    
+    const resultValue = condition ? conditional.$then : conditional.$else;
+    if (resultValue === undefined) {
+      return '';
+    }
+    // Recursively process the result
+    return processStyleAttribute(resultValue, data, parents, logger);
   }
   
   // Only accept objects for style attribute
@@ -264,7 +284,7 @@ export function processStyleAttribute(value: unknown, data: Data, parents: Data[
   }
   
   // Reject non-object values
-  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { color: "red", fontSize: "14px" }`);
+  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
   return '';
 }
 
@@ -337,9 +357,9 @@ export function validatePathExpression(value: string, label: string, logger: Log
  * Supports modifiers: $not, $join
  * Default behavior: truthy check when no operators
  */
-export function evaluateCondition(
+export function evaluateCondition<T>(
   checkValue: unknown,
-  attrs: ConditionalValueOrTemplate | ConditionalValue
+  attrs: ConditionalBase<T>
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
 
