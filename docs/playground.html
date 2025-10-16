@@ -173,7 +173,7 @@ function switchTemplateFormat() {
     } catch (e) {
         // If conversion fails, just switch format without converting
         // This allows users to start fresh in the new format
-        errorDisplay.innerHTML = '<div class="log-warn">⚠️ Could not convert format: ' + escapeHtml(e.message) + '. Editor cleared for new format.</div>';
+        errorDisplay.innerHTML = '<div class="log-warn">⚠️ Could not convert format: ' + escapeHtml(e.message) + '.</div>';
         errorDisplay.style.display = 'block';
         currentTemplateFormat = newFormat;
     }

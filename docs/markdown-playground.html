@@ -142,6 +142,9 @@ const indentType = document.getElementById('indent-type');
 const indentSize = document.getElementById('indent-size');
 const markdownFormatSelect = document.getElementById('markdown-format');
 
+// Regex pattern for matching treebark code blocks in markdown
+const TREEBARK_BLOCK_REGEX = /```treebark\n?([\s\S]*?)\n?```/g;
+
 // Convert JSON to YAML string
 function jsonToYaml(obj) {
     return jsyaml.dump(obj, { indent: 2, lineWidth: -1 });
@@ -164,15 +167,21 @@ function switchMarkdownFormat() {
     
     try {
         // Convert treebark code blocks in markdown
-        const converted = currentContent.replace(/```treebark\n([\s\S]*?)\n```/g, (match, code) => {
+        const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
             try {
+                // Trim the code to handle edge cases
+                const trimmedCode = code.trim();
+                if (!trimmedCode) {
+                    return match; // Keep empty blocks unchanged
+                }
+                
                 let template;
                 
                 // Parse current code block based on current format
                 if (currentMarkdownFormat === 'json') {
-                    template = JSON.parse(code);
+                    template = JSON.parse(trimmedCode);
                 } else {
-                    template = yamlToJson(code);
+                    template = yamlToJson(trimmedCode);
                 }
                 
                 // Convert to new format
@@ -299,9 +308,13 @@ function loadExample(exampleId) {
         
         // If switching to YAML format, convert treebark code blocks
         if (currentMarkdownFormat === 'yaml' && markdown.includes('```treebark')) {
-            markdown = markdown.replace(/```treebark\n([\s\S]*?)\n```/g, (match, code) => {
+            markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
                 try {
-                    const template = JSON.parse(code);
+                    const trimmedCode = code.trim();
+                    if (!trimmedCode) {
+                        return match;
+                    }
+                    const template = JSON.parse(trimmedCode);
                     const yamlCode = jsonToYaml(template);
                     return '```treebark\n' + yamlCode + '\n```';
                 } catch (e) {
