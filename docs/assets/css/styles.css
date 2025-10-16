@@ -16,7 +16,7 @@ body {
     flex-direction: column;
     margin: 0;
     padding: 0 2.5rem;
-    background: linear-gradient(to bottom, var(--dune-sand-top), var(--dune-sand-bottom));
+    background: linear-gradient(to bottom, var(--dune-sand-top), var(--dune-sand-bottom), var(--dune-sand-top));
 }
 
 .header {
@@ -128,10 +128,6 @@ a {
 
 a:hover {
     color: #3d5a2e;
-}
-
-a:visited {
-    color: #5a7c47;
 }
 
 code {
