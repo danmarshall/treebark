@@ -138,7 +138,7 @@ code {
     padding: 0.2rem 0.4rem;
     border-radius: 3px;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     color: #111;
     font-size: 0.875rem;
 }
@@ -150,7 +150,7 @@ pre:not(.highlight) {
     border-radius: 0.5rem;
     overflow-x: auto;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.875rem;
     color: #111;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -163,7 +163,7 @@ pre:not(.highlight) {
     border-radius: 0.5rem;
     overflow-x: auto;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.875rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
@@ -306,7 +306,7 @@ blockquote {
     border: none;
     padding: 1rem;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.9rem;
     resize: vertical;
     background: #fff;
@@ -371,7 +371,7 @@ blockquote {
     flex: 1;
     padding: 1rem;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.85rem;
     overflow: auto;
     background: rgba(255, 255, 255, 0.85);
@@ -430,7 +430,7 @@ blockquote {
     margin: 1rem 0;
     color: #d00;
     font-family: 'Cousine', monospace;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.9rem;
     display: none;
 }
