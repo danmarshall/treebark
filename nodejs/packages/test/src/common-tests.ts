@@ -355,6 +355,82 @@ export const styleObjectTests: TestCase[] = [
       },
       data: { isActive: true }
     }
+  },
+  {
+    name: 'handles interpolation in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': '{{primaryColor}}',
+            'font-size': '{{fontSize}}px',
+            'border': '2px solid {{borderColor}}'
+          },
+          $children: ['Interpolated styles']
+        }
+      },
+      data: {
+        primaryColor: '#3f51b5',
+        fontSize: '16',
+        borderColor: 'red'
+      }
+    }
+  },
+  {
+    name: 'handles interpolation in conditional style $then branch',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'theme',
+            $then: {
+              'background-color': '{{darkBg}}',
+              'color': '{{darkText}}'
+            },
+            $else: {
+              'background-color': '{{lightBg}}',
+              'color': '{{lightText}}'
+            }
+          },
+          $children: ['Theme-based interpolated styles']
+        }
+      },
+      data: {
+        theme: true,
+        darkBg: '#333',
+        darkText: '#fff',
+        lightBg: '#fff',
+        lightText: '#333'
+      }
+    }
+  },
+  {
+    name: 'handles interpolation in conditional style $else branch',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'theme',
+            $then: {
+              'background-color': '{{darkBg}}',
+              'color': '{{darkText}}'
+            },
+            $else: {
+              'background-color': '{{lightBg}}',
+              'color': '{{lightText}}'
+            }
+          },
+          $children: ['Theme-based interpolated styles']
+        }
+      },
+      data: {
+        theme: false,
+        darkBg: '#333',
+        darkText: '#fff',
+        lightBg: '#fff',
+        lightText: '#333'
+      }
+    }
   }
 ];
 
