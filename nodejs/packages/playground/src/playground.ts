@@ -1,10 +1,9 @@
-// Import Treebark types from the compiled package
-import type { TemplateElement, TemplateObject } from '../../treebark/dist/types.js';
+// Type definitions for playground examples - using types from ../../treebark/dist/types.js
+// Note: TemplateElement type is imported via reference in globals.d.ts
 
-// Type definitions for playground examples
 interface Example {
   label?: string;
-  template: TemplateElement | TemplateElement[];
+  template: any; // Would be TemplateElement | TemplateElement[] but can't import with module: "None"
   data: any;
 }
 
@@ -697,7 +696,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       status: "online",
       score: 95

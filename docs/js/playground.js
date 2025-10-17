@@ -1,3 +1,4 @@
+"use strict";
 const examples = {
     'hello-world': {
         template: {
@@ -973,4 +974,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 window.loadExampleFromDropdown = loadExampleFromDropdown;
 window.switchTemplateFormat = switchTemplateFormat;
-export {};
