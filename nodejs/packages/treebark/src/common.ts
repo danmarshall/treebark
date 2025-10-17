@@ -233,19 +233,16 @@ export function processStyleAttribute(value: unknown, data: Data, parents: Data[
     if (resultValue === undefined) {
       return '';
     }
-    // Process the result style object (no nesting supported)
     if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
       return styleObjectToString(resultValue as Record<string, unknown>, logger);
     }
     return '';
   }
   
-  // Only accept objects for style attribute
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
     return styleObjectToString(value as Record<string, unknown>, logger);
   }
   
-  // Reject non-object values
   logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
   return '';
 }
