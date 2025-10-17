@@ -1,17 +1,9 @@
 // Import Treebark types from the compiled package
 import type { TemplateElement } from '../../treebark/dist/types.js';
 
-// Helper function to create markdown with strongly-typed treebark template
-function createMarkdownWithTreebark(markdown: string, template: TemplateElement | TemplateElement[]): string {
-  // The template is already strongly typed, we just need to inject it into the markdown
-  return markdown;
-}
-
 // Type definitions for markdown playground examples
 interface MarkdownExample {
   label?: string;
-  // Strongly-typed treebark templates that can be referenced
-  treebarkTemplates?: Record<string, TemplateElement | TemplateElement[]>;
   markdown: string;
   data: any;
 }
@@ -22,7 +14,7 @@ type MarkdownExamples = Record<string, MarkdownExample>;
 const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
 
 // Strongly-typed treebark template dictionary
-const treebarkTemplates = {
+const treebarkTemplates: Record<string, TemplateElement | TemplateElement[]> = {
   greeting: {
     div: {
       class: "greeting",
@@ -31,7 +23,7 @@ const treebarkTemplates = {
         { p: "Welcome to the markdown-it-treebark plugin." }
       ]
     }
-  } as TemplateElement,
+  },
   
   productCard: {
     div: {
@@ -44,7 +36,7 @@ const treebarkTemplates = {
         { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
       ]
     }
-  } as TemplateElement,
+  },
   
   teamList: {
     ul: {
@@ -63,14 +55,13 @@ const treebarkTemplates = {
         }
       ]
     }
-  } as TemplateElement,
+  },
 };
 
 // Example markdown documents with embedded treebark - strongly typed
 const examples: MarkdownExamples = {
   'hello-world': {
     label: 'Hello World',
-    treebarkTemplates: { greeting: treebarkTemplates.greeting },
     markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
@@ -89,7 +80,6 @@ Regular markdown continues to work normally:
   },
   'product-card': {
     label: 'Product Card',
-    treebarkTemplates: { productCard: treebarkTemplates.productCard },
     markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
@@ -113,7 +103,6 @@ ${JSON.stringify(treebarkTemplates.productCard, null, 2)}
   },
   'list-binding': {
     label: 'List Binding',
-    treebarkTemplates: { teamList: treebarkTemplates.teamList },
     markdown: `# Team Members
 
 Meet our amazing team:

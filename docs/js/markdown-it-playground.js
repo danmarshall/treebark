@@ -1,6 +1,3 @@
-function createMarkdownWithTreebark(markdown, template) {
-    return markdown;
-}
 const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
 const treebarkTemplates = {
     greeting: {
@@ -46,7 +43,6 @@ const treebarkTemplates = {
 const examples = {
     'hello-world': {
         label: 'Hello World',
-        treebarkTemplates: { greeting: treebarkTemplates.greeting },
         markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
@@ -65,7 +61,6 @@ Regular markdown continues to work normally:
     },
     'product-card': {
         label: 'Product Card',
-        treebarkTemplates: { productCard: treebarkTemplates.productCard },
         markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
@@ -89,7 +84,6 @@ ${JSON.stringify(treebarkTemplates.productCard, null, 2)}
     },
     'list-binding': {
         label: 'List Binding',
-        treebarkTemplates: { teamList: treebarkTemplates.teamList },
         markdown: `# Team Members
 
 Meet our amazing team:
