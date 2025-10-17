@@ -552,7 +552,6 @@ ${treebark(treebarkTemplates.statusDashboard)}
     }
 };
 let currentMarkdownFormat = 'json';
-let currentExampleTemplates = undefined;
 const markdownEditor = document.getElementById('markdown-editor');
 const dataEditor = document.getElementById('data-editor');
 const htmlOutput = document.getElementById('html-output');
@@ -574,30 +573,6 @@ function switchMarkdownFormat() {
         return;
     }
     try {
-        if (currentExampleTemplates) {
-            const templateKeys = Object.keys(currentExampleTemplates);
-            let templateIndex = 0;
-            const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match) => {
-                if (templateIndex < templateKeys.length) {
-                    const templateKey = templateKeys[templateIndex];
-                    const template = currentExampleTemplates[templateKey];
-                    templateIndex++;
-                    let newCode;
-                    if (newFormat === 'json') {
-                        newCode = JSON.stringify(template, null, 2);
-                    }
-                    else {
-                        newCode = jsonToYaml(template);
-                    }
-                    return '```treebark\n' + newCode + '\n```';
-                }
-                return match;
-            });
-            markdownEditor.value = converted;
-            currentMarkdownFormat = newFormat;
-            updateOutput();
-            return;
-        }
         const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
             try {
                 const trimmedCode = code.trim();
@@ -704,7 +679,6 @@ function updateOutput() {
 function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
-        currentExampleTemplates = example.templates;
         let markdown = example.markdown || '';
         if (currentMarkdownFormat === 'yaml' && example.templates) {
             const templateKeys = Object.keys(example.templates);

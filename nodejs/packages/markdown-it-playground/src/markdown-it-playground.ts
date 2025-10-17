@@ -581,7 +581,6 @@ ${treebark(treebarkTemplates.statusDashboard)}
 };
 
 let currentMarkdownFormat: 'json' | 'yaml' = 'json';
-let currentExampleTemplates: Record<string, any> | undefined = undefined;
 
 // Get DOM elements
 const markdownEditor = document.getElementById('markdown-editor') as HTMLTextAreaElement;
@@ -613,35 +612,6 @@ function switchMarkdownFormat(): void {
   }
 
   try {
-    // If we have template references from the loaded example, use those
-    if (currentExampleTemplates) {
-      const templateKeys = Object.keys(currentExampleTemplates);
-      let templateIndex = 0;
-      
-      const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match) => {
-        if (templateIndex < templateKeys.length) {
-          const templateKey = templateKeys[templateIndex];
-          const template = currentExampleTemplates![templateKey];
-          templateIndex++;
-          
-          let newCode: string;
-          if (newFormat === 'json') {
-            newCode = JSON.stringify(template, null, 2);
-          } else {
-            newCode = jsonToYaml(template);
-          }
-          return '```treebark\n' + newCode + '\n```';
-        }
-        return match;
-      });
-      
-      markdownEditor.value = converted;
-      currentMarkdownFormat = newFormat;
-      updateOutput();
-      return;
-    }
-    
-    // Fallback: try to parse from the markdown (for user-edited content)
     // Convert treebark code blocks in markdown
     const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
       try {
@@ -776,8 +746,6 @@ function updateOutput(): void {
 function loadExample(exampleId: string): void {
   const example = examples[exampleId];
   if (example) {
-    // Store current example's templates for format switching
-    currentExampleTemplates = example.templates;
     
     let markdown = example.markdown || '';
 
