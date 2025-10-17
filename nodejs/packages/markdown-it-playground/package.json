@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "clean": "rm -rf ../../../docs/js/markdown-it-playground.js"
   },
   "engines": {

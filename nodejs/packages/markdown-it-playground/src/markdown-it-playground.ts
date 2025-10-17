@@ -1,4 +1,10 @@
 import type { TemplateElement } from '../../treebark/dist/types.js';
+import type JSYaml from 'js-yaml';
+import type MarkdownIt from 'markdown-it';
+
+declare const jsyaml: typeof JSYaml;
+declare const markdownit: typeof MarkdownIt;
+declare const MarkdownItTreebark: (md: MarkdownIt, options?: { data?: unknown; indent?: string | boolean; yaml?: typeof JSYaml }) => void;
 
 // Type definitions for markdown playground examples
 interface MarkdownExample {
@@ -120,46 +126,28 @@ const treebarkTemplates: Record<string, TemplateElement | TemplateElement[]> = {
   },
 
   productGalleryWithData: {
-    template: {
-      div: {
-        class: "product-grid",
-        $children: [
-          { h2: "Featured Products" },
-          {
-            div: {
-              class: "products",
-              $bind: "products",
-              $children: [
-                {
-                  div: {
-                    class: "product-card",
-                    $children: [
-                      { img: { src: "{{image}}", alt: "{{name}}" } },
-                      { h3: "{{name}}" },
-                      { p: "{{description}}" },
-                      { div: { class: "price", $children: ["{{price}}"] } }
-                    ]
-                  }
+    div: {
+      class: "product-grid",
+      $children: [
+        { h2: "Featured Products" },
+        {
+          div: {
+            class: "products",
+            $bind: "products",
+            $children: [
+              {
+                div: {
+                  class: "product-card",
+                  $children: [
+                    { img: { src: "{{image}}", alt: "{{name}}" } },
+                    { h3: "{{name}}" },
+                    { p: "{{description}}" },
+                    { div: { class: "price", $children: ["{{price}}"] } }
+                  ]
                 }
-              ]
-            }
+              }
+            ]
           }
-        ]
-      }
-    },
-    data: {
-      products: [
-        {
-          name: "Treebark Core",
-          description: "Safe template rendering for Markdown",
-          price: "Free",
-          image: "https://via.placeholder.com/150"
-        },
-        {
-          name: "Treebark Pro",
-          description: "Advanced features and support",
-          price: "$29/month",
-          image: "https://via.placeholder.com/150"
         }
       ]
     }
@@ -341,7 +329,7 @@ const treebarkTemplates: Record<string, TemplateElement | TemplateElement[]> = {
             $children: [
               {
                 $if: {
-                  $chceck: "score",
+                  $check: "score",
                   "$>=": 90,
                   $then: { span: "⭐ Excellent Performance" },
                   $else: { span: "Average Performance" }

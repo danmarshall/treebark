@@ -73,46 +73,28 @@
       }
     },
     productGalleryWithData: {
-      template: {
-        div: {
-          class: "product-grid",
-          $children: [
-            { h2: "Featured Products" },
-            {
-              div: {
-                class: "products",
-                $bind: "products",
-                $children: [
-                  {
-                    div: {
-                      class: "product-card",
-                      $children: [
-                        { img: { src: "{{image}}", alt: "{{name}}" } },
-                        { h3: "{{name}}" },
-                        { p: "{{description}}" },
-                        { div: { class: "price", $children: ["{{price}}"] } }
-                      ]
-                    }
+      div: {
+        class: "product-grid",
+        $children: [
+          { h2: "Featured Products" },
+          {
+            div: {
+              class: "products",
+              $bind: "products",
+              $children: [
+                {
+                  div: {
+                    class: "product-card",
+                    $children: [
+                      { img: { src: "{{image}}", alt: "{{name}}" } },
+                      { h3: "{{name}}" },
+                      { p: "{{description}}" },
+                      { div: { class: "price", $children: ["{{price}}"] } }
+                    ]
                   }
-                ]
-              }
+                }
+              ]
             }
-          ]
-        }
-      },
-      data: {
-        products: [
-          {
-            name: "Treebark Core",
-            description: "Safe template rendering for Markdown",
-            price: "Free",
-            image: "https://via.placeholder.com/150"
-          },
-          {
-            name: "Treebark Pro",
-            description: "Advanced features and support",
-            price: "$29/month",
-            image: "https://via.placeholder.com/150"
           }
         ]
       }
@@ -289,7 +271,7 @@
               $children: [
                 {
                   $if: {
-                    $chceck: "score",
+                    $check: "score",
                     "$>=": 90,
                     $then: { span: "⭐ Excellent Performance" },
                     $else: { span: "Average Performance" }
