@@ -676,7 +676,7 @@ function updateOutput() {
         };
         try {
             const md = markdownit();
-            md.use(MarkdownItTreebark, { data, indent });
+            md.use(MarkdownItTreebark, { data, indent, yaml: jsyaml });
             const html = md.render(markdownText);
             htmlOutput.textContent = html;
             if (logs.length > 0) {

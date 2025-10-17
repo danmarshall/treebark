@@ -741,7 +741,7 @@ function updateOutput(): void {
       const md = markdownit();
 
       // Apply the treebark plugin
-      md.use(MarkdownItTreebark, { data, indent });
+      md.use(MarkdownItTreebark, { data, indent, yaml: jsyaml });
 
       // Render markdown
       const html = md.render(markdownText);
