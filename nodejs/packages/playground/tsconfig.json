@@ -6,7 +6,6 @@
     "declaration": false,
     "declarationMap": false,
     "sourceMap": false,
-    "resolveJsonModule": false,
     "module": "None",
     "target": "ES2020"
   },

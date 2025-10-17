@@ -14,8 +14,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "removeComments": true,
-    "noEmitOnError": true,
-    "resolveJsonModule": true
+    "noEmitOnError": true
   },
   "exclude": [
     "node_modules",

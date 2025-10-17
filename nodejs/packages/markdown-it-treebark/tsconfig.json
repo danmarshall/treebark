@@ -13,7 +13,6 @@
     "sourceMap": true,
     "outDir": "./dist",
     "removeComments": true,
-    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "treebark": ["../../node_modules/treebark/dist/index.d.ts"]
