@@ -1,10 +1,10 @@
-// Type definitions for markdown playground examples - using types from ../../treebark/dist/types.js
-// Note: TemplateElement type would be ideal but can't import with module: "None"
+import type { TemplateElement } from '../../treebark/dist/types.js';
 
+// Type definitions for markdown playground examples
 interface MarkdownExample {
   markdown: string;
   data: any;
-  templates?: Record<string, any>; // Store template references for format switching
+  templates?: Record<string, TemplateElement | TemplateElement[]>; // Store template references for format switching
 }
 
 type MarkdownExamples = Record<string, MarkdownExample>;
@@ -13,12 +13,12 @@ type MarkdownExamples = Record<string, MarkdownExample>;
 const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
 
 // Helper function to wrap a treebark template in markdown code block syntax
-function treebark(template: any): string {
+function treebark(template: TemplateElement | TemplateElement[]): string {
   return '```treebark\n' + JSON.stringify(template, null, 2) + '\n```';
 }
 
 // Strongly-typed treebark template dictionary
-const treebarkTemplates: Record<string, any> = {
+const treebarkTemplates: Record<string, TemplateElement | TemplateElement[]> = {
   greeting: {
     div: {
       class: "greeting",
@@ -27,7 +27,7 @@ const treebarkTemplates: Record<string, any> = {
         { p: "Welcome to the markdown-it-treebark plugin." }
       ]
     }
-  },
+  } as TemplateElement,
 
   productCard: {
     div: {

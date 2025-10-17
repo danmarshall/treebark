@@ -5,8 +5,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf ../../docs/js/playground.js"
+    "build": "vite build",
+    "clean": "rm -rf ../../../docs/js/playground.js"
   },
   "engines": {
     "node": ">=16.0.0"

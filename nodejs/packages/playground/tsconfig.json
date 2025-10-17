@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "../../../docs/js",
     "rootDir": "./src",
-    "module": "None",
+    "module": "ESNext",
     "target": "ES2020"
   },
   "include": [
