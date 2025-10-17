@@ -140,7 +140,7 @@
       }
       cssDeclarations.push(`${cssProp}: ${cssValue}`);
     }
-    return cssDeclarations.join("; ");
+    return cssDeclarations.join("; ").trim();
   }
   function isConditionalStyleValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string" && ("$then" in value || "$else" in value);

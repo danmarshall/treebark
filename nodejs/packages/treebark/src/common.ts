@@ -206,7 +206,7 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     cssDeclarations.push(`${cssProp}: ${cssValue}`);
   }
   
-  return cssDeclarations.join('; ');
+  return cssDeclarations.join('; ').trim();
 }
 
 /**
