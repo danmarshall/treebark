@@ -22,9 +22,18 @@
         "markdown": "# Team Members\n\nMeet our amazing team:\n\n```treebark\n{\n  \"ul\": {\n    \"class\": \"team-list\",\n    \"$bind\": \"members\",\n    \"$children\": [\n      {\n        \"li\": {\n          \"class\": \"team-member\",\n          \"$children\": [\n            { \"strong\": \"{{name}}\" },\n            \" - \",\n            { \"em\": \"{{role}}\" }\n          ]\n        }\n      }\n    ]\n  }\n}\n```\n\n## About Us\n\nWe're passionate about building great software!",
         "data": {
             "members": [
-                { "name": "Alice", "role": "Developer" },
-                { "name": "Bob", "role": "Designer" },
-                { "name": "Charlie", "role": "Manager" }
+                {
+                    "name": "Alice",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Bob",
+                    "role": "Designer"
+                },
+                {
+                    "name": "Charlie",
+                    "role": "Manager"
+                }
             ]
         }
     },
@@ -35,9 +44,18 @@
             "siteName": "Treebark",
             "packageName": "treebark",
             "features": [
-                { "title": "Safe", "description": "XSS protection built-in" },
-                { "title": "Fast", "description": "Optimized rendering" },
-                { "title": "Simple", "description": "Easy to learn and use" }
+                {
+                    "title": "Safe",
+                    "description": "XSS protection built-in"
+                },
+                {
+                    "title": "Fast",
+                    "description": "Optimized rendering"
+                },
+                {
+                    "title": "Simple",
+                    "description": "Easy to learn and use"
+                }
             ]
         }
     },
@@ -48,7 +66,7 @@
     },
     "conditional-rendering": {
         "label": "Conditional Rendering ($if Tag)",
-        "markdown": "# User Dashboard with Conditional Content\n\nThe **$if** tag allows conditional rendering based on data values.\n\n## Basic Example\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"user-status\",\n    \"$children\": [\n      { \"h3\": \"Account Status\" },\n      {\n        \"$if\": {\n          \"$check\": \"isPremium\",\n          \"$then\": { \"p\": { \"style\": \"color: gold;\", \"$children\": [\"⭐ Premium Member\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"isPremium\",\n          \"$not\": true,\n          \"$then\": { \"p\": \"Standard Member - Upgrade to Premium!\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Use `$check` to specify the condition\n- Use `$not: true` to invert the condition (like 'unless')\n- Works with nested properties like `user.isAdmin`\n- The $if tag is transparent - it doesn't render itself",
+        "markdown": "# User Dashboard with Conditional Content\n\nThe **$if** tag allows conditional rendering based on data values.\n\n## Basic Example\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"user-status\",\n    \"$children\": [\n      { \"h3\": \"Account Status\" },\n      {\n        \"$if\": {\n          \"$check\": \"isPremium\",\n          \"$then\": { \"p\": { \"style\": { \"color\": \"gold\" }, \"$children\": [\"⭐ Premium Member\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"isPremium\",\n          \"$not\": true,\n          \"$then\": { \"p\": \"Standard Member - Upgrade to Premium!\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Use `$check` to specify the condition\n- Use `$not: true` to invert the condition (like 'unless')\n- Works with nested properties like `user.isAdmin`\n- The $if tag is transparent - it doesn't render itself",
         "data": {
             "isPremium": true
         }
@@ -63,7 +81,7 @@
     },
     "conditional-operators": {
         "label": "Comparison Operators",
-        "markdown": "# Age-Based Access Control\n\nUse comparison operators to create powerful conditional logic.\n\n## Comparison Examples\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"access-control\",\n    \"$children\": [\n      { \"h3\": \"Access Level for Age: {{age}}\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$<\": 13,\n          \"$then\": { \"p\": { \"style\": \"color: red;\", \"$children\": [\"❌ Child account - Restricted access\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 13,\n          \"$<\": 18,\n          \"$then\": { \"p\": { \"style\": \"color: orange;\", \"$children\": [\"⚠️ Teen account - Limited access\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$then\": { \"p\": { \"style\": \"color: green;\", \"$children\": [\"✓ Full access granted\"] } }\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"Role-Based Access\" },\n      {\n        \"$if\": {\n          \"$check\": \"role\",\n          \"$in\": [\"admin\", \"moderator\", \"editor\"],\n          \"$then\": { \"p\": { \"style\": \"color: blue;\", \"$children\": [\"⭐ Special privileges granted\"] } },\n          \"$else\": { \"p\": \"Standard user privileges\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Available Operators\n\n- `$<` - Less than\n- `$>` - Greater than\n- `$<=` - Less than or equal\n- `$>=` - Greater than or equal\n- `$=` - Strict equality\n- `$in` - Array membership",
+        "markdown": "# Age-Based Access Control\n\nUse comparison operators to create powerful conditional logic.\n\n## Comparison Examples\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"access-control\",\n    \"$children\": [\n      { \"h3\": \"Access Level for Age: {{age}}\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$<\": 13,\n          \"$then\": { \"p\": { \"style\": { \"color\": \"red\" }, \"$children\": [\"❌ Child account - Restricted access\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 13,\n          \"$<\": 18,\n          \"$then\": { \"p\": { \"style\": { \"color\": \"orange\" }, \"$children\": [\"⚠️ Teen account - Limited access\"] } }\n        }\n      },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$then\": { \"p\": { \"style\": { \"color\": \"green\" }, \"$children\": [\"✓ Full access granted\"] } }\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"Role-Based Access\" },\n      {\n        \"$if\": {\n          \"$check\": \"role\",\n          \"$in\": [\"admin\", \"moderator\", \"editor\"],\n          \"$then\": { \"p\": { \"style\": { \"color\": \"blue\" }, \"$children\": [\"⭐ Special privileges granted\"] } },\n          \"$else\": { \"p\": \"Standard user privileges\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Available Operators\n\n- `$<` - Less than\n- `$>` - Greater than\n- `$<=` - Less than or equal\n- `$>=` - Greater than or equal\n- `$=` - Strict equality\n- `$in` - Array membership",
         "data": {
             "age": 25,
             "role": "admin"
@@ -71,7 +89,7 @@
     },
     "conditional-join": {
         "label": "Operator Stacking ($join)",
-        "markdown": "# Pricing Logic with Multiple Conditions\n\nCombine multiple operators with **AND** (default) or **OR** logic using `$join`.\n\n## AND Logic (Default)\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"pricing\",\n    \"$children\": [\n      { \"h3\": \"Standard Pricing\" },\n      { \"p\": \"Age: {{age}}, Member: {{isMember}}\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$<=\": 65,\n          \"$then\": { \"p\": { \"style\": \"color: green;\", \"$children\": [\"✓ Standard adult rate: $50\"] } },\n          \"$else\": { \"p\": \"Discounted rate available\" }\n        }\n      },\n      { \"hr\": {} },\n      { \"h3\": \"Discounted Pricing (OR Logic)\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$<\": 18,\n          \"$>\": 65,\n          \"$join\": \"OR\",\n          \"$then\": { \"p\": { \"style\": \"color: blue;\", \"$children\": [\"🎉 Special discount: $30\"] } },\n          \"$else\": { \"p\": \"Standard rate: $50\" }\n        }\n      },\n      { \"hr\": {} },\n      { \"h3\": \"Negation Example\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$<=\": 65,\n          \"$not\": true,\n          \"$then\": { \"p\": { \"style\": \"color: orange;\", \"$children\": [\"Outside working age range\"] } },\n          \"$else\": { \"p\": \"Working age range (18-65)\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Multiple operators use **AND** logic by default\n- Use `$join: 'OR'` to change to OR logic\n- Use `$not: true` to invert the entire result\n- Operators can be stacked for complex conditions",
+        "markdown": "# Pricing Logic with Multiple Conditions\n\nCombine multiple operators with **AND** (default) or **OR** logic using `$join`.\n\n## AND Logic (Default)\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"pricing\",\n    \"$children\": [\n      { \"h3\": \"Standard Pricing\" },\n      { \"p\": \"Age: {{age}}, Member: {{isMember}}\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$<=\": 65,\n          \"$then\": { \"p\": { \"style\": { \"color\": \"green\" }, \"$children\": [\"✓ Standard adult rate: $50\"] } },\n          \"$else\": { \"p\": \"Discounted rate available\" }\n        }\n      },\n      { \"hr\": {} },\n      { \"h3\": \"Discounted Pricing (OR Logic)\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$<\": 18,\n          \"$>\": 65,\n          \"$join\": \"OR\",\n          \"$then\": { \"p\": { \"style\": { \"color\": \"blue\" }, \"$children\": [\"🎉 Special discount: $30\"] } },\n          \"$else\": { \"p\": \"Standard rate: $50\" }\n        }\n      },\n      { \"hr\": {} },\n      { \"h3\": \"Negation Example\" },\n      {\n        \"$if\": {\n          \"$check\": \"age\",\n          \"$>=\": 18,\n          \"$<=\": 65,\n          \"$not\": true,\n          \"$then\": { \"p\": { \"style\": { \"color\": \"orange\" }, \"$children\": [\"Outside working age range\"] } },\n          \"$else\": { \"p\": \"Working age range (18-65)\" }\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Multiple operators use **AND** logic by default\n- Use `$join: 'OR'` to change to OR logic\n- Use `$not: true` to invert the entire result\n- Operators can be stacked for complex conditions",
         "data": {
             "age": 70,
             "isMember": false
@@ -79,7 +97,7 @@
     },
     "conditional-attributes": {
         "label": "Conditional Attribute Values",
-        "markdown": "# Dynamic Styling with Conditional Attributes\n\nApply conditional values to **any attribute** using the same conditional syntax.\n\n## Conditional Attributes Example\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"status-dashboard\",\n    \"$children\": [\n      { \"h3\": \"Server Status Dashboard\" },\n      {\n        \"div\": {\n          \"class\": {\n            \"$check\": \"status\",\n            \"$=\": \"online\",\n            \"$then\": \"status-online\",\n            \"$else\": \"status-offline\"\n          },\n          \"$children\": [\n            { \"strong\": \"Server Status: \" },\n            { \"span\": \"{{status}}\" }\n          ]\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"Performance Score: {{score}}\" },\n      {\n        \"div\": {\n          \"class\": {\n            \"$check\": \"score\",\n            \"$>=\": 90,\n            \"$then\": \"score-excellent\",\n            \"$else\": \"score-average\"\n          },\n          \"style\": {\n            \"$check\": \"score\",\n            \"$>=\": 90,\n            \"$then\": \"color: green; font-weight: bold;\",\n            \"$else\": \"color: orange;\"\n          },\n          \"$children\": [\n            {\n              \"$if\": {\n                \"$check\": \"score\",\n                \"$>=\": 90,\n                \"$then\": { \"span\": \"⭐ Excellent Performance\" },\n                \"$else\": { \"span\": \"Average Performance\" }\n              }\n            }\n          ]\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"User Role Badge\" },\n      {\n        \"span\": {\n          \"class\": {\n            \"$check\": \"role\",\n            \"$in\": [\"admin\", \"moderator\"],\n            \"$then\": \"badge-special\",\n            \"$else\": \"badge-normal\"\n          },\n          \"$children\": [\"Role: {{role}}\"]\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Conditional values work on **any attribute** (class, style, href, etc.)\n- Uses the same operators as $if tag ($<, $>, $=, $in, etc.)\n- Supports $not, $join modifiers\n- Clean, declarative syntax",
+        "markdown": "# Dynamic Styling with Conditional Attributes\n\nApply conditional values to **any attribute** using the same conditional syntax.\n\n## Conditional Attributes Example\n\n```treebark\n{\n  \"div\": {\n    \"class\": \"status-dashboard\",\n    \"$children\": [\n      { \"h3\": \"Server Status Dashboard\" },\n      {\n        \"div\": {\n          \"class\": {\n            \"$check\": \"status\",\n            \"$=\": \"online\",\n            \"$then\": \"status-online\",\n            \"$else\": \"status-offline\"\n          },\n          \"$children\": [\n            { \"strong\": \"Server Status: \" },\n            { \"span\": \"{{status}}\" }\n          ]\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"Performance Score: {{score}}\" },\n      {\n        \"div\": {\n          \"class\": {\n            \"$check\": \"score\",\n            \"$>=\": 90,\n            \"$then\": \"score-excellent\",\n            \"$else\": \"score-average\"\n          },\n          \"style\": {\n            \"$check\": \"score\",\n            \"$>=\": 90,\n            \"$then\": { \"color\": \"green\", \"font-weight\": \"bold\" },\n            \"$else\": { \"color\": \"orange\" }\n          },\n          \"$children\": [\n            {\n              \"$if\": {\n                \"$check\": \"score\",\n                \"$>=\": 90,\n                \"$then\": { \"span\": \"⭐ Excellent Performance\" },\n                \"$else\": { \"span\": \"Average Performance\" }\n              }\n            }\n          ]\n        }\n      },\n      { \"hr\": {} },\n      { \"h4\": \"User Role Badge\" },\n      {\n        \"span\": {\n          \"class\": {\n            \"$check\": \"role\",\n            \"$in\": [\"admin\", \"moderator\"],\n            \"$then\": \"badge-special\",\n            \"$else\": \"badge-normal\"\n          },\n          \"$children\": [\"Role: {{role}}\"]\n        }\n      }\n    ]\n  }\n}\n```\n\n## Key Features\n\n- Conditional values work on **any attribute** (class, style, href, etc.)\n- Uses the same operators as $if tag ($<, $>, $=, $in, etc.)\n- Supports $not, $join modifiers\n- Clean, declarative syntax",
         "data": {
             "status": "online",
             "score": 95,

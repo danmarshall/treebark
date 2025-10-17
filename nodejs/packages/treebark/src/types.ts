@@ -35,6 +35,15 @@ export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject
 // Conditional value type for attribute values - T is restricted to primitives
 export type ConditionalValue = ConditionalBase<string>;
 
+// CSS Style properties as an object with kebab-case property names
+// Accepts any valid CSS property name (kebab-case format)
+export type CSSProperties = {
+  [property: string]: string;
+};
+
+// Style value can be a CSSProperties object or a conditional that returns CSSProperties
+export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
+
 // Type-safe tag names - union of all allowed tags
 export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
   'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
@@ -55,7 +64,7 @@ type TagContent<Attrs> = string | (string | TemplateObject)[] | Attrs;
 type GlobalAttrs = {
   id?: string;
   class?: string;
-  style?: string;
+  style?: StyleValue;
   title?: string;
   role?: string;
   [key: `data-${string}`]: unknown;

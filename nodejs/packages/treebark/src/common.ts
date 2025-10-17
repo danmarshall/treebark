@@ -5,11 +5,14 @@ import type {
   Data,
   ConditionalValueOrTemplate,
   ConditionalValue,
+  ConditionalBase,
   TemplateObject,
   TemplateElement,
   TemplateAttributes,
   TreebarkInput,
   Logger,
+  CSSProperties,
+  StyleValue,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -52,6 +55,12 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
+
+// Blocked CSS properties that are known to be dangerous
+const BLOCKED_CSS_PROPERTIES = new Set([
+  'behavior',           // IE behavior property - can execute code
+  '-moz-binding',       // Firefox XBL binding - can execute code
+]);
 
 /**
  * Get a nested property from data using dot notation
@@ -135,6 +144,110 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 
 /**
+ * Convert a style object to a CSS string
+ * Uses generic property validation - allows any kebab-case CSS property
+ * but validates values for dangerous patterns
+ */
+export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
+  const cssDeclarations: string[] = [];
+  
+  for (const [prop, value] of Object.entries(styleObj)) {
+    // Property names should be in kebab-case format
+    const cssProp = prop;
+    
+    // Validate property name format: must be kebab-case (lowercase letters and hyphens)
+    if (!/^[a-z]([a-z0-9-]*[a-z0-9])?$/.test(cssProp)) {
+      logger.warn(`CSS property "${prop}" has invalid format (must be kebab-case)`);
+      continue;
+    }
+    
+    // Block known dangerous properties
+    if (BLOCKED_CSS_PROPERTIES.has(cssProp)) {
+      logger.warn(`CSS property "${prop}" is blocked for security reasons`);
+      continue;
+    }
+    
+    // Skip null/undefined values
+    if (value == null) {
+      continue;
+    }
+    
+    // Convert value to string and sanitize
+    let cssValue = String(value).trim();
+    
+    // Split by semicolon and take only the first chunk to prevent injection
+    // This allows trailing semicolons ergonomically while blocking multi-property injection
+    if (cssValue.includes(';')) {
+      const originalValue = cssValue;
+      cssValue = cssValue.split(';')[0].trim();
+      if (cssValue && cssValue !== originalValue.trim()) {
+        logger.warn(`CSS value for "${prop}" contained semicolon - using only first part: "${cssValue}"`);
+      }
+    }
+    
+    // Skip if value is empty after sanitization
+    if (!cssValue) {
+      continue;
+    }
+    
+    // Block dangerous patterns in values
+    // Allow data: URIs but block external URLs
+    const hasUrl = /url\s*\(/i.test(cssValue);
+    const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
+    
+    if ((hasUrl && !hasDataUri) || 
+        /expression\s*\(/i.test(cssValue) ||
+        /javascript:/i.test(cssValue) ||
+        /@import/i.test(cssValue)) {
+      logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
+      continue;
+    }
+    
+    cssDeclarations.push(`${cssProp}: ${cssValue}`);
+  }
+  
+  return cssDeclarations.join('; ').trim();
+}
+
+/**
+ * Process style attribute value - only accepts objects for safety
+ * Returns CSS string or empty string if invalid
+ */
+export function processStyleAttribute(value: unknown, data: Data, parents: Data[], logger: Logger): string {
+  // Handle conditional style values - check for $check property to detect conditionals
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as any).$check === 'string'
+  ) {
+    const conditional = value as ConditionalBase<CSSProperties>;
+    if (!validatePathExpression(conditional.$check, '$check', logger)) {
+      return '';
+    }
+    const checkValue = getProperty(data, conditional.$check, parents);
+    const condition = evaluateCondition(checkValue, conditional);
+    
+    const resultValue = condition ? conditional.$then : conditional.$else;
+    if (resultValue === undefined) {
+      return '';
+    }
+    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
+      return styleObjectToString(resultValue as Record<string, unknown>, logger);
+    }
+    return '';
+  }
+  
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return styleObjectToString(value as Record<string, unknown>, logger);
+  }
+  
+  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
+  return '';
+}
+
+/**
  * Validate that an attribute is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
@@ -203,9 +316,9 @@ export function validatePathExpression(value: string, label: string, logger: Log
  * Supports modifiers: $not, $join
  * Default behavior: truthy check when no operators
  */
-export function evaluateCondition(
+export function evaluateCondition<T>(
   checkValue: unknown,
-  attrs: ConditionalValueOrTemplate | ConditionalValue
+  attrs: ConditionalBase<T>
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
 

@@ -23,6 +23,9 @@ import {
   ifTagThenElseTests,
   conditionalAttributeTests,
   ifTagErrorTests,
+  styleObjectTests,
+  styleObjectWarningTests,
+  styleObjectErrorTests,
   createTest,
   createErrorTest,
   TestCase
@@ -841,6 +844,94 @@ describe('DOM Renderer', () => {
     });
 
     ifTagErrorTests.forEach(testCase => {
+      createErrorTest(testCase, renderToDOM);
+    });
+  });
+
+  // Style object tests
+  describe('Style Objects', () => {
+    styleObjectTests.forEach(testCase => {
+      createTest(testCase, renderToDOM, (fragment, tc) => {
+        const element = fragment.firstChild as HTMLElement;
+        
+        switch (tc.name) {
+          case 'renders style object with single property':
+            expect(element.getAttribute('style')).toBe('color: red');
+            expect(element.textContent).toBe('Styled content');
+            break;
+          case 'renders style object with multiple properties':
+            expect(element.getAttribute('style')).toBe('color: red; background-color: blue; font-size: 14px');
+            break;
+          case 'handles kebab-case CSS properties':
+            expect(element.getAttribute('style')).toBe('font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px');
+            break;
+          case 'handles numeric values':
+            expect(element.getAttribute('style')).toBe('width: 100px; height: 50px; opacity: 0.5; z-index: 10');
+            break;
+          case 'skips null and undefined style values':
+            expect(element.getAttribute('style')).toBe('color: red; padding: 10px');
+            break;
+          case 'works with flexbox properties':
+            expect(element.getAttribute('style')).toBe('display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px');
+            break;
+          case 'works with grid properties':
+            expect(element.getAttribute('style')).toBe('display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px');
+            break;
+          case 'handles conditional style object':
+            expect(element.getAttribute('style')).toBe('color: green; font-weight: bold');
+            break;
+        }
+      });
+    });
+
+    // Style warning tests
+    styleObjectWarningTests.forEach(testCase => {
+      test(`warns for ${testCase.name}`, () => {
+        const mockLogger = {
+          error: jest.fn(),
+          warn: jest.fn(),
+          log: jest.fn()
+        };
+
+        const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+        const element = fragment.firstChild as HTMLElement;
+        
+        // Check results based on test case
+        switch (testCase.name) {
+          case 'allows new CSS properties (future-proof)':
+            // This should NOT warn - new properties are allowed
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(element.getAttribute('style')).toContain('new-css-property: some-value');
+            expect(element.getAttribute('style')).toContain('experimental-feature: enabled');
+            break;
+          case 'warns for invalid property name format (uppercase)':
+          case 'warns for invalid property name format (underscores)':
+          case 'blocks behavior property':
+          case 'blocks -moz-binding property':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(element.getAttribute('style')).toBe('color: red');
+            break;
+          case 'accepts trailing semicolon in style values':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon but accepts value
+            expect(element.getAttribute('style')).toBe('color: red');
+            break;
+          case 'sanitizes semicolon injection by taking first chunk':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
+            expect(element.getAttribute('style')).toBe('color: red');
+            break;
+          case 'blocks url() in style object values':
+          case 'blocks expression() in style object values':
+          case 'blocks javascript: protocol in style object values':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            // Style attribute should be omitted entirely
+            expect(element.hasAttribute('style')).toBe(false);
+            break;
+        }
+      });
+    });
+
+    // Style error tests
+    styleObjectErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToDOM);
     });
   });

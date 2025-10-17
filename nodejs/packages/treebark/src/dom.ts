@@ -4,7 +4,8 @@ import {
   VOID_TAGS,
   getProperty, 
   interpolate, 
-  validateAttribute, 
+  validateAttribute,
+  processStyleAttribute,
   hasBinding,
   validatePathExpression,
   isConditionalValue,
@@ -179,13 +180,26 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
       return; // Skip invalid attributes
     }
     
-    // Check if value is a conditional value
-    if (isConditionalValue(value)) {
-      const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
-      element.setAttribute(key, interpolate(String(evaluatedValue), data, false, parents, logger));
+    let attrValue: string;
+    
+    // Special handling for style attribute
+    if (key === 'style') {
+      attrValue = processStyleAttribute(value, data, parents, logger);
+      // If processing resulted in empty string, skip the attribute
+      if (!attrValue) {
+        return;
+      }
     } else {
-      element.setAttribute(key, interpolate(String(value), data, false, parents, logger));
+      // Regular attribute handling
+      if (isConditionalValue(value)) {
+        const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
+        attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+      } else {
+        attrValue = interpolate(String(value), data, false, parents, logger);
+      }
     }
+    
+    element.setAttribute(key, attrValue);
   });
 }
 

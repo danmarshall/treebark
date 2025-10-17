@@ -232,6 +232,386 @@ export const securityValidTests: TestCase[] = [
   }
 ];
 
+// Style object tests
+export const styleObjectTests: TestCase[] = [
+  {
+    name: 'renders style object with single property',
+    input: {
+      template: {
+        div: {
+          style: { color: 'red' },
+          $children: ['Styled content']
+        }
+      }
+    }
+  },
+  {
+    name: 'renders style object with multiple properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'background-color': 'blue',
+            'font-size': '14px'
+          },
+          $children: ['Multiple styles']
+        }
+      }
+    }
+  },
+  {
+    name: 'handles kebab-case CSS properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            'font-size': '16px',
+            'font-weight': 'bold',
+            'text-align': 'center',
+            'border-radius': '5px'
+          },
+          $children: ['Kebab-case properties']
+        }
+      }
+    }
+  },
+  {
+    name: 'handles numeric values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'width': '100px',
+            'height': '50px',
+            'opacity': '0.5',
+            'z-index': '10'
+          },
+          $children: ['Numeric values']
+        }
+      }
+    }
+  },
+  {
+    name: 'skips null and undefined style values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'background-color': null,
+            'font-size': undefined,
+            'padding': '10px'
+          },
+          $children: ['Skip null/undefined']
+        }
+      }
+    }
+  },
+  {
+    name: 'works with flexbox properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            'display': 'flex',
+            'flex-direction': 'column',
+            'justify-content': 'center',
+            'align-items': 'center',
+            'gap': '10px'
+          },
+          $children: ['Flexbox']
+        }
+      }
+    }
+  },
+  {
+    name: 'works with grid properties',
+    input: {
+      template: {
+        div: {
+          style: {
+            'display': 'grid',
+            'grid-template-columns': 'repeat(3, 1fr)',
+            'gap': '20px'
+          },
+          $children: ['Grid layout']
+        }
+      }
+    }
+  },
+  {
+    name: 'handles conditional style object',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'isActive',
+            $then: { 'color': 'green', 'font-weight': 'bold' },
+            $else: { 'color': 'gray' }
+          },
+          $children: ['Conditional style']
+        }
+      },
+      data: { isActive: true }
+    }
+  },
+  {
+    name: 'handles interpolation in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': '{{primaryColor}}',
+            'font-size': '{{fontSize}}px',
+            'border': '2px solid {{borderColor}}'
+          },
+          $children: ['Interpolated styles']
+        }
+      },
+      data: {
+        primaryColor: '#3f51b5',
+        fontSize: '16',
+        borderColor: 'red'
+      }
+    }
+  },
+  {
+    name: 'handles interpolation in conditional style $then branch',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'theme',
+            $then: {
+              'background-color': '{{darkBg}}',
+              'color': '{{darkText}}'
+            },
+            $else: {
+              'background-color': '{{lightBg}}',
+              'color': '{{lightText}}'
+            }
+          },
+          $children: ['Theme-based interpolated styles']
+        }
+      },
+      data: {
+        theme: true,
+        darkBg: '#333',
+        darkText: '#fff',
+        lightBg: '#fff',
+        lightText: '#333'
+      }
+    }
+  },
+  {
+    name: 'handles interpolation in conditional style $else branch',
+    input: {
+      template: {
+        div: {
+          style: {
+            $check: 'theme',
+            $then: {
+              'background-color': '{{darkBg}}',
+              'color': '{{darkText}}'
+            },
+            $else: {
+              'background-color': '{{lightBg}}',
+              'color': '{{lightText}}'
+            }
+          },
+          $children: ['Theme-based interpolated styles']
+        }
+      },
+      data: {
+        theme: false,
+        darkBg: '#333',
+        darkText: '#fff',
+        lightBg: '#fff',
+        lightText: '#333'
+      }
+    }
+  }
+];
+
+export const styleObjectWarningTests: TestCase[] = [
+  {
+    name: 'warns for invalid property name format (uppercase)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'FontSize': '14px'  // Invalid: not kebab-case
+          },
+          $children: ['Invalid format']
+        }
+      }
+    }
+  },
+  {
+    name: 'warns for invalid property name format (underscores)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'font_size': '14px'  // Invalid: uses underscores
+          },
+          $children: ['Invalid format']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks behavior property',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'behavior': 'url(evil.htc)'
+          },
+          $children: ['Blocked property']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks -moz-binding property',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            '-moz-binding': 'url(evil.xml)'
+          },
+          $children: ['Blocked property']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows new CSS properties (future-proof)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'new-css-property': 'some-value',  // New properties work automatically
+            'experimental-feature': 'enabled'
+          },
+          $children: ['Future CSS']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks url() in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background-image': 'url(https://evil.com/track.gif)'
+          },
+          $children: ['URL blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks expression() in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'width': 'expression(alert(1))'
+          },
+          $children: ['Expression blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks javascript: protocol in style object values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'javascript:alert(1)'
+          },
+          $children: ['JavaScript protocol blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'accepts trailing semicolon in style values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red;'
+          },
+          $children: ['Trailing semicolon accepted']
+        }
+      }
+    }
+  },
+  {
+    name: 'sanitizes semicolon injection by taking first chunk',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red; background: url(https://evil.com)'
+          },
+          $children: ['Semicolon sanitized']
+        }
+      }
+    }
+  }
+];
+
+export const styleObjectErrorTests: ErrorTestCase[] = [
+  {
+    name: 'rejects string-based style attribute',
+    input: {
+      template: {
+        div: {
+          style: 'color: red',
+          $children: ['String style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  },
+  {
+    name: 'rejects array as style attribute',
+    input: {
+      template: {
+        div: {
+          style: ['color: red'],
+          $children: ['Array style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  },
+  {
+    name: 'rejects number as style attribute',
+    input: {
+      template: {
+        div: {
+          style: 123,
+          $children: ['Number style']
+        }
+      }
+    },
+    expectedError: 'Style attribute must be an object'
+  }
+];
+
 // Tag-specific attribute test cases
 export const tagSpecificAttributeTests: TestCase[] = [
   {
@@ -267,7 +647,7 @@ export const tagSpecificAttributeTests: TestCase[] = [
         span: {
           id: 'test-id',
           class: 'test-class',
-          style: 'color: red',
+          style: { color: 'red' },
           title: 'Test title',
           role: 'button',
           $children: ['Content']
