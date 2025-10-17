@@ -95,14 +95,12 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style` (object only), `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
-
-**Note:** The `style` attribute requires a structured object format for security. String-based styles are not allowed. See [Styling with Style Objects](#styling-with-style-objects) for details.
 
 ### Special Keys
 
