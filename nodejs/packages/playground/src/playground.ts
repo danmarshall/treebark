@@ -2,7 +2,6 @@
 // Note: TemplateElement type is imported via reference in globals.d.ts
 
 interface Example {
-  label?: string;
   template: any; // Would be TemplateElement | TemplateElement[] but can't import with module: "None"
   data: any;
 }
@@ -152,7 +151,6 @@ const examples: Examples = {
     }
   },
   'array-bind-property': {
-    label: "Array Binding: $bind to Property",
     template: {
       ul: {
         $bind: "products",
@@ -169,7 +167,6 @@ const examples: Examples = {
     }
   },
   'array-bind-dot': {
-    label: "Array Binding: $bind with \".\"",
     template: {
       ul: {
         $bind: ".",
@@ -184,7 +181,6 @@ const examples: Examples = {
     ]
   },
   'parent-property-access': {
-    label: "Access Parent Property with double dot (..) notation",
     template: {
       div: {
         $bind: "customers",
@@ -247,7 +243,6 @@ const examples: Examples = {
     }
   },
   'conditional-if-basic': {
-    label: "Conditional: Basic $if Tag",
     template: {
       div: {
         class: "user-greeting",
@@ -289,7 +284,6 @@ const examples: Examples = {
     }
   },
   'conditional-if-admin': {
-    label: "Conditional: Role-Based Access",
     template: {
       div: {
         class: "user-panel",
@@ -355,7 +349,6 @@ const examples: Examples = {
     }
   },
   'conditional-if-inventory': {
-    label: "Conditional: Stock Status with $not",
     template: {
       div: {
         class: "product-inventory",
@@ -412,7 +405,6 @@ const examples: Examples = {
     }
   },
   'conditional-if-nested': {
-    label: "Conditional: Nested Conditions",
     template: {
       div: {
         class: "access-control",
@@ -489,7 +481,6 @@ const examples: Examples = {
     }
   },
   'conditional-then-else': {
-    label: "Conditional: $then and $else Branching",
     template: {
       div: {
         class: "auth-status",
@@ -527,7 +518,6 @@ const examples: Examples = {
     }
   },
   'conditional-comparison-operators': {
-    label: "Conditional: Comparison Operators",
     template: {
       div: {
         class: "access-control",
@@ -594,7 +584,6 @@ const examples: Examples = {
     }
   },
   'conditional-join-or': {
-    label: "Conditional: OR Logic with $join",
     template: {
       div: {
         class: "pricing",
@@ -640,7 +629,6 @@ const examples: Examples = {
     }
   },
   'conditional-attribute-values': {
-    label: "Conditional: Attribute Values",
     template: {
       div: {
         class: "status-dashboard",
@@ -703,7 +691,6 @@ const examples: Examples = {
     }
   },
   'style-objects': {
-    label: "Styling with Style Objects",
     template: {
       div: {
         class: "style-demo",
@@ -996,11 +983,14 @@ function populateExampleDropdown(): void {
 
   const exampleIds = Object.keys(examples);
 
-  // Add options for each example
+  // Add options for each example (using key as label, formatted)
   exampleIds.forEach(exampleId => {
     const option = document.createElement('option');
     option.value = exampleId;
-    option.textContent = examples[exampleId].label || exampleId;
+    // Format the key: 'hello-world' -> 'Hello World'
+    option.textContent = exampleId.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
     select.appendChild(option);
   });
 

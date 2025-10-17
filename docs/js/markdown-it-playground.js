@@ -342,8 +342,8 @@ const treebarkTemplates = {
     },
 };
 const examples = {
-    'hello-world': {
-        label: 'Hello World',
+    'Hello World': {
+        templates: { greeting: treebarkTemplates.greeting },
         markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
@@ -358,8 +358,8 @@ Regular markdown continues to work normally:
             name: 'World'
         }
     },
-    'product-card': {
-        label: 'Product Card',
+    'Product Card': {
+        templates: { productCard: treebarkTemplates.productCard },
         markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
@@ -379,8 +379,8 @@ ${treebark(treebarkTemplates.productCard)}
             link: '#product'
         }
     },
-    'list-binding': {
-        label: 'List Binding',
+    'List Binding': {
+        templates: { teamList: treebarkTemplates.teamList },
         markdown: `# Team Members
 
 Meet our amazing team:
@@ -398,8 +398,11 @@ We're passionate about building great software!`,
             ]
         }
     },
-    'mixed-content': {
-        label: 'Mixed Content',
+    'Mixed Content': {
+        templates: {
+            quickStart: treebarkTemplates.quickStart,
+            featuresList: treebarkTemplates.featuresList
+        },
         markdown: `# {{siteName}} Documentation
 
 Welcome to the **{{siteName}}** documentation!
@@ -429,8 +432,8 @@ Visit our [documentation](#) or [contact support](#).`,
             ]
         }
     },
-    'full-template': {
-        label: 'Full Template with Data',
+    'Full Template with Data': {
+        templates: { productGalleryWithData: treebarkTemplates.productGalleryWithData },
         markdown: `# Product Gallery
 
 Browse our amazing products below:
@@ -440,8 +443,8 @@ ${treebark(treebarkTemplates.productGalleryWithData)}
 *Note: This example includes both template and data in the code block.*`,
         data: {}
     },
-    'conditional-rendering': {
-        label: 'Conditional Rendering ($if Tag)',
+    'Conditional Rendering ($if Tag)': {
+        templates: { userStatus: treebarkTemplates.userStatus },
         markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.
@@ -460,8 +463,8 @@ ${treebark(treebarkTemplates.userStatus)}
             isPremium: true
         }
     },
-    'if-else-branches': {
-        label: 'If/Else Branches ($then/$else)',
+    'If/Else Branches ($then/$else)': {
+        templates: { authStatus: treebarkTemplates.authStatus },
         markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.
@@ -481,8 +484,8 @@ ${treebark(treebarkTemplates.authStatus)}
             username: 'Alice'
         }
     },
-    'conditional-operators': {
-        label: 'Comparison Operators',
+    'Comparison Operators': {
+        templates: { ageAccessControl: treebarkTemplates.ageAccessControl },
         markdown: `# Age-Based Access Control
 
 Use comparison operators to create powerful conditional logic.
@@ -504,8 +507,8 @@ ${treebark(treebarkTemplates.ageAccessControl)}
             role: 'admin'
         }
     },
-    'conditional-join': {
-        label: 'Operator Stacking ($join)',
+    'Operator Stacking ($join)': {
+        templates: { ticketPricing: treebarkTemplates.ticketPricing },
         markdown: `# Pricing Logic with Multiple Conditions
 
 Combine multiple operators with **AND** (default) or **OR** logic using \`$join\`.
@@ -525,8 +528,8 @@ ${treebark(treebarkTemplates.ticketPricing)}
             isMember: false
         }
     },
-    'conditional-attributes': {
-        label: 'Conditional Attribute Values',
+    'Conditional Attribute Values': {
+        templates: { statusDashboard: treebarkTemplates.statusDashboard },
         markdown: `# Dynamic Styling with Conditional Attributes
 
 Apply conditional values to **any attribute** using the same conditional syntax.
@@ -677,20 +680,18 @@ function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
         let markdown = example.markdown || '';
-        if (currentMarkdownFormat === 'yaml' && markdown.includes('```treebark')) {
-            markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
-                try {
-                    const trimmedCode = code.trim();
-                    if (!trimmedCode) {
-                        return match;
-                    }
-                    const template = JSON.parse(trimmedCode);
+        if (currentMarkdownFormat === 'yaml' && example.templates) {
+            const templateKeys = Object.keys(example.templates);
+            let templateIndex = 0;
+            markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match) => {
+                if (templateIndex < templateKeys.length) {
+                    const templateKey = templateKeys[templateIndex];
+                    const template = example.templates[templateKey];
+                    templateIndex++;
                     const yamlCode = jsonToYaml(template);
                     return '```treebark\n' + yamlCode + '\n```';
                 }
-                catch (e) {
-                    return match;
-                }
+                return match;
             });
         }
         markdownEditor.value = markdown;
@@ -704,7 +705,7 @@ function populateExampleDropdown() {
     exampleIds.forEach(exampleId => {
         const option = document.createElement('option');
         option.value = exampleId;
-        option.textContent = examples[exampleId].label || exampleId;
+        option.textContent = exampleId;
         select.appendChild(option);
     });
     if (exampleIds.length > 0) {

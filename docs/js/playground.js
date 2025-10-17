@@ -141,7 +141,6 @@ const examples = {
         }
     },
     'array-bind-property': {
-        label: "Array Binding: $bind to Property",
         template: {
             ul: {
                 $bind: "products",
@@ -158,7 +157,6 @@ const examples = {
         }
     },
     'array-bind-dot': {
-        label: "Array Binding: $bind with \".\"",
         template: {
             ul: {
                 $bind: ".",
@@ -173,7 +171,6 @@ const examples = {
         ]
     },
     'parent-property-access': {
-        label: "Access Parent Property with double dot (..) notation",
         template: {
             div: {
                 $bind: "customers",
@@ -236,7 +233,6 @@ const examples = {
         }
     },
     'conditional-if-basic': {
-        label: "Conditional: Basic $if Tag",
         template: {
             div: {
                 class: "user-greeting",
@@ -278,7 +274,6 @@ const examples = {
         }
     },
     'conditional-if-admin': {
-        label: "Conditional: Role-Based Access",
         template: {
             div: {
                 class: "user-panel",
@@ -344,7 +339,6 @@ const examples = {
         }
     },
     'conditional-if-inventory': {
-        label: "Conditional: Stock Status with $not",
         template: {
             div: {
                 class: "product-inventory",
@@ -401,7 +395,6 @@ const examples = {
         }
     },
     'conditional-if-nested': {
-        label: "Conditional: Nested Conditions",
         template: {
             div: {
                 class: "access-control",
@@ -478,7 +471,6 @@ const examples = {
         }
     },
     'conditional-then-else': {
-        label: "Conditional: $then and $else Branching",
         template: {
             div: {
                 class: "auth-status",
@@ -516,7 +508,6 @@ const examples = {
         }
     },
     'conditional-comparison-operators': {
-        label: "Conditional: Comparison Operators",
         template: {
             div: {
                 class: "access-control",
@@ -583,7 +574,6 @@ const examples = {
         }
     },
     'conditional-join-or': {
-        label: "Conditional: OR Logic with $join",
         template: {
             div: {
                 class: "pricing",
@@ -629,7 +619,6 @@ const examples = {
         }
     },
     'conditional-attribute-values': {
-        label: "Conditional: Attribute Values",
         template: {
             div: {
                 class: "status-dashboard",
@@ -692,7 +681,6 @@ const examples = {
         }
     },
     'style-objects': {
-        label: "Styling with Style Objects",
         template: {
             div: {
                 class: "style-demo",
@@ -950,7 +938,7 @@ function populateExampleDropdown() {
     exampleIds.forEach(exampleId => {
         const option = document.createElement('option');
         option.value = exampleId;
-        option.textContent = examples[exampleId].label || exampleId;
+        option.textContent = exampleId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         select.appendChild(option);
     });
     if (exampleIds.length > 0) {
