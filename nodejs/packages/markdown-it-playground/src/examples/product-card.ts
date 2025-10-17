@@ -1,14 +1,26 @@
 import type { MarkdownExample } from './types.js';
 import { treebark } from './helpers.js';
-import { treebarkTemplates } from './templates.js';
+
+const productCardTemplate = {
+  div: {
+    class: "product-card",
+    $children: [
+      { h2: "{{name}}" },
+      { img: { src: "{{image}}", alt: "{{name}}" } },
+      { p: "{{description}}" },
+      { div: { class: "price", $children: ["{{price}}"] } },
+      { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
+    ]
+  }
+};
 
 export const productCard: MarkdownExample = {
-  templates: { productCard: treebarkTemplates.productCard },
+  templates: { productCard: productCardTemplate },
   markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
 
-${treebark(treebarkTemplates.productCard)}
+${treebark(productCardTemplate)}
 
 ## Features
 

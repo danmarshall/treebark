@@ -25,6 +25,5 @@ export const examples: MarkdownExamples = {
   'Conditional Attribute Values': conditionalAttributeValues
 };
 
-// Re-export templates and helpers for use in main file
-export { treebarkTemplates } from './templates.js';
+// Re-export helpers for use in main file
 export { treebark } from './helpers.js';

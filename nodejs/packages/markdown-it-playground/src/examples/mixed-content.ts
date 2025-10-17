@@ -1,11 +1,40 @@
 import type { MarkdownExample } from './types.js';
 import { treebark } from './helpers.js';
-import { treebarkTemplates } from './templates.js';
+
+const quickStart = {
+  div: {
+    class: "quick-start",
+    $children: [
+      { h3: "Installation" },
+      { pre: "npm install {{packageName}}" },
+      { h3: "Usage" },
+      { p: "Import and use in your project:" }
+    ]
+  }
+};
+
+const featuresList = {
+  ul: {
+    class: "features",
+    $bind: "features",
+    $children: [
+      {
+        li: {
+          $children: [
+            { strong: "{{title}}" },
+            " - ",
+            "{{description}}"
+          ]
+        }
+      }
+    ]
+  }
+};
 
 export const mixedContent: MarkdownExample = {
   templates: {
-    quickStart: treebarkTemplates.quickStart,
-    featuresList: treebarkTemplates.featuresList
+    quickStart,
+    featuresList
   },
   markdown: `# {{siteName}} Documentation
 
@@ -15,13 +44,13 @@ Welcome to the **{{siteName}}** documentation!
 
 Get started with our product in minutes:
 
-${treebark(treebarkTemplates.quickStart)}
+${treebark(quickStart)}
 
 ## Features
 
 Check out our latest features:
 
-${treebark(treebarkTemplates.featuresList)}
+${treebark(featuresList)}
 
 ## Get Help
 

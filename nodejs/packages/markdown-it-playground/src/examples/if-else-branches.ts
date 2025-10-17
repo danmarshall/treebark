@@ -1,16 +1,47 @@
 import type { MarkdownExample } from './types.js';
 import { treebark } from './helpers.js';
-import { treebarkTemplates } from './templates.js';
+
+const authStatus = {
+  div: {
+    class: "auth-status",
+    $children: [
+      { h3: "Welcome!" },
+      {
+        $if: {
+          $check: "isLoggedIn",
+          $then: {
+            div: {
+              class: "logged-in",
+              $children: [
+                { p: "Hello, {{username}}!" },
+                { a: { href: "#logout", $children: ["Logout"] } }
+              ]
+            }
+          },
+          $else: {
+            div: {
+              class: "logged-out",
+              $children: [
+                { p: "Please log in to continue." },
+                { a: { href: "#login", class: "btn", $children: ["Login"] } }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+};
 
 export const ifElseBranches: MarkdownExample = {
-  templates: { authStatus: treebarkTemplates.authStatus },
+  templates: { authStatus },
   markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.
 
 ## If/Else Example
 
-${treebark(treebarkTemplates.authStatus)}
+${treebark(authStatus)}
 
 ## Key Features
 

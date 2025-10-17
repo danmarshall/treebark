@@ -1,14 +1,32 @@
 import type { MarkdownExample } from './types.js';
 import { treebark } from './helpers.js';
-import { treebarkTemplates } from './templates.js';
+
+const teamList = {
+  ul: {
+    class: "team-list",
+    $bind: "members",
+    $children: [
+      {
+        li: {
+          class: "team-member",
+          $children: [
+            { strong: "{{name}}" },
+            " - ",
+            { em: "{{role}}" }
+          ]
+        }
+      }
+    ]
+  }
+};
 
 export const listBinding: MarkdownExample = {
-  templates: { teamList: treebarkTemplates.teamList },
+  templates: { teamList },
   markdown: `# Team Members
 
 Meet our amazing team:
 
-${treebark(treebarkTemplates.teamList)}
+${treebark(teamList)}
 
 ## About Us
 

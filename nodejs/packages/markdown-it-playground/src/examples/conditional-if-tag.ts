@@ -1,16 +1,37 @@
 import type { MarkdownExample } from './types.js';
 import { treebark } from './helpers.js';
-import { treebarkTemplates } from './templates.js';
+
+const userStatus = {
+  div: {
+    class: "user-status",
+    $children: [
+      { h3: "Account Status" },
+      {
+        $if: {
+          $check: "isPremium",
+          $then: { p: { style: { color: "gold" }, $children: ["⭐ Premium Member"] } }
+        }
+      },
+      {
+        $if: {
+          $check: "isPremium",
+          $not: true,
+          $then: { p: "Standard Member - Upgrade to Premium!" }
+        }
+      }
+    ]
+  }
+};
 
 export const conditionalIfTag: MarkdownExample = {
-  templates: { userStatus: treebarkTemplates.userStatus },
+  templates: { userStatus },
   markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.
 
 ## Basic Example
 
-${treebark(treebarkTemplates.userStatus)}
+${treebark(userStatus)}
 
 ## Key Features
 

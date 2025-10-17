@@ -3,306 +3,22 @@
   function treebark(template) {
     return "```treebark\n" + JSON.stringify(template, null, 2) + "\n```";
   }
-  const treebarkTemplates = {
-    greeting: {
-      div: {
-        class: "greeting",
-        $children: [
-          { h2: "Hello {{name}}!" },
-          { p: "Welcome to the markdown-it-treebark plugin." }
-        ]
-      }
-    },
-    productCard: {
-      div: {
-        class: "product-card",
-        $children: [
-          { h2: "{{name}}" },
-          { img: { src: "{{image}}", alt: "{{name}}" } },
-          { p: "{{description}}" },
-          { div: { class: "price", $children: ["{{price}}"] } },
-          { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
-        ]
-      }
-    },
-    teamList: {
-      ul: {
-        class: "team-list",
-        $bind: "members",
-        $children: [
-          {
-            li: {
-              class: "team-member",
-              $children: [
-                { strong: "{{name}}" },
-                " - ",
-                { em: "{{role}}" }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    quickStart: {
-      div: {
-        class: "quick-start",
-        $children: [
-          { h3: "Installation" },
-          { pre: "npm install {{packageName}}" },
-          { h3: "Usage" },
-          { p: "Import and use in your project:" }
-        ]
-      }
-    },
-    featuresList: {
-      ul: {
-        class: "features",
-        $bind: "features",
-        $children: [
-          {
-            li: {
-              $children: [
-                { strong: "{{title}}" },
-                " - ",
-                "{{description}}"
-              ]
-            }
-          }
-        ]
-      }
-    },
-    productGalleryWithData: {
-      div: {
-        class: "product-grid",
-        $children: [
-          { h2: "Featured Products" },
-          {
-            div: {
-              class: "products",
-              $bind: "products",
-              $children: [
-                {
-                  div: {
-                    class: "product-card",
-                    $children: [
-                      { img: { src: "{{image}}", alt: "{{name}}" } },
-                      { h3: "{{name}}" },
-                      { p: "{{description}}" },
-                      { div: { class: "price", $children: ["{{price}}"] } }
-                    ]
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    userStatus: {
-      div: {
-        class: "user-status",
-        $children: [
-          { h3: "Account Status" },
-          {
-            $if: {
-              $check: "isPremium",
-              $then: { p: { style: { color: "gold" }, $children: ["⭐ Premium Member"] } }
-            }
-          },
-          {
-            $if: {
-              $check: "isPremium",
-              $not: true,
-              $then: { p: "Standard Member - Upgrade to Premium!" }
-            }
-          }
-        ]
-      }
-    },
-    authStatus: {
-      div: {
-        class: "auth-status",
-        $children: [
-          { h3: "Welcome!" },
-          {
-            $if: {
-              $check: "isLoggedIn",
-              $then: {
-                div: {
-                  class: "logged-in",
-                  $children: [
-                    { p: "Hello, {{username}}!" },
-                    { a: { href: "#logout", $children: ["Logout"] } }
-                  ]
-                }
-              },
-              $else: {
-                div: {
-                  class: "logged-out",
-                  $children: [
-                    { p: "Please log in to continue." },
-                    { a: { href: "#login", class: "btn", $children: ["Login"] } }
-                  ]
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    ageAccessControl: {
-      div: {
-        class: "access-control",
-        $children: [
-          { h3: "Access Level for Age: {{age}}" },
-          {
-            $if: {
-              $check: "age",
-              "$<": 13,
-              $then: { p: { style: { color: "red" }, $children: ["❌ Child account - Restricted access"] } }
-            }
-          },
-          {
-            $if: {
-              $check: "age",
-              "$>=": 13,
-              "$<": 18,
-              $then: { p: { style: { color: "orange" }, $children: ["⚠️ Teen account - Limited access"] } }
-            }
-          },
-          {
-            $if: {
-              $check: "age",
-              "$>=": 18,
-              $then: { p: { style: { color: "green" }, $children: ["✓ Full access granted"] } }
-            }
-          },
-          { hr: {} },
-          { h4: "Role-Based Access" },
-          {
-            $if: {
-              $check: "role",
-              $in: ["admin", "moderator", "editor"],
-              $then: { p: { style: { color: "blue" }, $children: ["⭐ Special privileges granted"] } },
-              $else: { p: "Standard user privileges" }
-            }
-          }
-        ]
-      }
-    },
-    ticketPricing: {
-      div: {
-        class: "pricing",
-        $children: [
-          { h3: "Standard Pricing" },
-          { p: "Age: {{age}}, Member: {{isMember}}" },
-          {
-            $if: {
-              $check: "age",
-              "$>=": 18,
-              "$<=": 65,
-              $then: { p: { style: { color: "green" }, $children: ["✓ Standard adult rate: $50"] } },
-              $else: { p: "Discounted rate available" }
-            }
-          },
-          { hr: {} },
-          { h3: "Discounted Pricing (OR Logic)" },
-          {
-            $if: {
-              $check: "age",
-              "$<": 18,
-              "$>": 65,
-              $join: "OR",
-              $then: { p: { style: { color: "blue" }, $children: ["🎉 Special discount: $30"] } },
-              $else: { p: "Standard rate: $50" }
-            }
-          },
-          { hr: {} },
-          { h3: "Negation Example" },
-          {
-            $if: {
-              $check: "age",
-              "$>=": 18,
-              "$<=": 65,
-              $not: true,
-              $then: { p: { style: { color: "orange" }, $children: ["Outside working age range"] } },
-              $else: { p: "Working age range (18-65)" }
-            }
-          }
-        ]
-      }
-    },
-    statusDashboard: {
-      div: {
-        class: "status-dashboard",
-        $children: [
-          { h3: "Server Status Dashboard" },
-          {
-            div: {
-              class: {
-                $check: "status",
-                "$=": "online",
-                $then: "status-online",
-                $else: "status-offline"
-              },
-              $children: [
-                { strong: "Server Status: " },
-                { span: "{{status}}" }
-              ]
-            }
-          },
-          { hr: {} },
-          { h4: "Performance Score: {{score}}" },
-          {
-            div: {
-              class: {
-                $check: "score",
-                "$>=": 90,
-                $then: "score-excellent",
-                $else: "score-average"
-              },
-              style: {
-                $check: "score",
-                "$>=": 90,
-                $then: { color: "green", "font-weight": "bold" },
-                $else: { color: "orange" }
-              },
-              $children: [
-                {
-                  $if: {
-                    $check: "score",
-                    "$>=": 90,
-                    $then: { span: "⭐ Excellent Performance" },
-                    $else: { span: "Average Performance" }
-                  }
-                }
-              ]
-            }
-          },
-          { hr: {} },
-          { h4: "User Role Badge" },
-          {
-            span: {
-              class: {
-                $check: "role",
-                $in: ["admin", "moderator"],
-                $then: "badge-special",
-                $else: "badge-normal"
-              },
-              $children: ["Role: {{role}}"]
-            }
-          }
-        ]
-      }
+  const greeting = {
+    div: {
+      class: "greeting",
+      $children: [
+        { h2: "Hello {{name}}!" },
+        { p: "Welcome to the markdown-it-treebark plugin." }
+      ]
     }
   };
   const helloWorld = {
-    templates: { greeting: treebarkTemplates.greeting },
+    templates: { greeting },
     markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
 
-${treebark(treebarkTemplates.greeting)}
+${treebark(greeting)}
 
 Regular markdown continues to work normally:
 - Bullet points
@@ -312,13 +28,25 @@ Regular markdown continues to work normally:
       name: "World"
     }
   };
+  const productCardTemplate = {
+    div: {
+      class: "product-card",
+      $children: [
+        { h2: "{{name}}" },
+        { img: { src: "{{image}}", alt: "{{name}}" } },
+        { p: "{{description}}" },
+        { div: { class: "price", $children: ["{{price}}"] } },
+        { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
+      ]
+    }
+  };
   const productCard = {
-    templates: { productCard: treebarkTemplates.productCard },
+    templates: { productCard: productCardTemplate },
     markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
 
-${treebark(treebarkTemplates.productCard)}
+${treebark(productCardTemplate)}
 
 ## Features
 
@@ -333,13 +61,31 @@ ${treebark(treebarkTemplates.productCard)}
       link: "#product"
     }
   };
+  const teamList = {
+    ul: {
+      class: "team-list",
+      $bind: "members",
+      $children: [
+        {
+          li: {
+            class: "team-member",
+            $children: [
+              { strong: "{{name}}" },
+              " - ",
+              { em: "{{role}}" }
+            ]
+          }
+        }
+      ]
+    }
+  };
   const listBinding = {
-    templates: { teamList: treebarkTemplates.teamList },
+    templates: { teamList },
     markdown: `# Team Members
 
 Meet our amazing team:
 
-${treebark(treebarkTemplates.teamList)}
+${treebark(teamList)}
 
 ## About Us
 
@@ -352,10 +98,38 @@ We're passionate about building great software!`,
       ]
     }
   };
+  const quickStart = {
+    div: {
+      class: "quick-start",
+      $children: [
+        { h3: "Installation" },
+        { pre: "npm install {{packageName}}" },
+        { h3: "Usage" },
+        { p: "Import and use in your project:" }
+      ]
+    }
+  };
+  const featuresList = {
+    ul: {
+      class: "features",
+      $bind: "features",
+      $children: [
+        {
+          li: {
+            $children: [
+              { strong: "{{title}}" },
+              " - ",
+              "{{description}}"
+            ]
+          }
+        }
+      ]
+    }
+  };
   const mixedContent = {
     templates: {
-      quickStart: treebarkTemplates.quickStart,
-      featuresList: treebarkTemplates.featuresList
+      quickStart,
+      featuresList
     },
     markdown: `# {{siteName}} Documentation
 
@@ -365,13 +139,13 @@ Welcome to the **{{siteName}}** documentation!
 
 Get started with our product in minutes:
 
-${treebark(treebarkTemplates.quickStart)}
+${treebark(quickStart)}
 
 ## Features
 
 Check out our latest features:
 
-${treebark(treebarkTemplates.featuresList)}
+${treebark(featuresList)}
 
 ## Get Help
 
@@ -386,26 +160,74 @@ Visit our [documentation](#) or [contact support](#).`,
       ]
     }
   };
+  const productGalleryWithData = {
+    div: {
+      class: "product-grid",
+      $children: [
+        { h2: "Featured Products" },
+        {
+          div: {
+            class: "products",
+            $bind: "products",
+            $children: [
+              {
+                div: {
+                  class: "product-card",
+                  $children: [
+                    { img: { src: "{{image}}", alt: "{{name}}" } },
+                    { h3: "{{name}}" },
+                    { p: "{{description}}" },
+                    { div: { class: "price", $children: ["{{price}}"] } }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  };
   const fullTemplateWithData = {
-    templates: { productGalleryWithData: treebarkTemplates.productGalleryWithData },
+    templates: { productGalleryWithData },
     markdown: `# Product Gallery
 
 Browse our amazing products below:
 
-${treebark(treebarkTemplates.productGalleryWithData)}
+${treebark(productGalleryWithData)}
 
 *Note: This example includes both template and data in the code block.*`,
     data: {}
   };
+  const userStatus = {
+    div: {
+      class: "user-status",
+      $children: [
+        { h3: "Account Status" },
+        {
+          $if: {
+            $check: "isPremium",
+            $then: { p: { style: { color: "gold" }, $children: ["⭐ Premium Member"] } }
+          }
+        },
+        {
+          $if: {
+            $check: "isPremium",
+            $not: true,
+            $then: { p: "Standard Member - Upgrade to Premium!" }
+          }
+        }
+      ]
+    }
+  };
   const conditionalIfTag = {
-    templates: { userStatus: treebarkTemplates.userStatus },
+    templates: { userStatus },
     markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.
 
 ## Basic Example
 
-${treebark(treebarkTemplates.userStatus)}
+${treebark(userStatus)}
 
 ## Key Features
 
@@ -417,15 +239,46 @@ ${treebark(treebarkTemplates.userStatus)}
       isPremium: true
     }
   };
+  const authStatus = {
+    div: {
+      class: "auth-status",
+      $children: [
+        { h3: "Welcome!" },
+        {
+          $if: {
+            $check: "isLoggedIn",
+            $then: {
+              div: {
+                class: "logged-in",
+                $children: [
+                  { p: "Hello, {{username}}!" },
+                  { a: { href: "#logout", $children: ["Logout"] } }
+                ]
+              }
+            },
+            $else: {
+              div: {
+                class: "logged-out",
+                $children: [
+                  { p: "Please log in to continue." },
+                  { a: { href: "#login", class: "btn", $children: ["Login"] } }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  };
   const ifElseBranches = {
-    templates: { authStatus: treebarkTemplates.authStatus },
+    templates: { authStatus },
     markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.
 
 ## If/Else Example
 
-${treebark(treebarkTemplates.authStatus)}
+${treebark(authStatus)}
 
 ## Key Features
 
@@ -438,15 +291,55 @@ ${treebark(treebarkTemplates.authStatus)}
       username: "Alice"
     }
   };
+  const ageAccessControl = {
+    div: {
+      class: "access-control",
+      $children: [
+        { h3: "Access Level for Age: {{age}}" },
+        {
+          $if: {
+            $check: "age",
+            "$<": 13,
+            $then: { p: { style: { color: "red" }, $children: ["❌ Child account - Restricted access"] } }
+          }
+        },
+        {
+          $if: {
+            $check: "age",
+            "$>=": 13,
+            "$<": 18,
+            $then: { p: { style: { color: "orange" }, $children: ["⚠️ Teen account - Limited access"] } }
+          }
+        },
+        {
+          $if: {
+            $check: "age",
+            "$>=": 18,
+            $then: { p: { style: { color: "green" }, $children: ["✓ Full access granted"] } }
+          }
+        },
+        { hr: {} },
+        { h4: "Role-Based Access" },
+        {
+          $if: {
+            $check: "role",
+            $in: ["admin", "moderator", "editor"],
+            $then: { p: { style: { color: "blue" }, $children: ["⭐ Special privileges granted"] } },
+            $else: { p: "Standard user privileges" }
+          }
+        }
+      ]
+    }
+  };
   const comparisonOperators = {
-    templates: { ageAccessControl: treebarkTemplates.ageAccessControl },
+    templates: { ageAccessControl },
     markdown: `# Age-Based Access Control
 
 Use comparison operators to create powerful conditional logic.
 
 ## Comparison Examples
 
-${treebark(treebarkTemplates.ageAccessControl)}
+${treebark(ageAccessControl)}
 
 ## Available Operators
 
@@ -461,15 +354,57 @@ ${treebark(treebarkTemplates.ageAccessControl)}
       role: "admin"
     }
   };
+  const ticketPricing = {
+    div: {
+      class: "pricing",
+      $children: [
+        { h3: "Standard Pricing" },
+        { p: "Age: {{age}}, Member: {{isMember}}" },
+        {
+          $if: {
+            $check: "age",
+            "$>=": 18,
+            "$<=": 65,
+            $then: { p: { style: { color: "green" }, $children: ["✓ Standard adult rate: $50"] } },
+            $else: { p: "Discounted rate available" }
+          }
+        },
+        { hr: {} },
+        { h3: "Discounted Pricing (OR Logic)" },
+        {
+          $if: {
+            $check: "age",
+            "$<": 18,
+            "$>": 65,
+            $join: "OR",
+            $then: { p: { style: { color: "blue" }, $children: ["🎉 Special discount: $30"] } },
+            $else: { p: "Standard rate: $50" }
+          }
+        },
+        { hr: {} },
+        { h3: "Negation Example" },
+        {
+          $if: {
+            $check: "age",
+            "$>=": 18,
+            "$<=": 65,
+            $not: true,
+            $then: { p: { style: { color: "orange" }, $children: ["Outside working age range"] } },
+            $else: { p: "Working age range (18-65)" }
+          }
+        }
+      ]
+    }
+  };
   const operatorStacking = {
-    templates: { ticketPricing: treebarkTemplates.ticketPricing },
+    templates: { ticketPricing },
     markdown: `# Pricing Logic with Multiple Conditions
 
 Combine multiple operators with **AND** (default) or **OR** logic using \`$join\`.
 
 ## AND Logic (Default)
 
-${treebark(treebarkTemplates.ticketPricing)}
+${treebark(ticketPricing)}
 
 ## Key Features
 
@@ -482,15 +417,78 @@ ${treebark(treebarkTemplates.ticketPricing)}
       isMember: false
     }
   };
+  const statusDashboard = {
+    div: {
+      class: "status-dashboard",
+      $children: [
+        { h3: "Server Status Dashboard" },
+        {
+          div: {
+            class: {
+              $check: "status",
+              "$=": "online",
+              $then: "status-online",
+              $else: "status-offline"
+            },
+            $children: [
+              { strong: "Server Status: " },
+              { span: "{{status}}" }
+            ]
+          }
+        },
+        { hr: {} },
+        { h4: "Performance Score: {{score}}" },
+        {
+          div: {
+            class: {
+              $check: "score",
+              "$>=": 90,
+              $then: "score-excellent",
+              $else: "score-average"
+            },
+            style: {
+              $check: "score",
+              "$>=": 90,
+              $then: { color: "green", "font-weight": "bold" },
+              $else: { color: "orange" }
+            },
+            $children: [
+              {
+                $if: {
+                  $check: "score",
+                  "$>=": 90,
+                  $then: { span: "⭐ Excellent Performance" },
+                  $else: { span: "Average Performance" }
+                }
+              }
+            ]
+          }
+        },
+        { hr: {} },
+        { h4: "User Role Badge" },
+        {
+          span: {
+            class: {
+              $check: "role",
+              $in: ["admin", "moderator"],
+              $then: "badge-special",
+              $else: "badge-normal"
+            },
+            $children: ["Role: {{role}}"]
+          }
+        }
+      ]
+    }
+  };
   const conditionalAttributeValues = {
-    templates: { statusDashboard: treebarkTemplates.statusDashboard },
+    templates: { statusDashboard },
     markdown: `# Dynamic Styling with Conditional Attributes
 
 Apply conditional values to **any attribute** using the same conditional syntax.
 
 ## Conditional Attributes Example
 
-${treebark(treebarkTemplates.statusDashboard)}
+${treebark(statusDashboard)}
 
 ## Key Features
 
