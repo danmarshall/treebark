@@ -28,7 +28,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   productCard: {
     div: {
       class: "product-card",
@@ -41,7 +41,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   teamList: {
     ul: {
       class: "team-list",
@@ -60,7 +60,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   quickStart: {
     div: {
       class: "quick-start",
@@ -72,7 +72,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   featuresList: {
     ul: {
       class: "features",
@@ -90,7 +90,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   productGallery: {
     div: {
       class: "product-grid",
@@ -118,7 +118,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   productGalleryWithData: {
     template: {
       div: {
@@ -163,8 +163,8 @@ const treebarkTemplates: Record<string, any> = {
         }
       ]
     }
-  } as any,
-  
+  },
+
   userStatus: {
     div: {
       class: "user-status",
@@ -186,7 +186,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   authStatus: {
     div: {
       class: "auth-status",
@@ -218,7 +218,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   ageAccessControl: {
     div: {
       class: "access-control",
@@ -259,7 +259,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   ticketPricing: {
     div: {
       class: "pricing",
@@ -302,7 +302,7 @@ const treebarkTemplates: Record<string, any> = {
       ]
     }
   },
-  
+
   statusDashboard: {
     div: {
       class: "status-dashboard",
@@ -315,7 +315,7 @@ const treebarkTemplates: Record<string, any> = {
               "$=": "online",
               $then: "status-online",
               $else: "status-offline"
-            } as any,
+            },
             $children: [
               { strong: "Server Status: " },
               { span: "{{status}}" }
@@ -331,17 +331,17 @@ const treebarkTemplates: Record<string, any> = {
               "$>=": 90,
               $then: "score-excellent",
               $else: "score-average"
-            } as any,
+            },
             style: {
               $check: "score",
               "$>=": 90,
               $then: { color: "green", "font-weight": "bold" },
               $else: { color: "orange" }
-            } as any,
+            },
             $children: [
               {
                 $if: {
-                  $check: "score",
+                  $chceck: "score",
                   "$>=": 90,
                   $then: { span: "⭐ Excellent Performance" },
                   $else: { span: "Average Performance" }
@@ -359,7 +359,7 @@ const treebarkTemplates: Record<string, any> = {
               $in: ["admin", "moderator"],
               $then: "badge-special",
               $else: "badge-normal"
-            } as any,
+            },
             $children: ["Role: {{role}}"]
           }
         }
@@ -427,7 +427,7 @@ We're passionate about building great software!`,
     }
   },
   'Mixed Content': {
-    templates: { 
+    templates: {
       quickStart: treebarkTemplates.quickStart,
       featuresList: treebarkTemplates.featuresList
     },
@@ -693,15 +693,15 @@ function updateOutput(): void {
     };
 
     // Override console methods to capture logs
-    console.error = function(...args: any[]) {
+    console.error = function (...args: any[]) {
       logs.push({ level: 'error', message: args.join(' ') });
       originalConsole.error.apply(console, args);
     };
-    console.warn = function(...args: any[]) {
+    console.warn = function (...args: any[]) {
       logs.push({ level: 'warn', message: args.join(' ') });
       originalConsole.warn.apply(console, args);
     };
-    console.log = function(...args: any[]) {
+    console.log = function (...args: any[]) {
       logs.push({ level: 'log', message: args.join(' ') });
       originalConsole.log.apply(console, args);
     };
@@ -722,7 +722,7 @@ function updateOutput(): void {
       if (logs.length > 0) {
         const logMessages = logs.map(log => {
           const prefix = log.level === 'error' ? '❌ Error: ' :
-                        log.level === 'warn' ? '⚠️ Warning: ' : 'ℹ️ ';
+            log.level === 'warn' ? '⚠️ Warning: ' : 'ℹ️ ';
           return prefix + log.message;
         }).join('\n');
         errorDisplay.textContent = logMessages;
@@ -746,7 +746,7 @@ function updateOutput(): void {
 function loadExample(exampleId: string): void {
   const example = examples[exampleId];
   if (example) {
-    
+
     let markdown = example.markdown || '';
 
     // If switching to YAML format and we have template references, regenerate markdown
@@ -754,7 +754,7 @@ function loadExample(exampleId: string): void {
       // Replace treebark blocks using stored template references
       const templateKeys = Object.keys(example.templates);
       let templateIndex = 0;
-      
+
       markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match) => {
         if (templateIndex < templateKeys.length) {
           const templateKey = templateKeys[templateIndex];
@@ -810,7 +810,7 @@ indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   populateExampleDropdown();
 });
 
