@@ -102,7 +102,7 @@ This means the implementation is featherweight.
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
 
-**Note:** The `style` attribute requires a structured object format for security. String-based styles are not allowed.
+**Note:** The `style` attribute requires a structured object format for security. String-based styles are not allowed. See [Styling with Style Objects](#styling-with-style-objects) for details.
 
 ### Special Keys
 
