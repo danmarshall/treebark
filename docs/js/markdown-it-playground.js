@@ -13,7 +13,6 @@
     }
   };
   const helloWorld = {
-    templates: { greeting },
     markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
@@ -41,7 +40,6 @@ Regular markdown continues to work normally:
     }
   };
   const productCard = {
-    templates: { productCard: productCardTemplate },
     markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
@@ -80,7 +78,6 @@ ${treebark(productCardTemplate)}
     }
   };
   const listBinding = {
-    templates: { teamList },
     markdown: `# Team Members
 
 Meet our amazing team:
@@ -127,10 +124,6 @@ We're passionate about building great software!`,
     }
   };
   const mixedContent = {
-    templates: {
-      quickStart,
-      featuresList
-    },
     markdown: `# {{siteName}} Documentation
 
 Welcome to the **{{siteName}}** documentation!
@@ -188,7 +181,6 @@ Visit our [documentation](#) or [contact support](#).`,
     }
   };
   const fullTemplateWithData = {
-    templates: { productGalleryWithData },
     markdown: `# Product Gallery
 
 Browse our amazing products below:
@@ -220,7 +212,6 @@ ${treebark(productGalleryWithData)}
     }
   };
   const conditionalIfTag = {
-    templates: { userStatus },
     markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.
@@ -271,7 +262,6 @@ ${treebark(userStatus)}
     }
   };
   const ifElseBranches = {
-    templates: { authStatus },
     markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.
@@ -332,7 +322,6 @@ ${treebark(authStatus)}
     }
   };
   const comparisonOperators = {
-    templates: { ageAccessControl },
     markdown: `# Age-Based Access Control
 
 Use comparison operators to create powerful conditional logic.
@@ -397,7 +386,6 @@ ${treebark(ageAccessControl)}
     }
   };
   const operatorStacking = {
-    templates: { ticketPricing },
     markdown: `# Pricing Logic with Multiple Conditions
 
 Combine multiple operators with **AND** (default) or **OR** logic using \`$join\`.
@@ -481,7 +469,6 @@ ${treebark(ticketPricing)}
     }
   };
   const conditionalAttributeValues = {
-    templates: { statusDashboard },
     markdown: `# Dynamic Styling with Conditional Attributes
 
 Apply conditional values to **any attribute** using the same conditional syntax.
@@ -635,22 +622,7 @@ ${treebark(statusDashboard)}
   function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
-      let markdown = example.markdown || "";
-      if (currentMarkdownFormat === "yaml" && example.templates) {
-        const templateKeys = Object.keys(example.templates);
-        let templateIndex = 0;
-        markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match) => {
-          if (templateIndex < templateKeys.length) {
-            const templateKey = templateKeys[templateIndex];
-            const template = example.templates[templateKey];
-            templateIndex++;
-            const yamlCode = jsonToYaml(template);
-            return "```treebark\n" + yamlCode + "\n```";
-          }
-          return match;
-        });
-      }
-      markdownEditor.value = markdown;
+      markdownEditor.value = example.markdown || "";
       dataEditor.value = JSON.stringify(example.data || {}, null, 2);
       updateOutput();
     }

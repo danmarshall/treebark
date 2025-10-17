@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const greeting = {
+const greeting: TemplateElement = {
   div: {
     class: "greeting",
     $children: [
@@ -12,7 +13,6 @@ const greeting = {
 };
 
 export const helloWorld: MarkdownExample = {
-  templates: { greeting },
   markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.

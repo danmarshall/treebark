@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const ageAccessControl = {
+const ageAccessControl: TemplateElement = {
   div: {
     class: "access-control",
     $children: [
@@ -43,7 +44,6 @@ const ageAccessControl = {
 };
 
 export const comparisonOperators: MarkdownExample = {
-  templates: { ageAccessControl },
   markdown: `# Age-Based Access Control
 
 Use comparison operators to create powerful conditional logic.

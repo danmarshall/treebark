@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const userStatus = {
+const userStatus: TemplateElement = {
   div: {
     class: "user-status",
     $children: [
@@ -24,7 +25,6 @@ const userStatus = {
 };
 
 export const conditionalIfTag: MarkdownExample = {
-  templates: { userStatus },
   markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.

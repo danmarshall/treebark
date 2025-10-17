@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const statusDashboard = {
+const statusDashboard: TemplateElement = {
   div: {
     class: "status-dashboard",
     $children: [
@@ -66,7 +67,6 @@ const statusDashboard = {
 };
 
 export const conditionalAttributeValues: MarkdownExample = {
-  templates: { statusDashboard },
   markdown: `# Dynamic Styling with Conditional Attributes
 
 Apply conditional values to **any attribute** using the same conditional syntax.

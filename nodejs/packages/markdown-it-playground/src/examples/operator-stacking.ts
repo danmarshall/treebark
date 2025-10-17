@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const ticketPricing: any = {
+const ticketPricing: TemplateElement = {
   div: {
     class: "pricing",
     $children: [
@@ -45,7 +46,6 @@ const ticketPricing: any = {
 };
 
 export const operatorStacking: MarkdownExample = {
-  templates: { ticketPricing },
   markdown: `# Pricing Logic with Multiple Conditions
 
 Combine multiple operators with **AND** (default) or **OR** logic using \`$join\`.

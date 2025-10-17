@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const authStatus = {
+const authStatus: TemplateElement = {
   div: {
     class: "auth-status",
     $children: [
@@ -34,7 +35,6 @@ const authStatus = {
 };
 
 export const ifElseBranches: MarkdownExample = {
-  templates: { authStatus },
   markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.

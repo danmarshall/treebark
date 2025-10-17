@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const productCardTemplate = {
+const productCardTemplate: TemplateElement = {
   div: {
     class: "product-card",
     $children: [
@@ -15,7 +16,6 @@ const productCardTemplate = {
 };
 
 export const productCard: MarkdownExample = {
-  templates: { productCard: productCardTemplate },
   markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:

@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const productGalleryWithData = {
+const productGalleryWithData: TemplateElement = {
   div: {
     class: "product-grid",
     $children: [
@@ -30,7 +31,6 @@ const productGalleryWithData = {
 };
 
 export const fullTemplateWithData: MarkdownExample = {
-  templates: { productGalleryWithData },
   markdown: `# Product Gallery
 
 Browse our amazing products below:

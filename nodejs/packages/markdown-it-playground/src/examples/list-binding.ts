@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const teamList = {
+const teamList: TemplateElement = {
   ul: {
     class: "team-list",
     $bind: "members",
@@ -21,7 +22,6 @@ const teamList = {
 };
 
 export const listBinding: MarkdownExample = {
-  templates: { teamList },
   markdown: `# Team Members
 
 Meet our amazing team:

@@ -175,28 +175,7 @@ function updateOutput(): void {
 function loadExample(exampleId: string): void {
   const example = examples[exampleId];
   if (example) {
-
-    let markdown = example.markdown || '';
-
-    // If switching to YAML format and we have template references, regenerate markdown
-    if (currentMarkdownFormat === 'yaml' && example.templates) {
-      // Replace treebark blocks using stored template references
-      const templateKeys = Object.keys(example.templates);
-      let templateIndex = 0;
-
-      markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match) => {
-        if (templateIndex < templateKeys.length) {
-          const templateKey = templateKeys[templateIndex];
-          const template = example.templates![templateKey];
-          templateIndex++;
-          const yamlCode = jsonToYaml(template);
-          return '```treebark\n' + yamlCode + '\n```';
-        }
-        return match;
-      });
-    }
-
-    markdownEditor.value = markdown;
+    markdownEditor.value = example.markdown || '';
     dataEditor.value = JSON.stringify(example.data || {}, null, 2);
     updateOutput();
   }

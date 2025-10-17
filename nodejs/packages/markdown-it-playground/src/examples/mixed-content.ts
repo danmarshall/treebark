@@ -1,7 +1,8 @@
 import type { MarkdownExample } from './types.js';
+import type { TemplateElement } from '../../../treebark/dist/types.js';
 import { treebark } from './helpers.js';
 
-const quickStart = {
+const quickStart: TemplateElement = {
   div: {
     class: "quick-start",
     $children: [
@@ -13,7 +14,7 @@ const quickStart = {
   }
 };
 
-const featuresList = {
+const featuresList: TemplateElement = {
   ul: {
     class: "features",
     $bind: "features",
@@ -32,10 +33,6 @@ const featuresList = {
 };
 
 export const mixedContent: MarkdownExample = {
-  templates: {
-    quickStart,
-    featuresList
-  },
   markdown: `# {{siteName}} Documentation
 
 Welcome to the **{{siteName}}** documentation!
