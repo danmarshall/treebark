@@ -1,6 +1,5 @@
 (function() {
   "use strict";
-  const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
   function treebark(template) {
     return "```treebark\n" + JSON.stringify(template, null, 2) + "\n```";
   }
@@ -297,10 +296,9 @@
       }
     }
   };
-  const examples = {
-    "Hello World": {
-      templates: { greeting: treebarkTemplates.greeting },
-      markdown: `# Welcome to markdown-it-treebark!
+  const helloWorld = {
+    templates: { greeting: treebarkTemplates.greeting },
+    markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
 
@@ -310,13 +308,13 @@ Regular markdown continues to work normally:
 - Bullet points
 - **Bold text**
 - *Italic text*`,
-      data: {
-        name: "World"
-      }
-    },
-    "Product Card": {
-      templates: { productCard: treebarkTemplates.productCard },
-      markdown: `# Product Showcase
+    data: {
+      name: "World"
+    }
+  };
+  const productCard = {
+    templates: { productCard: treebarkTemplates.productCard },
+    markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
 
@@ -327,17 +325,17 @@ ${treebark(treebarkTemplates.productCard)}
 - Dynamic content with data binding
 - Clean HTML output
 - Safe rendering`,
-      data: {
-        name: "Gaming Laptop",
-        description: "High-performance laptop for gaming and development",
-        price: "$1,299",
-        image: "https://via.placeholder.com/300x200",
-        link: "#product"
-      }
-    },
-    "List Binding": {
-      templates: { teamList: treebarkTemplates.teamList },
-      markdown: `# Team Members
+    data: {
+      name: "Gaming Laptop",
+      description: "High-performance laptop for gaming and development",
+      price: "$1,299",
+      image: "https://via.placeholder.com/300x200",
+      link: "#product"
+    }
+  };
+  const listBinding = {
+    templates: { teamList: treebarkTemplates.teamList },
+    markdown: `# Team Members
 
 Meet our amazing team:
 
@@ -346,20 +344,20 @@ ${treebark(treebarkTemplates.teamList)}
 ## About Us
 
 We're passionate about building great software!`,
-      data: {
-        members: [
-          { name: "Alice", role: "Developer" },
-          { name: "Bob", role: "Designer" },
-          { name: "Charlie", role: "Manager" }
-        ]
-      }
+    data: {
+      members: [
+        { name: "Alice", role: "Developer" },
+        { name: "Bob", role: "Designer" },
+        { name: "Charlie", role: "Manager" }
+      ]
+    }
+  };
+  const mixedContent = {
+    templates: {
+      quickStart: treebarkTemplates.quickStart,
+      featuresList: treebarkTemplates.featuresList
     },
-    "Mixed Content": {
-      templates: {
-        quickStart: treebarkTemplates.quickStart,
-        featuresList: treebarkTemplates.featuresList
-      },
-      markdown: `# {{siteName}} Documentation
+    markdown: `# {{siteName}} Documentation
 
 Welcome to the **{{siteName}}** documentation!
 
@@ -378,30 +376,30 @@ ${treebark(treebarkTemplates.featuresList)}
 ## Get Help
 
 Visit our [documentation](#) or [contact support](#).`,
-      data: {
-        siteName: "Treebark",
-        packageName: "treebark",
-        features: [
-          { title: "Safe", description: "XSS protection built-in" },
-          { title: "Fast", description: "Optimized rendering" },
-          { title: "Simple", description: "Easy to learn and use" }
-        ]
-      }
-    },
-    "Full Template with Data": {
-      templates: { productGalleryWithData: treebarkTemplates.productGalleryWithData },
-      markdown: `# Product Gallery
+    data: {
+      siteName: "Treebark",
+      packageName: "treebark",
+      features: [
+        { title: "Safe", description: "XSS protection built-in" },
+        { title: "Fast", description: "Optimized rendering" },
+        { title: "Simple", description: "Easy to learn and use" }
+      ]
+    }
+  };
+  const fullTemplateWithData = {
+    templates: { productGalleryWithData: treebarkTemplates.productGalleryWithData },
+    markdown: `# Product Gallery
 
 Browse our amazing products below:
 
 ${treebark(treebarkTemplates.productGalleryWithData)}
 
 *Note: This example includes both template and data in the code block.*`,
-      data: {}
-    },
-    "Conditional Rendering ($if Tag)": {
-      templates: { userStatus: treebarkTemplates.userStatus },
-      markdown: `# User Dashboard with Conditional Content
+    data: {}
+  };
+  const conditionalIfTag = {
+    templates: { userStatus: treebarkTemplates.userStatus },
+    markdown: `# User Dashboard with Conditional Content
 
 The **$if** tag allows conditional rendering based on data values.
 
@@ -415,13 +413,13 @@ ${treebark(treebarkTemplates.userStatus)}
 - Use \`$not: true\` to invert the condition (like 'unless')
 - Works with nested properties like \`user.isAdmin\`
 - The $if tag is transparent - it doesn't render itself`,
-      data: {
-        isPremium: true
-      }
-    },
-    "If/Else Branches ($then/$else)": {
-      templates: { authStatus: treebarkTemplates.authStatus },
-      markdown: `# User Authentication Status
+    data: {
+      isPremium: true
+    }
+  };
+  const ifElseBranches = {
+    templates: { authStatus: treebarkTemplates.authStatus },
+    markdown: `# User Authentication Status
 
 The **$then** and **$else** keys provide clean if/else branching.
 
@@ -435,14 +433,14 @@ ${treebark(treebarkTemplates.authStatus)}
 - \`$else\` contains the element to render when condition is false
 - Each branch outputs exactly one element (1:1 mapping)
 - Both branches are optional`,
-      data: {
-        isLoggedIn: true,
-        username: "Alice"
-      }
-    },
-    "Comparison Operators": {
-      templates: { ageAccessControl: treebarkTemplates.ageAccessControl },
-      markdown: `# Age-Based Access Control
+    data: {
+      isLoggedIn: true,
+      username: "Alice"
+    }
+  };
+  const comparisonOperators = {
+    templates: { ageAccessControl: treebarkTemplates.ageAccessControl },
+    markdown: `# Age-Based Access Control
 
 Use comparison operators to create powerful conditional logic.
 
@@ -458,14 +456,14 @@ ${treebark(treebarkTemplates.ageAccessControl)}
 - \`$>=\` - Greater than or equal
 - \`$=\` - Strict equality
 - \`$in\` - Array membership`,
-      data: {
-        age: 25,
-        role: "admin"
-      }
-    },
-    "Operator Stacking ($join)": {
-      templates: { ticketPricing: treebarkTemplates.ticketPricing },
-      markdown: `# Pricing Logic with Multiple Conditions
+    data: {
+      age: 25,
+      role: "admin"
+    }
+  };
+  const operatorStacking = {
+    templates: { ticketPricing: treebarkTemplates.ticketPricing },
+    markdown: `# Pricing Logic with Multiple Conditions
 
 Combine multiple operators with **AND** (default) or **OR** logic using \`$join\`.
 
@@ -479,14 +477,14 @@ ${treebark(treebarkTemplates.ticketPricing)}
 - Use \`$join: 'OR'\` to change to OR logic
 - Use \`$not: true\` to invert the entire result
 - Operators can be stacked for complex conditions`,
-      data: {
-        age: 70,
-        isMember: false
-      }
-    },
-    "Conditional Attribute Values": {
-      templates: { statusDashboard: treebarkTemplates.statusDashboard },
-      markdown: `# Dynamic Styling with Conditional Attributes
+    data: {
+      age: 70,
+      isMember: false
+    }
+  };
+  const conditionalAttributeValues = {
+    templates: { statusDashboard: treebarkTemplates.statusDashboard },
+    markdown: `# Dynamic Styling with Conditional Attributes
 
 Apply conditional values to **any attribute** using the same conditional syntax.
 
@@ -500,13 +498,25 @@ ${treebark(treebarkTemplates.statusDashboard)}
 - Uses the same operators as $if tag ($<, $>, $=, $in, etc.)
 - Supports $not, $join modifiers
 - Clean, declarative syntax`,
-      data: {
-        status: "online",
-        score: 95,
-        role: "admin"
-      }
+    data: {
+      status: "online",
+      score: 95,
+      role: "admin"
     }
   };
+  const examples = {
+    "Hello World": helloWorld,
+    "Product Card": productCard,
+    "List Binding": listBinding,
+    "Mixed Content": mixedContent,
+    "Full Template with Data": fullTemplateWithData,
+    "Conditional Rendering ($if Tag)": conditionalIfTag,
+    "If/Else Branches ($then/$else)": ifElseBranches,
+    "Comparison Operators": comparisonOperators,
+    "Operator Stacking ($join)": operatorStacking,
+    "Conditional Attribute Values": conditionalAttributeValues
+  };
+  const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
   let currentMarkdownFormat = "json";
   const markdownEditor = document.getElementById("markdown-editor");
   const dataEditor = document.getElementById("data-editor");
