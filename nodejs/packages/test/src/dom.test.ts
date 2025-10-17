@@ -914,6 +914,7 @@ describe('DOM Renderer', () => {
           case 'blocks url() in style object values':
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
+          case 'blocks semicolons in style values (prevents injection)':
             expect(mockLogger.warn).toHaveBeenCalled();
             // Style attribute should be omitted entirely
             expect(element.hasAttribute('style')).toBe(false);

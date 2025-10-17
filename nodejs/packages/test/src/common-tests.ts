@@ -468,6 +468,19 @@ export const styleObjectWarningTests: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name: 'blocks semicolons in style values (prevents injection)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red; background: url(https://evil.com)'
+          },
+          $children: ['Semicolon injection blocked']
+        }
+      }
+    }
   }
 ];
 

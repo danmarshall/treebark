@@ -183,7 +183,8 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     if ((hasUrl && !hasDataUri) || 
         /expression\s*\(/i.test(cssValue) ||
         /javascript:/i.test(cssValue) ||
-        /@import/i.test(cssValue)) {
+        /@import/i.test(cssValue) ||
+        /;/.test(cssValue)) {
       logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
       continue;
     }
