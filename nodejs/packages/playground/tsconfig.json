@@ -3,9 +3,6 @@
   "compilerOptions": {
     "outDir": "../../../docs/js",
     "rootDir": "./src",
-    "declaration": false,
-    "declarationMap": false,
-    "sourceMap": false,
     "module": "None",
     "target": "ES2020"
   },
