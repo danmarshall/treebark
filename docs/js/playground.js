@@ -1,6 +1,6 @@
 "use strict";
 const examples = {
-    'hello-world': {
+    'Hello World': {
         template: {
             div: {
                 class: "greeting",
@@ -12,7 +12,7 @@ const examples = {
         },
         data: {}
     },
-    'card-layout': {
+    'Card Layout': {
         template: {
             div: {
                 class: "product-card",
@@ -34,7 +34,7 @@ const examples = {
             price: "$1,299"
         }
     },
-    'list-binding': {
+    'List Binding': {
         template: {
             ul: {
                 class: "product-list",
@@ -52,7 +52,7 @@ const examples = {
             ]
         }
     },
-    'user-profile': {
+    'User Profile': {
         template: {
             div: {
                 class: "user-profile",
@@ -69,7 +69,7 @@ const examples = {
             skills: "JavaScript, Python, React"
         }
     },
-    'shorthand-syntax': {
+    'Shorthand Syntax': {
         template: {
             div: [
                 { h2: "Welcome" },
@@ -85,7 +85,7 @@ const examples = {
         },
         data: {}
     },
-    'mixed-content': {
+    'Mixed Content': {
         template: {
             div: {
                 $children: [
@@ -105,7 +105,7 @@ const examples = {
         },
         data: {}
     },
-    'stack-of-cards': {
+    'Stack Of Cards': {
         template: {
             div: {
                 class: "cards-container",
@@ -140,7 +140,7 @@ const examples = {
             ]
         }
     },
-    'array-bind-property': {
+    'Array Bind Property': {
         template: {
             ul: {
                 $bind: "products",
@@ -156,7 +156,7 @@ const examples = {
             ]
         }
     },
-    'array-bind-dot': {
+    'Array Bind Dot': {
         template: {
             ul: {
                 $bind: ".",
@@ -170,7 +170,7 @@ const examples = {
             { name: "Phone", price: "$499" }
         ]
     },
-    'parent-property-access': {
+    'Parent Property Access': {
         template: {
             div: {
                 $bind: "customers",
@@ -232,7 +232,7 @@ const examples = {
             ]
         }
     },
-    'conditional-if-basic': {
+    'Conditional If Basic': {
         template: {
             div: {
                 class: "user-greeting",
@@ -273,7 +273,7 @@ const examples = {
             username: "Alice"
         }
     },
-    'conditional-if-admin': {
+    'Conditional If Admin': {
         template: {
             div: {
                 class: "user-panel",
@@ -338,7 +338,7 @@ const examples = {
             }
         }
     },
-    'conditional-if-inventory': {
+    'Conditional If Inventory': {
         template: {
             div: {
                 class: "product-inventory",
@@ -394,7 +394,7 @@ const examples = {
             ]
         }
     },
-    'conditional-if-nested': {
+    'Conditional If Nested': {
         template: {
             div: {
                 class: "access-control",
@@ -470,7 +470,7 @@ const examples = {
             isVerified: true
         }
     },
-    'conditional-then-else': {
+    'Conditional Then Else': {
         template: {
             div: {
                 class: "auth-status",
@@ -507,7 +507,7 @@ const examples = {
             username: "Alice"
         }
     },
-    'conditional-comparison-operators': {
+    'Conditional Comparison Operators': {
         template: {
             div: {
                 class: "access-control",
@@ -573,7 +573,7 @@ const examples = {
             role: "admin"
         }
     },
-    'conditional-join-or': {
+    'Conditional Join Or': {
         template: {
             div: {
                 class: "pricing",
@@ -618,7 +618,7 @@ const examples = {
             age: 70
         }
     },
-    'conditional-attribute-values': {
+    'Conditional Attribute Values': {
         template: {
             div: {
                 class: "status-dashboard",
@@ -680,7 +680,7 @@ const examples = {
             score: 95
         }
     },
-    'style-objects': {
+    'Style Objects': {
         template: {
             div: {
                 class: "style-demo",
@@ -938,7 +938,7 @@ function populateExampleDropdown() {
     exampleIds.forEach(exampleId => {
         const option = document.createElement('option');
         option.value = exampleId;
-        option.textContent = exampleId.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        option.textContent = exampleId;
         select.appendChild(option);
     });
     if (exampleIds.length > 0) {

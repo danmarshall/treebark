@@ -10,7 +10,7 @@ type Examples = Record<string, Example>;
 
 // Example templates and data - strongly typed
 const examples: Examples = {
-  'hello-world': {
+  'Hello World': {
     template: {
       div: {
         class: "greeting",
@@ -22,7 +22,7 @@ const examples: Examples = {
     },
     data: {}
   },
-  'card-layout': {
+  'Card Layout': {
     template: {
       div: {
         class: "product-card",
@@ -44,7 +44,7 @@ const examples: Examples = {
       price: "$1,299"
     }
   },
-  'list-binding': {
+  'List Binding': {
     template: {
       ul: {
         class: "product-list",
@@ -62,7 +62,7 @@ const examples: Examples = {
       ]
     }
   },
-  'user-profile': {
+  'User Profile': {
     template: {
       div: {
         class: "user-profile",
@@ -79,7 +79,7 @@ const examples: Examples = {
       skills: "JavaScript, Python, React"
     }
   },
-  'shorthand-syntax': {
+  'Shorthand Syntax': {
     template: {
       div: [
         { h2: "Welcome" },
@@ -95,7 +95,7 @@ const examples: Examples = {
     },
     data: {}
   },
-  'mixed-content': {
+  'Mixed Content': {
     template: {
       div: {
         $children: [
@@ -115,7 +115,7 @@ const examples: Examples = {
     },
     data: {}
   },
-  'stack-of-cards': {
+  'Stack Of Cards': {
     template: {
       div: {
         class: "cards-container",
@@ -150,7 +150,7 @@ const examples: Examples = {
       ]
     }
   },
-  'array-bind-property': {
+  'Array Bind Property': {
     template: {
       ul: {
         $bind: "products",
@@ -166,7 +166,7 @@ const examples: Examples = {
       ]
     }
   },
-  'array-bind-dot': {
+  'Array Bind Dot': {
     template: {
       ul: {
         $bind: ".",
@@ -180,7 +180,7 @@ const examples: Examples = {
       { name: "Phone", price: "$499" }
     ]
   },
-  'parent-property-access': {
+  'Parent Property Access': {
     template: {
       div: {
         $bind: "customers",
@@ -242,7 +242,7 @@ const examples: Examples = {
       ]
     }
   },
-  'conditional-if-basic': {
+  'Conditional If Basic': {
     template: {
       div: {
         class: "user-greeting",
@@ -283,7 +283,7 @@ const examples: Examples = {
       username: "Alice"
     }
   },
-  'conditional-if-admin': {
+  'Conditional If Admin': {
     template: {
       div: {
         class: "user-panel",
@@ -348,7 +348,7 @@ const examples: Examples = {
       }
     }
   },
-  'conditional-if-inventory': {
+  'Conditional If Inventory': {
     template: {
       div: {
         class: "product-inventory",
@@ -404,7 +404,7 @@ const examples: Examples = {
       ]
     }
   },
-  'conditional-if-nested': {
+  'Conditional If Nested': {
     template: {
       div: {
         class: "access-control",
@@ -480,7 +480,7 @@ const examples: Examples = {
       isVerified: true
     }
   },
-  'conditional-then-else': {
+  'Conditional Then Else': {
     template: {
       div: {
         class: "auth-status",
@@ -517,7 +517,7 @@ const examples: Examples = {
       username: "Alice"
     }
   },
-  'conditional-comparison-operators': {
+  'Conditional Comparison Operators': {
     template: {
       div: {
         class: "access-control",
@@ -583,7 +583,7 @@ const examples: Examples = {
       role: "admin"
     }
   },
-  'conditional-join-or': {
+  'Conditional Join Or': {
     template: {
       div: {
         class: "pricing",
@@ -628,7 +628,7 @@ const examples: Examples = {
       age: 70
     }
   },
-  'conditional-attribute-values': {
+  'Conditional Attribute Values': {
     template: {
       div: {
         class: "status-dashboard",
@@ -690,7 +690,7 @@ const examples: Examples = {
       score: 95
     }
   },
-  'style-objects': {
+  'Style Objects': {
     template: {
       div: {
         class: "style-demo",
@@ -983,14 +983,11 @@ function populateExampleDropdown(): void {
 
   const exampleIds = Object.keys(examples);
 
-  // Add options for each example (using key as label, formatted)
+  // Add options for each example (using key as-is)
   exampleIds.forEach(exampleId => {
     const option = document.createElement('option');
     option.value = exampleId;
-    // Format the key: 'hello-world' -> 'Hello World'
-    option.textContent = exampleId.split('-').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    option.textContent = exampleId;
     select.appendChild(option);
   });
 
