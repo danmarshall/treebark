@@ -1,6 +1,10 @@
+// Import Treebark types from the compiled package
+import type { TemplateElement } from '../../treebark/dist/types.js';
+
 // Type definitions for markdown playground examples
 interface MarkdownExample {
   label?: string;
+  treebarkTemplates: Record<string, TemplateElement | TemplateElement[]>;
   markdown: string;
   data: any;
 }
@@ -14,20 +18,31 @@ const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
 const examples: MarkdownExamples = {
   'hello-world': {
     label: 'Hello World',
+    treebarkTemplates: {
+      greeting: {
+        div: {
+          class: "greeting",
+          $children: [
+            { h2: "Hello {{name}}!" },
+            { p: "Welcome to the markdown-it-treebark plugin." }
+          ]
+        }
+      }
+    },
     markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
 
 \`\`\`treebark
-{
-  "div": {
-    "class": "greeting",
-    "$children": [
-      { "h2": "Hello {{name}}!" },
-      { "p": "Welcome to the markdown-it-treebark plugin." }
+${JSON.stringify({
+  div: {
+    class: "greeting",
+    $children: [
+      { h2: "Hello {{name}}!" },
+      { p: "Welcome to the markdown-it-treebark plugin." }
     ]
   }
-}
+}, null, 2)}
 \`\`\`
 
 Regular markdown continues to work normally:
@@ -40,23 +55,37 @@ Regular markdown continues to work normally:
   },
   'product-card': {
     label: 'Product Card',
+    treebarkTemplates: {
+      productCard: {
+        div: {
+          class: "product-card",
+          $children: [
+            { h2: "{{name}}" },
+            { img: { src: "{{image}}", alt: "{{name}}" } },
+            { p: "{{description}}" },
+            { div: { class: "price", $children: ["{{price}}"] } },
+            { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
+          ]
+        }
+      }
+    },
     markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
 
 \`\`\`treebark
-{
-  "div": {
-    "class": "product-card",
-    "$children": [
-      { "h2": "{{name}}" },
-      { "img": { "src": "{{image}}", "alt": "{{name}}" } },
-      { "p": "{{description}}" },
-      { "div": { "class": "price", "$children": ["{{price}}"] } },
-      { "a": { "href": "{{link}}", "class": "btn", "$children": ["Learn More"] } }
+${JSON.stringify({
+  div: {
+    class: "product-card",
+    $children: [
+      { h2: "{{name}}" },
+      { img: { src: "{{image}}", alt: "{{name}}" } },
+      { p: "{{description}}" },
+      { div: { class: "price", $children: ["{{price}}"] } },
+      { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
     ]
   }
-}
+}, null, 2)}
 \`\`\`
 
 ## Features
@@ -74,29 +103,49 @@ Here's a product card rendered with treebark:
   },
   'list-binding': {
     label: 'List Binding',
+    treebarkTemplates: {
+      teamList: {
+        ul: {
+          class: "team-list",
+          $bind: "members",
+          $children: [
+            {
+              li: {
+                class: "team-member",
+                $children: [
+                  { strong: "{{name}}" },
+                  " - ",
+                  { em: "{{role}}" }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
     markdown: `# Team Members
 
 Meet our amazing team:
 
 \`\`\`treebark
-{
-  "ul": {
-    "class": "team-list",
-    "$bind": "members",
-    "$children": [
+${JSON.stringify({
+  ul: {
+    class: "team-list",
+    $bind: "members",
+    $children: [
       {
-        "li": {
-          "class": "team-member",
-          "$children": [
-            { "strong": "{{name}}" },
+        li: {
+          class: "team-member",
+          $children: [
+            { strong: "{{name}}" },
             " - ",
-            { "em": "{{role}}" }
+            { em: "{{role}}" }
           ]
         }
       }
     ]
   }
-}
+}, null, 2)}
 \`\`\`
 
 ## About Us

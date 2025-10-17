@@ -1,4 +1,3 @@
-"use strict";
 // Example templates and data - strongly typed
 const examples = {
     'hello-world': {
@@ -1000,3 +999,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export functions to global scope for HTML onclick handlers
 window.loadExampleFromDropdown = loadExampleFromDropdown;
 window.switchTemplateFormat = switchTemplateFormat;
+export {};

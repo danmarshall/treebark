@@ -1,14 +1,17 @@
 {
-  "name": "treebark-markdown-playground",
+  "name": "treebark-markdown-it-playground",
   "version": "1.0.0",
   "description": "Interactive playground for markdown-it-treebark plugin",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf ../../docs/js/markdown-playground.js ../../docs/js/markdown-playground.d.ts"
+    "clean": "rm -rf ../../docs/js/markdown-it-playground.js"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/markdown-it": "^13.0.9"
+  },
   "engines": {
     "node": ">=16.0.0"
   }

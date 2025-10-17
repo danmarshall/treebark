@@ -1,7 +1,10 @@
+// Import Treebark types from the compiled package
+import type { TemplateElement, TemplateObject } from '../../treebark/dist/types.js';
+
 // Type definitions for playground examples
 interface Example {
   label?: string;
-  template: any;
+  template: TemplateElement | TemplateElement[];
   data: any;
 }
 
@@ -657,7 +660,7 @@ const examples: Examples = {
                 "$=": "online",
                 $then: "color: green; font-weight: bold;",
                 $else: "color: red; font-weight: bold;"
-              },
+              } as any,
               $children: [
                 { strong: "Server Status: " },
                 { span: "{{status}}" }
@@ -679,7 +682,7 @@ const examples: Examples = {
                 "$>=": 90,
                 $then: "color: green; font-weight: bold;",
                 $else: "color: orange;"
-              },
+              } as any,
               $children: [
                 {
                   $if: {
@@ -694,7 +697,7 @@ const examples: Examples = {
           }
         ]
       }
-    },
+    } as TemplateElement,
     data: {
       status: "online",
       score: 95

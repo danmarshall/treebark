@@ -1,24 +1,63 @@
-"use strict";
+// Helper function to create markdown with strongly-typed treebark template
+function createMarkdownWithTreebark(markdown, template) {
+    // The template is already strongly typed, we just need to inject it into the markdown
+    return markdown;
+}
 // Regex pattern for matching treebark code blocks in markdown
 const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
+// Strongly-typed treebark template dictionary
+const treebarkTemplates = {
+    greeting: {
+        div: {
+            class: "greeting",
+            $children: [
+                { h2: "Hello {{name}}!" },
+                { p: "Welcome to the markdown-it-treebark plugin." }
+            ]
+        }
+    },
+    productCard: {
+        div: {
+            class: "product-card",
+            $children: [
+                { h2: "{{name}}" },
+                { img: { src: "{{image}}", alt: "{{name}}" } },
+                { p: "{{description}}" },
+                { div: { class: "price", $children: ["{{price}}"] } },
+                { a: { href: "{{link}}", class: "btn", $children: ["Learn More"] } }
+            ]
+        }
+    },
+    teamList: {
+        ul: {
+            class: "team-list",
+            $bind: "members",
+            $children: [
+                {
+                    li: {
+                        class: "team-member",
+                        $children: [
+                            { strong: "{{name}}" },
+                            " - ",
+                            { em: "{{role}}" }
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+};
 // Example markdown documents with embedded treebark - strongly typed
 const examples = {
     'hello-world': {
         label: 'Hello World',
+        treebarkTemplates: { greeting: treebarkTemplates.greeting },
         markdown: `# Welcome to markdown-it-treebark!
 
 This plugin allows you to embed **treebark templates** inside markdown code blocks.
 
 \`\`\`treebark
-{
-  "div": {
-    "class": "greeting",
-    "$children": [
-      { "h2": "Hello {{name}}!" },
-      { "p": "Welcome to the markdown-it-treebark plugin." }
-    ]
-  }
-}
+${JSON.stringify(treebarkTemplates.greeting, null, 2)}
 \`\`\`
 
 Regular markdown continues to work normally:
@@ -31,23 +70,13 @@ Regular markdown continues to work normally:
     },
     'product-card': {
         label: 'Product Card',
+        treebarkTemplates: { productCard: treebarkTemplates.productCard },
         markdown: `# Product Showcase
 
 Here's a product card rendered with treebark:
 
 \`\`\`treebark
-{
-  "div": {
-    "class": "product-card",
-    "$children": [
-      { "h2": "{{name}}" },
-      { "img": { "src": "{{image}}", "alt": "{{name}}" } },
-      { "p": "{{description}}" },
-      { "div": { "class": "price", "$children": ["{{price}}"] } },
-      { "a": { "href": "{{link}}", "class": "btn", "$children": ["Learn More"] } }
-    ]
-  }
-}
+${JSON.stringify(treebarkTemplates.productCard, null, 2)}
 \`\`\`
 
 ## Features
@@ -65,29 +94,13 @@ Here's a product card rendered with treebark:
     },
     'list-binding': {
         label: 'List Binding',
+        treebarkTemplates: { teamList: treebarkTemplates.teamList },
         markdown: `# Team Members
 
 Meet our amazing team:
 
 \`\`\`treebark
-{
-  "ul": {
-    "class": "team-list",
-    "$bind": "members",
-    "$children": [
-      {
-        "li": {
-          "class": "team-member",
-          "$children": [
-            { "strong": "{{name}}" },
-            " - ",
-            { "em": "{{role}}" }
-          ]
-        }
-      }
-    ]
-  }
-}
+${JSON.stringify(treebarkTemplates.teamList, null, 2)}
 \`\`\`
 
 ## About Us
@@ -737,3 +750,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export functions to global scope for HTML onclick handlers
 window.loadExampleFromDropdown = loadExampleFromDropdown;
 window.switchMarkdownFormat = switchMarkdownFormat;
+export {};

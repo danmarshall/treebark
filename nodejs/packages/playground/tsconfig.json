@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "../../../docs/js",
     "rootDir": "./src",
-    "declaration": true,
+    "declaration": false,
     "declarationMap": false,
     "sourceMap": false,
     "removeComments": false,
