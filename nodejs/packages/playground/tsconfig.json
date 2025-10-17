@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../../docs/js",
+    "rootDir": "./src",
+    "module": "ESNext",
+    "target": "ES2020"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

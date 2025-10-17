@@ -1,0 +1,14 @@
+{
+  "name": "treebark-markdown-it-playground",
+  "version": "1.0.0",
+  "description": "Interactive playground for markdown-it-treebark plugin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "clean": "rm -rf ../../../docs/js/markdown-it-playground.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

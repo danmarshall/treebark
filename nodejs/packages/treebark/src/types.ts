@@ -41,6 +41,8 @@ export type CSSProperties = {
   [property: string]: string;
 };
 
+export type AttributeValue = string | ConditionalValue;
+
 // Style value can be a CSSProperties object or a conditional that returns CSSProperties
 export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
 
@@ -62,13 +64,13 @@ type TagContent<Attrs> = string | (string | TemplateObject)[] | Attrs;
 
 // Global attributes that can be used on any tag
 type GlobalAttrs = {
-  id?: string;
-  class?: string;
+  id?: AttributeValue;
+  class?: AttributeValue;
   style?: StyleValue;
-  title?: string;
-  role?: string;
-  [key: `data-${string}`]: unknown;
-  [key: `aria-${string}`]: unknown;
+  title?: AttributeValue;
+  role?: AttributeValue;
+  [key: `data-${string}`]: AttributeValue;
+  [key: `aria-${string}`]: AttributeValue;
 };
 
 // Base attributes for container tags (can have children)

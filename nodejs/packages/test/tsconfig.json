@@ -8,12 +8,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "outDir": "./dist",
     "removeComments": true,
-    "resolveJsonModule": true,
     "types": ["jest", "jsdom"],
     "baseUrl": ".",
     "paths": {
