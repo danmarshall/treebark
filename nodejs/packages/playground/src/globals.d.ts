@@ -1,12 +1,13 @@
 // Global type declarations for browser playground
 
-// js-yaml from CDN
-declare const jsyaml: {
-  dump(obj: any, options?: { indent?: number; lineWidth?: number }): string;
-  load(yamlStr: string): any;
-};
+import type * as jsyaml from 'js-yaml';
 
-// Treebark from browser build
-declare const Treebark: {
-  renderToString(input: { template: any; data: any }, options?: { indent?: string | boolean }): string;
-};
+// Global declarations for CDN-loaded libraries
+declare global {
+  const jsyaml: typeof import('js-yaml');
+  
+  // Treebark from browser build
+  const Treebark: {
+    renderToString(input: { template: any; data: any }, options?: { indent?: string | boolean }): string;
+  };
+}

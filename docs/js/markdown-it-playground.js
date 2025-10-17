@@ -1,11 +1,7 @@
-// Helper function to create markdown with strongly-typed treebark template
 function createMarkdownWithTreebark(markdown, template) {
-    // The template is already strongly typed, we just need to inject it into the markdown
     return markdown;
 }
-// Regex pattern for matching treebark code blocks in markdown
 const TREEBARK_BLOCK_REGEX = /```treebark\n([\s\S]*?)```/g;
-// Strongly-typed treebark template dictionary
 const treebarkTemplates = {
     greeting: {
         div: {
@@ -47,7 +43,6 @@ const treebarkTemplates = {
         }
     },
 };
-// Example markdown documents with embedded treebark - strongly typed
 const examples = {
     'hello-world': {
         label: 'Hello World',
@@ -543,7 +538,6 @@ Apply conditional values to **any attribute** using the same conditional syntax.
     }
 };
 let currentMarkdownFormat = 'json';
-// Get DOM elements
 const markdownEditor = document.getElementById('markdown-editor');
 const dataEditor = document.getElementById('data-editor');
 const htmlOutput = document.getElementById('html-output');
@@ -551,15 +545,12 @@ const errorDisplay = document.getElementById('error-display');
 const indentType = document.getElementById('indent-type');
 const indentSize = document.getElementById('indent-size');
 const markdownFormatSelect = document.getElementById('markdown-format');
-// Convert JSON to YAML string
 function jsonToYaml(obj) {
     return jsyaml.dump(obj, { indent: 2, lineWidth: -1 });
 }
-// Convert YAML to JSON object
 function yamlToJson(yamlStr) {
     return jsyaml.load(yamlStr);
 }
-// Switch markdown treebark format
 function switchMarkdownFormat() {
     const newFormat = markdownFormatSelect.value;
     const currentContent = markdownEditor.value;
@@ -568,23 +559,19 @@ function switchMarkdownFormat() {
         return;
     }
     try {
-        // Convert treebark code blocks in markdown
         const converted = currentContent.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
             try {
-                // Trim the code to handle edge cases
                 const trimmedCode = code.trim();
                 if (!trimmedCode) {
-                    return match; // Keep empty blocks unchanged
+                    return match;
                 }
                 let template;
-                // Parse current code block based on current format
                 if (currentMarkdownFormat === 'json') {
                     template = JSON.parse(trimmedCode);
                 }
                 else {
                     template = yamlToJson(trimmedCode);
                 }
-                // Convert to new format
                 let newCode;
                 if (newFormat === 'json') {
                     newCode = JSON.stringify(template, null, 2);
@@ -595,7 +582,6 @@ function switchMarkdownFormat() {
                 return '```treebark\n' + newCode + '\n```';
             }
             catch (e) {
-                // If this block fails to convert, return it unchanged
                 return match;
             }
         });
@@ -608,7 +594,6 @@ function switchMarkdownFormat() {
         errorDisplay.style.display = 'block';
     }
 }
-// Update output when inputs change
 function updateOutput() {
     try {
         errorDisplay.style.display = 'none';
@@ -618,7 +603,6 @@ function updateOutput() {
             htmlOutput.textContent = '';
             return;
         }
-        // Parse data context
         let data = {};
         if (dataText) {
             try {
@@ -628,20 +612,17 @@ function updateOutput() {
                 throw new Error('Invalid JSON in data context: ' + e.message);
             }
         }
-        // Get indent options
         let indent = false;
         if (indentType.value !== 'none') {
             const size = parseInt(indentSize.value) || 2;
             indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
         }
-        // Capture console logs
         const logs = [];
         const originalConsole = {
             error: console.error,
             warn: console.warn,
             log: console.log
         };
-        // Override console methods to capture logs
         console.error = function (...args) {
             logs.push({ level: 'error', message: args.join(' ') });
             originalConsole.error.apply(console, args);
@@ -655,14 +636,10 @@ function updateOutput() {
             originalConsole.log.apply(console, args);
         };
         try {
-            // Create markdown-it instance with treebark plugin
             const md = markdownit();
-            // Apply the treebark plugin
             md.use(MarkdownItTreebark, { data, indent });
-            // Render markdown
             const html = md.render(markdownText);
             htmlOutput.textContent = html;
-            // Display captured logs if any
             if (logs.length > 0) {
                 const logMessages = logs.map(log => {
                     const prefix = log.level === 'error' ? '❌ Error: ' :
@@ -674,7 +651,6 @@ function updateOutput() {
             }
         }
         finally {
-            // Restore original console methods
             console.error = originalConsole.error;
             console.warn = originalConsole.warn;
             console.log = originalConsole.log;
@@ -686,12 +662,10 @@ function updateOutput() {
         htmlOutput.textContent = '';
     }
 }
-// Load example
 function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
         let markdown = example.markdown || '';
-        // If switching to YAML format, convert treebark code blocks
         if (currentMarkdownFormat === 'yaml' && markdown.includes('```treebark')) {
             markdown = markdown.replace(TREEBARK_BLOCK_REGEX, (match, code) => {
                 try {
@@ -713,24 +687,20 @@ function loadExample(exampleId) {
         updateOutput();
     }
 }
-// Populate dropdown from examples
 function populateExampleDropdown() {
     const select = document.getElementById('example-select');
     const exampleIds = Object.keys(examples);
-    // Add options for each example
     exampleIds.forEach(exampleId => {
         const option = document.createElement('option');
         option.value = exampleId;
         option.textContent = examples[exampleId].label || exampleId;
         select.appendChild(option);
     });
-    // Auto-select and load the first example
     if (exampleIds.length > 0) {
         select.value = exampleIds[0];
         loadExample(exampleIds[0]);
     }
 }
-// Load example from dropdown
 function loadExampleFromDropdown() {
     const select = document.getElementById('example-select');
     const exampleId = select.value;
@@ -738,16 +708,13 @@ function loadExampleFromDropdown() {
         loadExample(exampleId);
     }
 }
-// Event listeners
 markdownEditor.addEventListener('input', updateOutput);
 dataEditor.addEventListener('input', updateOutput);
 indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
-// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function () {
     populateExampleDropdown();
 });
-// Export functions to global scope for HTML onclick handlers
 window.loadExampleFromDropdown = loadExampleFromDropdown;
 window.switchMarkdownFormat = switchMarkdownFormat;
 export {};

@@ -8,10 +8,6 @@
     "build": "tsc",
     "clean": "rm -rf ../../docs/js/markdown-it-playground.js"
   },
-  "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/markdown-it": "^13.0.9"
-  },
   "engines": {
     "node": ">=16.0.0"
   }

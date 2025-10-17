@@ -1,4 +1,3 @@
-// Example templates and data - strongly typed
 const examples = {
     'hello-world': {
         template: {
@@ -814,7 +813,6 @@ const examples = {
     }
 };
 let currentTemplateFormat = 'json';
-// Get DOM elements
 const templateEditor = document.getElementById('template-editor');
 const dataEditor = document.getElementById('data-editor');
 const htmlOutput = document.getElementById('html-output');
@@ -822,15 +820,12 @@ const errorDisplay = document.getElementById('error-display');
 const indentType = document.getElementById('indent-type');
 const indentSize = document.getElementById('indent-size');
 const templateFormatSelect = document.getElementById('template-format');
-// Convert JSON to YAML string
 function jsonToYaml(obj) {
     return jsyaml.dump(obj, { indent: 2, lineWidth: -1 });
 }
-// Convert YAML to JSON object
 function yamlToJson(yamlStr) {
     return jsyaml.load(yamlStr);
 }
-// Switch template format
 function switchTemplateFormat() {
     const newFormat = templateFormatSelect.value;
     const currentContent = templateEditor.value.trim();
@@ -840,14 +835,12 @@ function switchTemplateFormat() {
     }
     try {
         let template;
-        // Parse current content based on current format
         if (currentTemplateFormat === 'json') {
             template = JSON.parse(currentContent);
         }
         else {
             template = yamlToJson(currentContent);
         }
-        // Convert to new format
         if (newFormat === 'json') {
             templateEditor.value = JSON.stringify(template, null, 2);
         }
@@ -858,13 +851,11 @@ function switchTemplateFormat() {
         updateOutput();
     }
     catch (e) {
-        // If conversion fails, just switch format without converting
         errorDisplay.innerHTML = '<div class="log-warn">⚠️ Could not convert format: ' + escapeHtml(e.message) + '.</div>';
         errorDisplay.style.display = 'block';
         currentTemplateFormat = newFormat;
     }
 }
-// Update output when inputs change
 function updateOutput() {
     try {
         errorDisplay.style.display = 'none';
@@ -875,7 +866,6 @@ function updateOutput() {
             htmlOutput.textContent = '';
             return;
         }
-        // Parse template
         let template;
         try {
             if (currentTemplateFormat === 'json') {
@@ -888,7 +878,6 @@ function updateOutput() {
         catch (e) {
             throw new Error('Invalid ' + currentTemplateFormat.toUpperCase() + ' in template: ' + e.message);
         }
-        // Parse data
         let data = {};
         if (dataText) {
             try {
@@ -898,13 +887,11 @@ function updateOutput() {
                 throw new Error('Invalid JSON in data: ' + e.message);
             }
         }
-        // Get indent options
         let indent = false;
         if (indentType.value !== 'none') {
             const size = parseInt(indentSize.value) || 2;
             indent = indentType.value === 'tabs' ? '\t'.repeat(size) : ' '.repeat(size);
         }
-        // Capture console logs during rendering
         const logs = [];
         const originalError = console.error;
         const originalWarn = console.warn;
@@ -913,19 +900,16 @@ function updateOutput() {
         console.warn = (msg) => { logs.push({ level: 'warn', message: msg }); originalWarn(msg); };
         console.log = (msg) => { logs.push({ level: 'log', message: msg }); originalLog(msg); };
         try {
-            // Render using treebark
             const input = { template, data };
             const options = { indent };
             const html = Treebark.renderToString(input, options);
             htmlOutput.textContent = html;
         }
         finally {
-            // Restore original console methods
             console.error = originalError;
             console.warn = originalWarn;
             console.log = originalLog;
         }
-        // Display captured logs
         if (logs.length > 0) {
             const logMessages = logs.map(log => {
                 const icon = log.level === 'error' ? '❌' : log.level === 'warn' ? '⚠️' : 'ℹ️';
@@ -941,17 +925,14 @@ function updateOutput() {
         htmlOutput.textContent = '';
     }
 }
-// Helper function to escape HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
-// Load example
 function loadExample(exampleId) {
     const example = examples[exampleId];
     if (example) {
-        // Display template in the current format
         if (currentTemplateFormat === 'json') {
             templateEditor.value = JSON.stringify(example.template, null, 2);
         }
@@ -962,24 +943,20 @@ function loadExample(exampleId) {
         updateOutput();
     }
 }
-// Populate dropdown from examples
 function populateExampleDropdown() {
     const select = document.getElementById('example-select');
     const exampleIds = Object.keys(examples);
-    // Add options for each example
     exampleIds.forEach(exampleId => {
         const option = document.createElement('option');
         option.value = exampleId;
         option.textContent = examples[exampleId].label || exampleId;
         select.appendChild(option);
     });
-    // Auto-select and load the first example
     if (exampleIds.length > 0) {
         select.value = exampleIds[0];
         loadExample(exampleIds[0]);
     }
 }
-// Load example from dropdown
 function loadExampleFromDropdown() {
     const select = document.getElementById('example-select');
     const exampleId = select.value;
@@ -987,16 +964,13 @@ function loadExampleFromDropdown() {
         loadExample(exampleId);
     }
 }
-// Event listeners
 templateEditor.addEventListener('input', updateOutput);
 dataEditor.addEventListener('input', updateOutput);
 indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
-// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function () {
     populateExampleDropdown();
 });
-// Export functions to global scope for HTML onclick handlers
 window.loadExampleFromDropdown = loadExampleFromDropdown;
 window.switchTemplateFormat = switchTemplateFormat;
 export {};

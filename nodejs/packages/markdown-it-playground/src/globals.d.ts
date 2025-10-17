@@ -1,18 +1,13 @@
 // Global type declarations for markdown playground
 
-// js-yaml from CDN
-declare const jsyaml: {
-  dump(obj: any, options?: { indent?: number; lineWidth?: number }): string;
-  load(yamlStr: string): any;
-};
+import type * as jsyaml from 'js-yaml';
+import type MarkdownIt from 'markdown-it';
 
-// markdown-it from CDN
-declare const markdownit: () => MarkdownIt;
-
-interface MarkdownIt {
-  use(plugin: any, options?: any): MarkdownIt;
-  render(markdown: string): string;
+// Global declarations for CDN-loaded libraries
+declare global {
+  const jsyaml: typeof import('js-yaml');
+  const markdownit: typeof import('markdown-it');
+  
+  // markdown-it-treebark from browser build
+  const MarkdownItTreebark: (md: MarkdownIt, options?: { data?: any; indent?: string | boolean }) => void;
 }
-
-// markdown-it-treebark from browser build
-declare const MarkdownItTreebark: (md: MarkdownIt, options?: { data?: any; indent?: string | boolean }) => void;
