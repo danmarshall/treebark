@@ -210,26 +210,18 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
 }
 
 /**
- * Check if value is a conditional style value
- */
-function isConditionalStyleValue(value: unknown): value is ConditionalBase<CSSProperties> {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    '$check' in value &&
-    typeof (value as any).$check === 'string' &&
-    ('$then' in value || '$else' in value)
-  );
-}
-
-/**
  * Process style attribute value - only accepts objects for safety
  * Returns CSS string or empty string if invalid
  */
 export function processStyleAttribute(value: unknown, data: Data, parents: Data[], logger: Logger): string {
-  // Handle conditional style values
-  if (isConditionalStyleValue(value)) {
+  // Handle conditional style values - check for $check property to detect conditionals
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as any).$check === 'string'
+  ) {
     const conditional = value as ConditionalBase<CSSProperties>;
     if (!validatePathExpression(conditional.$check, '$check', logger)) {
       return '';
@@ -241,8 +233,11 @@ export function processStyleAttribute(value: unknown, data: Data, parents: Data[
     if (resultValue === undefined) {
       return '';
     }
-    // Recursively process the result
-    return processStyleAttribute(resultValue, data, parents, logger);
+    // Process the result style object (no nesting supported)
+    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
+      return styleObjectToString(resultValue as Record<string, unknown>, logger);
+    }
+    return '';
   }
   
   // Only accept objects for style attribute

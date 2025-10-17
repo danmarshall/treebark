@@ -142,11 +142,8 @@
     }
     return cssDeclarations.join("; ").trim();
   }
-  function isConditionalStyleValue(value) {
-    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string" && ("$then" in value || "$else" in value);
-  }
   function processStyleAttribute(value, data, parents, logger) {
-    if (isConditionalStyleValue(value)) {
+    if (value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string") {
       const conditional = value;
       if (!validatePathExpression(conditional.$check, "$check", logger)) {
         return "";
@@ -157,7 +154,10 @@
       if (resultValue === void 0) {
         return "";
       }
-      return processStyleAttribute(resultValue, data, parents, logger);
+      if (typeof resultValue === "object" && resultValue !== null && !Array.isArray(resultValue)) {
+        return styleObjectToString(resultValue, logger);
+      }
+      return "";
     }
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       return styleObjectToString(value, logger);
