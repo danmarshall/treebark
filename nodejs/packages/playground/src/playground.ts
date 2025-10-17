@@ -1,9 +1,16 @@
 import type { TemplateElement } from '../../treebark/dist/types.js';
+import type JSYaml from 'js-yaml';
+
+declare const jsyaml: typeof JSYaml;
+
+declare const Treebark: {
+  renderToString(input: { template: TemplateElement | TemplateElement[]; data: unknown }, options?: { indent?: string | boolean }): string;
+};
 
 // Type definitions for playground examples
 interface Example {
   template: TemplateElement | TemplateElement[];
-  data: any;
+  data: unknown;
 }
 
 type Examples = Record<string, Example>;
@@ -19,7 +26,7 @@ const examples: Examples = {
           { p: "Welcome to Treebark - safe HTML tree structures." }
         ]
       }
-    } as TemplateElement,
+    },
     data: {}
   },
   'Card Layout': {
@@ -37,7 +44,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       name: "Gaming Laptop",
       description: "High-performance laptop for gaming and development",
@@ -53,7 +60,7 @@ const examples: Examples = {
           { li: "{{name}} - {{price}}" }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       products: [
         { name: "Laptop", price: "$999" },
@@ -72,7 +79,7 @@ const examples: Examples = {
           { p: "Skills: {{skills}}" }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       name: "Alice Johnson",
       email: "alice@example.com",
@@ -92,7 +99,7 @@ const examples: Examples = {
           ]
         }
       ]
-    } as TemplateElement,
+    },
     data: {}
   },
   'Mixed Content': {
@@ -112,7 +119,7 @@ const examples: Examples = {
           "! This mixes text and elements."
         ]
       }
-    } as TemplateElement,
+    },
     data: {}
   },
   'Stack Of Cards': {
@@ -141,7 +148,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       team: [
         { name: "Alice Smith", role: "Frontend Developer", experience: 5 },
@@ -158,7 +165,7 @@ const examples: Examples = {
           { li: "{{name}} — {{price}}" }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       products: [
         { name: "Laptop", price: "$999" },
@@ -174,7 +181,7 @@ const examples: Examples = {
           { li: "{{name}} — {{price}}" }
         ]
       }
-    } as TemplateElement,
+    },
     data: [
       { name: "Laptop", price: "$999" },
       { name: "Phone", price: "$499" }
@@ -222,7 +229,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       companyName: "ACME Corp",
       customerId: "cust123",
@@ -277,7 +284,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       isLoggedIn: true,
       username: "Alice"
@@ -338,7 +345,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       user: {
         name: "Alice Johnson",
@@ -395,7 +402,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       products: [
         { name: "Laptop", price: "$999", inStock: true, quantity: 15 },
@@ -474,7 +481,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       hasPermission: true,
       isVerified: true
@@ -511,7 +518,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       isLoggedIn: true,
       username: "Alice"
@@ -577,7 +584,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       age: 25,
       role: "admin"
@@ -623,7 +630,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       age: 70
     }
@@ -645,9 +652,9 @@ const examples: Examples = {
               style: {
                 $check: "status",
                 "$=": "online",
-                $then: "color: green; font-weight: bold;",
-                $else: "color: red; font-weight: bold;"
-              } as any,
+                $then: { "color": "green", "font-weight": "bold" },
+                $else: { "color": "red", "font-weight": "bold" }
+              },
               $children: [
                 { strong: "Server Status: " },
                 { span: "{{status}}" }
@@ -667,9 +674,9 @@ const examples: Examples = {
               style: {
                 $check: "score",
                 "$>=": 90,
-                $then: "color: green; font-weight: bold;",
-                $else: "color: orange;"
-              } as any,
+                $then: { "color": "green", "font-weight": "bold" },
+                $else: { "color": "orange" }
+              },
               $children: [
                 {
                   $if: {
@@ -684,7 +691,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       status: "online",
       score: 95
@@ -799,7 +806,7 @@ const examples: Examples = {
           }
         ]
       }
-    } as TemplateElement,
+    },
     data: {
       primaryColor: "#3f51b5",
       theme: "dark",
@@ -1014,7 +1021,7 @@ indentType.addEventListener('change', updateOutput);
 indentSize.addEventListener('input', updateOutput);
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   populateExampleDropdown();
 });
 
