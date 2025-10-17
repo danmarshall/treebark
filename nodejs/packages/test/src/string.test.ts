@@ -1014,17 +1014,28 @@ describe('String Renderer', () => {
 
         const result = renderToString(testCase.input, { logger: mockLogger });
         
-        // Should log a warning
-        expect(mockLogger.warn).toHaveBeenCalled();
-        
-        // Result should not contain the dangerous content
+        // Check results based on test case
         switch (testCase.name) {
-          case 'warns for disallowed CSS property':
-            expect(result).toBe('<div style="color: red">Unknown property</div>');
+          case 'allows new CSS properties (future-proof)':
+            // This should NOT warn - new properties are allowed
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(result).toContain('new-css-property: some-value');
+            expect(result).toContain('experimental-feature: enabled');
+            break;
+          case 'warns for invalid property name format (uppercase)':
+          case 'warns for invalid property name format (underscores)':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(result).toBe('<div style="color: red">Invalid format</div>');
+            break;
+          case 'blocks behavior property':
+          case 'blocks -moz-binding property':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            expect(result).toBe('<div style="color: red">Blocked property</div>');
             break;
           case 'blocks url() in style object values':
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
+            expect(mockLogger.warn).toHaveBeenCalled();
             // Style attribute should be omitted entirely
             expect(result).not.toContain('style=');
             break;

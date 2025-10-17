@@ -360,15 +360,72 @@ export const styleObjectTests: TestCase[] = [
 
 export const styleObjectWarningTests: TestCase[] = [
   {
-    name: 'warns for disallowed CSS property',
+    name: 'warns for invalid property name format (uppercase)',
     input: {
       template: {
         div: {
           style: {
             'color': 'red',
-            'unsafe-property': 'value'
+            'FontSize': '14px'  // Invalid: not kebab-case
           },
-          $children: ['Unknown property']
+          $children: ['Invalid format']
+        }
+      }
+    }
+  },
+  {
+    name: 'warns for invalid property name format (underscores)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'font_size': '14px'  // Invalid: uses underscores
+          },
+          $children: ['Invalid format']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks behavior property',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'behavior': 'url(evil.htc)'
+          },
+          $children: ['Blocked property']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks -moz-binding property',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            '-moz-binding': 'url(evil.xml)'
+          },
+          $children: ['Blocked property']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows new CSS properties (future-proof)',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red',
+            'new-css-property': 'some-value',  // New properties work automatically
+            'experimental-feature': 'enabled'
+          },
+          $children: ['Future CSS']
         }
       }
     }

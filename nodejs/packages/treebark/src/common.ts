@@ -56,68 +56,10 @@ export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
-// Allowed CSS properties for structured style objects
-// This is a comprehensive list of safe, commonly-used CSS properties
-export const ALLOWED_CSS_PROPERTIES = new Set([
-  // Layout & Display
-  'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
-  'float', 'clear', 'overflow', 'overflow-x', 'overflow-y', 'visibility',
-  
-  // Box Model
-  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
-  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-  'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-  'box-sizing',
-  
-  // Border
-  'border', 'border-width', 'border-style', 'border-color', 'border-radius',
-  'border-top', 'border-right', 'border-bottom', 'border-left',
-  'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-  'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
-  'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
-  'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
-  'outline', 'outline-width', 'outline-style', 'outline-color', 'outline-offset',
-  
-  // Background
-  'background', 'background-color', 'background-position', 'background-size',
-  'background-repeat', 'background-attachment', 'background-clip', 'background-origin',
-  
-  // Text & Font
-  'color', 'font', 'font-family', 'font-size', 'font-weight', 'font-style',
-  'font-variant', 'line-height', 'letter-spacing', 'word-spacing',
-  'text-align', 'text-decoration', 'text-indent', 'text-transform',
-  'text-shadow', 'text-overflow', 'white-space', 'word-wrap', 'word-break',
-  'vertical-align', 'direction', 'unicode-bidi',
-  
-  // Lists
-  'list-style', 'list-style-type', 'list-style-position',
-  
-  // Tables
-  'border-collapse', 'border-spacing', 'caption-side', 'empty-cells', 'table-layout',
-  
-  // Flexbox
-  'flex', 'flex-direction', 'flex-wrap', 'flex-flow', 'justify-content',
-  'align-items', 'align-content', 'align-self', 'flex-grow', 'flex-shrink', 'flex-basis',
-  'order', 'gap', 'row-gap', 'column-gap',
-  
-  // Grid
-  'grid', 'grid-template', 'grid-template-columns', 'grid-template-rows', 'grid-template-areas',
-  'grid-column', 'grid-row', 'grid-area', 'grid-auto-columns', 'grid-auto-rows',
-  'grid-auto-flow', 'grid-column-start', 'grid-column-end', 'grid-row-start', 'grid-row-end',
-  
-  // Transform & Animation
-  'transform', 'transform-origin', 'transition', 'transition-property',
-  'transition-duration', 'transition-timing-function', 'transition-delay',
-  'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
-  'animation-delay', 'animation-iteration-count', 'animation-direction',
-  'animation-fill-mode', 'animation-play-state',
-  
-  // Effects
-  'opacity', 'box-shadow', 'filter', 'backdrop-filter',
-  
-  // Other
-  'cursor', 'pointer-events', 'resize', 'user-select', 'content',
-  'quotes', 'counter-reset', 'counter-increment', 'object-fit', 'object-position'
+// Blocked CSS properties that are known to be dangerous
+const BLOCKED_CSS_PROPERTIES = new Set([
+  'behavior',           // IE behavior property - can execute code
+  '-moz-binding',       // Firefox XBL binding - can execute code
 ]);
 
 /**
@@ -203,18 +145,25 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
 
 /**
  * Convert a style object to a CSS string
- * Validates CSS properties against whitelist and escapes values
+ * Uses generic property validation - allows any kebab-case CSS property
+ * but validates values for dangerous patterns
  */
 export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
   const cssDeclarations: string[] = [];
   
   for (const [prop, value] of Object.entries(styleObj)) {
-    // Property names should already be in kebab-case
+    // Property names should be in kebab-case format
     const cssProp = prop;
     
-    // Validate against whitelist
-    if (!ALLOWED_CSS_PROPERTIES.has(cssProp)) {
-      logger.warn(`CSS property "${prop}" is not in the allowed list`);
+    // Validate property name format: must be kebab-case (lowercase letters and hyphens)
+    if (!/^[a-z]([a-z0-9-]*[a-z0-9])?$/.test(cssProp)) {
+      logger.warn(`CSS property "${prop}" has invalid format (must be kebab-case)`);
+      continue;
+    }
+    
+    // Block known dangerous properties
+    if (BLOCKED_CSS_PROPERTIES.has(cssProp)) {
+      logger.warn(`CSS property "${prop}" is blocked for security reasons`);
       continue;
     }
     
@@ -226,7 +175,7 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     // Convert value to string and sanitize
     const cssValue = String(value).trim();
     
-    // Basic validation: block obviously dangerous patterns
+    // Block dangerous patterns in values
     // Allow data: URIs but block external URLs
     const hasUrl = /url\s*\(/i.test(cssValue);
     const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);

@@ -896,17 +896,25 @@ describe('DOM Renderer', () => {
         const fragment = renderToDOM(testCase.input, { logger: mockLogger });
         const element = fragment.firstChild as HTMLElement;
         
-        // Should log a warning
-        expect(mockLogger.warn).toHaveBeenCalled();
-        
         // Check results based on test case
         switch (testCase.name) {
-          case 'warns for disallowed CSS property':
+          case 'allows new CSS properties (future-proof)':
+            // This should NOT warn - new properties are allowed
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(element.getAttribute('style')).toContain('new-css-property: some-value');
+            expect(element.getAttribute('style')).toContain('experimental-feature: enabled');
+            break;
+          case 'warns for invalid property name format (uppercase)':
+          case 'warns for invalid property name format (underscores)':
+          case 'blocks behavior property':
+          case 'blocks -moz-binding property':
+            expect(mockLogger.warn).toHaveBeenCalled();
             expect(element.getAttribute('style')).toBe('color: red');
             break;
           case 'blocks url() in style object values':
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
+            expect(mockLogger.warn).toHaveBeenCalled();
             // Style attribute should be omitted entirely
             expect(element.hasAttribute('style')).toBe(false);
             break;

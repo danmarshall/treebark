@@ -232,9 +232,11 @@ Output:
 
 **Key features:**
 - **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Whitelist validation**: Only safe CSS properties are allowed (100+ properties including flexbox, grid, transforms, etc.)
-- **Dangerous patterns blocked**: `url()`, `expression()`, `javascript:`, `@import`, etc.
-- **Type safety**: Values can be strings or numbers
+- **Generic validation**: Accepts any valid kebab-case CSS property name (future-proof for new CSS features)
+- **Format validation**: Property names must match pattern `/^[a-z]([a-z0-9-]*[a-z0-9])?$/`
+- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
+- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Type safety**: Values are strings
 - **JSON Schema compatible**: Property names work directly in JSON schema validation
 
 **Flexbox example:**

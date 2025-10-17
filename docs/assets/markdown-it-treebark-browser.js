@@ -54,177 +54,11 @@
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
-  const ALLOWED_CSS_PROPERTIES = /* @__PURE__ */ new Set([
-    // Layout & Display
-    "display",
-    "position",
-    "top",
-    "right",
-    "bottom",
-    "left",
-    "z-index",
-    "float",
-    "clear",
-    "overflow",
-    "overflow-x",
-    "overflow-y",
-    "visibility",
-    // Box Model
-    "width",
-    "height",
-    "min-width",
-    "min-height",
-    "max-width",
-    "max-height",
-    "margin",
-    "margin-top",
-    "margin-right",
-    "margin-bottom",
-    "margin-left",
-    "padding",
-    "padding-top",
-    "padding-right",
-    "padding-bottom",
-    "padding-left",
-    "box-sizing",
-    // Border
-    "border",
-    "border-width",
-    "border-style",
-    "border-color",
-    "border-radius",
-    "border-top",
-    "border-right",
-    "border-bottom",
-    "border-left",
-    "border-top-width",
-    "border-right-width",
-    "border-bottom-width",
-    "border-left-width",
-    "border-top-style",
-    "border-right-style",
-    "border-bottom-style",
-    "border-left-style",
-    "border-top-color",
-    "border-right-color",
-    "border-bottom-color",
-    "border-left-color",
-    "border-top-left-radius",
-    "border-top-right-radius",
-    "border-bottom-left-radius",
-    "border-bottom-right-radius",
-    "outline",
-    "outline-width",
-    "outline-style",
-    "outline-color",
-    "outline-offset",
-    // Background
-    "background",
-    "background-color",
-    "background-position",
-    "background-size",
-    "background-repeat",
-    "background-attachment",
-    "background-clip",
-    "background-origin",
-    // Text & Font
-    "color",
-    "font",
-    "font-family",
-    "font-size",
-    "font-weight",
-    "font-style",
-    "font-variant",
-    "line-height",
-    "letter-spacing",
-    "word-spacing",
-    "text-align",
-    "text-decoration",
-    "text-indent",
-    "text-transform",
-    "text-shadow",
-    "text-overflow",
-    "white-space",
-    "word-wrap",
-    "word-break",
-    "vertical-align",
-    "direction",
-    "unicode-bidi",
-    // Lists
-    "list-style",
-    "list-style-type",
-    "list-style-position",
-    // Tables
-    "border-collapse",
-    "border-spacing",
-    "caption-side",
-    "empty-cells",
-    "table-layout",
-    // Flexbox
-    "flex",
-    "flex-direction",
-    "flex-wrap",
-    "flex-flow",
-    "justify-content",
-    "align-items",
-    "align-content",
-    "align-self",
-    "flex-grow",
-    "flex-shrink",
-    "flex-basis",
-    "order",
-    "gap",
-    "row-gap",
-    "column-gap",
-    // Grid
-    "grid",
-    "grid-template",
-    "grid-template-columns",
-    "grid-template-rows",
-    "grid-template-areas",
-    "grid-column",
-    "grid-row",
-    "grid-area",
-    "grid-auto-columns",
-    "grid-auto-rows",
-    "grid-auto-flow",
-    "grid-column-start",
-    "grid-column-end",
-    "grid-row-start",
-    "grid-row-end",
-    // Transform & Animation
-    "transform",
-    "transform-origin",
-    "transition",
-    "transition-property",
-    "transition-duration",
-    "transition-timing-function",
-    "transition-delay",
-    "animation",
-    "animation-name",
-    "animation-duration",
-    "animation-timing-function",
-    "animation-delay",
-    "animation-iteration-count",
-    "animation-direction",
-    "animation-fill-mode",
-    "animation-play-state",
-    // Effects
-    "opacity",
-    "box-shadow",
-    "filter",
-    "backdrop-filter",
-    // Other
-    "cursor",
-    "pointer-events",
-    "resize",
-    "user-select",
-    "content",
-    "quotes",
-    "counter-reset",
-    "counter-increment",
-    "object-fit",
-    "object-position"
+  const BLOCKED_CSS_PROPERTIES = /* @__PURE__ */ new Set([
+    "behavior",
+    // IE behavior property - can execute code
+    "-moz-binding"
+    // Firefox XBL binding - can execute code
   ]);
   function getProperty(data, path, parents = [], logger) {
     if (path === ".") {
@@ -276,8 +110,12 @@
     const cssDeclarations = [];
     for (const [prop, value] of Object.entries(styleObj)) {
       const cssProp = prop;
-      if (!ALLOWED_CSS_PROPERTIES.has(cssProp)) {
-        logger.warn(`CSS property "${prop}" is not in the allowed list`);
+      if (!/^[a-z]([a-z0-9-]*[a-z0-9])?$/.test(cssProp)) {
+        logger.warn(`CSS property "${prop}" has invalid format (must be kebab-case)`);
+        continue;
+      }
+      if (BLOCKED_CSS_PROPERTIES.has(cssProp)) {
+        logger.warn(`CSS property "${prop}" is blocked for security reasons`);
         continue;
       }
       if (value == null) {

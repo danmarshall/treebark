@@ -91,10 +91,11 @@ Treebark provides comprehensive security through its design:
 
 **Style Attribute Security:**
 As of the latest version, Treebark requires the `style` attribute to be a structured object rather than a string. This provides security by design:
-- Only whitelisted CSS properties are allowed (100+ safe properties)
-- Dangerous properties like `behavior`, `-moz-binding`, and `expression` are blocked
+- Uses generic property validation (any kebab-case CSS property allowed)
+- Blocked dangerous properties: `behavior`, `-moz-binding`
 - Values containing `url()` (except data: URIs), `javascript:`, or `@import` are rejected
 - Property names must be in kebab-case format (e.g., `"font-size"`, not `"fontSize"`)
+- Future-proof: new CSS properties work automatically without code updates
 
 ### Recommendations
 
