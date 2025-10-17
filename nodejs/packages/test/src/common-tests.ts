@@ -470,14 +470,27 @@ export const styleObjectWarningTests: TestCase[] = [
     }
   },
   {
-    name: 'blocks semicolons in style values (prevents injection)',
+    name: 'accepts trailing semicolon in style values',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red;'
+          },
+          $children: ['Trailing semicolon accepted']
+        }
+      }
+    }
+  },
+  {
+    name: 'sanitizes semicolon injection by taking first chunk',
     input: {
       template: {
         div: {
           style: {
             'color': 'red; background: url(https://evil.com)'
           },
-          $children: ['Semicolon injection blocked']
+          $children: ['Semicolon sanitized']
         }
       }
     }

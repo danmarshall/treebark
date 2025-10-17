@@ -1032,10 +1032,17 @@ describe('String Renderer', () => {
             expect(mockLogger.warn).toHaveBeenCalled();
             expect(result).toBe('<div style="color: red">Blocked property</div>');
             break;
+          case 'accepts trailing semicolon in style values':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon but accepts value
+            expect(result).toBe('<div style="color: red">Trailing semicolon accepted</div>');
+            break;
+          case 'sanitizes semicolon injection by taking first chunk':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
+            expect(result).toBe('<div style="color: red">Semicolon sanitized</div>');
+            break;
           case 'blocks url() in style object values':
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
-          case 'blocks semicolons in style values (prevents injection)':
             expect(mockLogger.warn).toHaveBeenCalled();
             // Style attribute should be omitted entirely
             expect(result).not.toContain('style=');

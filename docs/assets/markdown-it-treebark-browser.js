@@ -121,10 +121,20 @@
       if (value == null) {
         continue;
       }
-      const cssValue = String(value).trim();
+      let cssValue = String(value).trim();
+      if (cssValue.includes(";")) {
+        const originalValue = cssValue;
+        cssValue = cssValue.split(";")[0].trim();
+        if (cssValue && cssValue !== originalValue.trim()) {
+          logger.warn(`CSS value for "${prop}" contained semicolon - using only first part: "${cssValue}"`);
+        }
+      }
+      if (!cssValue) {
+        continue;
+      }
       const hasUrl = /url\s*\(/i.test(cssValue);
       const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
-      if (hasUrl && !hasDataUri || /expression\s*\(/i.test(cssValue) || /javascript:/i.test(cssValue) || /@import/i.test(cssValue) || /;/.test(cssValue)) {
+      if (hasUrl && !hasDataUri || /expression\s*\(/i.test(cssValue) || /javascript:/i.test(cssValue) || /@import/i.test(cssValue)) {
         logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
         continue;
       }

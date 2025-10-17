@@ -911,10 +911,17 @@ describe('DOM Renderer', () => {
             expect(mockLogger.warn).toHaveBeenCalled();
             expect(element.getAttribute('style')).toBe('color: red');
             break;
+          case 'accepts trailing semicolon in style values':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon but accepts value
+            expect(element.getAttribute('style')).toBe('color: red');
+            break;
+          case 'sanitizes semicolon injection by taking first chunk':
+            expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
+            expect(element.getAttribute('style')).toBe('color: red');
+            break;
           case 'blocks url() in style object values':
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
-          case 'blocks semicolons in style values (prevents injection)':
             expect(mockLogger.warn).toHaveBeenCalled();
             // Style attribute should be omitted entirely
             expect(element.hasAttribute('style')).toBe(false);

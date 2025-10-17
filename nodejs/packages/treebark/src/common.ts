@@ -173,7 +173,22 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     }
     
     // Convert value to string and sanitize
-    const cssValue = String(value).trim();
+    let cssValue = String(value).trim();
+    
+    // Split by semicolon and take only the first chunk to prevent injection
+    // This allows trailing semicolons ergonomically while blocking multi-property injection
+    if (cssValue.includes(';')) {
+      const originalValue = cssValue;
+      cssValue = cssValue.split(';')[0].trim();
+      if (cssValue && cssValue !== originalValue.trim()) {
+        logger.warn(`CSS value for "${prop}" contained semicolon - using only first part: "${cssValue}"`);
+      }
+    }
+    
+    // Skip if value is empty after sanitization
+    if (!cssValue) {
+      continue;
+    }
     
     // Block dangerous patterns in values
     // Allow data: URIs but block external URLs
@@ -183,8 +198,7 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
     if ((hasUrl && !hasDataUri) || 
         /expression\s*\(/i.test(cssValue) ||
         /javascript:/i.test(cssValue) ||
-        /@import/i.test(cssValue) ||
-        /;/.test(cssValue)) {
+        /@import/i.test(cssValue)) {
       logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
       continue;
     }
