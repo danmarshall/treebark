@@ -59,7 +59,7 @@ ${treebark(productCardTemplate)}
       link: "#product"
     }
   };
-  const teamList = {
+  const teamList$1 = {
     ul: {
       class: "team-list",
       $bind: "members",
@@ -82,7 +82,7 @@ ${treebark(productCardTemplate)}
 
 Meet our amazing team:
 
-${treebark(teamList)}
+${treebark(teamList$1)}
 
 ## About Us
 
@@ -94,6 +94,40 @@ We're passionate about building great software!`,
         { name: "Charlie", role: "Manager" }
       ]
     }
+  };
+  const teamList = {
+    ul: {
+      class: "team-list",
+      $bind: ".",
+      $children: [
+        {
+          li: {
+            class: "team-member",
+            $children: [
+              { strong: "{{name}}" },
+              " - ",
+              { em: "{{role}}" }
+            ]
+          }
+        }
+      ]
+    }
+  };
+  const listBindingFromArray = {
+    markdown: `# Team Members (Array Binding)
+
+This example shows **$bind: "."** to bind directly to an array as the root data.
+
+${treebark(teamList)}
+
+## Key Difference
+
+When your data **is** the array itself (not nested in an object), use \`$bind: "."\` to bind to the root.`,
+    data: [
+      { name: "Alice", role: "Developer" },
+      { name: "Bob", role: "Designer" },
+      { name: "Charlie", role: "Manager" }
+    ]
   };
   const quickStart = {
     div: {
@@ -493,6 +527,7 @@ ${treebark(statusDashboard)}
     "Hello World": helloWorld,
     "Product Card": productCard,
     "List Binding": listBinding,
+    "List Binding from Array": listBindingFromArray,
     "Mixed Content": mixedContent,
     "Full Template with Data": fullTemplateWithData,
     "Conditional Rendering ($if Tag)": conditionalIfTag,

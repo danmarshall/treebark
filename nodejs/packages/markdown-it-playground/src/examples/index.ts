@@ -2,6 +2,7 @@ import type { MarkdownExample } from './types.js';
 import { helloWorld } from './hello-world.js';
 import { productCard } from './product-card.js';
 import { listBinding } from './list-binding.js';
+import { listBindingFromArray } from './list-binding-from-array.js';
 import { mixedContent } from './mixed-content.js';
 import { fullTemplateWithData } from './full-template-with-data.js';
 import { conditionalIfTag } from './conditional-if-tag.js';
@@ -16,6 +17,7 @@ export const examples: MarkdownExamples = {
   'Hello World': helloWorld,
   'Product Card': productCard,
   'List Binding': listBinding,
+  'List Binding from Array': listBindingFromArray,
   'Mixed Content': mixedContent,
   'Full Template with Data': fullTemplateWithData,
   'Conditional Rendering ($if Tag)': conditionalIfTag,
