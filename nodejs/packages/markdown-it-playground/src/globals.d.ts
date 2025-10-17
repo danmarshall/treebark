@@ -1,5 +1,8 @@
 // Global type declarations for CDN-loaded libraries
 
-declare const jsyaml: any;
-declare const markdownit: any;
-declare const MarkdownItTreebark: (md: any, options?: { data?: any; indent?: string | boolean }) => void;
+import type JSYaml from 'js-yaml';
+import type MarkdownIt from 'markdown-it';
+
+declare const jsyaml: typeof JSYaml;
+declare const markdownit: typeof MarkdownIt;
+declare const MarkdownItTreebark: (md: MarkdownIt, options?: { data?: unknown; indent?: string | boolean; yaml?: boolean }) => void;

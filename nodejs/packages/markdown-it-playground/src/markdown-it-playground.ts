@@ -3,7 +3,7 @@ import type { TemplateElement } from '../../treebark/dist/types.js';
 // Type definitions for markdown playground examples
 interface MarkdownExample {
   markdown: string;
-  data: any;
+  data: unknown;
   templates?: Record<string, TemplateElement | TemplateElement[]>; // Store template references for format switching
 }
 
@@ -27,7 +27,7 @@ const treebarkTemplates: Record<string, TemplateElement | TemplateElement[]> = {
         { p: "Welcome to the markdown-it-treebark plugin." }
       ]
     }
-  } as TemplateElement,
+  },
 
   productCard: {
     div: {

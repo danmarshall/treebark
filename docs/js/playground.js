@@ -636,8 +636,8 @@
                 style: {
                   $check: "status",
                   "$=": "online",
-                  $then: "color: green; font-weight: bold;",
-                  $else: "color: red; font-weight: bold;"
+                  $then: { "color": "green", "font-weight": "bold" },
+                  $else: { "color": "red", "font-weight": "bold" }
                 },
                 $children: [
                   { strong: "Server Status: " },
@@ -658,8 +658,8 @@
                 style: {
                   $check: "score",
                   "$>=": 90,
-                  $then: "color: green; font-weight: bold;",
-                  $else: "color: orange;"
+                  $then: { "color": "green", "font-weight": "bold" },
+                  $else: { "color": "orange" }
                 },
                 $children: [
                   {
