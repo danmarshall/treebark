@@ -31,8 +31,7 @@
     "tr",
     "th",
     "td",
-    "a",
-    "button"
+    "a"
   ]);
   const SPECIAL_TAGS = /* @__PURE__ */ new Set([
     "$comment",
@@ -51,8 +50,7 @@
     "table": /* @__PURE__ */ new Set(["summary"]),
     "th": /* @__PURE__ */ new Set(["scope", "colspan", "rowspan"]),
     "td": /* @__PURE__ */ new Set(["scope", "colspan", "rowspan"]),
-    "blockquote": /* @__PURE__ */ new Set(["cite"]),
-    "button": /* @__PURE__ */ new Set(["type", "disabled"])
+    "blockquote": /* @__PURE__ */ new Set(["cite"])
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);

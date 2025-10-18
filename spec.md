@@ -161,8 +161,7 @@ div:
   - `img`: `src`, `alt`, `width`, `height`  
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
-  - `blockquote`: `cite`
-  - `button`: `type`, `disabled`
+  - `blockquote`: `cite`  
 - Blocked: event handlers (`on*`), dangerous protocols (`javascript:`).  
 
 ---
@@ -259,14 +258,14 @@ For complex array scenarios where you need a wrapper element or nested structure
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `button`
+`a`, `img`
 
 **Special tags:**  
 `comment`, `if`
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
-`form`, `input`, `select`,  
+`form`, `input`, `button`, `select`,  
 `video`, `audio`,  
 `style`, `link`, `meta`, `base`
 

@@ -85,7 +85,7 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `br`, `hr`, `button`
+`a`, `img`, `br`, `hr`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
@@ -101,7 +101,6 @@ This means the implementation is featherweight.
 | `table`        | `summary`                                   |
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
-| `button`       | `type`, `disabled`                          |
 
 ### Special Keys
 

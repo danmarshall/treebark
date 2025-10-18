@@ -51,7 +51,7 @@ export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' |
   'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
   'ul' | 'ol' | 'li' |
   'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
-  'a' | 'button';
+  'a';
 
 export type VoidTag = 'img' | 'br' | 'hr';
 
@@ -114,7 +114,6 @@ export type TrTag = { tr: TagContent<BaseContainerAttrs> };
 export type ThTag = { th: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
 export type TdTag = { td: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
 export type ATag = { a: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
-export type ButtonTag = { button: TagContent<BaseContainerAttrs & { type?: string; disabled?: AttributeValue }> };
 export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
 
 // Void tag types
@@ -130,7 +129,7 @@ export type RegularTags =
   | DivTag | SpanTag | PTag | HeaderTag | FooterTag | MainTag | SectionTag | ArticleTag
   | H1Tag | H2Tag | H3Tag | H4Tag | H5Tag | H6Tag | StrongTag | EmTag | BlockquoteTag
   | CodeTag | PreTag | UlTag | OlTag | LiTag | TableTag | TheadTag | TbodyTag | TrTag
-  | ThTag | TdTag | ATag | ButtonTag | ImgTag | BrTag | HrTag | CommentTag;
+  | ThTag | TdTag | ATag | ImgTag | BrTag | HrTag | CommentTag;
 
 // Generic template attributes (for backwards compatibility with runtime code)
 export type TemplateAttributes = BaseContainerAttrs;
