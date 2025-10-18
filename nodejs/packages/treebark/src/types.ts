@@ -79,9 +79,6 @@ type BaseContainerAttrs = GlobalAttrs & {
   $children?: (string | TemplateObject)[];
 };
 
-// Button-specific event handler type (DOM-only)
-export type ButtonClickHandler = (event: MouseEvent, payload?: unknown) => void;
-
 // Base attributes for void tags (no children allowed)
 type BaseVoidAttrs = GlobalAttrs & {
   $bind?: string;
@@ -117,7 +114,7 @@ export type TrTag = { tr: TagContent<BaseContainerAttrs> };
 export type ThTag = { th: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
 export type TdTag = { td: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
 export type ATag = { a: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
-export type ButtonTag = { button: TagContent<BaseContainerAttrs & { type?: string; disabled?: AttributeValue; $onClick?: ButtonClickHandler }> };
+export type ButtonTag = { button: TagContent<BaseContainerAttrs & { type?: string; disabled?: AttributeValue }> };
 export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
 
 // Void tag types
