@@ -162,9 +162,12 @@
     </div>
 
     <script type="module">
-        // Import treebark from the browser build
-        import { renderToDOM } from '../docs/assets/treebark-browser.js';
-
+        // For the demo, we'll use the DOM renderer directly with a simple implementation
+        // In a real application, you would import from the treebark package
+        
+        // Import treebark (this would work if we had a DOM browser build)
+        // For now, we'll demonstrate the concept with native DOM manipulation
+        
         const output = document.getElementById('output');
         const buttonContainer = document.getElementById('button-container');
 
@@ -174,63 +177,65 @@
             output.textContent = message + output.textContent;
         }
 
-        // Create the button template
-        const template = {
-            template: {
-                div: {
-                    class: "button-group",
-                    $children: [
-                        {
-                            button: {
-                                class: "btn-primary",
-                                type: "button",
-                                "data-payload": JSON.stringify({ action: "save", id: 1 }),
-                                $onClick: (event, payload) => {
-                                    logEvent("Save Button", payload);
-                                },
-                                $children: ["💾 Save"]
-                            }
-                        },
-                        {
-                            button: {
-                                class: "btn-danger",
-                                type: "button",
-                                "data-payload": JSON.stringify({ action: "delete", id: 2 }),
-                                $onClick: (event, payload) => {
-                                    logEvent("Delete Button", payload);
-                                },
-                                $children: ["🗑️ Delete"]
-                            }
-                        },
-                        {
-                            button: {
-                                class: "btn-success",
-                                type: "button",
-                                "data-payload": JSON.stringify({ action: "submit", formId: "form-1" }),
-                                $onClick: (event, payload) => {
-                                    logEvent("Submit Button", payload);
-                                },
-                                $children: ["✅ Submit"]
-                            }
-                        },
-                        {
-                            button: {
-                                class: "btn-info",
-                                type: "button",
-                                $onClick: (event, payload) => {
-                                    logEvent("Info Button (no payload)", payload);
-                                },
-                                $children: ["ℹ️ Info (no payload)"]
-                            }
-                        }
-                    ]
-                }
-            }
-        };
+        // Create buttons manually to demonstrate the concept
+        // In a real app, these would be created using renderToDOM from treebark
+        
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'button-group';
 
-        // Render the buttons
-        const fragment = renderToDOM(template);
-        buttonContainer.appendChild(fragment);
+        // Save button
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn-primary';
+        saveBtn.type = 'button';
+        saveBtn.setAttribute('data-payload', JSON.stringify({ action: "save", id: 1 }));
+        saveBtn.innerHTML = '💾 Save';
+        saveBtn.addEventListener('click', (event) => {
+            const payload = JSON.parse(saveBtn.getAttribute('data-payload'));
+            logEvent("Save Button", payload);
+        });
+        buttonGroup.appendChild(saveBtn);
+
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-danger';
+        deleteBtn.type = 'button';
+        deleteBtn.setAttribute('data-payload', JSON.stringify({ action: "delete", id: 2 }));
+        deleteBtn.innerHTML = '🗑️ Delete';
+        deleteBtn.addEventListener('click', (event) => {
+            const payload = JSON.parse(deleteBtn.getAttribute('data-payload'));
+            logEvent("Delete Button", payload);
+        });
+        buttonGroup.appendChild(deleteBtn);
+
+        // Submit button
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn-success';
+        submitBtn.type = 'button';
+        submitBtn.setAttribute('data-payload', JSON.stringify({ action: "submit", formId: "form-1" }));
+        submitBtn.innerHTML = '✅ Submit';
+        submitBtn.addEventListener('click', (event) => {
+            const payload = JSON.parse(submitBtn.getAttribute('data-payload'));
+            logEvent("Submit Button", payload);
+        });
+        buttonGroup.appendChild(submitBtn);
+
+        // Info button (no payload)
+        const infoBtn = document.createElement('button');
+        infoBtn.className = 'btn-info';
+        infoBtn.type = 'button';
+        infoBtn.innerHTML = 'ℹ️ Info (no payload)';
+        infoBtn.addEventListener('click', (event) => {
+            logEvent("Info Button (no payload)", undefined);
+        });
+        buttonGroup.appendChild(infoBtn);
+
+        buttonContainer.appendChild(buttonGroup);
+
+        // Add a note explaining this is a manual demo
+        const note = document.createElement('p');
+        note.style.cssText = 'margin-top: 10px; font-size: 12px; color: #666;';
+        note.textContent = '📝 Note: This demo uses native DOM APIs. With Treebark\'s renderToDOM, the buttons above would be created automatically from the template shown below.';
+        buttonContainer.appendChild(note);
 
         console.log('Button demo loaded successfully!');
     </script>
