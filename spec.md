@@ -161,8 +161,69 @@ div:
   - `img`: `src`, `alt`, `width`, `height`  
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
-  - `blockquote`: `cite`  
+  - `blockquote`: `cite`
+  - `button`: `type`, `disabled`
 - Blocked: event handlers (`on*`), dangerous protocols (`javascript:`).  
+
+### Button Tag (DOM-only feature)
+
+The `button` tag supports interactive click handlers in the DOM renderer. This feature is **not available** in the string renderer.
+
+**Special attribute:**
+- `$onClick`: Function that handles click events. Receives `(event: MouseEvent, payload?: unknown)` as parameters.
+
+**Data payload:**
+- Use the `data-payload` attribute to attach data to the button
+- The payload is automatically parsed from JSON and passed to the `$onClick` handler
+- If JSON parsing fails, the raw string value is passed instead
+
+**Example:**
+```javascript
+{
+  template: {
+    button: {
+      class: 'btn-primary',
+      type: 'button',
+      'data-payload': JSON.stringify({ action: 'save', id: 123 }),
+      $onClick: (event, payload) => {
+        console.log('Clicked!', payload);
+        // payload will be: { action: 'save', id: 123 }
+      },
+      $children: ['Save']
+    }
+  }
+}
+```
+
+**Basic button without handler:**
+```javascript
+{
+  template: {
+    button: {
+      type: 'submit',
+      disabled: 'false',
+      $children: ['Submit Form']
+    }
+  }
+}
+```
+
+**Button with conditional disabled state:**
+```javascript
+{
+  template: {
+    button: {
+      disabled: {
+        $check: 'isProcessing',
+        $then: 'true',
+        $else: 'false'
+      },
+      $children: ['Submit']
+    }
+  },
+  data: { isProcessing: false }
+}
+```  
 
 ---
 
@@ -258,14 +319,14 @@ For complex array scenarios where you need a wrapper element or nested structure
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`
+`a`, `img`, `button`
 
 **Special tags:**  
 `comment`, `if`
 
 Blocked tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
-`form`, `input`, `button`, `select`,  
+`form`, `input`, `select`,  
 `video`, `audio`,  
 `style`, `link`, `meta`, `base`
 

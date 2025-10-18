@@ -85,7 +85,7 @@ This means the implementation is featherweight.
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`, `br`, `hr`
+`a`, `img`, `br`, `hr`, `button`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
@@ -101,6 +101,7 @@ This means the implementation is featherweight.
 | `table`        | `summary`                                   |
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
+| `button`       | `type`, `disabled`                          |
 
 ### Special Keys
 
@@ -937,6 +938,117 @@ Since `$then` and `$else` output single elements, wrap multiple elements in a co
 The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
+
+### Button Tag with Click Handlers
+
+The `button` tag supports interactive click handlers when using the DOM renderer (`renderToDOM`). This feature is **not available** in the string renderer.
+
+**Key features:**
+- **Click handler**: Use `$onClick` to attach an event handler
+- **Data payload**: Store data in `data-payload` attribute (automatically parsed from JSON)
+- **Standard attributes**: Supports `type`, `disabled`, and all global attributes
+
+**Basic example:**
+```json
+{
+  "button": {
+    "class": "btn-primary",
+    "type": "button",
+    "$children": ["Click Me"]
+  }
+}
+```
+
+Output:
+```html
+<button class="btn-primary" type="button">Click Me</button>
+```
+
+**With click handler (DOM-only):**
+```javascript
+renderToDOM({
+  template: {
+    button: {
+      class: "btn-save",
+      type: "button",
+      $onClick: (event, payload) => {
+        console.log('Button clicked!', event, payload);
+      },
+      $children: ['Save']
+    }
+  }
+});
+```
+
+**With data payload:**
+```javascript
+renderToDOM({
+  template: {
+    button: {
+      class: "btn-delete",
+      'data-payload': JSON.stringify({ action: 'delete', id: 123 }),
+      $onClick: (event, payload) => {
+        // payload will be: { action: 'delete', id: 123 }
+        console.log('Delete item:', payload.id);
+      },
+      $children: ['Delete Item']
+    }
+  }
+});
+```
+
+**Conditional disabled state:**
+```json
+{
+  "button": {
+    "disabled": {
+      "$check": "isProcessing",
+      "$then": "true",
+      "$else": "false"
+    },
+    "$children": ["Submit"]
+  }
+}
+```
+
+Data:
+```json
+{ "isProcessing": true }
+```
+
+Output:
+```html
+<button disabled="true">Submit</button>
+```
+
+**Multiple buttons with different handlers:**
+```javascript
+renderToDOM({
+  template: {
+    div: {
+      class: "button-group",
+      $children: [
+        {
+          button: {
+            'data-payload': JSON.stringify({ action: 'save' }),
+            $onClick: (e, payload) => handleAction(payload),
+            $children: ['Save']
+          }
+        },
+        {
+          button: {
+            'data-payload': JSON.stringify({ action: 'cancel' }),
+            $onClick: (e, payload) => handleAction(payload),
+            $children: ['Cancel']
+          }
+        }
+      ]
+    }
+  }
+});
+```
+
+**Note:** The `$onClick` handler is a DOM-only feature. When using `renderToString`, the button will be rendered but without any click handler attached. The `data-payload` attribute will still be present in the HTML output.
 
 ## Error Handling
 
