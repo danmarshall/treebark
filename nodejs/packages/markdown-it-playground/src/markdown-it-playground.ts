@@ -1,6 +1,6 @@
 import type JSYaml from 'js-yaml';
 import type MarkdownIt from 'markdown-it';
-import { examples, treebark } from './examples/index.js';
+import { examples } from './examples/index.js';
 
 declare const jsyaml: typeof JSYaml;
 declare const markdownit: typeof MarkdownIt;
