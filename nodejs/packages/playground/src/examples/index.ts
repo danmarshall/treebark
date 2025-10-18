@@ -18,6 +18,7 @@ import { conditionalComparisonOperators } from './conditional-comparison-operato
 import { conditionalJoinOr } from './conditional-join-or.js';
 import { conditionalAttributeValues } from './conditional-attribute-values.js';
 import { styleObjects } from './style-objects.js';
+import { calendar } from './calendar.js';
 
 export type Examples = Record<string, Example>;
 
@@ -40,5 +41,6 @@ export const examples: Examples = {
   'Conditional Comparison Operators': conditionalComparisonOperators,
   'Conditional Join Or': conditionalJoinOr,
   'Conditional Attribute Values': conditionalAttributeValues,
-  'Style Objects': styleObjects
+  'Style Objects': styleObjects,
+  'Calendar': calendar
 };
