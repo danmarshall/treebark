@@ -176,6 +176,32 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): void {
   Object.entries(attrs).forEach(([key, value]) => {
+    // Special handling for $onClick - DOM-only feature for button tags
+    if (key === '$onClick' && tag === 'button') {
+      if (typeof value === 'function') {
+        const handler = value as (event: MouseEvent, payload?: unknown) => void;
+        element.addEventListener('click', (event: Event) => {
+          // Check if data-payload attribute exists
+          const payloadAttr = element.getAttribute('data-payload');
+          let payload: unknown = undefined;
+          
+          if (payloadAttr) {
+            try {
+              payload = JSON.parse(payloadAttr);
+            } catch (e) {
+              // If parsing fails, use the raw string value
+              payload = payloadAttr;
+            }
+          }
+          
+          handler(event as MouseEvent, payload);
+        });
+      } else {
+        logger.warn('$onClick must be a function');
+      }
+      return; // Don't set $onClick as an HTML attribute
+    }
+    
     if (!validateAttribute(key, tag, logger)) {
       return; // Skip invalid attributes
     }

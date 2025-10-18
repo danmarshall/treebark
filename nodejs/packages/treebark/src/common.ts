@@ -21,7 +21,7 @@ export const CONTAINER_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a'
+  'a', 'button'
 ]);
 
 // Special tags that have unique behavior
@@ -49,7 +49,8 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'table': new Set(['summary']),
   'th': new Set(['scope', 'colspan', 'rowspan']),
   'td': new Set(['scope', 'colspan', 'rowspan']),
-  'blockquote': new Set(['cite'])
+  'blockquote': new Set(['cite']),
+  'button': new Set(['type', 'disabled'])
 };
 
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);

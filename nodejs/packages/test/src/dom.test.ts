@@ -935,4 +935,246 @@ describe('DOM Renderer', () => {
       createErrorTest(testCase, renderToDOM);
     });
   });
+
+  // Button tag tests (DOM-only feature)
+  describe('Button Tag with Click Handlers', () => {
+    test('renders basic button tag', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: 'Click me'
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.textContent).toBe('Click me');
+    });
+
+    test('renders button with attributes', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            type: 'submit',
+            class: 'btn-primary',
+            id: 'submit-btn',
+            $children: ['Submit']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.getAttribute('type')).toBe('submit');
+      expect(button.getAttribute('class')).toBe('btn-primary');
+      expect(button.getAttribute('id')).toBe('submit-btn');
+      expect(button.textContent).toBe('Submit');
+    });
+
+    test('button with $onClick handler', () => {
+      let clicked = false;
+      let receivedEvent: MouseEvent | null = null;
+
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            $onClick: (event: MouseEvent) => {
+              clicked = true;
+              receivedEvent = event;
+            },
+            $children: ['Click me']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.tagName).toBe('BUTTON');
+      
+      // Click the button
+      button.click();
+      
+      expect(clicked).toBe(true);
+      expect(receivedEvent).toBeTruthy();
+    });
+
+    test('button with data-payload attribute', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            'data-payload': JSON.stringify({ action: 'delete', id: 123 }),
+            $children: ['Delete']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.getAttribute('data-payload')).toBe('{"action":"delete","id":123}');
+    });
+
+    test('button with $onClick handler receives payload from data-payload', () => {
+      let receivedPayload: unknown = undefined;
+
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            'data-payload': JSON.stringify({ action: 'submit', formId: 'form-1' }),
+            $onClick: (event: MouseEvent, payload?: unknown) => {
+              receivedPayload = payload;
+            },
+            $children: ['Submit Form']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      button.click();
+
+      expect(receivedPayload).toEqual({ action: 'submit', formId: 'form-1' });
+    });
+
+    test('button with $onClick handler receives string payload if JSON parsing fails', () => {
+      let receivedPayload: unknown = undefined;
+
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            'data-payload': 'not-valid-json',
+            $onClick: (event: MouseEvent, payload?: unknown) => {
+              receivedPayload = payload;
+            },
+            $children: ['Click']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      button.click();
+
+      // Should receive the raw string when JSON parsing fails
+      expect(receivedPayload).toBe('not-valid-json');
+    });
+
+    test('button with $onClick handler receives undefined payload when no data-payload', () => {
+      let receivedPayload: unknown = 'initial-value';
+
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            $onClick: (event: MouseEvent, payload?: unknown) => {
+              receivedPayload = payload;
+            },
+            $children: ['Click']
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      button.click();
+
+      expect(receivedPayload).toBeUndefined();
+    });
+
+    test('button with disabled attribute using interpolation', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            disabled: '{{isDisabled}}',
+            $children: ['Submit']
+          }
+        },
+        data: { isDisabled: 'true' }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.getAttribute('disabled')).toBe('true');
+    });
+
+    test('button with conditional disabled attribute', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            disabled: {
+              $check: 'isProcessing',
+              $then: 'true',
+              $else: 'false'
+            },
+            $children: ['Submit']
+          }
+        },
+        data: { isProcessing: true }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.getAttribute('disabled')).toBe('true');
+    });
+
+    test('warns when $onClick is not a function', () => {
+      const mockLogger = {
+        error: jest.fn(),
+        warn: jest.fn(),
+        log: jest.fn()
+      };
+
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            $onClick: 'not-a-function' as any,
+            $children: ['Click']
+          }
+        }
+      }, { logger: mockLogger });
+
+      expect(mockLogger.warn).toHaveBeenCalledWith('$onClick must be a function');
+    });
+
+    test('button with nested elements', () => {
+      const fragment = renderToDOM({
+        template: {
+          button: {
+            class: 'icon-btn',
+            $children: [
+              { span: { class: 'icon', $children: ['🔔'] } },
+              ' Notify'
+            ]
+          }
+        }
+      });
+
+      const button = fragment.firstChild as HTMLButtonElement;
+      expect(button.tagName).toBe('BUTTON');
+      expect(button.querySelector('span.icon')?.textContent).toBe('🔔');
+      expect(button.textContent).toBe('🔔 Notify');
+    });
+
+    test('multiple buttons with different handlers', () => {
+      let clickedButton: string | null = null;
+
+      const fragment = renderToDOM({
+        template: [
+          {
+            button: {
+              id: 'btn1',
+              $onClick: () => { clickedButton = 'button1'; },
+              $children: ['Button 1']
+            }
+          },
+          {
+            button: {
+              id: 'btn2',
+              $onClick: () => { clickedButton = 'button2'; },
+              $children: ['Button 2']
+            }
+          }
+        ]
+      });
+
+      const button1 = fragment.querySelector('#btn1') as HTMLButtonElement;
+      const button2 = fragment.querySelector('#btn2') as HTMLButtonElement;
+
+      button1.click();
+      expect(clickedButton).toBe('button1');
+
+      button2.click();
+      expect(clickedButton).toBe('button2');
+    });
+  });
 });
