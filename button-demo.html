@@ -177,6 +177,22 @@
             output.textContent = message + output.textContent;
         }
 
+        // Helper function to safely parse JSON from data-payload attribute
+        // Matches the error handling in the actual Treebark DOM renderer
+        function parsePayload(element) {
+            const payloadAttr = element.getAttribute('data-payload');
+            if (!payloadAttr) {
+                return undefined;
+            }
+            
+            try {
+                return JSON.parse(payloadAttr);
+            } catch (e) {
+                // If parsing fails, return the raw string value
+                return payloadAttr;
+            }
+        }
+
         // Create buttons manually to demonstrate the concept
         // In a real app, these would be created using renderToDOM from treebark
         
@@ -190,8 +206,7 @@
         saveBtn.setAttribute('data-payload', JSON.stringify({ action: "save", id: 1 }));
         saveBtn.innerHTML = '💾 Save';
         saveBtn.addEventListener('click', (event) => {
-            const payload = JSON.parse(saveBtn.getAttribute('data-payload'));
-            logEvent("Save Button", payload);
+            logEvent("Save Button", parsePayload(saveBtn));
         });
         buttonGroup.appendChild(saveBtn);
 
@@ -202,8 +217,7 @@
         deleteBtn.setAttribute('data-payload', JSON.stringify({ action: "delete", id: 2 }));
         deleteBtn.innerHTML = '🗑️ Delete';
         deleteBtn.addEventListener('click', (event) => {
-            const payload = JSON.parse(deleteBtn.getAttribute('data-payload'));
-            logEvent("Delete Button", payload);
+            logEvent("Delete Button", parsePayload(deleteBtn));
         });
         buttonGroup.appendChild(deleteBtn);
 
@@ -214,8 +228,7 @@
         submitBtn.setAttribute('data-payload', JSON.stringify({ action: "submit", formId: "form-1" }));
         submitBtn.innerHTML = '✅ Submit';
         submitBtn.addEventListener('click', (event) => {
-            const payload = JSON.parse(submitBtn.getAttribute('data-payload'));
-            logEvent("Submit Button", payload);
+            logEvent("Submit Button", parsePayload(submitBtn));
         });
         buttonGroup.appendChild(submitBtn);
 
@@ -234,7 +247,7 @@
         // Add a note explaining this is a manual demo
         const note = document.createElement('p');
         note.style.cssText = 'margin-top: 10px; font-size: 12px; color: #666;';
-        note.textContent = '📝 Note: This demo uses native DOM APIs. With Treebark\'s renderToDOM, the buttons above would be created automatically from the template shown below.';
+        note.textContent = "📝 Note: This demo uses native DOM APIs. With Treebark's renderToDOM, the buttons above would be created automatically from the template shown below.";
         buttonContainer.appendChild(note);
 
         console.log('Button demo loaded successfully!');
