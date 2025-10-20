@@ -1,8 +1,8 @@
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, PropertyFallbackHandler } from './types.js';
 import { 
   ALLOWED_TAGS, 
   VOID_TAGS,
-  getProperty, 
+  resolveProperty, 
   interpolate, 
   validateAttribute,
   processStyleAttribute,
@@ -32,7 +32,7 @@ export function renderToDOM(
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; fallbackHandler?: PropertyFallbackHandler }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   const fallbackHandler = context.fallbackHandler;
@@ -117,7 +117,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     // $bind uses literal property paths only - no parent context access
-    const bound = getProperty(data, rest.$bind, [], logger, fallbackHandler);
+    const bound = resolveProperty(data, rest.$bind, [], logger, fallbackHandler);
     const { $bind, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag, parents, logger, fallbackHandler);
     
@@ -176,7 +176,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: PropertyFallbackHandler): void {
   Object.entries(attrs).forEach(([key, value]) => {
     if (!validateAttribute(key, tag, logger)) {
       return; // Skip invalid attributes

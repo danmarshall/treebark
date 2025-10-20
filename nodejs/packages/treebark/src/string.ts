@@ -1,8 +1,8 @@
-import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger } from './types.js';
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger, PropertyFallbackHandler } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
-  getProperty,
+  resolveProperty,
   interpolate,
   escape,
   validateAttribute,
@@ -65,7 +65,7 @@ export function renderToString(
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = [], fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = [], fallbackHandler?: PropertyFallbackHandler): string {
   // Flatten children output into content
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
@@ -88,7 +88,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; fallbackHandler?: PropertyFallbackHandler }): string {
   const parents = context.parents || [];
   const logger = context.logger;
   const fallbackHandler = context.fallbackHandler;
@@ -160,7 +160,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return '';
     }
     
-    const bound = getProperty(data, rest.$bind, [], logger, fallbackHandler);
+    const bound = resolveProperty(data, rest.$bind, [], logger, fallbackHandler);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
@@ -203,7 +203,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, fallbackHandler);
 }
 
-function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: PropertyFallbackHandler): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {

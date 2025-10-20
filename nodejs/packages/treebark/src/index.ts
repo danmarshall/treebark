@@ -5,7 +5,7 @@ import { RenderOptions, TreebarkInput } from './types.js';
 export * from './types.js';
 export { renderToString } from './string.js';
 export { renderToDOM } from './dom.js';
-export { getProperty } from './common.js';
+export { resolveProperty } from './common.js';
 
 // Main render function (defaults to string)
 export function render(
