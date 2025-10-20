@@ -13,6 +13,7 @@ import type {
   Logger,
   CSSProperties,
   StyleValue,
+  OuterPropertyResolver,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -65,14 +66,14 @@ const BLOCKED_CSS_PROPERTIES = new Set([
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
- * If property is not found and a fallback handler is provided, it will be called
+ * If property is not found and getOuterProperty is provided, it will be called
  */
 export function getProperty(
   data: Data, 
   path: string, 
   parents: Data[] = [], 
   logger?: Logger,
-  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
+  getOuterProperty?: OuterPropertyResolver
 ): unknown {
   // Special case: "." means the current data value itself
   if (path === '.') {
@@ -104,9 +105,9 @@ export function getProperty(
       currentData = parents[parents.length - parentLevels];
       remainingPath = tempPath.startsWith('.') ? tempPath.substring(1) : tempPath;
     } else {
-      // Property not found - try fallback handler
-      if (fallbackHandler) {
-        return fallbackHandler(path, data, parents);
+      // Property not found - try outer property resolver
+      if (getOuterProperty) {
+        return getOuterProperty(path, data, parents);
       }
       return undefined;
     }
@@ -122,9 +123,9 @@ export function getProperty(
     const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
       (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentData);
     
-    // If result is undefined, try fallback handler
-    if (result === undefined && fallbackHandler) {
-      return fallbackHandler(path, data, parents);
+    // If result is undefined, try outer property resolver
+    if (result === undefined && getOuterProperty) {
+      return getOuterProperty(path, data, parents);
     }
     
     return result;
@@ -149,7 +150,7 @@ export function interpolate(
   escapeHtml = true, 
   parents: Data[] = [], 
   logger?: Logger,
-  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
+  getOuterProperty?: OuterPropertyResolver
 ): string {
   // Use non-overlapping alternation with restricted character class to avoid ReDoS vulnerability
   // [^{]*? prevents the regex from matching opening braces in the content, eliminating polynomial backtracking
@@ -162,7 +163,7 @@ export function interpolate(
     }
     // Otherwise, we matched {{...}}
     const trimmed = normalExpr.trim();
-    const val = getProperty(data, trimmed, parents, logger, fallbackHandler);
+    const val = getProperty(data, trimmed, parents, logger, getOuterProperty);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
@@ -243,7 +244,7 @@ export function processStyleAttribute(
   data: Data, 
   parents: Data[], 
   logger: Logger,
-  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
+  getOuterProperty?: OuterPropertyResolver
 ): string {
   // Handle conditional style values - check for $check property to detect conditionals
   if (
@@ -257,7 +258,7 @@ export function processStyleAttribute(
     if (!validatePathExpression(conditional.$check, '$check', logger)) {
       return '';
     }
-    const checkValue = getProperty(data, conditional.$check, parents, logger, fallbackHandler);
+    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
     const condition = evaluateCondition(checkValue, conditional);
     
     const resultValue = condition ? conditional.$then : conditional.$else;
@@ -423,12 +424,12 @@ export function evaluateConditionalValue(
   data: Data,
   parents: Data[] = [],
   logger: Logger,
-  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
+  getOuterProperty?: OuterPropertyResolver
 ): string {
   if (!validatePathExpression(value.$check, '$check', logger)) {
     return '';
   }
-  const checkValue = getProperty(data, value.$check, parents, logger, fallbackHandler);
+  const checkValue = getProperty(data, value.$check, parents, logger, getOuterProperty);
   const condition = evaluateCondition(checkValue, value);
 
   if (condition) {
@@ -485,7 +486,7 @@ export function processConditional(
   data: Data,
   parents: Data[] = [],
   logger: Logger,
-  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
+  getOuterProperty?: OuterPropertyResolver
 ): { valueToRender: string | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
   const conditional = rest as ConditionalValueOrTemplate;
@@ -499,7 +500,7 @@ export function processConditional(
   if (!validatePathExpression(conditional.$check, '$check', logger)) {
     return { valueToRender: undefined };
   }
-  const checkValue = getProperty(data, conditional.$check, parents, logger, fallbackHandler);
+  const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {

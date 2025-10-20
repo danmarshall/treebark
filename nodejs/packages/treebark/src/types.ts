@@ -154,5 +154,5 @@ export type OuterPropertyResolver = (path: string, data: Data, parents: Data[]) 
 export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
-  propertyFallback?: PropertyFallbackHandler;
+  propertyFallback?: OuterPropertyResolver;
 }
