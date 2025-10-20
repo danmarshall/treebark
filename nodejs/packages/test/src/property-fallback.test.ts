@@ -161,4 +161,67 @@ describe('Property Fallback Handler', () => {
       expect(result).toBe('<div><h1>My Application</h1><p>Version: 1.0.0</p><p>Welcome!</p></div>');
     });
   });
+
+  describe('Array Index Access', () => {
+    it('should support numeric array indices in dot notation', () => {
+      const result = renderToString(
+        {
+          template: { div: '{{items.0.name}}' },
+          data: { items: [{ name: 'First' }, { name: 'Second' }] }
+        }
+      );
+      
+      expect(result).toBe('<div>First</div>');
+    });
+
+    it('should support multiple array indices in same path', () => {
+      const result = renderToString(
+        {
+          template: {
+            div: {
+              $children: [
+                { p: '{{items.0.value}}' },
+                { p: '{{items.1.value}}' }
+              ]
+            }
+          },
+          data: {
+            items: [
+              { value: 'Item 1' },
+              { value: 'Item 2' }
+            ]
+          }
+        }
+      );
+      
+      expect(result).toBe('<div><p>Item 1</p><p>Item 2</p></div>');
+    });
+
+    it('should support nested arrays with numeric indices', () => {
+      const result = renderToString(
+        {
+          template: { div: '{{matrix.0.1.val}}' },
+          data: {
+            matrix: [
+              [{ val: 'a' }, { val: 'b' }],
+              [{ val: 'c' }, { val: 'd' }]
+            ]
+          }
+        }
+      );
+      
+      expect(result).toBe('<div>b</div>');
+    });
+
+    it('should work with array at root level', () => {
+      const result = renderToString(
+        {
+          template: { div: '{{0.name}} and {{1.name}}' },
+          data: [{ name: 'Alice' }, { name: 'Bob' }]
+        }
+      );
+      
+      expect(result).toBe('<div>Alice and Bob</div>');
+    });
+  });
 });

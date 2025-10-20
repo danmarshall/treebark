@@ -52,6 +52,31 @@ describe('Public API', () => {
       expect(getProperty(data, '1.name')).toBe('Bob');
     });
 
+    it('should handle numeric array indices in nested paths', () => {
+      const data = { 
+        items: [
+          { value: 'first', id: 1 }, 
+          { value: 'second', id: 2 }
+        ]
+      };
+      expect(getProperty(data, 'items.0.value')).toBe('first');
+      expect(getProperty(data, 'items.1.value')).toBe('second');
+      expect(getProperty(data, 'items.0.id')).toBe(1);
+    });
+
+    it('should handle multi-level numeric indices', () => {
+      const data = {
+        outer: {
+          matrix: [
+            [{ val: 'a' }, { val: 'b' }],
+            [{ val: 'c' }, { val: 'd' }]
+          ]
+        }
+      };
+      expect(getProperty(data, 'outer.matrix.0.0.val')).toBe('a');
+      expect(getProperty(data, 'outer.matrix.1.1.val')).toBe('d');
+    });
+
     it('should call fallback handler when property is not found', () => {
       const data = { name: 'Alice' };
       const fallback = jest.fn((path) => `fallback-${path}`);
