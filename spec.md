@@ -112,12 +112,20 @@ div:
 
 - `{{prop}}` → resolves against current context  
 - Dot access allowed: `{{price.sale}}`  
+- Array element access: `{{items.0.name}}` → access array elements using numeric indices (no square brackets)
 - Parent access: `{{..parentProp}}` → access parent binding context  
 - Multi-level parent access: `{{../..grandparentProp}}` → access multiple levels up  
 - Escaping:  
   - `{{…}}` → binding  
   - `{{{…}}}` → literal `{{…}}`  
-  - `{{{{…}}}}` → literal `{{{…}}}`  
+  - `{{{{…}}}}` → literal `{{{…}}}`
+
+**Array element access examples:**
+- `{{items.0}}` → first item in array
+- `{{data.1.name}}` → `name` property of second item
+- `{{matrix.0.1.value}}` → nested array access (first array, second element, `value` property)
+
+**Note:** Numeric indices work because JavaScript allows both `array[0]` and `array["0"]`. The implementation splits the path by `.` and uses each segment as a property key.  
 
 ---
 
@@ -251,7 +259,75 @@ For complex array scenarios where you need a wrapper element or nested structure
 
 ---
 
-## 10. Tag Whitelist  
+## 10. Array Element Access
+
+Individual array elements can be accessed using numeric indices in dot notation without square brackets:
+
+**Basic syntax:**
+```javascript
+{{arrayName.0}}        // First element
+{{arrayName.1}}        // Second element  
+{{items.2.property}}   // Property of third element
+```
+
+**Example:**
+```javascript
+{
+  template: {
+    div: {
+      $children: [
+        { p: "First: {{items.0.name}}" },
+        { p: "Second: {{items.1.name}}" }
+      ]
+    }
+  },
+  data: {
+    items: [
+      { name: "Laptop", price: "$999" },
+      { name: "Mouse", price: "$25" }
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  <p>First: Laptop</p>
+  <p>Second: Mouse</p>
+</div>
+```
+
+**Multi-level array access:**
+```javascript
+{
+  template: { div: "{{matrix.0.1.value}}" },
+  data: {
+    matrix: [
+      [{ value: "A1" }, { value: "A2" }],
+      [{ value: "B1" }, { value: "B2" }]
+    ]
+  }
+}
+// Output: <div>A2</div>
+```
+
+**How it works:**  
+JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is split by `.` and each segment is used as a property key, numeric string indices work seamlessly for array access.
+
+**When to use:**
+- Accessing specific array positions by index
+- Extracting individual elements from small, fixed-size arrays
+- Referencing array elements in templates where the index is known
+
+**When to use $bind instead:**
+- Iterating over all elements in an array
+- Dynamic arrays where the length is unknown
+- Building lists or repeated elements
+
+---
+
+## 11. Tag Whitelist  
 
 **Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
@@ -271,7 +347,7 @@ Blocked tags:
 
 ---
 
-## 11. Comments
+## 12. Comments
 
 HTML comments are generated using the `$comment` tag:
 
@@ -309,7 +385,7 @@ $comment:
 
 ---
 
-## 12. Conditional Rendering with "$if" Tag
+## 13. Conditional Rendering with "$if" Tag
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
