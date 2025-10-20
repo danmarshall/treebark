@@ -13,7 +13,6 @@ import type {
   Logger,
   CSSProperties,
   StyleValue,
-  PropertyFallbackHandler,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -64,16 +63,16 @@ const BLOCKED_CSS_PROPERTIES = new Set([
 ]);
 
 /**
- * Resolve a nested property from data using dot notation
+ * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
  * If property is not found and a fallback handler is provided, it will be called
  */
-export function resolveProperty(
+export function getProperty(
   data: Data, 
   path: string, 
   parents: Data[] = [], 
   logger?: Logger,
-  fallbackHandler?: PropertyFallbackHandler
+  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
 ): unknown {
   // Special case: "." means the current data value itself
   if (path === '.') {
@@ -150,7 +149,7 @@ export function interpolate(
   escapeHtml = true, 
   parents: Data[] = [], 
   logger?: Logger,
-  fallbackHandler?: PropertyFallbackHandler
+  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
 ): string {
   // Use non-overlapping alternation with restricted character class to avoid ReDoS vulnerability
   // [^{]*? prevents the regex from matching opening braces in the content, eliminating polynomial backtracking
@@ -163,7 +162,7 @@ export function interpolate(
     }
     // Otherwise, we matched {{...}}
     const trimmed = normalExpr.trim();
-    const val = resolveProperty(data, trimmed, parents, logger, fallbackHandler);
+    const val = getProperty(data, trimmed, parents, logger, fallbackHandler);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
@@ -244,7 +243,7 @@ export function processStyleAttribute(
   data: Data, 
   parents: Data[], 
   logger: Logger,
-  fallbackHandler?: PropertyFallbackHandler
+  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
 ): string {
   // Handle conditional style values - check for $check property to detect conditionals
   if (
@@ -258,7 +257,7 @@ export function processStyleAttribute(
     if (!validatePathExpression(conditional.$check, '$check', logger)) {
       return '';
     }
-    const checkValue = resolveProperty(data, conditional.$check, parents, logger, fallbackHandler);
+    const checkValue = getProperty(data, conditional.$check, parents, logger, fallbackHandler);
     const condition = evaluateCondition(checkValue, conditional);
     
     const resultValue = condition ? conditional.$then : conditional.$else;
@@ -424,12 +423,12 @@ export function evaluateConditionalValue(
   data: Data,
   parents: Data[] = [],
   logger: Logger,
-  fallbackHandler?: PropertyFallbackHandler
+  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
 ): string {
   if (!validatePathExpression(value.$check, '$check', logger)) {
     return '';
   }
-  const checkValue = resolveProperty(data, value.$check, parents, logger, fallbackHandler);
+  const checkValue = getProperty(data, value.$check, parents, logger, fallbackHandler);
   const condition = evaluateCondition(checkValue, value);
 
   if (condition) {
@@ -486,7 +485,7 @@ export function processConditional(
   data: Data,
   parents: Data[] = [],
   logger: Logger,
-  fallbackHandler?: PropertyFallbackHandler
+  fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown
 ): { valueToRender: string | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
   const conditional = rest as ConditionalValueOrTemplate;
@@ -500,7 +499,7 @@ export function processConditional(
   if (!validatePathExpression(conditional.$check, '$check', logger)) {
     return { valueToRender: undefined };
   }
-  const checkValue = resolveProperty(data, conditional.$check, parents, logger, fallbackHandler);
+  const checkValue = getProperty(data, conditional.$check, parents, logger, fallbackHandler);
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {

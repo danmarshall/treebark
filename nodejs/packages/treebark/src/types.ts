@@ -147,8 +147,8 @@ export interface Logger {
   log(message: string): void;
 }
 
-// Fallback handler type for resolveProperty - called when a property is not found
-export type PropertyFallbackHandler = (path: string, data: Data, parents: Data[]) => unknown;
+// Outer property resolver type for getProperty - called when a property is not found in local context
+export type OuterPropertyResolver = (path: string, data: Data, parents: Data[]) => unknown;
 
 // Options interface for render functions
 export interface RenderOptions {
