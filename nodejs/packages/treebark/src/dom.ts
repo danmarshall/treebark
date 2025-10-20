@@ -22,20 +22,22 @@ export function renderToDOM(
   
   // Set logger to console if not provided
   const logger = options.logger || console;
+  const fallbackHandler = options.propertyFallback;
   
   const fragment = document.createDocumentFragment();
   
-  const result = render(input.template, data, { logger });
+  const result = render(input.template, data, { logger, fallbackHandler });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
+  const fallbackHandler = context.fallbackHandler;
   
-  if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents, logger));
+  if (typeof template === "string") return document.createTextNode(interpolate(template, data, true, parents, logger, fallbackHandler));
   if (Array.isArray(template)) {
     const results: Node[] = [];
     for (const t of template) {
@@ -66,7 +68,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Special handling for "$if" tag
   if (tag === '$if') {
-    const { valueToRender } = processConditional(rest, data, parents, logger);
+    const { valueToRender } = processConditional(rest, data, parents, logger, fallbackHandler);
     
     // If no value to render, return empty
     if (valueToRender === undefined) {
@@ -115,9 +117,9 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     // $bind uses literal property paths only - no parent context access
-    const bound = getProperty(data, rest.$bind, [], logger);
+    const bound = getProperty(data, rest.$bind, [], logger, fallbackHandler);
     const { $bind, $children = [], ...bindAttrs } = rest;
-    setAttrs(element, bindAttrs, data, tag, parents, logger);
+    setAttrs(element, bindAttrs, data, tag, parents, logger, fallbackHandler);
     
     // Validate children for bound elements
     if (isVoid && $children.length > 0) {
@@ -158,7 +160,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
-  setAttrs(element, attrs, data, tag, parents, logger);
+  setAttrs(element, attrs, data, tag, parents, logger, fallbackHandler);
   // Skip children for void tags
   if (!isVoid) {
     for (const c of children) {
@@ -174,7 +176,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): void {
+function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): void {
   Object.entries(attrs).forEach(([key, value]) => {
     if (!validateAttribute(key, tag, logger)) {
       return; // Skip invalid attributes
@@ -184,7 +186,7 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     
     // Special handling for style attribute
     if (key === 'style') {
-      attrValue = processStyleAttribute(value, data, parents, logger);
+      attrValue = processStyleAttribute(value, data, parents, logger, fallbackHandler);
       // If processing resulted in empty string, skip the attribute
       if (!attrValue) {
         return;
@@ -192,10 +194,10 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     } else {
       // Regular attribute handling
       if (isConditionalValue(value)) {
-        const evaluatedValue = evaluateConditionalValue(value, data, parents, logger);
-        attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+        const evaluatedValue = evaluateConditionalValue(value, data, parents, logger, fallbackHandler);
+        attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, fallbackHandler);
       } else {
-        attrValue = interpolate(String(value), data, false, parents, logger);
+        attrValue = interpolate(String(value), data, false, parents, logger, fallbackHandler);
       }
     }
     

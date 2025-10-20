@@ -1,4 +1,5 @@
 import { getProperty } from 'treebark';
+import { jest } from '@jest/globals';
 
 describe('Public API', () => {
   describe('getProperty', () => {
@@ -49,6 +50,46 @@ describe('Public API', () => {
       const data = [{ name: 'Alice' }, { name: 'Bob' }];
       expect(getProperty(data, '0.name')).toBe('Alice');
       expect(getProperty(data, '1.name')).toBe('Bob');
+    });
+
+    it('should call fallback handler when property is not found', () => {
+      const data = { name: 'Alice' };
+      const fallback = jest.fn((path) => `fallback-${path}`);
+      
+      const result = getProperty(data, 'nonexistent', [], undefined, fallback);
+      
+      expect(fallback).toHaveBeenCalledWith('nonexistent', data, []);
+      expect(result).toBe('fallback-nonexistent');
+    });
+
+    it('should not call fallback handler when property exists', () => {
+      const data = { name: 'Alice' };
+      const fallback = jest.fn();
+      
+      const result = getProperty(data, 'name', [], undefined, fallback);
+      
+      expect(fallback).not.toHaveBeenCalled();
+      expect(result).toBe('Alice');
+    });
+
+    it('should call fallback handler for nested property not found', () => {
+      const data = { user: { name: 'Bob' } };
+      const fallback = jest.fn((path) => `global-${path}`);
+      
+      const result = getProperty(data, 'user.missing', [], undefined, fallback);
+      
+      expect(fallback).toHaveBeenCalledWith('user.missing', data, []);
+      expect(result).toBe('global-user.missing');
+    });
+
+    it('should call fallback handler when parent context not found', () => {
+      const data = { name: 'Alice' };
+      const fallback = jest.fn((path) => 'default-value');
+      
+      const result = getProperty(data, '..parentProp', [], undefined, fallback);
+      
+      expect(fallback).toHaveBeenCalledWith('..parentProp', data, []);
+      expect(result).toBe('default-value');
     });
   });
 });

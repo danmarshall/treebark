@@ -1,0 +1,164 @@
+import { renderToString, renderToDOM } from 'treebark';
+import { jest } from '@jest/globals';
+
+describe('Property Fallback Handler', () => {
+  describe('renderToString', () => {
+    it('should use fallback handler for missing properties in interpolation', () => {
+      const globalProps = {
+        siteName: 'My Website',
+        author: 'John Doe'
+      };
+      
+      const fallback = (path: string) => {
+        return globalProps[path as keyof typeof globalProps] || undefined;
+      };
+      
+      const result = renderToString(
+        {
+          template: { div: 'Welcome to {{siteName}} by {{author}}' },
+          data: {}
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<div>Welcome to My Website by John Doe</div>');
+    });
+
+    it('should prefer local data over fallback', () => {
+      const globalProps = { name: 'Global Name' };
+      const fallback = (path: string) => globalProps[path as keyof typeof globalProps];
+      
+      const result = renderToString(
+        {
+          template: { div: 'Hello {{name}}' },
+          data: { name: 'Local Name' }
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<div>Hello Local Name</div>');
+    });
+
+    it('should use fallback in conditional attributes', () => {
+      const globalProps = { isActive: true };
+      const fallback = (path: string) => globalProps[path as keyof typeof globalProps];
+      
+      const result = renderToString(
+        {
+          template: {
+            div: {
+              class: {
+                $check: 'isActive',
+                $then: 'active',
+                $else: 'inactive'
+              },
+              $children: ['Status']
+            }
+          },
+          data: {}
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<div class="active">Status</div>');
+    });
+
+    it('should use fallback in $if tags', () => {
+      const globalProps = { showMessage: true };
+      const fallback = (path: string) => globalProps[path as keyof typeof globalProps];
+      
+      const result = renderToString(
+        {
+          template: {
+            div: {
+              $children: [
+                {
+                  $if: {
+                    $check: 'showMessage',
+                    $then: { p: 'This message is shown' },
+                    $else: { p: 'Hidden' }
+                  }
+                }
+              ]
+            }
+          },
+          data: {}
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<div><p>This message is shown</p></div>');
+    });
+
+    it('should use fallback in $bind', () => {
+      const globalProps = {
+        items: [
+          { name: 'Item 1' },
+          { name: 'Item 2' }
+        ]
+      };
+      const fallback = (path: string) => globalProps[path as keyof typeof globalProps];
+      
+      const result = renderToString(
+        {
+          template: {
+            ul: {
+              $bind: 'items',
+              $children: [
+                { li: '{{name}}' }
+              ]
+            }
+          },
+          data: {}
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<ul><li>Item 1</li><li>Item 2</li></ul>');
+    });
+
+    it('should pass path, data, and parents to fallback handler', () => {
+      const fallback = jest.fn((path, data, parents) => {
+        return `fallback-${path}`;
+      });
+      
+      renderToString(
+        {
+          template: { div: '{{missing}}' },
+          data: { existing: 'value' }
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(fallback).toHaveBeenCalledWith('missing', { existing: 'value' }, []);
+    });
+
+    it('should support dictionary-based fallback', () => {
+      const dictionary = {
+        'app.title': 'My Application',
+        'app.version': '1.0.0',
+        'user.greeting': 'Welcome!'
+      };
+      
+      const fallback = (path: string) => (dictionary as Record<string, string>)[path];
+      
+      const result = renderToString(
+        {
+          template: {
+            div: {
+              $children: [
+                { h1: '{{app.title}}' },
+                { p: 'Version: {{app.version}}' },
+                { p: '{{user.greeting}}' }
+              ]
+            }
+          },
+          data: {}
+        },
+        { propertyFallback: fallback }
+      );
+      
+      expect(result).toBe('<div><h1>My Application</h1><p>Version: 1.0.0</p><p>Welcome!</p></div>');
+    });
+  });
+});

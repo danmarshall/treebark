@@ -50,20 +50,22 @@ export function renderToString(
 
   // Set logger to console if not provided
   const logger = options.logger || console;
+  const fallbackHandler = options.propertyFallback;
 
   // Conditionally set indent context
   const context = options.indent ? {
     indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
       typeof options.indent === 'string' ? options.indent : '  ',
     level: 0,
-    logger
-  } : { logger };
+    logger,
+    fallbackHandler
+  } : { logger, fallbackHandler };
 
   return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = []): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = [], fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): string {
   // Flatten children output into content
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
@@ -75,7 +77,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
-  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger)}>`;
+  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, fallbackHandler)}>`;
 
   // Void tags are never closed, regardless of content
   if (VOID_TAGS.has(tag)) {
@@ -86,11 +88,12 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown }): string {
   const parents = context.parents || [];
   const logger = context.logger;
+  const fallbackHandler = context.fallbackHandler;
   
-  if (typeof template === "string") return interpolate(template, data, true, parents, logger);
+  if (typeof template === "string") return interpolate(template, data, true, parents, logger, fallbackHandler);
 
   if (Array.isArray(template)) {
     return template.map(t => render(t, data, context)).join(context.indentStr ? '\n' : '');
@@ -114,7 +117,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Special handling for "$if" tag
   if (tag === '$if') {
-    const { valueToRender } = processConditional(rest, data, parents, logger);
+    const { valueToRender } = processConditional(rest, data, parents, logger, fallbackHandler);
     
     // If no value to render, return empty string
     if (valueToRender === undefined) {
@@ -157,7 +160,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return '';
     }
     
-    const bound = getProperty(data, rest.$bind, [], logger);
+    const bound = getProperty(data, rest.$bind, [], logger, fallbackHandler);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
@@ -197,10 +200,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     contentAttrs = attrs;
   }
   
-  return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents);
+  return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, fallbackHandler);
 }
 
-function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, fallbackHandler?: (path: string, data: Data, parents: Data[]) => unknown): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
@@ -208,7 +211,7 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       
       // Special handling for style attribute
       if (k === 'style') {
-        attrValue = processStyleAttribute(v, data, parents, logger);
+        attrValue = processStyleAttribute(v, data, parents, logger, fallbackHandler);
         // If processing resulted in empty string, skip the attribute
         if (!attrValue) {
           return null;
@@ -216,10 +219,10 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       } else {
         // Regular attribute handling
         if (isConditionalValue(v)) {
-          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, fallbackHandler);
+          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, fallbackHandler);
         } else {
-          attrValue = interpolate(String(v), data, false, parents, logger);
+          attrValue = interpolate(String(v), data, false, parents, logger, fallbackHandler);
         }
       }
       

@@ -147,8 +147,12 @@ export interface Logger {
   log(message: string): void;
 }
 
+// Fallback handler type for getProperty - called when a property is not found
+export type PropertyFallbackHandler = (path: string, data: Data, parents: Data[]) => unknown;
+
 // Options interface for render functions
 export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
+  propertyFallback?: PropertyFallbackHandler;
 }
