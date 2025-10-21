@@ -7,13 +7,21 @@ export type Data = unknown;
 // Primitive value type for attribute values
 export type PrimitiveValue = string | number | boolean;
 
+// Property path for $bind - a string representing a data property path
+// Examples: ".", "products", "config.userList"
+export type BindPath = string;
+
+// String that may contain interpolation syntax with {{...}}
+// Examples: "Hello {{name}}", "Price: {{product.price}}", "{{..parentProp}}"
+export type InterpolatedString = string;
+
 // Forward declaration for recursive types
 export type TemplateObject = IfTag | RegularTags;
-export type TemplateElement = string | TemplateObject;
+export type TemplateElement = InterpolatedString | TemplateObject;
 
 // Generic conditional type shared by $if tag and conditional attribute values
 export type ConditionalBase<T> = {
-  $check: string;
+  $check: BindPath;
   $then: T;
   $else?: T;
   // Comparison operators (require numbers)
@@ -30,10 +38,10 @@ export type ConditionalBase<T> = {
 };
 
 // Conditional type for $if tag - T can be string or TemplateObject
-export type ConditionalValueOrTemplate = ConditionalBase<string | TemplateObject>;
+export type ConditionalValueOrTemplate = ConditionalBase<InterpolatedString | TemplateObject>;
 
 // Conditional value type for attribute values - T is restricted to primitives
-export type ConditionalValue = ConditionalBase<string>;
+export type ConditionalValue = ConditionalBase<InterpolatedString>;
 
 // CSS Style properties as an object with kebab-case property names
 // Accepts any valid CSS property name (kebab-case format)
@@ -41,7 +49,7 @@ export type CSSProperties = {
   [property: string]: string;
 };
 
-export type AttributeValue = string | ConditionalValue;
+export type AttributeValue = InterpolatedString | ConditionalValue;
 
 // Style value can be a CSSProperties object or a conditional that returns CSSProperties
 export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
@@ -60,7 +68,7 @@ export type SpecialTag = '$comment' | '$if';
 export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
 
 // Helper type for tag content (avoids repetition)
-type TagContent<Attrs> = string | (string | TemplateObject)[] | Attrs;
+type TagContent<Attrs> = InterpolatedString | (InterpolatedString | TemplateObject)[] | Attrs;
 
 // Global attributes that can be used on any tag
 type GlobalAttrs = {
@@ -75,13 +83,13 @@ type GlobalAttrs = {
 
 // Base attributes for container tags (can have children)
 type BaseContainerAttrs = GlobalAttrs & {
-  $bind?: string;
-  $children?: (string | TemplateObject)[];
+  $bind?: BindPath;
+  $children?: (InterpolatedString | TemplateObject)[];
 };
 
 // Base attributes for void tags (no children allowed)
 type BaseVoidAttrs = GlobalAttrs & {
-  $bind?: string;
+  $bind?: BindPath;
 };
 
 // Tag-specific types with attributes included
@@ -148,7 +156,7 @@ export interface Logger {
 }
 
 // Outer property resolver type for getProperty - called when a property is not found in local context
-export type OuterPropertyResolver = (path: string, data: Data, parents: Data[]) => unknown;
+export type OuterPropertyResolver = (path: BindPath, data: Data, parents: Data[]) => unknown;
 
 // Options interface for render functions
 export interface RenderOptions {

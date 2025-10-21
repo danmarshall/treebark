@@ -14,6 +14,8 @@ import type {
   CSSProperties,
   StyleValue,
   OuterPropertyResolver,
+  BindPath,
+  InterpolatedString,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -70,7 +72,7 @@ const BLOCKED_CSS_PROPERTIES = new Set([
  */
 export function getProperty(
   data: Data, 
-  path: string, 
+  path: BindPath, 
   parents: Data[] = [], 
   logger?: Logger,
   getOuterProperty?: OuterPropertyResolver
@@ -145,7 +147,7 @@ export function escape(s: string): string {
  * Interpolate template variables in a string
  */
 export function interpolate(
-  tpl: string, 
+  tpl: InterpolatedString, 
   data: Data, 
   escapeHtml = true, 
   parents: Data[] = [], 
@@ -308,14 +310,14 @@ export function isTreebarkInput(input: unknown): input is TreebarkInput {
 /**
  * Check if a template object has a binding structure
  */
-export function hasBinding(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: string } {
+export function hasBinding(rest: InterpolatedString | (InterpolatedString | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $bind: BindPath } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$bind' in rest;
 }
 
 /**
  * Check if a template object has a $check structure (for $if tag)
  */
-export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $check: string } {
+export function hasCheck(rest: InterpolatedString | (InterpolatedString | TemplateObject)[] | TemplateAttributes): rest is TemplateAttributes & { $check: BindPath } {
   return rest !== null && typeof rest === 'object' && !Array.isArray(rest) && '$check' in rest;
 }
 
@@ -325,7 +327,7 @@ export function hasCheck(rest: string | (string | TemplateObject)[] | TemplateAt
  * Allows single dot "." to refer to current object.
  * Returns true if valid, false if invalid (and logs error if logger provided)
  */
-export function validatePathExpression(value: string, label: string, logger: Logger): boolean {
+export function validatePathExpression(value: BindPath, label: string, logger: Logger): boolean {
   // Allow single dot "." to refer to current data object
   if (value === '.') {
     return true;
@@ -449,8 +451,8 @@ export function evaluateConditionalValue(
  */
 export function parseTemplateObject(templateObj: TemplateObject, logger: Logger): {
   tag: string;
-  rest: string | (string | TemplateObject)[] | TemplateAttributes;
-  children: (string | TemplateObject)[];
+  rest: InterpolatedString | (InterpolatedString | TemplateObject)[] | TemplateAttributes;
+  children: (InterpolatedString | TemplateObject)[];
   attrs: Record<string, unknown>;
 } | undefined {
   if (!templateObj || typeof templateObj !== 'object') {
@@ -482,12 +484,12 @@ export function parseTemplateObject(templateObj: TemplateObject, logger: Logger)
  * Returns undefined valueToRender if validation fails (and logs error if logger provided)
  */
 export function processConditional(
-  rest: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
+  rest: InterpolatedString | (InterpolatedString | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
   data: Data,
   parents: Data[] = [],
   logger: Logger,
   getOuterProperty?: OuterPropertyResolver
-): { valueToRender: string | TemplateObject | undefined } {
+): { valueToRender: InterpolatedString | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
   const conditional = rest as ConditionalValueOrTemplate;
 
