@@ -60,7 +60,7 @@
     "-moz-binding"
     // Firefox XBL binding - can execute code
   ]);
-  function getProperty(data, path, parents = [], logger) {
+  function getProperty(data, path, parents = [], logger, getOuterProperty) {
     if (path === ".") {
       return data;
     }
@@ -80,6 +80,9 @@
         currentData = parents[parents.length - parentLevels];
         remainingPath = tempPath.startsWith(".") ? tempPath.substring(1) : tempPath;
       } else {
+        if (getOuterProperty) {
+          return getOuterProperty(path, data, parents);
+        }
         return void 0;
       }
     }
@@ -88,21 +91,25 @@
         logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
         return void 0;
       }
-      return remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentData);
+      const result = remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentData);
+      if (result === void 0 && getOuterProperty) {
+        return getOuterProperty(path, data, parents);
+      }
+      return result;
     }
     return currentData;
   }
   function escape(s) {
     return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
   }
-  function interpolate(tpl, data, escapeHtml2 = true, parents = [], logger) {
+  function interpolate(tpl, data, escapeHtml2 = true, parents = [], logger, getOuterProperty) {
     return tpl.replace(/\{\{\{([^{]*?)\}\}\}|\{\{([^{]*?)\}\}/g, (match, escapedExpr, normalExpr) => {
       if (escapedExpr !== void 0) {
         const trimmed2 = escapedExpr.trim();
         return `{{${trimmed2}}}`;
       }
       const trimmed = normalExpr.trim();
-      const val = getProperty(data, trimmed, parents, logger);
+      const val = getProperty(data, trimmed, parents, logger, getOuterProperty);
       return val == null ? "" : escapeHtml2 ? escape(String(val)) : String(val);
     });
   }
@@ -142,13 +149,13 @@
     }
     return cssDeclarations.join("; ").trim();
   }
-  function processStyleAttribute(value, data, parents, logger) {
+  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
     if (value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string") {
       const conditional = value;
       if (!validatePathExpression(conditional.$check, "$check", logger)) {
         return "";
       }
-      const checkValue = getProperty(data, conditional.$check, parents);
+      const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
       const condition = evaluateCondition(checkValue, conditional);
       const resultValue = condition ? conditional.$then : conditional.$else;
       if (resultValue === void 0) {
@@ -233,11 +240,11 @@
   function isConditionalValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
   }
-  function evaluateConditionalValue(value, data, parents = [], logger) {
+  function evaluateConditionalValue(value, data, parents = [], logger, getOuterProperty) {
     if (!validatePathExpression(value.$check, "$check", logger)) {
       return "";
     }
-    const checkValue = getProperty(data, value.$check, parents);
+    const checkValue = getProperty(data, value.$check, parents, logger, getOuterProperty);
     const condition = evaluateCondition(checkValue, value);
     if (condition) {
       return value.$then !== void 0 ? value.$then : "";
@@ -265,7 +272,7 @@
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
-  function processConditional(rest, data, parents = [], logger) {
+  function processConditional(rest, data, parents = [], logger, getOuterProperty) {
     const conditional = rest;
     if (!conditional.$check) {
       logger.error('"$if" tag requires $check attribute to specify the condition');
@@ -274,7 +281,7 @@
     if (!validatePathExpression(conditional.$check, "$check", logger)) {
       return { valueToRender: void 0 };
     }
-    const checkValue = getProperty(data, conditional.$check, parents);
+    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
     if (typeof rest === "object" && rest !== null && !Array.isArray(rest) && "$children" in rest) {
       logger.warn('"$if" tag does not support $children, use $then and $else instead');
     }
@@ -315,20 +322,22 @@
   function renderToString(input, options = {}) {
     const data = input.data;
     const logger = options.logger || console;
+    const getOuterProperty = options.propertyFallback;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
-      logger
-    } : { logger };
+      logger,
+      getOuterProperty
+    } : { logger, getOuterProperty };
     return render(input.template, data, context);
   }
-  function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = []) {
+  function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
     const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
     if (tag === "$comment") {
       return `<!--${formattedContent}${parentIndent}-->`;
     }
-    const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger)}>`;
+    const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
     if (VOID_TAGS.has(tag)) {
       return openTag;
     }
@@ -337,7 +346,8 @@
   function render(template, data, context) {
     const parents = context.parents || [];
     const logger = context.logger;
-    if (typeof template === "string") return interpolate(template, data, true, parents, logger);
+    const getOuterProperty = context.getOuterProperty;
+    if (typeof template === "string") return interpolate(template, data, true, parents, logger, getOuterProperty);
     if (Array.isArray(template)) {
       return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
     }
@@ -355,7 +365,7 @@
       return "";
     }
     if (tag === "$if") {
-      const { valueToRender } = processConditional(rest, data, parents, logger);
+      const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
       if (valueToRender === void 0) {
         return "";
       }
@@ -384,7 +394,7 @@
       if (!validatePathExpression(rest.$bind, "$bind", logger)) {
         return "";
       }
-      const bound = getProperty(data, rest.$bind, [], logger);
+      const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
       const { $bind, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
         if (bound !== null && bound !== void 0 && typeof bound !== "object") {
@@ -416,22 +426,22 @@
       }
       contentAttrs = attrs;
     }
-    return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents);
+    return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
   }
-  function renderAttrs(attrs, data, tag, parents = [], logger) {
+  function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
     const pairs = Object.entries(attrs).filter(([key]) => validateAttribute(key, tag, logger)).map(([k, v]) => {
       let attrValue;
       if (k === "style") {
-        attrValue = processStyleAttribute(v, data, parents, logger);
+        attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
         if (!attrValue) {
           return null;
         }
       } else {
         if (isConditionalValue(v)) {
-          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
+          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
         } else {
-          attrValue = interpolate(String(v), data, false, parents, logger);
+          attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
       }
       return `${k}="${escape(attrValue)}"`;
