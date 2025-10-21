@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger } from './types.js';
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -50,20 +50,22 @@ export function renderToString(
 
   // Set logger to console if not provided
   const logger = options.logger || console;
+  const getOuterProperty = options.propertyFallback;
 
   // Conditionally set indent context
   const context = options.indent ? {
     indentStr: typeof options.indent === 'number' ? ' '.repeat(options.indent) :
       typeof options.indent === 'string' ? options.indent : '  ',
     level: 0,
-    logger
-  } : { logger };
+    logger,
+    getOuterProperty
+  } : { logger, getOuterProperty };
 
   return render(input.template, data, context);
 }
 
 // Helper function to render tag, deciding internally whether to close or not
-function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = []): string {
+function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, childrenOutput: IndentedOutput[], logger: Logger, indentStr?: string, level?: number, parents: Data[] = [], getOuterProperty?: OuterPropertyResolver): string {
   // Flatten children output into content
   const formattedContent = flattenOutput(childrenOutput, indentStr);
   
@@ -75,7 +77,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
-  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger)}>`;
+  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
 
   // Void tags are never closed, regardless of content
   if (VOID_TAGS.has(tag)) {
@@ -86,11 +88,12 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver }): string {
   const parents = context.parents || [];
   const logger = context.logger;
+  const getOuterProperty = context.getOuterProperty;
   
-  if (typeof template === "string") return interpolate(template, data, true, parents, logger);
+  if (typeof template === "string") return interpolate(template, data, true, parents, logger, getOuterProperty);
 
   if (Array.isArray(template)) {
     return template.map(t => render(t, data, context)).join(context.indentStr ? '\n' : '');
@@ -114,7 +117,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
   // Special handling for "$if" tag
   if (tag === '$if') {
-    const { valueToRender } = processConditional(rest, data, parents, logger);
+    const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
     
     // If no value to render, return empty string
     if (valueToRender === undefined) {
@@ -157,7 +160,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return '';
     }
     
-    const bound = getProperty(data, rest.$bind, [], logger);
+    const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
     const { $bind, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
@@ -197,10 +200,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     contentAttrs = attrs;
   }
   
-  return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents);
+  return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
 }
 
-function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger): string {
+function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): string {
   const pairs = Object.entries(attrs)
     .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
@@ -208,7 +211,7 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       
       // Special handling for style attribute
       if (k === 'style') {
-        attrValue = processStyleAttribute(v, data, parents, logger);
+        attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
         // If processing resulted in empty string, skip the attribute
         if (!attrValue) {
           return null;
@@ -216,10 +219,10 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       } else {
         // Regular attribute handling
         if (isConditionalValue(v)) {
-          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger);
-          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger);
+          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
+          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
         } else {
-          attrValue = interpolate(String(v), data, false, parents, logger);
+          attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
       }
       

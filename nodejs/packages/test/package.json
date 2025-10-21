@@ -126,6 +126,50 @@
             }
           ]
         }
+      },
+      {
+        "displayName": "public-api",
+        "testMatch": ["<rootDir>/src/public-api.test.ts"],
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "node",
+        "extensionsToTreatAsEsm": [".ts"],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "displayName": "property-fallback",
+        "testMatch": ["<rootDir>/src/property-fallback.test.ts"],
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "node",
+        "extensionsToTreatAsEsm": [".ts"],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
+              }
+            }
+          ]
+        }
       }
     ]
   }

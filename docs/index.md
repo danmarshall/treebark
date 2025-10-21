@@ -38,11 +38,13 @@ Output:
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
+  - [Styling with Style Objects](#styling-with-style-objects)
   - [Mixed Content](#mixed-content)
   - [With Data Binding](#with-data-binding)
   - [Binding with $bind](#binding-with-bind)
   - [Parent Property Access](#parent-property-access)
   - [Working with Arrays](#working-with-arrays)
+  - [Array Element Access](#array-element-access)
   - [Comments](#comments)
   - [Conditional Rendering](#conditional-rendering)
 - [Error Handling](#error-handling)
@@ -209,6 +211,79 @@ Output:
 <a href="https://example.com" target="_blank">Visit our site</a>
 ```
 
+### Styling with Style Objects
+
+For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
+
+**Basic styling:**
+```json
+{
+  "div": {
+    "style": {
+      "color": "red",
+      "font-size": "16px",
+      "padding": "10px"
+    },
+    "$children": ["Styled content"]
+  }
+}
+```
+
+Output:
+```html
+<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
+```
+
+**Key features:**
+- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
+- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
+- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Type safety**: Values are strings
+
+**Flexbox example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "flex",
+      "flex-direction": "column",
+      "justify-content": "center",
+      "align-items": "center",
+      "gap": "20px"
+    },
+    "$children": ["Flexbox layout"]
+  }
+}
+```
+
+**Grid example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "grid",
+      "grid-template-columns": "repeat(3, 1fr)",
+      "gap": "10px"
+    },
+    "$children": ["Grid layout"]
+  }
+}
+```
+
+**Conditional styles:**
+```json
+{
+  "div": {
+    "style": {
+      "$check": "isActive",
+      "$then": { "color": "green", "font-weight": "bold" },
+      "$else": { "color": "gray" }
+    },
+    "$children": ["Status"]
+  }
+}
+```
+
 #### Tags without attributes
 For `br` & `hr` tags, use an empty object:
 
@@ -297,6 +372,7 @@ For values within strings:
 **Value Access Patterns:**
 - `{% raw %}{{value}}{% endraw %}` — Accesses the current item's property `value`.
 - `{% raw %}{{product.price}}{% endraw %}` — Accesses the nested property `price` inside `product` of the current item.
+- `{% raw %}{{items.0.name}}{% endraw %}` — Accesses array elements using numeric indices (no square brackets needed).
 - `{% raw %}{{..parentProp}}{% endraw %}` — Accesses the property `parentProp` from the parent data context.
 - `{% raw %}{{../..grandparentProp}}{% endraw %}` — Accesses the property `grandparentProp` from the grandparent data context.
 
@@ -577,9 +653,72 @@ Both examples produce the same output:
 ```html
 <ul>
   <li>Laptop — $999</li>
-  <li>Phone — $499</li>
+  <li>Phone — $999</li>
 </ul>
 ```
+
+### Array Element Access
+
+You can access individual array elements using numeric indices in dot notation, without needing square brackets:
+
+```json
+{
+  "div": {
+    "$children": [
+      { "p": "First: {% raw %}{{items.0.name}}{% endraw %}" },
+      { "p": "Second: {% raw %}{{items.1.name}}{% endraw %}" },
+      { "p": "Third: {% raw %}{{items.2.name}}{% endraw %}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "items": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Mouse", "price": "$25" },
+    { "name": "Keyboard", "price": "$75" }
+  ]
+}
+```
+
+Output:
+```html
+<div>
+  <p>First: Laptop</p>
+  <p>Second: Mouse</p>
+  <p>Third: Keyboard</p>
+</div>
+```
+
+**Multi-level array access:**
+
+You can also access nested arrays using multiple numeric indices:
+
+```json
+{
+  "div": "{% raw %}{{matrix.0.1.value}}{% endraw %}"
+}
+```
+
+Data:
+```json
+{
+  "matrix": [
+    [{ "value": "A1" }, { "value": "A2" }],
+    [{ "value": "B1" }, { "value": "B2" }]
+  ]
+}
+```
+
+Output:
+```html
+<div>A2</div>
+```
+
+**Note:** Numeric indices work because JavaScript allows both `array[0]` and `array["0"]` syntax. The dot notation path is split and each segment (including numeric strings) is used as a property key.
 
 ### Comments
 

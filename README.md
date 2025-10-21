@@ -38,6 +38,7 @@ Output:
   - [Binding with $bind](#binding-with-bind)
   - [Parent Property Access](#parent-property-access)
   - [Working with Arrays](#working-with-arrays)
+  - [Array Element Access](#array-element-access)
   - [Comments](#comments)
   - [Conditional Rendering](#conditional-rendering)
 - [Error Handling](#error-handling)
@@ -365,6 +366,7 @@ For values within strings:
 **Value Access Patterns:**
 - `{{value}}` — Accesses the current item's property `value`.
 - `{{product.price}}` — Accesses the nested property `price` inside `product` of the current item.
+- `{{items.0.name}}` — Accesses array elements using numeric indices (no square brackets needed).
 - `{{..parentProp}}` — Accesses the property `parentProp` from the parent data context.
 - `{{../..grandparentProp}}` — Accesses the property `grandparentProp` from the grandparent data context.
 
@@ -645,9 +647,72 @@ Both examples produce the same output:
 ```html
 <ul>
   <li>Laptop — $999</li>
-  <li>Phone — $499</li>
+  <li>Phone — $999</li>
 </ul>
 ```
+
+### Array Element Access
+
+You can access individual array elements using numeric indices in dot notation, without needing square brackets:
+
+```json
+{
+  "div": {
+    "$children": [
+      { "p": "First: {{items.0.name}}" },
+      { "p": "Second: {{items.1.name}}" },
+      { "p": "Third: {{items.2.name}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "items": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Mouse", "price": "$25" },
+    { "name": "Keyboard", "price": "$75" }
+  ]
+}
+```
+
+Output:
+```html
+<div>
+  <p>First: Laptop</p>
+  <p>Second: Mouse</p>
+  <p>Third: Keyboard</p>
+</div>
+```
+
+**Multi-level array access:**
+
+You can also access nested arrays using multiple numeric indices:
+
+```json
+{
+  "div": "{{matrix.0.1.value}}"
+}
+```
+
+Data:
+```json
+{
+  "matrix": [
+    [{ "value": "A1" }, { "value": "A2" }],
+    [{ "value": "B1" }, { "value": "B2" }]
+  ]
+}
+```
+
+Output:
+```html
+<div>A2</div>
+```
+
+**Note:** Numeric indices work because JavaScript allows both `array[0]` and `array["0"]` syntax. The dot notation path is split and each segment (including numeric strings) is used as a property key.
 
 ### Comments
 

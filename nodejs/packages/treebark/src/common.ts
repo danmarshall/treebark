@@ -13,6 +13,7 @@ import type {
   Logger,
   CSSProperties,
   StyleValue,
+  OuterPropertyResolver,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -65,8 +66,15 @@ const BLOCKED_CSS_PROPERTIES = new Set([
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
+ * If property is not found and getOuterProperty is provided, it will be called
  */
-export function getProperty(data: Data, path: string, parents: Data[] = [], logger?: Logger): unknown {
+export function getProperty(
+  data: Data, 
+  path: string, 
+  parents: Data[] = [], 
+  logger?: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): unknown {
   // Special case: "." means the current data value itself
   if (path === '.') {
     return data;
@@ -97,6 +105,10 @@ export function getProperty(data: Data, path: string, parents: Data[] = [], logg
       currentData = parents[parents.length - parentLevels];
       remainingPath = tempPath.startsWith('.') ? tempPath.substring(1) : tempPath;
     } else {
+      // Property not found - try outer property resolver
+      if (getOuterProperty) {
+        return getOuterProperty(path, data, parents);
+      }
       return undefined;
     }
   }
@@ -108,8 +120,15 @@ export function getProperty(data: Data, path: string, parents: Data[] = [], logg
       logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
       return undefined;
     }
-    return remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
+    const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
       (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentData);
+    
+    // If result is undefined, try outer property resolver
+    if (result === undefined && getOuterProperty) {
+      return getOuterProperty(path, data, parents);
+    }
+    
+    return result;
   }
 
   return currentData;
@@ -125,7 +144,14 @@ export function escape(s: string): string {
 /**
  * Interpolate template variables in a string
  */
-export function interpolate(tpl: string, data: Data, escapeHtml = true, parents: Data[] = [], logger?: Logger): string {
+export function interpolate(
+  tpl: string, 
+  data: Data, 
+  escapeHtml = true, 
+  parents: Data[] = [], 
+  logger?: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): string {
   // Use non-overlapping alternation with restricted character class to avoid ReDoS vulnerability
   // [^{]*? prevents the regex from matching opening braces in the content, eliminating polynomial backtracking
   // First alternative matches {{{...}}} for escaping, second matches {{...}} for interpolation
@@ -137,7 +163,7 @@ export function interpolate(tpl: string, data: Data, escapeHtml = true, parents:
     }
     // Otherwise, we matched {{...}}
     const trimmed = normalExpr.trim();
-    const val = getProperty(data, trimmed, parents, logger);
+    const val = getProperty(data, trimmed, parents, logger, getOuterProperty);
     return val == null ? "" : (escapeHtml ? escape(String(val)) : String(val));
   });
 }
@@ -213,7 +239,13 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
  * Process style attribute value - only accepts objects for safety
  * Returns CSS string or empty string if invalid
  */
-export function processStyleAttribute(value: unknown, data: Data, parents: Data[], logger: Logger): string {
+export function processStyleAttribute(
+  value: unknown, 
+  data: Data, 
+  parents: Data[], 
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): string {
   // Handle conditional style values - check for $check property to detect conditionals
   if (
     value !== null &&
@@ -226,7 +258,7 @@ export function processStyleAttribute(value: unknown, data: Data, parents: Data[
     if (!validatePathExpression(conditional.$check, '$check', logger)) {
       return '';
     }
-    const checkValue = getProperty(data, conditional.$check, parents);
+    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
     const condition = evaluateCondition(checkValue, conditional);
     
     const resultValue = condition ? conditional.$then : conditional.$else;
@@ -391,12 +423,13 @@ export function evaluateConditionalValue(
   value: ConditionalValue,
   data: Data,
   parents: Data[] = [],
-  logger: Logger
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
 ): string {
   if (!validatePathExpression(value.$check, '$check', logger)) {
     return '';
   }
-  const checkValue = getProperty(data, value.$check, parents);
+  const checkValue = getProperty(data, value.$check, parents, logger, getOuterProperty);
   const condition = evaluateCondition(checkValue, value);
 
   if (condition) {
@@ -452,7 +485,8 @@ export function processConditional(
   rest: string | (string | TemplateObject)[] | TemplateAttributes | ConditionalValueOrTemplate,
   data: Data,
   parents: Data[] = [],
-  logger: Logger
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
 ): { valueToRender: string | TemplateObject | undefined } {
   // Type cast to Conditional since we know this is a $if tag
   const conditional = rest as ConditionalValueOrTemplate;
@@ -466,7 +500,7 @@ export function processConditional(
   if (!validatePathExpression(conditional.$check, '$check', logger)) {
     return { valueToRender: undefined };
   }
-  const checkValue = getProperty(data, conditional.$check, parents);
+  const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
 
   // $if tag does not support $children - only $then/$else
   if (typeof rest === 'object' && rest !== null && !Array.isArray(rest) && '$children' in rest) {

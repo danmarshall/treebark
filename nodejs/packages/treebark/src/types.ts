@@ -147,8 +147,12 @@ export interface Logger {
   log(message: string): void;
 }
 
+// Outer property resolver type for getProperty - called when a property is not found in local context
+export type OuterPropertyResolver = (path: string, data: Data, parents: Data[]) => unknown;
+
 // Options interface for render functions
 export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
+  propertyFallback?: OuterPropertyResolver;
 }
