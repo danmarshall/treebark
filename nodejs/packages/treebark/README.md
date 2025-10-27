@@ -21,7 +21,7 @@ Output:
 </div>
 ```
 
-[Learn more at the **Homepage**](https://danmarshall.github.io/treebark/) | [Try it now in the **Playground**](https://danmarshall.github.io/treebark//playground)
+[Learn more at the **Homepage**](https://danmarshall.github.io/treebark/) | [Try it now in the **Playground**](https://danmarshall.github.io/treebark/playground)
 
 ## Installation
 
