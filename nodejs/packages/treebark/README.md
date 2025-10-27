@@ -2,6 +2,27 @@
 
 Safe HTML tree structures for Markdown and content-driven apps.
 
+### Hello World
+
+```json
+{
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
+}
+```
+
+Output:
+```html
+<div>
+  <h1>Hello world</h1>
+  <p>Welcome to treebark templates</p>
+</div>
+```
+
+[Learn more at the **Homepage**](https://danmarshall.github.io/treebark/) | [Try it now in the **Playground**](https://danmarshall.github.io/treebark//playground)
+
 ## Installation
 
 ```bash
