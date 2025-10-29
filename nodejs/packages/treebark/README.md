@@ -110,6 +110,60 @@ Renders a template to DOM nodes (browser only).
 
 **Returns:** `DocumentFragment` - DOM fragment containing rendered nodes
 
+### `getProperty(data, path, parents?, logger?, getOuterProperty?)`
+
+Get a nested property from data using dot notation. This utility function is used internally by Treebark but is also exported for use in custom property resolution scenarios.
+
+**Parameters:**
+- `data: Data` - The data object to retrieve the property from
+- `path: BindPath` - The property path using dot notation (e.g., `"user.name"` or `"items.0.value"`)
+- `parents?: Data[]` - (Optional) Array of parent data contexts for parent property access
+- `logger?: Logger` - (Optional) Logger instance for error messages
+- `getOuterProperty?: OuterPropertyResolver` - (Optional) Fallback function called when property is not found
+
+**Returns:** `unknown` - The value at the specified path, or `undefined` if not found
+
+**Special path syntax:**
+- `"."` - Returns the data object itself
+- `".."` - Access parent context (requires `parents` array)
+- `"../.."` - Access grandparent context
+- `"user.name"` - Access nested properties with dot notation
+- `"items.0.value"` - Access array elements by index
+
+**Example:**
+
+```javascript
+import { getProperty } from 'treebark';
+
+const data = {
+  user: {
+    profile: {
+      name: 'Alice',
+      age: 30
+    }
+  },
+  items: ['first', 'second', 'third']
+};
+
+// Simple property access
+getProperty(data, 'user.profile.name'); // Returns: 'Alice'
+
+// Array access
+getProperty(data, 'items.0'); // Returns: 'first'
+
+// Current object reference
+getProperty(data, '.'); // Returns: data object itself
+
+// With fallback handler
+const result = getProperty(
+  data, 
+  'missing.property',
+  [],
+  undefined,
+  (path) => `default-${path}`
+); // Returns: 'default-missing.property'
+```
+
 ## Examples
 
 For comprehensive examples, documentation, and advanced features, see the [main Treebark repository](https://github.com/danmarshall/treebark).
