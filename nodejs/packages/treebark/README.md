@@ -124,11 +124,12 @@ Get a nested property from data using dot notation. This utility function is use
 **Returns:** `unknown` - The value at the specified path, or `undefined` if not found
 
 **Special path syntax:**
+- `"propName"` - Access a simple property (e.g., `"name"`, `"age"`)
+- `"user.name"` - Access nested properties with dot notation
+- `"items.0"` - Access array elements by index
 - `"."` - Returns the data object itself
 - `"..propName"` - Access parent context (requires `parents` array)
 - `"../../propName"` - Access grandparent context
-- `"user.name"` - Access nested properties with dot notation
-- `"items.0.value"` - Access array elements by index
 
 **Example:**
 
@@ -136,17 +137,22 @@ Get a nested property from data using dot notation. This utility function is use
 import { getProperty } from 'treebark';
 
 const data = {
+  name: 'Alice',
+  age: 30,
   user: {
     profile: {
-      name: 'Alice',
-      age: 30
+      email: 'alice@example.com'
     }
   },
   items: ['first', 'second', 'third']
 };
 
-// Simple property access
-getProperty(data, 'user.profile.name'); // Returns: 'Alice'
+// Simple property access (most common case)
+getProperty(data, 'name'); // Returns: 'Alice'
+getProperty(data, 'age'); // Returns: 30
+
+// Nested property access
+getProperty(data, 'user.profile.email'); // Returns: 'alice@example.com'
 
 // Array access
 getProperty(data, 'items.0'); // Returns: 'first'
@@ -157,11 +163,11 @@ getProperty(data, '.'); // Returns: data object itself
 // With fallback handler
 const result = getProperty(
   data, 
-  'missing.property',
+  'missing',
   [],
   undefined,
   (path) => `default-${path}`
-); // Returns: 'default-missing.property'
+); // Returns: 'default-missing'
 ```
 
 ## Examples
