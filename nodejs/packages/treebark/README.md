@@ -128,8 +128,8 @@ Get a nested property from data using dot notation. This utility function is use
 - `"user.name"` - Access nested properties with dot notation
 - `"items.0"` - Access array elements by index
 - `"."` - Returns the data object itself
-- `"..propName"` - Access parent context (requires `parents` array)
-- `"../../propName"` - Access grandparent context
+- `"..parentProp"` - Access parent context (requires `parents` array)
+- `"../../grandProp"` - Access grandparent context
 
 **Example:**
 
