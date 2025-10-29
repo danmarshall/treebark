@@ -125,8 +125,8 @@ Get a nested property from data using dot notation. This utility function is use
 
 **Special path syntax:**
 - `"."` - Returns the data object itself
-- `".."` - Access parent context (requires `parents` array)
-- `"../.."` - Access grandparent context
+- `"..propName"` - Access parent context (requires `parents` array)
+- `"../../propName"` - Access grandparent context
 - `"user.name"` - Access nested properties with dot notation
 - `"items.0.value"` - Access array elements by index
 
