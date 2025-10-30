@@ -131,47 +131,6 @@ Get a nested property from data using dot notation. This utility function is use
 - `"..parentProp"` - Access parent context (requires `parents` array)
 - `"../../grandProp"` - Access grandparent context
 
-**Example:**
-
-```javascript
-import { getProperty } from 'treebark';
-
-const data = {
-  name: 'Alice',
-  age: 30,
-  user: {
-    profile: {
-      email: 'alice@example.com'
-    }
-  },
-  items: ['first', 'second', 'third']
-};
-
-// Simple property access (most common case)
-getProperty(data, 'name'); // Returns: 'Alice'
-getProperty(data, 'age'); // Returns: 30
-
-// Nested property access
-getProperty(data, 'user.profile.email'); // Returns: 'alice@example.com'
-
-// Array access
-getProperty(data, 'items.0'); // Returns: 'first'
-
-// Current object reference
-getProperty(data, '.'); // Returns: data object itself
-
-// With fallback handler
-const result = getProperty(
-  data, 
-  'missing',
-  [],
-  undefined,
-  (path) => `default-${path}`
-); // Returns: 'default-missing'
-```
-
-## Examples
-
 For comprehensive examples, documentation, and advanced features, see the [main Treebark repository](https://github.com/danmarshall/treebark).
 
 ## License
