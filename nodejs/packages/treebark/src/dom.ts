@@ -38,8 +38,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const getOuterProperty = context.getOuterProperty;
   
   if (typeof template === "string") {
-    // For regular text nodes, we should NOT escape HTML because document.createTextNode() handles it safely
-    // Only escape when inside a comment where we need the HTML string representation
+    // For regular text nodes, we should NOT escape HTML because document.createTextNode() handles it safely.
+    // Only escape when inside a comment where we need the HTML string representation.
     const shouldEscape = context.insideComment || false;
     return document.createTextNode(interpolate(template, data, shouldEscape, parents, logger, getOuterProperty));
   }
