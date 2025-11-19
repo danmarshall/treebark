@@ -73,6 +73,9 @@ describe('String Renderer', () => {
           case 'handles escaped interpolation':
             expect(result).toBe('Hello {{name}}!');
             break;
+          case 'handles special characters without HTML encoding':
+            expect(result).toBe("<div>I&#39;ll help you analyze the Q4 sales data. Let me start by loading and examining the data structure.</div>");
+            break;
         }
       });
     });
