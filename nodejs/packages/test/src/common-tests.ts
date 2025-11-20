@@ -112,6 +112,13 @@ export const dataInterpolationTests: TestCase[] = [
       template: 'Hello {{{name}}}!',
       data: { name: 'Alice' }
     }
+  },
+  {
+    name: 'handles special characters without HTML encoding',
+    input: { 
+      template: { div: '{{message}}' },
+      data: { message: "I'll help you analyze the Q4 sales data. Let me start by loading and examining the data structure." }
+    }
   }
 ];
 

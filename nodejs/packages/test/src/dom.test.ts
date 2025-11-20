@@ -104,6 +104,10 @@ describe('DOM Renderer', () => {
           case 'handles escaped interpolation':
             expect(fragment.textContent).toBe('Hello {{name}}!');
             break;
+          case 'handles special characters without HTML encoding':
+            const divSpecial = fragment.firstChild as HTMLElement;
+            expect(divSpecial.textContent).toBe("I'll help you analyze the Q4 sales data. Let me start by loading and examining the data structure.");
+            break;
         }
       });
     });
