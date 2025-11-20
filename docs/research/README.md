@@ -34,14 +34,21 @@ interface RenderOptions {
    - Implementation recommendations
    - **Conclusion**: Feasible and safe as opt-in feature
 
-2. **[comparison-systems.md](./comparison-systems.md)** (Cross-System Analysis)
+2. **[markdown-engine-integration.md](./markdown-engine-integration.md)** ⭐ **NEW: Alternative Approach**
+   - Analysis of accepting markdown-it instance in RenderOptions
+   - Comparison: Direct implementation vs markdown engine delegation
+   - Pros/cons of leveraging existing markdown ecosystem
+   - Use case analysis (when to use which approach)
+   - **Conclusion**: Implement BOTH - simple `convertNewlinesToBr` for basic cases, markdown engine for rich content
+
+3. **[comparison-systems.md](./comparison-systems.md)** (Cross-System Analysis)
    - 10+ systems compared (HTML, React, WordPress, Markdown, etc.)
    - Structure-focused vs Content-focused philosophies
    - Design pattern analysis
    - When auto-conversion is appropriate
    - **Conclusion**: Treebark aligns with structure-focused systems (opt-in)
 
-3. **[proof-of-concept.md](./proof-of-concept.md)** (Implementation PoC)
+4. **[proof-of-concept.md](./proof-of-concept.md)** (Implementation PoC)
    - Three implementation approaches
    - Security examples (correct vs incorrect order)
    - Real-world usage scenarios
@@ -152,6 +159,33 @@ result = escape(result);  // Breaks the <br> tags!
 **Out of scope**:
 - Markdown-like syntax (`*emphasis*`, `- lists`) - Conflicts with markdown-it-treebark
 - Other formatting - Use explicit structure instead
+
+### 4. Alternative Approach: Markdown Engine Integration (NEW)
+
+**Instead of implementing features directly, accept markdown-it instance**:
+
+```typescript
+interface RenderOptions {
+  markdown?: MarkdownIt;  // Delegate to markdown engine
+}
+```
+
+**Benefits**:
+- Leverages mature, well-tested library (markdown-it)
+- Gets auto-linking, paragraphs, typography, etc. for free
+- Users control configuration and plugins
+- No feature duplication
+
+**Trade-offs**:
+- Adds dependency (markdown-it as peer dependency)
+- More complex setup for users
+- May be overkill for simple cases
+
+**Recommendation**: Implement BOTH approaches
+- `convertNewlinesToBr` - Simple, no dependencies, covers 80% of cases
+- `markdown` option - Power users, rich content, full markdown ecosystem
+
+See [markdown-engine-integration.md](./markdown-engine-integration.md) for full analysis.
 
 ### 4. Use Cases
 
