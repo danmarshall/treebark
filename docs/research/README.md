@@ -41,21 +41,29 @@ interface RenderOptions {
    - Use case analysis (when to use which approach)
    - **Conclusion**: Implement BOTH - simple `convertNewlinesToBr` for basic cases, markdown engine for rich content
 
-3. **[comparison-systems.md](./comparison-systems.md)** (Cross-System Analysis)
+3. **[markdown-it-examples.md](./markdown-it-examples.md)** ⭐ **NEW: Concrete Examples**
+   - Code examples for Node String rendering with markdown-it
+   - Code examples for Node DOM rendering with markdown-it
+   - Code examples for markdown-it-treebark plugin with markdown-it
+   - API design considerations
+   - Use case decision tree
+   - Migration path and testing examples
+
+4. **[comparison-systems.md](./comparison-systems.md)** (Cross-System Analysis)
    - 10+ systems compared (HTML, React, WordPress, Markdown, etc.)
    - Structure-focused vs Content-focused philosophies
    - Design pattern analysis
    - When auto-conversion is appropriate
    - **Conclusion**: Treebark aligns with structure-focused systems (opt-in)
 
-4. **[proof-of-concept.md](./proof-of-concept.md)** (Implementation PoC)
+5. **[proof-of-concept.md](./proof-of-concept.md)** (Implementation PoC)
    - Three implementation approaches
    - Security examples (correct vs incorrect order)
    - Real-world usage scenarios
    - Files that need modification
    - **Conclusion**: Simple implementation, ~5-8 hours effort
 
-4. **[test-suite.md](./test-suite.md)** (Comprehensive Tests)
+6. **[test-suite.md](./test-suite.md)** (Comprehensive Tests)
    - 30+ test cases across 9 categories
    - Security/XSS prevention (critical)
    - Backward compatibility tests
@@ -64,14 +72,14 @@ interface RenderOptions {
 
 ### Extended Research (Line Ending Types)
 
-5. **[whitespace-entities-analysis.md](./whitespace-entities-analysis.md)**
+7. **[whitespace-entities-analysis.md](./whitespace-entities-analysis.md)**
    - Analysis of all whitespace/special characters
    - Line breaks: LF, CRLF, CR, Unicode separators
    - Horizontal whitespace: tabs, spaces, NBSP
    - Security: control character injection
    - **Conclusion**: Must handle Windows CRLF to avoid double `<br>`
 
-6. **[line-ending-implementation.md](./line-ending-implementation.md)**
+8. **[line-ending-implementation.md](./line-ending-implementation.md)**
    - Correct regex pattern: `/\r?\n|\r/g`
    - Platform-specific handling (Windows, Unix, Mac)
    - Additional test cases
@@ -80,7 +88,7 @@ interface RenderOptions {
 
 ### Extended Research (Other HTML Tags)
 
-7. **[html-tags-analysis.md](./html-tags-analysis.md)**
+9. **[html-tags-analysis.md](./html-tags-analysis.md)**
    - Should we consider tags beyond `<br>`?
    - Analysis of `<a>` (auto-linking), `<p>` (paragraphs), etc.
    - Why Markdown-like syntax is out of scope
@@ -90,19 +98,19 @@ interface RenderOptions {
 
 ### Demonstrations (Executable)
 
-8. **[visual-demonstration.md](./visual-demonstration.md)**
-   - Before/after examples
-   - Address display, poems, product specs
-   - Security demonstrations
-   - Comparison: simple vs correct implementation
+10. **[visual-demonstration.md](./visual-demonstration.md)**
+    - Before/after examples
+    - Address display, poems, product specs
+    - Security demonstrations
+    - Comparison: simple vs correct implementation
 
-9. **[line-ending-demo.js](./line-ending-demo.js)** ✅ Executed
-   - Shows Unix, Windows, Old Mac line endings
-   - Demonstrates WRONG vs CORRECT implementations
-   - Hex byte inspection
-   - Security tests with different line endings
+11. **[line-ending-demo.js](./line-ending-demo.js)** ✅ Executed
+    - Shows Unix, Windows, Old Mac line endings
+    - Demonstrates WRONG vs CORRECT implementations
+    - Hex byte inspection
+    - Security tests with different line endings
 
-10. **[tag-options-demo.js](./tag-options-demo.js)** ✅ Executed
+12. **[tag-options-demo.js](./tag-options-demo.js)** ✅ Executed
     - Visual comparison of different tag options
     - Real-world examples (comments, addresses, poems)
     - Feature comparison table
@@ -110,7 +118,7 @@ interface RenderOptions {
 
 ### Summary
 
-11. **[EXECUTIVE-SUMMARY.md](./EXECUTIVE-SUMMARY.md)**
+13. **[EXECUTIVE-SUMMARY.md](./EXECUTIVE-SUMMARY.md)**
     - Quick reference guide
     - Decision matrix (scored 4.3/5)
     - Risk analysis with mitigations
