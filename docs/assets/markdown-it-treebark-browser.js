@@ -54,7 +54,6 @@
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
-  /* @__PURE__ */ new Set(["$check", "$not", "$join", ...OPERATORS]);
   const BLOCKED_CSS_PROPERTIES = /* @__PURE__ */ new Set([
     "behavior",
     // IE behavior property - can execute code

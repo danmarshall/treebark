@@ -729,7 +729,7 @@ You can filter array items before rendering them by using `$filter` with `$bind`
       "$<": 500
     },
     "$children": [
-      { "li": "{{name}} — {{price}}" }
+      { "li": "{{name}} — ${{price}}" }
     ]
   }
 }
@@ -739,9 +739,9 @@ Data:
 ```json
 {
   "products": [
-    { "name": "Laptop", "price": "$999" },
-    { "name": "Mouse", "price": "$25" },
-    { "name": "Keyboard", "price": "$75" }
+    { "name": "Laptop", "price": 999 },
+    { "name": "Mouse", "price": 25 },
+    { "name": "Keyboard", "price": 75 }
   ]
 }
 ```
@@ -814,6 +814,63 @@ This filters for working-age adults (18-65 inclusive).
 - `$in`: Array membership check
 - `$not`: Invert the condition
 - `$join`: Combine operators with "AND" (default) or "OR" logic
+
+**Practical example - Filter vs If:**
+
+Instead of rendering all items with conditional status messages:
+```json
+{
+  "div": {
+    "$bind": "products",
+    "$children": [
+      {
+        "div": {
+          "$children": [
+            { "h3": "{{name}}" },
+            {
+              "$if": {
+                "$check": "inStock",
+                "$then": { "p": "✓ In Stock" }
+              }
+            },
+            {
+              "$if": {
+                "$check": "inStock",
+                "$not": true,
+                "$then": { "p": "✗ Out of Stock" }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Simply filter to show only in-stock items:
+```json
+{
+  "div": {
+    "$bind": "products",
+    "$filter": {
+      "$check": "inStock"
+    },
+    "$children": [
+      {
+        "div": {
+          "$children": [
+            { "h3": "{{name}}" },
+            { "p": "✓ In Stock ({{quantity}} available)" }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+This is cleaner, simpler, and more efficient!
 
 ### Comments
 

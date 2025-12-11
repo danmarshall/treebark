@@ -60,8 +60,6 @@ export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
 
-export const FILTERKEYS = new Set(['$check', '$not', '$join', ...OPERATORS]);
-
 // Blocked CSS properties that are known to be dangerous
 const BLOCKED_CSS_PROPERTIES = new Set([
   'behavior',           // IE behavior property - can execute code

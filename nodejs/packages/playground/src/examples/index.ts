@@ -22,6 +22,8 @@ import { calendar } from './calendar.js';
 import { filterByPrice } from './filter-by-price.js';
 import { filterByRole } from './filter-by-role.js';
 import { filterAgeRange } from './filter-age-range.js';
+import { filterInStock } from './filter-in-stock.js';
+import { filterComparison } from './filter-comparison.js';
 
 export type Examples = Record<string, Example>;
 
@@ -48,5 +50,7 @@ export const examples: Examples = {
   'Calendar': calendar,
   'Filter By Price': filterByPrice,
   'Filter By Role': filterByRole,
-  'Filter Age Range': filterAgeRange
+  'Filter Age Range': filterAgeRange,
+  'Filter In Stock': filterInStock,
+  'Filter vs If Comparison': filterComparison
 };
