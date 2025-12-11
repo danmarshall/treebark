@@ -108,11 +108,12 @@ This means the implementation is featherweight.
 **Data binding:**
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
+- `$filter`: Object. Filters array items when used with `$bind`. Uses the same conditional operators as `$if` tag.
 
-**Conditional keys (used in `$if` tag and conditional attribute values):**
+**Conditional keys (used in `$if` tag, `$filter`, and conditional attribute values):**
 - `$check`: String. Property path to check.
-- `$then`: Single template object or string. Content/value when condition is true.
-- `$else`: Single template object or string. Content/value when condition is false.
+- `$then`: Single template object or string. Content/value when condition is true (not used in `$filter`).
+- `$else`: Single template object or string. Content/value when condition is false (not used in `$filter`).
 - `$<`: Less than comparison.
 - `$>`: Greater than comparison.
 - `$<=`: Less than or equal comparison.
@@ -713,6 +714,106 @@ Output:
 ```
 
 **Note:** Numeric indices work because JavaScript allows both `array[0]` and `array["0"]` syntax. The dot notation path is split and each segment (including numeric strings) is used as a property key.
+
+### Filtering Arrays
+
+You can filter array items before rendering them by using `$filter` with `$bind`. The `$filter` key uses the same conditional operators as the `$if` tag.
+
+**Filter by price:**
+```json
+{
+  "ul": {
+    "$bind": "products",
+    "$filter": {
+      "$check": "price",
+      "$<": 500
+    },
+    "$children": [
+      { "li": "{{name}} — {{price}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "products": [
+    { "name": "Laptop", "price": "$999" },
+    { "name": "Mouse", "price": "$25" },
+    { "name": "Keyboard", "price": "$75" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Mouse — $25</li>
+  <li>Keyboard — $75</li>
+</ul>
+```
+
+**Filter by role:**
+```json
+{
+  "ul": {
+    "$bind": "users",
+    "$filter": {
+      "$check": "role",
+      "$in": ["admin", "moderator"]
+    },
+    "$children": [
+      { "li": "{{name}} ({{role}})" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "users": [
+    { "name": "Alice", "role": "admin" },
+    { "name": "Bob", "role": "user" },
+    { "name": "Charlie", "role": "moderator" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Alice (admin)</li>
+  <li>Charlie (moderator)</li>
+</ul>
+```
+
+**Filter with range:**
+```json
+{
+  "ul": {
+    "$bind": "people",
+    "$filter": {
+      "$check": "age",
+      "$>=": 18,
+      "$<=": 65
+    },
+    "$children": [
+      { "li": "{{name}} ({{age}})" }
+    ]
+  }
+}
+```
+
+This filters for working-age adults (18-65 inclusive).
+
+**Available filter operators:**
+- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons
+- `$=`: Strict equality
+- `$in`: Array membership check
+- `$not`: Invert the condition
+- `$join`: Combine operators with "AND" (default) or "OR" logic
 
 ### Comments
 

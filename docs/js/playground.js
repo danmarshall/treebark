@@ -849,6 +849,165 @@
       { rowId: 5, sun: 27, mon: 28, tue: 29, wed: 30, thu: 31, fri: "", sat: "" }
     ]
   };
+  const filterByPrice = {
+    template: {
+      div: {
+        class: "product-showcase",
+        $children: [
+          { h2: "Products Under $500" },
+          {
+            ul: {
+              class: "product-list",
+              $bind: "products",
+              $filter: {
+                $check: "price",
+                "$<": 500
+              },
+              $children: [
+                { li: "{{name}} - ${{price}}" }
+              ]
+            }
+          },
+          { h2: "All Products" },
+          {
+            ul: {
+              class: "product-list",
+              $bind: "products",
+              $children: [
+                { li: "{{name}} - ${{price}}" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    data: {
+      products: [
+        { name: "Laptop", price: 999 },
+        { name: "Mouse", price: 25 },
+        { name: "Keyboard", price: 75 },
+        { name: "Monitor", price: 699 },
+        { name: "Webcam", price: 89 },
+        { name: "Headset", price: 149 }
+      ]
+    }
+  };
+  const filterByRole = {
+    template: {
+      div: {
+        class: "user-dashboard",
+        $children: [
+          { h2: "Admins and Moderators" },
+          {
+            ul: {
+              class: "user-list privileged",
+              $bind: "users",
+              $filter: {
+                $check: "role",
+                $in: ["admin", "moderator"]
+              },
+              $children: [
+                {
+                  li: {
+                    $children: [
+                      { strong: "{{name}}" },
+                      " - ",
+                      { span: { class: "role", $children: ["{{role}}"] } }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          { h2: "All Users" },
+          {
+            ul: {
+              class: "user-list",
+              $bind: "users",
+              $children: [
+                {
+                  li: {
+                    $children: [
+                      { strong: "{{name}}" },
+                      " - ",
+                      { span: { class: "role", $children: ["{{role}}"] } }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    data: {
+      users: [
+        { name: "Alice", role: "admin" },
+        { name: "Bob", role: "user" },
+        { name: "Charlie", role: "moderator" },
+        { name: "Dave", role: "user" },
+        { name: "Eve", role: "editor" },
+        { name: "Frank", role: "admin" }
+      ]
+    }
+  };
+  const filterAgeRange = {
+    template: {
+      div: {
+        class: "age-groups",
+        $children: [
+          { h2: "Working Age (18-65)" },
+          {
+            ul: {
+              $bind: "people",
+              $filter: {
+                $check: "age",
+                "$>=": 18,
+                "$<=": 65
+              },
+              $children: [
+                { li: "{{name}} ({{age}} years old)" }
+              ]
+            }
+          },
+          { h2: "Non-Working Age" },
+          {
+            ul: {
+              $bind: "people",
+              $filter: {
+                $check: "age",
+                "$<": 18,
+                "$>": 65,
+                $join: "OR"
+              },
+              $children: [
+                { li: "{{name}} ({{age}} years old)" }
+              ]
+            }
+          },
+          { h2: "Everyone" },
+          {
+            ul: {
+              $bind: "people",
+              $children: [
+                { li: "{{name}} ({{age}} years old)" }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    data: {
+      people: [
+        { name: "Alice", age: 15 },
+        { name: "Bob", age: 25 },
+        { name: "Charlie", age: 70 },
+        { name: "Dave", age: 40 },
+        { name: "Eve", age: 12 },
+        { name: "Frank", age: 55 }
+      ]
+    }
+  };
   const examples = {
     "Hello World": helloWorld,
     "Card Layout": cardLayout,
@@ -869,7 +1028,10 @@
     "Conditional Join Or": conditionalJoinOr,
     "Conditional Attribute Values": conditionalAttributeValues,
     "Style Objects": styleObjects,
-    "Calendar": calendar
+    "Calendar": calendar,
+    "Filter By Price": filterByPrice,
+    "Filter By Role": filterByRole,
+    "Filter Age Range": filterAgeRange
   };
   let currentTemplateFormat = "json";
   const templateEditor = document.getElementById("template-editor");

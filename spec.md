@@ -79,6 +79,7 @@ Treebark renders as much valid content as possible, only skipping problematic el
 
 - **`$children`** → array of child nodes (strings, nodes, or arrays)  
 - **`$bind`** → bind current node to an array or object property in data  
+- **`$filter`** → filter array items when used with `$bind` (uses conditional operators)
 
 ---
 
@@ -327,7 +328,150 @@ JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is spl
 
 ---
 
-## 11. Tag Whitelist  
+## 11. Filtering Arrays with $filter
+
+The `$filter` key works with `$bind` to filter array items before rendering them. It uses the same conditional operators as the `$if` tag.
+
+**Syntax:**
+```javascript
+{
+  tag: {
+    $bind: "arrayProperty",
+    $filter: {
+      $check: "propertyToCheck",
+      // ... conditional operators ...
+    },
+    $children: [ /* template for each filtered item */ ]
+  }
+}
+```
+
+**Example - Filter by price:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "products",
+      $filter: {
+        $check: "price",
+        "$<": 500
+      },
+      $children: [
+        { li: "{{name}} - ${{price}}" }
+      ]
+    }
+  },
+  data: {
+    products: [
+      { name: "Laptop", price: 999 },
+      { name: "Mouse", price: 25 },
+      { name: "Keyboard", price: 75 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Mouse - $25</li><li>Keyboard - $75</li></ul>`
+
+**Example - Filter by role:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "users",
+      $filter: {
+        $check: "role",
+        $in: ["admin", "moderator"]
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    users: [
+      { name: "Alice", role: "admin" },
+      { name: "Bob", role: "user" },
+      { name: "Charlie", role: "moderator" }
+    ]
+  }
+}
+```
+Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
+
+**Example - Filter with range (AND logic):**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "people",
+      $filter: {
+        $check: "age",
+        "$>=": 18,
+        "$<=": 65
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    people: [
+      { name: "Alice", age: 15 },
+      { name: "Bob", age: 30 },
+      { name: "Charlie", age: 70 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Bob</li></ul>`
+
+**Example - Filter with OR logic:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "people",
+      $filter: {
+        $check: "age",
+        "$<": 18,
+        "$>": 65,
+        $join: "OR"
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    people: [
+      { name: "Alice", age: 15 },
+      { name: "Bob", age: 30 },
+      { name: "Charlie", age: 70 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
+
+**Supported operators:**
+- `$<`: Less than
+- `$>`: Greater than
+- `$<=`: Less than or equal
+- `$>=`: Greater than or equal
+- `$=`: Strict equality (===)
+- `$in`: Array membership check
+- `$not`: Invert the condition result
+- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
+
+**Key differences from `$if` tag:**
+- `$filter` is used with `$bind` to filter arrays
+- `$filter` does not use `$then` or `$else` (it only evaluates true/false)
+- Items that evaluate to true are included in the rendered output
+- Items that evaluate to false are excluded
+
+---
+
+## 12. Tag Whitelist  
 
 **Standard HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
@@ -347,7 +491,7 @@ Blocked tags:
 
 ---
 
-## 12. Comments
+## 13. Comments
 
 HTML comments are generated using the `$comment` tag:
 
@@ -385,7 +529,7 @@ $comment:
 
 ---
 
-## 13. Conditional Rendering with "$if" Tag
+## 14. Conditional Rendering with "$if" Tag
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
