@@ -817,30 +817,23 @@ This filters for working-age adults (18-65 inclusive).
 
 **Practical example - Filter vs If:**
 
-Instead of rendering all items with conditional status messages:
+Instead of wrapping each item in an $if to conditionally render it:
 ```json
 {
   "div": {
     "$bind": "products",
     "$children": [
       {
-        "div": {
-          "$children": [
-            { "h3": "{{name}}" },
-            {
-              "$if": {
-                "$check": "inStock",
-                "$then": { "p": "✓ In Stock" }
-              }
-            },
-            {
-              "$if": {
-                "$check": "inStock",
-                "$not": true,
-                "$then": { "p": "✗ Out of Stock" }
-              }
+        "$if": {
+          "$check": "inStock",
+          "$then": {
+            "div": {
+              "$children": [
+                { "h3": "{{name}}" },
+                { "p": "✓ In Stock ({{quantity}} available)" }
+              ]
             }
-          ]
+          }
         }
       }
     ]
@@ -870,7 +863,7 @@ Simply filter to show only in-stock items:
 }
 ```
 
-This is cleaner, simpler, and more efficient!
+This is cleaner and more explicit about intent!
 
 ### Comments
 

@@ -415,16 +415,15 @@
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
-      let itemsToRender = bound;
-      if ($filter && isFilterCondition($filter)) {
-        itemsToRender = bound.filter((item) => {
-          const newParents = [...parents, data];
-          return evaluateFilterCondition(item, $filter, newParents, logger, getOuterProperty);
-        });
-      }
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
-        for (const item of itemsToRender) {
+        for (const item of bound) {
+          if ($filter && isFilterCondition($filter)) {
+            const newParents2 = [...parents, data];
+            if (!evaluateFilterCondition(item, $filter, newParents2, logger, getOuterProperty)) {
+              continue;
+            }
+          }
           const newParents = [...parents, data];
           for (const child of $children) {
             const content = render(child, item, { ...childContext, parents: newParents });

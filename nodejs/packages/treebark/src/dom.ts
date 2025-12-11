@@ -135,17 +135,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     if (Array.isArray(bound)) {
-      // Apply $filter if present
-      let itemsToRender = bound;
-      
-      if ($filter && isFilterCondition($filter)) {
-        itemsToRender = bound.filter(item => {
+      for (const item of bound) {
+        // Apply $filter if present - skip items that don't match
+        if ($filter && isFilterCondition($filter)) {
           const newParents = [...parents, data];
-          return evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty);
-        });
-      }
-      
-      for (const item of itemsToRender) {
+          if (!evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty)) {
+            continue;
+          }
+        }
+        
         // For array items, add current data context to parents
         const newParents = [...parents, data];
         // Skip children for void tags
