@@ -11,7 +11,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  isFilterCondition,
+  evaluateFilterCondition
 } from './common.js';
 
 export function renderToDOM(
@@ -123,7 +125,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     // $bind uses literal property paths only - no parent context access
     const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
-    const { $bind, $children = [], ...bindAttrs } = rest;
+    const { $bind, $filter, $children = [], ...bindAttrs } = rest;
     setAttrs(element, bindAttrs, data, tag, parents, logger, getOuterProperty);
     
     // Validate children for bound elements
@@ -133,7 +135,17 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     if (Array.isArray(bound)) {
-      for (const item of bound) {
+      // Apply $filter if present
+      let itemsToRender = bound;
+      
+      if ($filter && isFilterCondition($filter)) {
+        itemsToRender = bound.filter(item => {
+          const newParents = [...parents, data];
+          return evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty);
+        });
+      }
+      
+      for (const item of itemsToRender) {
         // For array items, add current data context to parents
         const newParents = [...parents, data];
         // Skip children for void tags

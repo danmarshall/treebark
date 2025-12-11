@@ -54,6 +54,7 @@
   };
   const OPERATORS = /* @__PURE__ */ new Set(["$<", "$>", "$<=", "$>=", "$=", "$in"]);
   const CONDITIONALKEYS = /* @__PURE__ */ new Set(["$check", "$then", "$else", "$not", "$join", ...OPERATORS]);
+  /* @__PURE__ */ new Set(["$check", "$not", "$join", ...OPERATORS]);
   const BLOCKED_CSS_PROPERTIES = /* @__PURE__ */ new Set([
     "behavior",
     // IE behavior property - can execute code
@@ -252,6 +253,16 @@
       return value.$else !== void 0 ? value.$else : "";
     }
   }
+  function isFilterCondition(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
+  }
+  function evaluateFilterCondition(item, filter, parents = [], logger, getOuterProperty) {
+    if (!validatePathExpression(filter.$check, "$check", logger)) {
+      return false;
+    }
+    const checkValue = getProperty(item, filter.$check, parents, logger, getOuterProperty);
+    return evaluateCondition(checkValue, filter);
+  }
   function parseTemplateObject(templateObj, logger) {
     if (!templateObj || typeof templateObj !== "object") {
       logger.error("Template object cannot be null, undefined, or non-object");
@@ -395,7 +406,7 @@
         return "";
       }
       const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
-      const { $bind, $children = [], ...bindAttrs } = rest;
+      const { $bind, $filter, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
         if (bound !== null && bound !== void 0 && typeof bound !== "object") {
           logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
@@ -405,9 +416,16 @@
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
+      let itemsToRender = bound;
+      if ($filter && isFilterCondition($filter)) {
+        itemsToRender = bound.filter((item) => {
+          const newParents = [...parents, data];
+          return evaluateFilterCondition(item, $filter, newParents, logger, getOuterProperty);
+        });
+      }
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
-        for (const item of bound) {
+        for (const item of itemsToRender) {
           const newParents = [...parents, data];
           for (const child of $children) {
             const content = render(child, item, { ...childContext, parents: newParents });

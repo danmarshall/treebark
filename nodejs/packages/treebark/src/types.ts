@@ -43,6 +43,22 @@ export type ConditionalValueOrTemplate = ConditionalBase<InterpolatedString | Te
 // Conditional value type for attribute values - T is restricted to primitives
 export type ConditionalValue = ConditionalBase<InterpolatedString>;
 
+// Filter condition type for $filter - similar to ConditionalBase but without $then/$else
+export type FilterCondition = {
+  $check: BindPath;
+  // Comparison operators (require numbers)
+  '$<'?: number;
+  '$>'?: number;
+  '$<='?: number;
+  '$>='?: number;
+  // Equality operators (can compare any value)
+  '$='?: PrimitiveValue;
+  $in?: PrimitiveValue[];
+  // Modifiers
+  $not?: boolean;
+  $join?: 'AND' | 'OR';
+};
+
 // CSS Style properties as an object with kebab-case property names
 // Accepts any valid CSS property name (kebab-case format)
 export type CSSProperties = {
@@ -84,6 +100,7 @@ type GlobalAttrs = {
 // Base attributes for container tags (can have children)
 type BaseContainerAttrs = GlobalAttrs & {
   $bind?: BindPath;
+  $filter?: FilterCondition;
   $children?: (InterpolatedString | TemplateObject)[];
 };
 

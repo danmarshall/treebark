@@ -12,7 +12,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  isFilterCondition,
+  evaluateFilterCondition
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -161,7 +163,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
-    const { $bind, $children = [], ...bindAttrs } = rest;
+    const { $bind, $filter, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
       // Check if bound is a primitive and we're trying to access children
@@ -175,10 +177,20 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
 
     // Array binding case
+    let itemsToRender = bound;
+    
+    // Apply $filter if present
+    if ($filter && isFilterCondition($filter)) {
+      itemsToRender = bound.filter(item => {
+        const newParents = [...parents, data];
+        return evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty);
+      });
+    }
+    
     childrenOutput = [];
     // Skip children for void tags
     if (!VOID_TAGS.has(tag)) {
-      for (const item of bound) {
+      for (const item of itemsToRender) {
         const newParents = [...parents, data];
         for (const child of $children) {
           const content = render(child, item as Data, { ...childContext, parents: newParents });

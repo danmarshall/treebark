@@ -16,6 +16,7 @@ import type {
   OuterPropertyResolver,
   BindPath,
   InterpolatedString,
+  FilterCondition,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -58,6 +59,8 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
+
+export const FILTERKEYS = new Set(['$check', '$not', '$join', ...OPERATORS]);
 
 // Blocked CSS properties that are known to be dangerous
 const BLOCKED_CSS_PROPERTIES = new Set([
@@ -345,14 +348,14 @@ export function validatePathExpression(value: BindPath, label: string, logger: L
 }
 
 /**
- * Evaluate conditional logic for $if tag and conditional attributes
+ * Evaluate conditional logic for $if tag, conditional attributes, and $filter
  * Supports operators: $<, $>, $<=, $>=, $=, $in
  * Supports modifiers: $not, $join
  * Default behavior: truthy check when no operators
  */
-export function evaluateCondition<T>(
+export function evaluateCondition<T = unknown>(
   checkValue: unknown,
-  attrs: ConditionalBase<T>
+  attrs: ConditionalBase<T> | FilterCondition
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
 
@@ -439,6 +442,37 @@ export function evaluateConditionalValue(
   } else {
     return value.$else !== undefined ? value.$else : '';
   }
+}
+
+/**
+ * Check if a value is a filter condition object
+ */
+export function isFilterCondition(value: unknown): value is FilterCondition {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as FilterCondition).$check === 'string'
+  );
+}
+
+/**
+ * Evaluate a filter condition for a single item
+ * Returns true if the item passes the filter, false otherwise
+ */
+export function evaluateFilterCondition(
+  item: Data,
+  filter: FilterCondition,
+  parents: Data[] = [],
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): boolean {
+  if (!validatePathExpression(filter.$check, '$check', logger)) {
+    return false;
+  }
+  const checkValue = getProperty(item, filter.$check, parents, logger, getOuterProperty);
+  return evaluateCondition(checkValue, filter);
 }
 
 /**
