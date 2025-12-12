@@ -136,16 +136,16 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     
     if (Array.isArray(bound)) {
       for (const item of bound) {
+        // For array items, add current data context to parents
+        const newParents = [...parents, data];
+        
         // Apply $filter if present - skip items that don't match
         if ($filter && isFilterCondition($filter)) {
-          const newParents = [...parents, data];
           if (!evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty)) {
             continue;
           }
         }
         
-        // For array items, add current data context to parents
-        const newParents = [...parents, data];
         // Skip children for void tags
         if (!isVoid) {
           for (const c of $children) {

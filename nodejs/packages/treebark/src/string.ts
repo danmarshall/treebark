@@ -181,15 +181,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     // Skip children for void tags
     if (!VOID_TAGS.has(tag)) {
       for (const item of bound) {
+        const newParents = [...parents, data];
+        
         // Apply $filter if present - skip items that don't match
         if ($filter && isFilterCondition($filter)) {
-          const newParents = [...parents, data];
           if (!evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty)) {
             continue;
           }
         }
         
-        const newParents = [...parents, data];
         for (const child of $children) {
           const content = render(child, item as Data, { ...childContext, parents: newParents });
           childrenOutput.push(...processContent(content));

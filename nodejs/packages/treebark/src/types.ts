@@ -19,31 +19,8 @@ export type InterpolatedString = string;
 export type TemplateObject = IfTag | RegularTags;
 export type TemplateElement = InterpolatedString | TemplateObject;
 
-// Generic conditional type shared by $if tag and conditional attribute values
-export type ConditionalBase<T> = {
-  $check: BindPath;
-  $then: T;
-  $else?: T;
-  // Comparison operators (require numbers)
-  '$<'?: number;
-  '$>'?: number;
-  '$<='?: number;
-  '$>='?: number;
-  // Equality operators (can compare any value)
-  '$='?: PrimitiveValue;
-  $in?: PrimitiveValue[];
-  // Modifiers
-  $not?: boolean;
-  $join?: 'AND' | 'OR';
-};
-
-// Conditional type for $if tag - T can be string or TemplateObject
-export type ConditionalValueOrTemplate = ConditionalBase<InterpolatedString | TemplateObject>;
-
-// Conditional value type for attribute values - T is restricted to primitives
-export type ConditionalValue = ConditionalBase<InterpolatedString>;
-
-// Filter condition type for $filter - similar to ConditionalBase but without $then/$else
+// Filter condition type - base for all conditional logic
+// Contains operators and modifiers but no $then/$else
 export type FilterCondition = {
   $check: BindPath;
   // Comparison operators (require numbers)
@@ -58,6 +35,19 @@ export type FilterCondition = {
   $not?: boolean;
   $join?: 'AND' | 'OR';
 };
+
+// Conditional type extends FilterCondition with $then/$else for branching
+// Used by $if tag and conditional attribute values
+export type ConditionalBase<T> = FilterCondition & {
+  $then: T;
+  $else?: T;
+};
+
+// Conditional type for $if tag - T can be string or TemplateObject
+export type ConditionalValueOrTemplate = ConditionalBase<InterpolatedString | TemplateObject>;
+
+// Conditional value type for attribute values - T is restricted to primitives
+export type ConditionalValue = ConditionalBase<InterpolatedString>;
 
 // CSS Style properties as an object with kebab-case property names
 // Accepts any valid CSS property name (kebab-case format)

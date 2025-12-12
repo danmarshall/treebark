@@ -418,13 +418,12 @@
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
         for (const item of bound) {
+          const newParents = [...parents, data];
           if ($filter && isFilterCondition($filter)) {
-            const newParents2 = [...parents, data];
-            if (!evaluateFilterCondition(item, $filter, newParents2, logger, getOuterProperty)) {
+            if (!evaluateFilterCondition(item, $filter, newParents, logger, getOuterProperty)) {
               continue;
             }
           }
-          const newParents = [...parents, data];
           for (const child of $children) {
             const content = render(child, item, { ...childContext, parents: newParents });
             childrenOutput.push(...processContent(content));
