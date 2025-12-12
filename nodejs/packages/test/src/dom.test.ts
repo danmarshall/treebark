@@ -891,6 +891,21 @@ describe('DOM Renderer', () => {
           case 'works without $filter (no filtering)':
             expect(div.innerHTML).toBe('<ul><li>Item 1</li><li>Item 2</li></ul>');
             break;
+          case 'type safety: filters out string values when comparing with numbers using $>':
+            expect(div.innerHTML).toBe('<ul><li>Number 15: 15</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $<':
+            expect(div.innerHTML).toBe('<ul><li>Number 50: 50</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $>=':
+            expect(div.innerHTML).toBe('<ul><li>Number 18: 18</li><li>Number 25: 25</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $<=':
+            expect(div.innerHTML).toBe('<ul><li>Number 40: 40</li><li>Number 65: 65</li></ul>');
+            break;
+          case 'type safety: allows all numbers in range with numeric operators':
+            expect(div.innerHTML).toBe('<ul><li>Number 10: 10</li><li>Number 50: 50</li><li>Number 100: 100</li></ul>');
+            break;
           default:
             throw new Error(`Unknown test case: ${tc.name}`);
         }

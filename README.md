@@ -758,7 +758,16 @@ Output:
 
 ### Filtering Arrays
 
-You can filter array items before rendering them by using `$filter` with `$bind`. The `$filter` key uses the same conditional operators as the `$if` tag.
+You can filter array items before rendering them by using `$filter` with `$bind`.
+
+**Available filter operators:**
+- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
+- `$=`: Strict equality
+- `$in`: Array membership check
+- `$not`: Invert the condition
+- `$join`: Combine operators with "AND" (default) or "OR" logic
+
+**Note:** Numeric comparison operators (`$<`, `$>`, `$<=`, `$>=`) require both the checked value and comparison value to be numbers. String values like `"110"` will not match numeric comparisons even though JavaScript would coerce them. This type-safety prevents unpredictable filtering behavior.
 
 **Filter by price:**
 ```json
@@ -849,16 +858,20 @@ Output:
 
 This filters for working-age adults (18-65 inclusive).
 
-**Available filter operators:**
-- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons
-- `$=`: Strict equality
-- `$in`: Array membership check
-- `$not`: Invert the condition
-- `$join`: Combine operators with "AND" (default) or "OR" logic
-
 ### Conditional Rendering
 
 The `$if` tag provides powerful conditional rendering with comparison operators and if/else branching. It doesn't render itself as an HTML element—it conditionally outputs a single element based on the condition.
+
+**Available conditional operators:**
+- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership
+- `$not`: Invert the condition
+- `$join`: Combine operators with "AND" (default) or "OR" logic
+- `$then`: Element to render when condition is true
+- `$else`: Element to render when condition is false
+
+**Note:** Numeric comparison operators require both values to be numbers for type-safety.
 
 **Basic truthiness check:**
 ```json
@@ -920,9 +933,9 @@ With `data: { isLoggedIn: false }`:
 <div><p>Please log in</p></div>
 ```
 
-**Comparison operators:**
+**Stacking comparison operators:**
 
-The `$if` tag supports powerful comparison operators that can be stacked:
+Multiple comparison operators can be combined for range checks:
 
 ```json
 {
@@ -941,14 +954,6 @@ The `$if` tag supports powerful comparison operators that can be stacked:
   }
 }
 ```
-
-Available operators:
-- `$<`: Less than
-- `$>`: Greater than
-- `$<=`: Less than or equal
-- `$>=`: Greater than or equal
-- `$=`: Strict equality (===)
-- `$in`: Array membership
 
 **Using `$>=` and `$<=` for inclusive ranges:**
 

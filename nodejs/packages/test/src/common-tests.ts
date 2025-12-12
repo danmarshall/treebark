@@ -2507,6 +2507,137 @@ export const filterTests: TestCase[] = [
         ]
       }
     }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $>',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>': 10
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 15', value: 15 },
+          { name: 'Number 5', value: 5 },
+          { name: 'String 110', value: '110' },
+          { name: 'String 2', value: '2' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $<',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$<': 100
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 50', value: 50 },
+          { name: 'Number 150', value: 150 },
+          { name: 'String 75', value: '75' },
+          { name: 'String 200', value: '200' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $>=',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>=': 18
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 18', value: 18 },
+          { name: 'Number 25', value: 25 },
+          { name: 'Number 10', value: 10 },
+          { name: 'String 20', value: '20' },
+          { name: 'String 15', value: '15' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $<=',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$<=': 65
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 40', value: 40 },
+          { name: 'Number 65', value: 65 },
+          { name: 'Number 70', value: 70 },
+          { name: 'String 50', value: '50' },
+          { name: 'String 80', value: '80' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: allows all numbers in range with numeric operators',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>=': 10,
+            '$<=': 100
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 10', value: 10 },
+          { name: 'Number 50', value: 50 },
+          { name: 'Number 100', value: 100 },
+          { name: 'Number 5', value: 5 },
+          { name: 'Number 150', value: 150 },
+          { name: 'String 50', value: '50' },
+          { name: 'String 75', value: '75' }
+        ]
+      }
+    }
   }
 ];
 

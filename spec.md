@@ -388,7 +388,19 @@ $comment:
 
 ## 13. Filtering Arrays with $filter
 
-The `$filter` key works with `$bind` to filter array items before rendering them. It uses the same conditional operators as the `$if` tag.
+The `$filter` key works with `$bind` to filter array items before rendering them.
+
+**Supported operators:**
+- `$<`: Less than (numeric comparison, both values must be numbers)
+- `$>`: Greater than (numeric comparison, both values must be numbers)
+- `$<=`: Less than or equal (numeric comparison, both values must be numbers)
+- `$>=`: Greater than or equal (numeric comparison, both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership check
+- `$not`: Invert the condition result
+- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
+
+**Type Safety:** Numeric comparison operators (`$<`, `$>`, `$<=`, `$>=`) require both the checked value and comparison value to be numbers. String values will not match numeric comparisons, even though JavaScript would coerce them. This prevents unpredictable filtering behavior.
 
 **Syntax:**
 ```javascript
@@ -511,16 +523,6 @@ Output: `<ul><li>Bob</li></ul>`
 ```
 Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
 
-**Supported operators:**
-- `$<`: Less than
-- `$>`: Greater than
-- `$<=`: Less than or equal
-- `$>=`: Greater than or equal
-- `$=`: Strict equality (===)
-- `$in`: Array membership check
-- `$not`: Invert the condition result
-- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
-
 **Key differences from `$if` tag:**
 - `$filter` is used with `$bind` to filter arrays
 - `$filter` does not use `$then` or `$else` (it only evaluates true/false)
@@ -533,11 +535,23 @@ Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
+**Supported operators:**
+- `$<`: Less than (numeric comparison, both values must be numbers)
+- `$>`: Greater than (numeric comparison, both values must be numbers)
+- `$<=`: Less than or equal (numeric comparison, both values must be numbers)
+- `$>=`: Greater than or equal (numeric comparison, both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership check
+- `$not`: Invert the final result
+- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
+- `$then` (or `$thenChildren`): Element(s) to render when condition is true
+- `$else` (or `$elseChildren`): Element(s) to render when condition is false
+
+**Type Safety:** Numeric comparison operators require both values to be numbers. This prevents unpredictable behavior from JavaScript type coercion.
+
 **Key Features:**
 - Uses `$check` to specify the property to check
-- Supports comparison operators: `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`
 - Operators can be stacked (multiple operators)
-- Supports `$not` to invert the final result
 - Uses AND logic by default, can switch to OR logic with `$join: "OR"`
 - Supports `$thenChildren` and `$elseChildren` for explicit if/else branching
 - Does not render itself as an HTML element
