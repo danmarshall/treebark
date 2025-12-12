@@ -822,21 +822,19 @@ Instead of wrapping each item in an $if to conditionally render it:
 {
   "div": {
     "$bind": "products",
-    "$children": [
-      {
-        "$if": {
-          "$check": "inStock",
-          "$then": {
-            "div": {
-              "$children": [
-                { "h3": "{{name}}" },
-                { "p": "✓ In Stock ({{quantity}} available)" }
-              ]
-            }
+    "$children": {
+      "$if": {
+        "$check": "inStock",
+        "$then": {
+          "div": {
+            "$children": [
+              { "h3": "{{name}}" },
+              { "p": "✓ In Stock ({{quantity}} available)" }
+            ]
           }
         }
       }
-    ]
+    }
   }
 }
 ```
