@@ -13,7 +13,7 @@ import {
   parseTemplateObject,
   processConditional,
   isFilterCondition,
-  evaluateFilterCondition
+  evaluateCondition
 } from './common.js';
 
 export function renderToDOM(
@@ -141,7 +141,11 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
         
         // Apply $filter if present - skip items that don't match
         if ($filter && isFilterCondition($filter)) {
-          if (!evaluateFilterCondition(item as Data, $filter, newParents, logger, getOuterProperty)) {
+          if (!validatePathExpression($filter.$check, '$check', logger)) {
+            continue;
+          }
+          const checkValue = getProperty(item as Data, $filter.$check, newParents, logger, getOuterProperty);
+          if (!evaluateCondition(checkValue, $filter)) {
             continue;
           }
         }

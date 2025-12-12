@@ -456,24 +456,6 @@ export function isFilterCondition(value: unknown): value is FilterCondition {
 }
 
 /**
- * Evaluate a filter condition for a single item
- * Returns true if the item passes the filter, false otherwise
- */
-export function evaluateFilterCondition(
-  item: Data,
-  filter: FilterCondition,
-  parents: Data[] = [],
-  logger: Logger,
-  getOuterProperty?: OuterPropertyResolver
-): boolean {
-  if (!validatePathExpression(filter.$check, '$check', logger)) {
-    return false;
-  }
-  const checkValue = getProperty(item, filter.$check, parents, logger, getOuterProperty);
-  return evaluateCondition(checkValue, filter);
-}
-
-/**
  * Check if a template has $bind: "." which means bind to current data object
  */
 
