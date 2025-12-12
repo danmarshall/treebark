@@ -122,7 +122,7 @@ This means the implementation is featherweight.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
 
 **Conditional keys (used in `$if` tag and conditional attribute values):**
-- All filter keys above (`$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$not`, `$join`), plus:
+- All filter keys above (`$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$join`, `$not`), plus:
 - `$then`: Single template object or string. Content/value when condition is true.
 - `$else`: Single template object or string. Content/value when condition is false.
 
@@ -764,8 +764,8 @@ You can filter array items before rendering them by using `$filter` with `$bind`
 - `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
 - `$=`: Strict equality
 - `$in`: Array membership check
-- `$not`: Invert the condition
 - `$join`: Combine operators with "AND" (default) or "OR" logic
+- `$not`: Invert the condition
 
 **Note:** Numeric comparison operators (`$<`, `$>`, `$<=`, `$>=`) require both the checked value and comparison value to be numbers. String values like `"110"` will not match numeric comparisons even though JavaScript would coerce them. This type-safety prevents unpredictable filtering behavior.
 
@@ -866,8 +866,8 @@ The `$if` tag provides powerful conditional rendering with comparison operators 
 - `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
 - `$=`: Strict equality (===)
 - `$in`: Array membership
-- `$not`: Invert the condition
 - `$join`: Combine operators with "AND" (default) or "OR" logic
+- `$not`: Invert the condition
 - `$then`: Element to render when condition is true
 - `$else`: Element to render when condition is false
 
