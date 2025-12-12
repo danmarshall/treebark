@@ -1081,14 +1081,8 @@
                                     style: { color: "green" },
                                     $children: ["✓ In Stock ({{quantity}} available)"]
                                   }
-                                }
-                              }
-                            },
-                            {
-                              $if: {
-                                $check: "inStock",
-                                $not: true,
-                                $then: {
+                                },
+                                $else: {
                                   p: {
                                     style: { color: "red" },
                                     $children: ["✗ Out of Stock"]
