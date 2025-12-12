@@ -255,13 +255,6 @@
   function isFilterCondition(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
   }
-  function evaluateFilterCondition(item, filter, parents = [], logger, getOuterProperty) {
-    if (!validatePathExpression(filter.$check, "$check", logger)) {
-      return false;
-    }
-    const checkValue = getProperty(item, filter.$check, parents, logger, getOuterProperty);
-    return evaluateCondition(checkValue, filter);
-  }
   function parseTemplateObject(templateObj, logger) {
     if (!templateObj || typeof templateObj !== "object") {
       logger.error("Template object cannot be null, undefined, or non-object");
@@ -415,17 +408,21 @@
         const newParents = [...parents, data];
         return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
       }
-      let itemsToRender = bound;
-      if ($filter && isFilterCondition($filter)) {
-        itemsToRender = bound.filter((item) => {
-          const newParents = [...parents, data];
-          return evaluateFilterCondition(item, $filter, newParents, logger, getOuterProperty);
-        });
-      }
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
-        for (const item of itemsToRender) {
+        const hasFilter = $filter && isFilterCondition($filter);
+        if (hasFilter && !validatePathExpression($filter.$check, "$check", logger)) {
+          contentAttrs = bindAttrs;
+          return "";
+        }
+        for (const item of bound) {
           const newParents = [...parents, data];
+          if (hasFilter) {
+            const checkValue = getProperty(item, $filter.$check, newParents, logger, getOuterProperty);
+            if (!evaluateCondition(checkValue, $filter)) {
+              continue;
+            }
+          }
           for (const child of $children) {
             const content = render(child, item, { ...childContext, parents: newParents });
             childrenOutput.push(...processContent(content));

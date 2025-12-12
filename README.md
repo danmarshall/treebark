@@ -32,7 +32,6 @@ Output:
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
-  - [Styling with Style Objects](#styling-with-style-objects)
   - [Mixed Content](#mixed-content)
   - [With Data Binding](#with-data-binding)
   - [Binding with $bind](#binding-with-bind)
@@ -41,6 +40,7 @@ Output:
   - [Array Element Access](#array-element-access)
   - [Filtering Arrays](#filtering-arrays)
   - [Conditional Rendering](#conditional-rendering)
+  - [Styling with Style Objects](#styling-with-style-objects)
   - [Comments](#comments)
 - [Error Handling](#error-handling)
 - [Format Notes](#format-notes)
@@ -208,107 +208,6 @@ For elements with both attributes and simple text content, you can also use this
 Output:
 ```html
 <a href="https://example.com" target="_blank">Visit our site</a>
-```
-
-### Styling with Style Objects
-
-For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
-
-**Basic styling:**
-```json
-{
-  "div": {
-    "style": {
-      "color": "red",
-      "font-size": "16px",
-      "padding": "10px"
-    },
-    "$children": ["Styled content"]
-  }
-}
-```
-
-Output:
-```html
-<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
-```
-
-**Key features:**
-- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
-- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
-- **Type safety**: Values are strings
-
-**Flexbox example:**
-```json
-{
-  "div": {
-    "style": {
-      "display": "flex",
-      "flex-direction": "column",
-      "justify-content": "center",
-      "align-items": "center",
-      "gap": "20px"
-    },
-    "$children": ["Flexbox layout"]
-  }
-}
-```
-
-**Grid example:**
-```json
-{
-  "div": {
-    "style": {
-      "display": "grid",
-      "grid-template-columns": "repeat(3, 1fr)",
-      "gap": "10px"
-    },
-    "$children": ["Grid layout"]
-  }
-}
-```
-
-**Conditional styles:**
-```json
-{
-  "div": {
-    "style": {
-      "$check": "isActive",
-      "$then": { "color": "green", "font-weight": "bold" },
-      "$else": { "color": "gray" }
-    },
-    "$children": ["Status"]
-  }
-}
-```
-
-#### Tags without attributes
-For `br` & `hr` tags, use an empty object:
-
-```json
-{
-  "div": {
-    "$children": [
-      "Line one",
-      { "br": {} },
-      "Line two",
-      { "hr": {} },
-      "Footer text"
-    ]
-  }
-}
-```
-
-Output:
-```html
-<div>
-  Line one
-  <br>
-  Line two
-  <hr>
-  Footer text
-</div>
 ```
 
 ### Mixed Content  
@@ -1074,6 +973,107 @@ Since `$then` and `$else` output single elements, wrap multiple elements in a co
 The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
+
+### Styling with Style Objects
+
+For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
+
+**Basic styling:**
+```json
+{
+  "div": {
+    "style": {
+      "color": "red",
+      "font-size": "16px",
+      "padding": "10px"
+    },
+    "$children": ["Styled content"]
+  }
+}
+```
+
+Output:
+```html
+<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
+```
+
+**Key features:**
+- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
+- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
+- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Type safety**: Values are strings
+
+**Flexbox example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "flex",
+      "flex-direction": "column",
+      "justify-content": "center",
+      "align-items": "center",
+      "gap": "20px"
+    },
+    "$children": ["Flexbox layout"]
+  }
+}
+```
+
+**Grid example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "grid",
+      "grid-template-columns": "repeat(3, 1fr)",
+      "gap": "10px"
+    },
+    "$children": ["Grid layout"]
+  }
+}
+```
+
+**Conditional styles:**
+```json
+{
+  "div": {
+    "style": {
+      "$check": "isActive",
+      "$then": { "color": "green", "font-weight": "bold" },
+      "$else": { "color": "gray" }
+    },
+    "$children": ["Status"]
+  }
+}
+```
+
+#### Tags without attributes
+For `br` & `hr` tags, use an empty object:
+
+```json
+{
+  "div": {
+    "$children": [
+      "Line one",
+      { "br": {} },
+      "Line two",
+      { "hr": {} },
+      "Footer text"
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  Line one
+  <br>
+  Line two
+  <hr>
+  Footer text
+</div>
+```
 
 ### Comments
 
