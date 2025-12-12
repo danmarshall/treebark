@@ -410,12 +410,14 @@
       }
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
+        const hasFilter = $filter && isFilterCondition($filter);
+        if (hasFilter && !validatePathExpression($filter.$check, "$check", logger)) {
+          contentAttrs = bindAttrs;
+          return "";
+        }
         for (const item of bound) {
           const newParents = [...parents, data];
-          if ($filter && isFilterCondition($filter)) {
-            if (!validatePathExpression($filter.$check, "$check", logger)) {
-              continue;
-            }
+          if (hasFilter) {
             const checkValue = getProperty(item, $filter.$check, newParents, logger, getOuterProperty);
             if (!evaluateCondition(checkValue, $filter)) {
               continue;

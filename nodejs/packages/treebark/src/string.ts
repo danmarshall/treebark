@@ -180,14 +180,19 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     childrenOutput = [];
     // Skip children for void tags
     if (!VOID_TAGS.has(tag)) {
+      // Validate filter once before the loop
+      const hasFilter = $filter && isFilterCondition($filter);
+      if (hasFilter && !validatePathExpression($filter.$check, '$check', logger)) {
+        // Invalid filter path - skip rendering all items
+        contentAttrs = bindAttrs;
+        return '';
+      }
+      
       for (const item of bound) {
         const newParents = [...parents, data];
         
         // Apply $filter if present - skip items that don't match
-        if ($filter && isFilterCondition($filter)) {
-          if (!validatePathExpression($filter.$check, '$check', logger)) {
-            continue;
-          }
+        if (hasFilter) {
           const checkValue = getProperty(item as Data, $filter.$check, newParents, logger, getOuterProperty);
           if (!evaluateCondition(checkValue, $filter)) {
             continue;
