@@ -1034,6 +1034,9 @@ Output:
 ```
 
 **Conditional styles:**
+
+You can apply conditional logic to styles using the same operators from filtering and conditionals (`$check`, `$then`, `$else`, etc.):
+
 ```json
 {
   "div": {
@@ -1046,6 +1049,8 @@ Output:
   }
 }
 ```
+
+This checks if `isActive` is truthy. If true, applies green color and bold font. Otherwise, applies gray color.
 
 #### Tags without attributes
 For `br` & `hr` tags, use an empty object:
