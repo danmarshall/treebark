@@ -328,7 +328,65 @@ JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is spl
 
 ---
 
-## 11. Filtering Arrays with $filter
+## 11. Tag Whitelist  
+
+**Standard HTML tags:**  
+`div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
+`h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
+`ul`, `ol`, `li`,  
+`table`, `thead`, `tbody`, `tr`, `th`, `td`,  
+`a`, `img`
+
+**Special tags:**  
+`comment`, `if`
+
+Blocked tags:  
+`script`, `iframe`, `embed`, `object`, `applet`,  
+`form`, `input`, `button`, `select`,  
+`video`, `audio`,  
+`style`, `link`, `meta`, `base`
+
+---
+
+## 12. Comments
+
+HTML comments are generated using the `$comment` tag:
+
+```yaml
+$comment: "This is a comment"
+```
+
+→ `<!--This is a comment-->`
+
+**Features:**
+- Support interpolation: `$comment: "Generated on {{date}}"`
+- Support mixed content with `$children`
+- Cannot be nested (attempting to place a `$comment` inside another `$comment` logs an error and skips rendering the nested comment)
+
+**Examples:**
+
+Basic comment:
+```yaml
+$comment: "This is a comment"
+```
+
+Comment with interpolation:
+```yaml
+$comment: "User: {{name}}"
+```
+
+Comment with mixed content:
+```yaml
+$comment:
+  $children:
+    - "Start: "
+    - span: "highlighted text"
+    - " :End"
+```  
+
+---
+
+## 13. Filtering Arrays with $filter
 
 The `$filter` key works with `$bind` to filter array items before rendering them. It uses the same conditional operators as the `$if` tag.
 
@@ -468,64 +526,6 @@ Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
 - `$filter` does not use `$then` or `$else` (it only evaluates true/false)
 - Items that evaluate to true are included in the rendered output
 - Items that evaluate to false are excluded
-
----
-
-## 12. Tag Whitelist  
-
-**Standard HTML tags:**  
-`div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
-`h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
-`ul`, `ol`, `li`,  
-`table`, `thead`, `tbody`, `tr`, `th`, `td`,  
-`a`, `img`
-
-**Special tags:**  
-`comment`, `if`
-
-Blocked tags:  
-`script`, `iframe`, `embed`, `object`, `applet`,  
-`form`, `input`, `button`, `select`,  
-`video`, `audio`,  
-`style`, `link`, `meta`, `base`
-
----
-
-## 13. Comments
-
-HTML comments are generated using the `$comment` tag:
-
-```yaml
-$comment: "This is a comment"
-```
-
-→ `<!--This is a comment-->`
-
-**Features:**
-- Support interpolation: `$comment: "Generated on {{date}}"`
-- Support mixed content with `$children`
-- Cannot be nested (attempting to place a `$comment` inside another `$comment` logs an error and skips rendering the nested comment)
-
-**Examples:**
-
-Basic comment:
-```yaml
-$comment: "This is a comment"
-```
-
-Comment with interpolation:
-```yaml
-$comment: "User: {{name}}"
-```
-
-Comment with mixed content:
-```yaml
-$comment:
-  $children:
-    - "Start: "
-    - span: "highlighted text"
-    - " :End"
-```  
 
 ---
 

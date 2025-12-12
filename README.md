@@ -108,12 +108,10 @@ This means the implementation is featherweight.
 **Data binding:**
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
-- `$filter`: Object. Filters array items when used with `$bind`. Uses the same conditional operators as `$if` tag.
 
-**Conditional keys (used in `$if` tag, `$filter`, and conditional attribute values):**
+**Filter keys (used with `$bind` to filter array items):**
+- `$filter`: Object containing the filter condition.
 - `$check`: String. Property path to check.
-- `$then`: Single template object or string. Content/value when condition is true (not used in `$filter`).
-- `$else`: Single template object or string. Content/value when condition is false (not used in `$filter`).
 - `$<`: Less than comparison.
 - `$>`: Greater than comparison.
 - `$<=`: Less than or equal comparison.
@@ -122,6 +120,11 @@ This means the implementation is featherweight.
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
+
+**Conditional keys (used in `$if` tag and conditional attribute values):**
+- All filter keys above (`$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$not`, `$join`), plus:
+- `$then`: Single template object or string. Content/value when condition is true.
+- `$else`: Single template object or string. Content/value when condition is false.
 
 ## Examples  
 
