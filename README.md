@@ -1035,7 +1035,7 @@ Output:
 
 **Conditional styles:**
 
-You can apply conditional logic to styles using the same operators from filtering and conditionals (`$check`, `$then`, `$else`, etc.):
+You can apply conditional logic to styles using these operators: `$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$join`, `$not`, `$then`, `$else`:
 
 ```json
 {
