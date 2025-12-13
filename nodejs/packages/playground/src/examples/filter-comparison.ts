@@ -10,31 +10,17 @@ export const filterComparison: Example = {
         // Old way: Using $if tag to conditionally render each item
         {
           div: {
-            class: "method old-way",
             $children: [
               { h2: "❌ Old Way: Using $if tag" },
-              { p: "Shows only in-stock products using conditional rendering" },
               {
-                div: {
+                ul: {
                   $bind: "products",
                   $children: [
                     {
                       $if: {
                         $check: "inStock",
                         $then: {
-                          div: {
-                            class: "product-item",
-                            $children: [
-                              { h3: "{{name}}" },
-                              { p: "Price: {{price}}" },
-                              {
-                                p: {
-                                  style: { color: "green" },
-                                  $children: ["✓ In Stock ({{quantity}} available)"]
-                                }
-                              }
-                            ]
-                          }
+                          li: "{{name}}"
                         }
                       }
                     }
@@ -50,31 +36,17 @@ export const filterComparison: Example = {
         // New way: Using $filter to show only in-stock items
         {
           div: {
-            class: "method new-way",
             $children: [
               { h2: "✅ New Way: Using $filter" },
-              { p: "Shows only in-stock products (cleaner, more declarative)" },
               {
-                div: {
+                ul: {
                   $bind: "products",
                   $filter: {
                     $check: "inStock"
                   },
                   $children: [
                     {
-                      div: {
-                        class: "product-item",
-                        $children: [
-                          { h3: "{{name}}" },
-                          { p: "Price: {{price}}" },
-                          {
-                            p: {
-                              style: { color: "green" },
-                              $children: ["✓ In Stock ({{quantity}} available)"]
-                            }
-                          }
-                        ]
-                      }
+                      li: "{{name}}"
                     }
                   ]
                 }
@@ -87,9 +59,9 @@ export const filterComparison: Example = {
   },
   data: {
     products: [
-      { name: "Laptop", price: "$999", inStock: true, quantity: 15 },
-      { name: "Phone", price: "$499", inStock: false, quantity: 0 },
-      { name: "Tablet", price: "$299", inStock: true, quantity: 8 }
+      { name: "Laptop", inStock: true },
+      { name: "Phone", inStock: false },
+      { name: "Tablet", inStock: true }
     ]
   }
 };
