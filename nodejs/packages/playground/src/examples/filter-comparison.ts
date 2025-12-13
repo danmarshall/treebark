@@ -7,41 +7,35 @@ export const filterComparison: Example = {
       $children: [
         { h1: "Filter vs If: Comparison" },
         
-        // Old way: Using $if tags to conditionally display status
+        // Old way: Using $if tag to conditionally render each item
         {
           div: {
             class: "method old-way",
             $children: [
-              { h2: "❌ Old Way: Using $if tags" },
-              { p: "Shows all products with conditional status messages" },
+              { h2: "❌ Old Way: Using $if tag" },
+              { p: "Shows only in-stock products using conditional rendering" },
               {
                 div: {
                   $bind: "products",
                   $children: [
                     {
-                      div: {
-                        class: "product-item",
-                        $children: [
-                          { h3: "{{name}}" },
-                          { p: "Price: {{price}}" },
-                          {
-                            $if: {
-                              $check: "inStock",
-                              $then: {
+                      $if: {
+                        $check: "inStock",
+                        $then: {
+                          div: {
+                            class: "product-item",
+                            $children: [
+                              { h3: "{{name}}" },
+                              { p: "Price: {{price}}" },
+                              {
                                 p: {
                                   style: { color: "green" },
                                   $children: ["✓ In Stock ({{quantity}} available)"]
                                 }
-                              },
-                              $else: {
-                                p: {
-                                  style: { color: "red" },
-                                  $children: ["✗ Out of Stock"]
-                                }
                               }
-                            }
+                            ]
                           }
-                        ]
+                        }
                       }
                     }
                   ]
@@ -59,7 +53,7 @@ export const filterComparison: Example = {
             class: "method new-way",
             $children: [
               { h2: "✅ New Way: Using $filter" },
-              { p: "Shows only in-stock products (cleaner, simpler)" },
+              { p: "Shows only in-stock products (cleaner, more declarative)" },
               {
                 div: {
                   $bind: "products",
