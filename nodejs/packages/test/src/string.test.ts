@@ -20,6 +20,7 @@ import {
   ifTagThenElseTests,
   conditionalAttributeTests,
   ifTagErrorTests,
+  filterTests,
   styleObjectTests,
   styleObjectWarningTests,
   styleObjectErrorTests,
@@ -970,6 +971,63 @@ describe('String Renderer', () => {
 
     ifTagErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToString);
+    });
+  });
+
+  // Filter tests
+  describe('$filter on databinding', () => {
+    filterTests.forEach(testCase => {
+      createTest(testCase, renderToString, (result, tc) => {
+        switch (tc.name) {
+          case 'filters array items based on simple truthiness':
+            expect(result).toBe('<ul><li>Item 1</li><li>Item 3</li></ul>');
+            break;
+          case 'filters array items with less than operator':
+            expect(result).toBe('<ul><li>Mouse - $25</li><li>Keyboard - $75</li></ul>');
+            break;
+          case 'filters array items with greater than operator':
+            expect(result).toBe('<ul><li>Laptop</li><li>Monitor</li></ul>');
+            break;
+          case 'filters array items with $in operator':
+            expect(result).toBe('<ul><li>Alice (admin)</li><li>Charlie (moderator)</li></ul>');
+            break;
+          case 'filters array items with equality operator':
+            expect(result).toBe('<ul><li>Post 1</li><li>Post 3</li></ul>');
+            break;
+          case 'filters with range using multiple operators':
+            expect(result).toBe('<ul><li>Bob (25)</li><li>Dave (40)</li></ul>');
+            break;
+          case 'filters with OR logic':
+            expect(result).toBe('<ul><li>Alice</li><li>Charlie</li></ul>');
+            break;
+          case 'filters with $not modifier':
+            expect(result).toBe('<ul><li>Item 1</li><li>Item 3</li></ul>');
+            break;
+          case 'returns empty when all items are filtered out':
+            expect(result).toBe('<ul></ul>');
+            break;
+          case 'works without $filter (no filtering)':
+            expect(result).toBe('<ul><li>Item 1</li><li>Item 2</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $>':
+            expect(result).toBe('<ul><li>Number 15: 15</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $<':
+            expect(result).toBe('<ul><li>Number 50: 50</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $>=':
+            expect(result).toBe('<ul><li>Number 18: 18</li><li>Number 25: 25</li></ul>');
+            break;
+          case 'type safety: filters out string values when comparing with numbers using $<=':
+            expect(result).toBe('<ul><li>Number 40: 40</li><li>Number 65: 65</li></ul>');
+            break;
+          case 'type safety: allows all numbers in range with numeric operators':
+            expect(result).toBe('<ul><li>Number 10: 10</li><li>Number 50: 50</li><li>Number 100: 100</li></ul>');
+            break;
+          default:
+            throw new Error(`Unknown test case: ${tc.name}`);
+        }
+      });
     });
   });
 

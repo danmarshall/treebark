@@ -79,6 +79,7 @@ Treebark renders as much valid content as possible, only skipping problematic el
 
 - **`$children`** → array of child nodes (strings, nodes, or arrays)  
 - **`$bind`** → bind current node to an array or object property in data  
+- **`$filter`** → filter array items when used with `$bind` (uses conditional operators)
 
 ---
 
@@ -385,15 +386,172 @@ $comment:
 
 ---
 
-## 13. Conditional Rendering with "$if" Tag
+## 13. Filtering Arrays with $filter
+
+The `$filter` key works with `$bind` to filter array items before rendering them.
+
+**Supported operators:**
+- `$<`: Less than (numeric comparison, both values must be numbers)
+- `$>`: Greater than (numeric comparison, both values must be numbers)
+- `$<=`: Less than or equal (numeric comparison, both values must be numbers)
+- `$>=`: Greater than or equal (numeric comparison, both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership check
+- `$not`: Invert the condition result
+- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
+
+**Type Safety:** Numeric comparison operators (`$<`, `$>`, `$<=`, `$>=`) require both the checked value and comparison value to be numbers. String values will not match numeric comparisons, even though JavaScript would coerce them. This prevents unpredictable filtering behavior.
+
+**Syntax:**
+```javascript
+{
+  tag: {
+    $bind: "arrayProperty",
+    $filter: {
+      $check: "propertyToCheck",
+      // ... conditional operators ...
+    },
+    $children: [ /* template for each filtered item */ ]
+  }
+}
+```
+
+**Example - Filter by price:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "products",
+      $filter: {
+        $check: "price",
+        "$<": 500
+      },
+      $children: [
+        { li: "{{name}} - ${{price}}" }
+      ]
+    }
+  },
+  data: {
+    products: [
+      { name: "Laptop", price: 999 },
+      { name: "Mouse", price: 25 },
+      { name: "Keyboard", price: 75 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Mouse - $25</li><li>Keyboard - $75</li></ul>`
+
+**Example - Filter by role:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "users",
+      $filter: {
+        $check: "role",
+        $in: ["admin", "moderator"]
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    users: [
+      { name: "Alice", role: "admin" },
+      { name: "Bob", role: "user" },
+      { name: "Charlie", role: "moderator" }
+    ]
+  }
+}
+```
+Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
+
+**Example - Filter with range (AND logic):**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "people",
+      $filter: {
+        $check: "age",
+        "$>=": 18,
+        "$<=": 65
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    people: [
+      { name: "Alice", age: 15 },
+      { name: "Bob", age: 30 },
+      { name: "Charlie", age: 70 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Bob</li></ul>`
+
+**Example - Filter with OR logic:**
+```javascript
+{
+  template: {
+    ul: {
+      $bind: "people",
+      $filter: {
+        $check: "age",
+        "$<": 18,
+        "$>": 65,
+        $join: "OR"
+      },
+      $children: [
+        { li: "{{name}}" }
+      ]
+    }
+  },
+  data: {
+    people: [
+      { name: "Alice", age: 15 },
+      { name: "Bob", age: 30 },
+      { name: "Charlie", age: 70 }
+    ]
+  }
+}
+```
+Output: `<ul><li>Alice</li><li>Charlie</li></ul>`
+
+**Key differences from `$if` tag:**
+- `$filter` is used with `$bind` to filter arrays
+- `$filter` does not use `$then` or `$else` (it only evaluates true/false)
+- Items that evaluate to true are included in the rendered output
+- Items that evaluate to false are excluded
+
+---
+
+## 14. Conditional Rendering with "$if" Tag
 
 The `$if` tag provides advanced conditional rendering based on data properties. It acts as a transparent container that renders its children only when specified conditions are met.
 
+**Supported operators:**
+- `$<`: Less than (numeric comparison, both values must be numbers)
+- `$>`: Greater than (numeric comparison, both values must be numbers)
+- `$<=`: Less than or equal (numeric comparison, both values must be numbers)
+- `$>=`: Greater than or equal (numeric comparison, both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership check
+- `$not`: Invert the final result
+- `$join`: "AND" | "OR" - Combine multiple operators (default: "AND")
+- `$then` (or `$thenChildren`): Element(s) to render when condition is true
+- `$else` (or `$elseChildren`): Element(s) to render when condition is false
+
+**Type Safety:** Numeric comparison operators require both values to be numbers. This prevents unpredictable behavior from JavaScript type coercion.
+
 **Key Features:**
 - Uses `$check` to specify the property to check
-- Supports comparison operators: `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`
 - Operators can be stacked (multiple operators)
-- Supports `$not` to invert the final result
 - Uses AND logic by default, can switch to OR logic with `$join: "OR"`
 - Supports `$thenChildren` and `$elseChildren` for explicit if/else branching
 - Does not render itself as an HTML element

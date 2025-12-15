@@ -2268,6 +2268,379 @@ export const ifTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
+export const filterTests: TestCase[] = [
+  {
+    name: 'filters array items based on simple truthiness',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'active'
+          },
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Item 1', active: true },
+          { name: 'Item 2', active: false },
+          { name: 'Item 3', active: true }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters array items with less than operator',
+    input: {
+      template: {
+        ul: {
+          $bind: 'products',
+          $filter: {
+            $check: 'price',
+            '$<': 500
+          },
+          $children: [
+            { li: '{{name}} - ${{price}}' }
+          ]
+        }
+      },
+      data: {
+        products: [
+          { name: 'Laptop', price: 999 },
+          { name: 'Mouse', price: 25 },
+          { name: 'Keyboard', price: 75 },
+          { name: 'Monitor', price: 699 }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters array items with greater than operator',
+    input: {
+      template: {
+        ul: {
+          $bind: 'products',
+          $filter: {
+            $check: 'price',
+            '$>': 500
+          },
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        products: [
+          { name: 'Laptop', price: 999 },
+          { name: 'Mouse', price: 25 },
+          { name: 'Monitor', price: 699 }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters array items with $in operator',
+    input: {
+      template: {
+        ul: {
+          $bind: 'users',
+          $filter: {
+            $check: 'role',
+            $in: ['admin', 'moderator']
+          },
+          $children: [
+            { li: '{{name}} ({{role}})' }
+          ]
+        }
+      },
+      data: {
+        users: [
+          { name: 'Alice', role: 'admin' },
+          { name: 'Bob', role: 'user' },
+          { name: 'Charlie', role: 'moderator' },
+          { name: 'Dave', role: 'user' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters array items with equality operator',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'status',
+            '$=': 'published'
+          },
+          $children: [
+            { li: '{{title}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { title: 'Post 1', status: 'published' },
+          { title: 'Post 2', status: 'draft' },
+          { title: 'Post 3', status: 'published' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters with range using multiple operators',
+    input: {
+      template: {
+        ul: {
+          $bind: 'people',
+          $filter: {
+            $check: 'age',
+            '$>=': 18,
+            '$<=': 65
+          },
+          $children: [
+            { li: '{{name}} ({{age}})' }
+          ]
+        }
+      },
+      data: {
+        people: [
+          { name: 'Alice', age: 15 },
+          { name: 'Bob', age: 25 },
+          { name: 'Charlie', age: 70 },
+          { name: 'Dave', age: 40 }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters with OR logic',
+    input: {
+      template: {
+        ul: {
+          $bind: 'people',
+          $filter: {
+            $check: 'age',
+            '$<': 18,
+            '$>': 65,
+            $join: 'OR'
+          },
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        people: [
+          { name: 'Alice', age: 15 },
+          { name: 'Bob', age: 25 },
+          { name: 'Charlie', age: 70 }
+        ]
+      }
+    }
+  },
+  {
+    name: 'filters with $not modifier',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'hidden',
+            $not: true
+          },
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Item 1', hidden: false },
+          { name: 'Item 2', hidden: true },
+          { name: 'Item 3', hidden: false }
+        ]
+      }
+    }
+  },
+  {
+    name: 'returns empty when all items are filtered out',
+    input: {
+      template: {
+        ul: {
+          $bind: 'products',
+          $filter: {
+            $check: 'price',
+            '$<': 10
+          },
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        products: [
+          { name: 'Laptop', price: 999 },
+          { name: 'Mouse', price: 25 }
+        ]
+      }
+    }
+  },
+  {
+    name: 'works without $filter (no filtering)',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $children: [
+            { li: '{{name}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Item 1' },
+          { name: 'Item 2' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $>',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>': 10
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 15', value: 15 },
+          { name: 'Number 5', value: 5 },
+          { name: 'String 110', value: '110' },
+          { name: 'String 2', value: '2' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $<',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$<': 100
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 50', value: 50 },
+          { name: 'Number 150', value: 150 },
+          { name: 'String 75', value: '75' },
+          { name: 'String 200', value: '200' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $>=',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>=': 18
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 18', value: 18 },
+          { name: 'Number 25', value: 25 },
+          { name: 'Number 10', value: 10 },
+          { name: 'String 20', value: '20' },
+          { name: 'String 15', value: '15' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: filters out string values when comparing with numbers using $<=',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$<=': 65
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 40', value: 40 },
+          { name: 'Number 65', value: 65 },
+          { name: 'Number 70', value: 70 },
+          { name: 'String 50', value: '50' },
+          { name: 'String 80', value: '80' }
+        ]
+      }
+    }
+  },
+  {
+    name: 'type safety: allows all numbers in range with numeric operators',
+    input: {
+      template: {
+        ul: {
+          $bind: 'items',
+          $filter: {
+            $check: 'value',
+            '$>=': 10,
+            '$<=': 100
+          },
+          $children: [
+            { li: '{{name}}: {{value}}' }
+          ]
+        }
+      },
+      data: {
+        items: [
+          { name: 'Number 10', value: 10 },
+          { name: 'Number 50', value: 50 },
+          { name: 'Number 100', value: 100 },
+          { name: 'Number 5', value: 5 },
+          { name: 'Number 150', value: 150 },
+          { name: 'String 50', value: '50' },
+          { name: 'String 75', value: '75' }
+        ]
+      }
+    }
+  }
+];
+
 
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {

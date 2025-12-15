@@ -16,6 +16,7 @@ import type {
   OuterPropertyResolver,
   BindPath,
   InterpolatedString,
+  FilterCondition,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -345,14 +346,14 @@ export function validatePathExpression(value: BindPath, label: string, logger: L
 }
 
 /**
- * Evaluate conditional logic for $if tag and conditional attributes
+ * Evaluate conditional logic for $if tag, conditional attributes, and $filter
  * Supports operators: $<, $>, $<=, $>=, $=, $in
  * Supports modifiers: $not, $join
  * Default behavior: truthy check when no operators
  */
-export function evaluateCondition<T>(
+export function evaluateCondition<T = unknown>(
   checkValue: unknown,
-  attrs: ConditionalBase<T>
+  attrs: ConditionalBase<T> | FilterCondition
 ): boolean {
   const operators: { key: string; value: unknown }[] = [];
 
@@ -439,6 +440,19 @@ export function evaluateConditionalValue(
   } else {
     return value.$else !== undefined ? value.$else : '';
   }
+}
+
+/**
+ * Check if a value is a filter condition object
+ */
+export function isFilterCondition(value: unknown): value is FilterCondition {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as FilterCondition).$check === 'string'
+  );
 }
 
 /**

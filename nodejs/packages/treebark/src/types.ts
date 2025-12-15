@@ -19,11 +19,10 @@ export type InterpolatedString = string;
 export type TemplateObject = IfTag | RegularTags;
 export type TemplateElement = InterpolatedString | TemplateObject;
 
-// Generic conditional type shared by $if tag and conditional attribute values
-export type ConditionalBase<T> = {
+// Filter condition type - base for all conditional logic
+// Contains operators and modifiers but no $then/$else
+export type FilterCondition = {
   $check: BindPath;
-  $then: T;
-  $else?: T;
   // Comparison operators (require numbers)
   '$<'?: number;
   '$>'?: number;
@@ -35,6 +34,13 @@ export type ConditionalBase<T> = {
   // Modifiers
   $not?: boolean;
   $join?: 'AND' | 'OR';
+};
+
+// Conditional type extends FilterCondition with $then/$else for branching
+// Used by $if tag and conditional attribute values
+export type ConditionalBase<T> = FilterCondition & {
+  $then: T;
+  $else?: T;
 };
 
 // Conditional type for $if tag - T can be string or TemplateObject
@@ -84,6 +90,7 @@ type GlobalAttrs = {
 // Base attributes for container tags (can have children)
 type BaseContainerAttrs = GlobalAttrs & {
   $bind?: BindPath;
+  $filter?: FilterCondition;
   $children?: (InterpolatedString | TemplateObject)[];
 };
 

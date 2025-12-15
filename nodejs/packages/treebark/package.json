@@ -1,6 +1,6 @@
 {
   "name": "treebark",
-  "version": "2.0.10",
+  "version": "2.1.0",
   "description": "Safe HTML tree structures for Markdown and content-driven apps",
   "type": "module",
   "files": [

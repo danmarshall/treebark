@@ -32,15 +32,16 @@ Output:
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
-  - [Styling with Style Objects](#styling-with-style-objects)
   - [Mixed Content](#mixed-content)
   - [With Data Binding](#with-data-binding)
   - [Binding with $bind](#binding-with-bind)
   - [Parent Property Access](#parent-property-access)
   - [Working with Arrays](#working-with-arrays)
   - [Array Element Access](#array-element-access)
-  - [Comments](#comments)
+  - [Filtering Arrays](#filtering-arrays)
   - [Conditional Rendering](#conditional-rendering)
+  - [Styling with Style Objects](#styling-with-style-objects)
+  - [Comments](#comments)
 - [Error Handling](#error-handling)
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
@@ -90,7 +91,7 @@ This means the implementation is featherweight.
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
-- `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering) below.
+- `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering).
 
 ### Allowed Attributes
 
@@ -109,10 +110,9 @@ This means the implementation is featherweight.
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
 
-**Conditional keys (used in `$if` tag and conditional attribute values):**
+**Filter keys (used with `$bind` to filter array items — see [Filtering Arrays](#filtering-arrays)):**
+- `$filter`: Object containing the filter condition.
 - `$check`: String. Property path to check.
-- `$then`: Single template object or string. Content/value when condition is true.
-- `$else`: Single template object or string. Content/value when condition is false.
 - `$<`: Less than comparison.
 - `$>`: Greater than comparison.
 - `$<=`: Less than or equal comparison.
@@ -121,6 +121,11 @@ This means the implementation is featherweight.
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
+
+**Conditional keys (used in `$if` tag and conditional attribute values — see [Conditional Rendering](#conditional-rendering)):**
+- All filter keys above (`$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$join`, `$not`), plus:
+- `$then`: Single template object or string. Content/value when condition is true.
+- `$else`: Single template object or string. Content/value when condition is false.
 
 ## Examples  
 
@@ -203,107 +208,6 @@ For elements with both attributes and simple text content, you can also use this
 Output:
 ```html
 <a href="https://example.com" target="_blank">Visit our site</a>
-```
-
-### Styling with Style Objects
-
-For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
-
-**Basic styling:**
-```json
-{
-  "div": {
-    "style": {
-      "color": "red",
-      "font-size": "16px",
-      "padding": "10px"
-    },
-    "$children": ["Styled content"]
-  }
-}
-```
-
-Output:
-```html
-<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
-```
-
-**Key features:**
-- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
-- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
-- **Type safety**: Values are strings
-
-**Flexbox example:**
-```json
-{
-  "div": {
-    "style": {
-      "display": "flex",
-      "flex-direction": "column",
-      "justify-content": "center",
-      "align-items": "center",
-      "gap": "20px"
-    },
-    "$children": ["Flexbox layout"]
-  }
-}
-```
-
-**Grid example:**
-```json
-{
-  "div": {
-    "style": {
-      "display": "grid",
-      "grid-template-columns": "repeat(3, 1fr)",
-      "gap": "10px"
-    },
-    "$children": ["Grid layout"]
-  }
-}
-```
-
-**Conditional styles:**
-```json
-{
-  "div": {
-    "style": {
-      "$check": "isActive",
-      "$then": { "color": "green", "font-weight": "bold" },
-      "$else": { "color": "gray" }
-    },
-    "$children": ["Status"]
-  }
-}
-```
-
-#### Tags without attributes
-For `br` & `hr` tags, use an empty object:
-
-```json
-{
-  "div": {
-    "$children": [
-      "Line one",
-      { "br": {} },
-      "Line two",
-      { "hr": {} },
-      "Footer text"
-    ]
-  }
-}
-```
-
-Output:
-```html
-<div>
-  Line one
-  <br>
-  Line two
-  <hr>
-  Footer text
-</div>
 ```
 
 ### Mixed Content  
@@ -714,27 +618,30 @@ Output:
 
 **Note:** Numeric indices work because JavaScript allows both `array[0]` and `array["0"]` syntax. The dot notation path is split and each segment (including numeric strings) is used as a property key.
 
-### Comments
+### Filtering Arrays
 
-HTML comments can be created using the `comment` tag:
+You can filter array items before rendering them by using `$filter` with `$bind`.
 
-```json
-{ "$comment": "This is a comment" }
-```
+**Available filter operators:**
+- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
+- `$=`: Strict equality
+- `$in`: Array membership check
+- `$join`: Combine operators with "AND" (default) or "OR" logic
+- `$not`: Invert the condition
 
-Output:
-```html
-<!--This is a comment-->
-```
+**Note:** Numeric comparison operators (`$<`, `$>`, `$<=`, `$>=`) require both the checked value and comparison value to be numbers. String values like `"110"` will not match numeric comparisons even though JavaScript would coerce them. This type-safety prevents unpredictable filtering behavior.
 
-Comments support interpolation and mixed content like other tags:
-
+**Filter by price:**
 ```json
 {
-  "$comment": {
+  "ul": {
+    "$bind": "products",
+    "$filter": {
+      "$check": "price",
+      "$<": 500
+    },
     "$children": [
-      "Generated by {{generator}} on ",
-      { "span": "{{date}}" }
+      { "li": "{{name}} — ${{price}}" }
     ]
   }
 }
@@ -742,19 +649,91 @@ Comments support interpolation and mixed content like other tags:
 
 Data:
 ```json
-{ "generator": "Treebark", "date": "2024-01-01" }
+{
+  "products": [
+    { "name": "Laptop", "price": 999 },
+    { "name": "Mouse", "price": 25 },
+    { "name": "Keyboard", "price": 75 }
+  ]
+}
 ```
 
 Output:
 ```html
-<!--Generated by Treebark on <span>2024-01-01</span>-->
+<ul>
+  <li>Mouse — $25</li>
+  <li>Keyboard — $75</li>
+</ul>
 ```
 
-**Note:** Comments cannot be nested - attempting to place a `$comment` tag inside another `$comment` logs an error and skips the nested comment.
+**Filter by role:**
+```json
+{
+  "ul": {
+    "$bind": "users",
+    "$filter": {
+      "$check": "role",
+      "$in": ["admin", "moderator"]
+    },
+    "$children": [
+      { "li": "{{name}} ({{role}})" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "users": [
+    { "name": "Alice", "role": "admin" },
+    { "name": "Bob", "role": "user" },
+    { "name": "Charlie", "role": "moderator" }
+  ]
+}
+```
+
+Output:
+```html
+<ul>
+  <li>Alice (admin)</li>
+  <li>Charlie (moderator)</li>
+</ul>
+```
+
+**Filter with range:**
+```json
+{
+  "ul": {
+    "$bind": "people",
+    "$filter": {
+      "$check": "age",
+      "$>=": 18,
+      "$<=": 65
+    },
+    "$children": [
+      { "li": "{{name}} ({{age}})" }
+    ]
+  }
+}
+```
+
+This filters for working-age adults (18-65 inclusive).
 
 ### Conditional Rendering
 
 The `$if` tag provides powerful conditional rendering with comparison operators and if/else branching. It doesn't render itself as an HTML element—it conditionally outputs a single element based on the condition.
+
+**Available conditional operators:**
+- `$<`, `$>`, `$<=`, `$>=`: Numeric comparisons (both values must be numbers)
+- `$=`: Strict equality (===)
+- `$in`: Array membership
+- `$join`: Combine operators with "AND" (default) or "OR" logic
+- `$not`: Invert the condition
+- `$then`: Element to render when condition is true
+- `$else`: Element to render when condition is false
+
+**Note:** Numeric comparison operators require both values to be numbers for type-safety.
 
 **Basic truthiness check:**
 ```json
@@ -816,9 +795,9 @@ With `data: { isLoggedIn: false }`:
 <div><p>Please log in</p></div>
 ```
 
-**Comparison operators:**
+**Stacking comparison operators:**
 
-The `$if` tag supports powerful comparison operators that can be stacked:
+Multiple comparison operators can be combined for range checks:
 
 ```json
 {
@@ -837,14 +816,6 @@ The `$if` tag supports powerful comparison operators that can be stacked:
   }
 }
 ```
-
-Available operators:
-- `$<`: Less than
-- `$>`: Greater than
-- `$<=`: Less than or equal
-- `$>=`: Greater than or equal
-- `$=`: Strict equality (===)
-- `$in`: Array membership
 
 **Using `$>=` and `$<=` for inclusive ranges:**
 
@@ -1002,6 +973,150 @@ Since `$then` and `$else` output single elements, wrap multiple elements in a co
 The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
+
+### Styling with Style Objects
+
+For security, Treebark uses a **structured object format** for the `style` attribute. This prevents CSS injection attacks while maintaining flexibility.
+
+**Basic styling:**
+```json
+{
+  "div": {
+    "style": {
+      "color": "red",
+      "font-size": "16px",
+      "padding": "10px"
+    },
+    "$children": ["Styled content"]
+  }
+}
+```
+
+Output:
+```html
+<div style="color: red; font-size: 16px; padding: 10px">Styled content</div>
+```
+
+**Key features:**
+- **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
+- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
+- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Type safety**: Values are strings
+
+**Flexbox example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "flex",
+      "flex-direction": "column",
+      "justify-content": "center",
+      "align-items": "center",
+      "gap": "20px"
+    },
+    "$children": ["Flexbox layout"]
+  }
+}
+```
+
+**Grid example:**
+```json
+{
+  "div": {
+    "style": {
+      "display": "grid",
+      "grid-template-columns": "repeat(3, 1fr)",
+      "gap": "10px"
+    },
+    "$children": ["Grid layout"]
+  }
+}
+```
+
+**Conditional styles:**
+
+You can apply conditional logic to styles using these operators: `$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$join`, `$not`, `$then`, `$else`:
+
+```json
+{
+  "div": {
+    "style": {
+      "$check": "isActive",
+      "$then": { "color": "green", "font-weight": "bold" },
+      "$else": { "color": "gray" }
+    },
+    "$children": ["Status"]
+  }
+}
+```
+
+This checks if `isActive` is truthy. If true, applies green color and bold font. Otherwise, applies gray color.
+
+#### Tags without attributes
+For `br` & `hr` tags, use an empty object:
+
+```json
+{
+  "div": {
+    "$children": [
+      "Line one",
+      { "br": {} },
+      "Line two",
+      { "hr": {} },
+      "Footer text"
+    ]
+  }
+}
+```
+
+Output:
+```html
+<div>
+  Line one
+  <br>
+  Line two
+  <hr>
+  Footer text
+</div>
+```
+
+### Comments
+
+HTML comments can be created using the `comment` tag:
+
+```json
+{ "$comment": "This is a comment" }
+```
+
+Output:
+```html
+<!--This is a comment-->
+```
+
+Comments support interpolation and mixed content like other tags:
+
+```json
+{
+  "$comment": {
+    "$children": [
+      "Generated by {{generator}} on ",
+      { "span": "{{date}}" }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{ "generator": "Treebark", "date": "2024-01-01" }
+```
+
+Output:
+```html
+<!--Generated by Treebark on <span>2024-01-01</span>-->
+```
+
+**Note:** Comments cannot be nested - attempting to place a `$comment` tag inside another `$comment` logs an error and skips the nested comment.
 
 ## Error Handling
 

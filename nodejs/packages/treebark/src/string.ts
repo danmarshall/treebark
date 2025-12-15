@@ -12,7 +12,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  isFilterCondition,
+  evaluateCondition
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -161,7 +163,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     }
     
     const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
-    const { $bind, $children = [], ...bindAttrs } = rest;
+    const { $bind, $filter, $children = [], ...bindAttrs } = rest;
 
     if (!Array.isArray(bound)) {
       // Check if bound is a primitive and we're trying to access children
@@ -178,8 +180,25 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     childrenOutput = [];
     // Skip children for void tags
     if (!VOID_TAGS.has(tag)) {
+      // Validate filter once before the loop
+      const hasFilter = $filter && isFilterCondition($filter);
+      if (hasFilter && !validatePathExpression($filter.$check, '$check', logger)) {
+        // Invalid filter path - skip rendering all items
+        contentAttrs = bindAttrs;
+        return '';
+      }
+      
       for (const item of bound) {
         const newParents = [...parents, data];
+        
+        // Apply $filter if present - skip items that don't match
+        if (hasFilter) {
+          const checkValue = getProperty(item as Data, $filter.$check, newParents, logger, getOuterProperty);
+          if (!evaluateCondition(checkValue, $filter)) {
+            continue;
+          }
+        }
+        
         for (const child of $children) {
           const content = render(child, item as Data, { ...childContext, parents: newParents });
           childrenOutput.push(...processContent(content));

@@ -252,6 +252,9 @@
       return value.$else !== void 0 ? value.$else : "";
     }
   }
+  function isFilterCondition(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string";
+  }
   function parseTemplateObject(templateObj, logger) {
     if (!templateObj || typeof templateObj !== "object") {
       logger.error("Template object cannot be null, undefined, or non-object");
@@ -395,7 +398,7 @@
         return "";
       }
       const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
-      const { $bind, $children = [], ...bindAttrs } = rest;
+      const { $bind, $filter, $children = [], ...bindAttrs } = rest;
       if (!Array.isArray(bound)) {
         if (bound !== null && bound !== void 0 && typeof bound !== "object") {
           logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
@@ -407,8 +410,19 @@
       }
       childrenOutput = [];
       if (!VOID_TAGS.has(tag)) {
+        const hasFilter = $filter && isFilterCondition($filter);
+        if (hasFilter && !validatePathExpression($filter.$check, "$check", logger)) {
+          contentAttrs = bindAttrs;
+          return "";
+        }
         for (const item of bound) {
           const newParents = [...parents, data];
+          if (hasFilter) {
+            const checkValue = getProperty(item, $filter.$check, newParents, logger, getOuterProperty);
+            if (!evaluateCondition(checkValue, $filter)) {
+              continue;
+            }
+          }
           for (const child of $children) {
             const content = render(child, item, { ...childContext, parents: newParents });
             childrenOutput.push(...processContent(content));
