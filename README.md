@@ -91,7 +91,7 @@ This means the implementation is featherweight.
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
-- `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering) below.
+- `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering).
 
 ### Allowed Attributes
 
@@ -110,7 +110,7 @@ This means the implementation is featherweight.
 - `$children`: Array or string. Defines child nodes or mixed content for an element.
 - `$bind`: String. Binds the current node to a property or array in the data context. If it resolves to an array, the element's children are repeated for each item.
 
-**Filter keys (used with `$bind` to filter array items):**
+**Filter keys (used with `$bind` to filter array items — see [Filtering Arrays](#filtering-arrays)):**
 - `$filter`: Object containing the filter condition.
 - `$check`: String. Property path to check.
 - `$<`: Less than comparison.
@@ -122,7 +122,7 @@ This means the implementation is featherweight.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
 
-**Conditional keys (used in `$if` tag and conditional attribute values):**
+**Conditional keys (used in `$if` tag and conditional attribute values — see [Conditional Rendering](#conditional-rendering)):**
 - All filter keys above (`$check`, `$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`, `$join`, `$not`), plus:
 - `$then`: Single template object or string. Content/value when condition is true.
 - `$else`: Single template object or string. Content/value when condition is false.
