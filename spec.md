@@ -163,13 +163,33 @@ div:
 
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
-- Allowed:  
+- Allowed HTML attributes:  
   - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
   - `a`: `href`, `target`, `rel`  
   - `img`: `src`, `alt`, `width`, `height`  
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
   - `blockquote`: `cite`  
+- Allowed SVG attributes:
+  - Global SVG: `id`, `class`, `style`, `data-*`
+  - `svg`: `width`, `height`, `viewBox`, `preserveAspectRatio`, `xmlns`
+  - Shape presentation: `fill`, `stroke`, `stroke-width`, `opacity`, `fill-opacity`, `stroke-opacity`
+  - `circle`: `cx`, `cy`, `r`
+  - `rect`: `x`, `y`, `width`, `height`, `rx`, `ry`
+  - `ellipse`: `cx`, `cy`, `rx`, `ry`
+  - `line`: `x1`, `y1`, `x2`, `y2`, `stroke-linecap`
+  - `polyline`, `polygon`: `points`, `stroke-linejoin`
+  - `path`: `d`, `stroke-linecap`, `stroke-linejoin`, `fill-rule`
+  - `text`, `tspan`: `x`, `y`, `dx`, `dy`, `text-anchor`, `font-family`, `font-size`, `font-weight`
+  - `g`, `defs`, `symbol`: `transform`
+  - `use`: `href`, `xlink:href`, `x`, `y`, `width`, `height`, `transform`
+  - Gradients: `gradientUnits`, `gradientTransform`
+  - `linearGradient`: `x1`, `y1`, `x2`, `y2`
+  - `radialGradient`: `cx`, `cy`, `r`, `fx`, `fy`
+  - `stop`: `offset`, `stop-color`, `stop-opacity`
+  - `clipPath`, `mask`, `pattern`: `clipPathUnits`, `maskUnits`, `patternUnits`, `patternContentUnits`
+  - `pattern`: `x`, `y`, `width`, `height`, `viewBox`
+  - `animate`, `animateTransform`: `attributeName`, `from`, `to`, `dur`, `repeatCount`, `type`, `values`
 - Blocked: event handlers (`on*`), dangerous protocols (`javascript:`).  
 
 ---
@@ -335,6 +355,14 @@ JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is spl
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
 `a`, `img`
+
+**SVG tags:**  
+`svg`, `g`, `defs`, `symbol`, `use`,  
+`circle`, `rect`, `ellipse`, `line`, `polyline`, `polygon`, `path`,  
+`text`, `tspan`,  
+`linearGradient`, `radialGradient`, `stop`,  
+`clipPath`, `mask`, `pattern`,  
+`animate`, `animateTransform`
 
 **Special tags:**  
 `comment`, `if`
@@ -921,3 +949,461 @@ Conditional attributes support all the same modifiers and operators as `$if` tag
 - The `$if` tag **cannot** have regular HTML attributes (like `class`, `id`, etc.)
 - Only special operators (`$<`, `$>`, `$<=`, `$>=`, `$=`, `$in`) and modifiers (`$not`, `$join`) are allowed
 - If you need a wrapper element with attributes, use a regular tag inside the `$if` tag's children
+
+---
+
+## 14. SVG Support
+
+Treebark supports SVG (Scalable Vector Graphics) elements with the same security model and data binding capabilities as HTML elements.
+
+### SVG Tags
+
+SVG elements are organized into several categories:
+
+**Container elements:**
+- `svg` - Root SVG element
+- `g` - Group element for organizing and transforming
+- `defs` - Container for reusable elements
+- `symbol` - Define reusable graphic templates
+- `use` - Reference and reuse defined elements
+
+**Shape elements:**
+- `circle` - Circular shape
+- `rect` - Rectangle shape
+- `ellipse` - Elliptical shape
+- `line` - Straight line
+- `polyline` - Connected line segments
+- `polygon` - Closed shape with straight sides
+- `path` - Complex shapes using path commands
+
+**Text elements:**
+- `text` - Text content
+- `tspan` - Styled text spans within text
+
+**Gradient elements:**
+- `linearGradient` - Linear color gradient
+- `radialGradient` - Radial color gradient
+- `stop` - Gradient color stops
+
+**Effect elements:**
+- `clipPath` - Clipping region
+- `mask` - Masking effect
+- `pattern` - Fill pattern
+
+**Animation elements:**
+- `animate` - Animate attribute values
+- `animateTransform` - Animate transformations
+
+### Basic SVG Example
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "100",
+      height: "100",
+      viewBox: "0 0 100 100",
+      $children: [
+        {
+          circle: {
+            cx: "50",
+            cy: "50",
+            r: "40",
+            fill: "#3498db",
+            stroke: "#2c3e50",
+            "stroke-width": "2"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+→ `<svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#3498db" stroke="#2c3e50" stroke-width="2"></circle></svg>`
+
+### SVG Attributes
+
+**Root SVG attributes:**
+- `width`, `height` - Dimensions of the SVG viewport
+- `viewBox` - Coordinate system and aspect ratio
+- `preserveAspectRatio` - How to scale the content
+- `xmlns` - XML namespace (automatically added when needed)
+
+**Common presentation attributes** (most shape elements):
+- `fill` - Fill color (hex, rgb, named colors, gradients)
+- `stroke` - Stroke color
+- `stroke-width` - Stroke thickness
+- `opacity` - Overall opacity (0-1)
+- `fill-opacity` - Fill opacity (0-1)
+- `stroke-opacity` - Stroke opacity (0-1)
+
+**Position and size** (varies by element):
+- Circle: `cx`, `cy`, `r`
+- Rectangle: `x`, `y`, `width`, `height`, `rx`, `ry`
+- Ellipse: `cx`, `cy`, `rx`, `ry`
+- Line: `x1`, `y1`, `x2`, `y2`
+- Path: `d` (path data)
+- Polyline/Polygon: `points`
+
+**Transform attributes:**
+- `transform` - Apply transformations (translate, rotate, scale, skew, matrix)
+
+**Text attributes:**
+- `x`, `y` - Text position
+- `dx`, `dy` - Relative positioning offset
+- `text-anchor` - Horizontal alignment (start, middle, end)
+- `font-family`, `font-size`, `font-weight` - Typography
+
+**Gradient attributes:**
+- `gradientUnits` - Coordinate system for gradient
+- `gradientTransform` - Gradient transformation
+- Linear: `x1`, `y1`, `x2`, `y2` (start and end points)
+- Radial: `cx`, `cy`, `r` (center and radius), `fx`, `fy` (focal point)
+
+**Stop attributes:**
+- `offset` - Position in gradient (0-100%)
+- `stop-color` - Color at this stop
+- `stop-opacity` - Opacity at this stop
+
+**Use attributes:**
+- `href` or `xlink:href` - Reference to element to reuse
+- `x`, `y` - Position offset
+- `width`, `height` - Size override
+
+**Animation attributes:**
+- `attributeName` - Attribute to animate
+- `from` - Starting value
+- `to` - Ending value
+- `dur` - Duration (e.g., "2s", "500ms")
+- `repeatCount` - Number of repetitions ("indefinite" for continuous)
+- `type` - Type of transformation (for animateTransform)
+- `values` - List of values for keyframe animation
+
+### SVG with Data Binding
+
+SVG elements support full data binding capabilities:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "400",
+      height: "200",
+      viewBox: "0 0 400 200",
+      $children: [
+        {
+          g: {
+            $bind: "bars",
+            $children: [
+              {
+                rect: {
+                  x: "{{x}}",
+                  y: "{{y}}",
+                  width: "50",
+                  height: "{{height}}",
+                  fill: "{{color}}"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: {
+    bars: [
+      { x: "10", y: "50", height: "150", color: "#3498db" },
+      { x: "80", y: "80", height: "120", color: "#2ecc71" },
+      { x: "150", y: "30", height: "170", color: "#e74c3c" }
+    ]
+  }
+}
+```
+
+### SVG with Conditional Rendering
+
+Conditional logic works seamlessly with SVG:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "200",
+      height: "200",
+      viewBox: "0 0 200 200",
+      $children: [
+        {
+          $if: {
+            $check: "showCircle",
+            $then: {
+              circle: {
+                cx: "100",
+                cy: "100",
+                r: "50",
+                fill: "#3498db"
+              }
+            },
+            $else: {
+              rect: {
+                x: "50",
+                y: "50",
+                width: "100",
+                height: "100",
+                fill: "#e74c3c"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  data: { showCircle: true }
+}
+```
+
+### SVG Groups and Transforms
+
+Group related elements and apply transformations:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "200",
+      height: "200",
+      viewBox: "0 0 200 200",
+      $children: [
+        {
+          g: {
+            transform: "translate(100, 100) rotate(45)",
+            $children: [
+              {
+                rect: {
+                  x: "-25",
+                  y: "-25",
+                  width: "50",
+                  height: "50",
+                  fill: "#9b59b6"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### SVG Gradients
+
+Define and use gradients:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "200",
+      height: "200",
+      viewBox: "0 0 200 200",
+      $children: [
+        {
+          defs: {
+            $children: [
+              {
+                linearGradient: {
+                  id: "grad1",
+                  x1: "0%",
+                  y1: "0%",
+                  x2: "100%",
+                  y2: "100%",
+                  $children: [
+                    {
+                      stop: {
+                        offset: "0%",
+                        "stop-color": "#3498db",
+                        "stop-opacity": "1"
+                      }
+                    },
+                    {
+                      stop: {
+                        offset: "100%",
+                        "stop-color": "#2ecc71",
+                        "stop-opacity": "1"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          rect: {
+            x: "10",
+            y: "10",
+            width: "180",
+            height: "180",
+            fill: "url(#grad1)"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### SVG Symbol and Use
+
+Define reusable symbols:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "200",
+      height: "200",
+      viewBox: "0 0 200 200",
+      $children: [
+        {
+          defs: {
+            $children: [
+              {
+                symbol: {
+                  id: "star",
+                  viewBox: "0 0 24 24",
+                  $children: [
+                    {
+                      path: {
+                        d: "M12 2 L15 9 L22 10 L17 15 L18 22 L12 18 L6 22 L7 15 L2 10 L9 9 Z",
+                        fill: "currentColor"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          use: {
+            href: "#star",
+            x: "50",
+            y: "50",
+            width: "100",
+            height: "100",
+            fill: "#f39c12"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### SVG Parent Context Access
+
+Access parent data in nested SVG structures:
+
+```javascript
+{
+  template: {
+    svg: {
+      width: "500",
+      height: "300",
+      viewBox: "0 0 500 300",
+      $children: [
+        {
+          g: {
+            $bind: "dataPoints",
+            $children: [
+              {
+                circle: {
+                  cx: "{{x}}",
+                  cy: "{{y}}",
+                  r: "{{radius}}",
+                  fill: "{{color}}"
+                }
+              },
+              {
+                text: {
+                  x: "{{x}}",
+                  y: "{{../..labelY}}",
+                  "text-anchor": "middle",
+                  $children: ["{{label}}"]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  data: {
+    labelY: "290",
+    dataPoints: [
+      { x: "50", y: "100", radius: "20", color: "#3498db", label: "A" },
+      { x: "150", y: "80", radius: "25", color: "#2ecc71", label: "B" }
+    ]
+  }
+}
+```
+
+### Security Considerations
+
+SVG follows the same security model as HTML:
+- All attributes are sanitized to prevent XSS attacks
+- Dangerous patterns in URLs are blocked (e.g., `javascript:`)
+- Event handlers (`onclick`, etc.) are not allowed
+- The renderer uses secure methods to create and populate SVG elements
+- `xlink:href` is supported for backwards compatibility but sanitized
+
+### Mixing HTML and SVG
+
+SVG elements can be embedded within HTML structures:
+
+```javascript
+{
+  template: {
+    div: {
+      class: "card",
+      $children: [
+        { h2: "Chart" },
+        {
+          svg: {
+            width: "200",
+            height: "100",
+            viewBox: "0 0 200 100",
+            $children: [
+              {
+                rect: {
+                  x: "10",
+                  y: "10",
+                  width: "180",
+                  height: "80",
+                  fill: "#ecf0f1"
+                }
+              }
+            ]
+          }
+        },
+        { p: "Data visualization" }
+      ]
+    }
+  }
+}
+```
+
+### SVG Void Elements
+
+Most SVG elements are container elements and can have children. The following SVG elements are treated as void elements (self-closing):
+- Individual shapes without child content (`circle`, `rect`, `ellipse`, `line`, `polyline`, `polygon`)
+- `use` (when not containing fallback content)
+
+However, some SVG elements commonly have children:
+- `svg`, `g`, `defs`, `symbol` - Always containers
+- `text` - Contains text or `tspan` elements
+- `path` - Can contain animation elements
+- Gradient elements - Contain `stop` elements
+
+The implementation determines whether to self-close based on the presence of `$children`.
