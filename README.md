@@ -1192,13 +1192,19 @@ Create dynamic, data-driven visualizations:
     "viewBox": "0 0 400 200",
     "$children": [
       {
-        "rect": {
+        "g": {
           "$bind": "bars",
-          "x": "{{x}}",
-          "y": "{{y}}",
-          "width": "50",
-          "height": "{{height}}",
-          "fill": "{{color}}"
+          "$children": [
+            {
+              "rect": {
+                "x": "{{x}}",
+                "y": "{{y}}",
+                "width": "50",
+                "height": "{{height}}",
+                "fill": "{{color}}"
+              }
+            }
+          ]
         }
       }
     ]
@@ -1221,10 +1227,18 @@ Data:
 Output:
 ```html
 <svg width="400" height="200" viewBox="0 0 400 200">
-  <rect x="10" y="50" width="50" height="150" fill="#3498db"></rect>
-  <rect x="80" y="80" width="50" height="120" fill="#2ecc71"></rect>
-  <rect x="150" y="30" width="50" height="170" fill="#e74c3c"></rect>
-  <rect x="220" y="100" width="50" height="100" fill="#f39c12"></rect>
+  <g>
+    <rect x="10" y="50" width="50" height="150" fill="#3498db"></rect>
+  </g>
+  <g>
+    <rect x="80" y="80" width="50" height="120" fill="#2ecc71"></rect>
+  </g>
+  <g>
+    <rect x="150" y="30" width="50" height="170" fill="#e74c3c"></rect>
+  </g>
+  <g>
+    <rect x="220" y="100" width="50" height="100" fill="#f39c12"></rect>
+  </g>
 </svg>
 ```
 

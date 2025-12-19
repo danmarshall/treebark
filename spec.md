@@ -1092,13 +1092,19 @@ SVG elements support full data binding capabilities:
       viewBox: "0 0 400 200",
       $children: [
         {
-          rect: {
+          g: {
             $bind: "bars",
-            x: "{{x}}",
-            y: "{{y}}",
-            width: "50",
-            height: "{{height}}",
-            fill: "{{color}}"
+            $children: [
+              {
+                rect: {
+                  x: "{{x}}",
+                  y: "{{y}}",
+                  width: "50",
+                  height: "{{height}}",
+                  fill: "{{color}}"
+                }
+              }
+            ]
           }
         }
       ]
