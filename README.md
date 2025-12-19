@@ -41,6 +41,18 @@ Output:
   - [Array Element Access](#array-element-access)
   - [Comments](#comments)
   - [Conditional Rendering](#conditional-rendering)
+- [SVG Support](#svg-support)
+  - [Basic SVG](#basic-svg)
+  - [Multiple Shapes](#multiple-shapes)
+  - [SVG Paths](#svg-paths)
+  - [SVG Groups and Transform](#svg-groups-and-transform)
+  - [SVG with Data Binding](#svg-with-data-binding)
+  - [SVG Text](#svg-text)
+  - [SVG with Gradients](#svg-with-gradients)
+  - [Conditional SVG Elements](#conditional-svg-elements)
+  - [Interactive SVG with Data](#interactive-svg-with-data)
+  - [SVG Icons](#svg-icons)
+  - [SVG Animations](#svg-animations)
 - [Error Handling](#error-handling)
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
@@ -82,11 +94,20 @@ This means the implementation is featherweight.
 
 ### Allowed Tags
 
+**HTML tags:**  
 `div`, `span`, `p`, `header`, `footer`, `main`, `section`, `article`,  
 `h1`–`h6`, `strong`, `em`, `blockquote`, `code`, `pre`,  
 `ul`, `ol`, `li`,  
 `table`, `thead`, `tbody`, `tr`, `th`, `td`,  
 `a`, `img`, `br`, `hr`
+
+**SVG tags:**  
+`svg`, `g`, `defs`, `symbol`, `use`,  
+`circle`, `rect`, `ellipse`, `line`, `polyline`, `polygon`, `path`,  
+`text`, `tspan`,  
+`linearGradient`, `radialGradient`, `stop`,  
+`clipPath`, `mask`, `pattern`,  
+`animate`, `animateTransform`
 
 **Special tags:**  
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
@@ -96,12 +117,30 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All HTML       | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
 | `th`, `td`     | `scope`, `colspan`, `rowspan`               |
 | `blockquote`   | `cite`                                      |
+| All SVG        | `id`, `class`, `style`, `data-*`            |
+| `svg`          | `width`, `height`, `viewBox`, `preserveAspectRatio`, `xmlns` |
+| `circle`       | `cx`, `cy`, `r`, `fill`, `stroke`, `stroke-width`, `opacity`, `fill-opacity`, `stroke-opacity` |
+| `rect`         | `x`, `y`, `width`, `height`, `rx`, `ry`, `fill`, `stroke`, `stroke-width`, `opacity`, `fill-opacity`, `stroke-opacity` |
+| `ellipse`      | `cx`, `cy`, `rx`, `ry`, `fill`, `stroke`, `stroke-width`, `opacity`, `fill-opacity`, `stroke-opacity` |
+| `line`         | `x1`, `y1`, `x2`, `y2`, `stroke`, `stroke-width`, `stroke-linecap`, `opacity`, `stroke-opacity` |
+| `polyline`, `polygon` | `points`, `fill`, `stroke`, `stroke-width`, `stroke-linejoin`, `opacity`, `fill-opacity`, `stroke-opacity` |
+| `path`         | `d`, `fill`, `stroke`, `stroke-width`, `stroke-linecap`, `stroke-linejoin`, `fill-rule`, `opacity`, `fill-opacity`, `stroke-opacity` |
+| `text`, `tspan` | `x`, `y`, `dx`, `dy`, `text-anchor`, `font-family`, `font-size`, `font-weight`, `fill`, `stroke`, `opacity` |
+| `g`, `defs`, `symbol` | `transform`, `opacity` |
+| `use`          | `href`, `xlink:href`, `x`, `y`, `width`, `height`, `transform` |
+| `linearGradient`, `radialGradient` | `id`, `gradientUnits`, `gradientTransform` |
+| `linearGradient` | `x1`, `y1`, `x2`, `y2` |
+| `radialGradient` | `cx`, `cy`, `r`, `fx`, `fy` |
+| `stop`         | `offset`, `stop-color`, `stop-opacity` |
+| `clipPath`, `mask`, `pattern` | `id`, `clipPathUnits`, `maskUnits`, `patternUnits`, `patternContentUnits` |
+| `pattern`      | `x`, `y`, `width`, `height`, `viewBox` |
+| `animate`, `animateTransform` | `attributeName`, `from`, `to`, `dur`, `repeatCount`, `type`, `values` |
 
 ### Special Keys
 
@@ -1002,6 +1041,464 @@ Since `$then` and `$else` output single elements, wrap multiple elements in a co
 The `$if` tag follows JavaScript truthiness when no operators are provided:
 - **Truthy:** `true`, non-empty strings, non-zero numbers, objects, arrays
 - **Falsy:** `false`, `null`, `undefined`, `0`, `""`, `NaN`
+
+## SVG Support
+
+Treebark supports SVG (Scalable Vector Graphics) elements, allowing you to create data-driven visualizations, icons, and graphics within your templates.
+
+### Basic SVG
+
+Create simple SVG graphics using the `svg` tag and shape elements:
+
+```json
+{
+  "svg": {
+    "width": "100",
+    "height": "100",
+    "viewBox": "0 0 100 100",
+    "$children": [
+      {
+        "circle": {
+          "cx": "50",
+          "cy": "50",
+          "r": "40",
+          "fill": "#3498db",
+          "stroke": "#2c3e50",
+          "stroke-width": "2"
+        }
+      }
+    ]
+  }
+}
+```
+
+Output:
+```html
+<svg width="100" height="100" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="40" fill="#3498db" stroke="#2c3e50" stroke-width="2"></circle>
+</svg>
+```
+
+### Multiple Shapes
+
+Combine multiple SVG elements to create complex graphics:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "rect": {
+          "x": "10",
+          "y": "10",
+          "width": "180",
+          "height": "180",
+          "fill": "#ecf0f1",
+          "stroke": "#34495e",
+          "stroke-width": "2"
+        }
+      },
+      {
+        "circle": {
+          "cx": "100",
+          "cy": "100",
+          "r": "50",
+          "fill": "#e74c3c"
+        }
+      },
+      {
+        "line": {
+          "x1": "50",
+          "y1": "50",
+          "x2": "150",
+          "y2": "150",
+          "stroke": "#2c3e50",
+          "stroke-width": "3"
+        }
+      }
+    ]
+  }
+}
+```
+
+### SVG Paths
+
+Use the `path` element for complex shapes:
+
+```json
+{
+  "svg": {
+    "width": "100",
+    "height": "100",
+    "viewBox": "0 0 100 100",
+    "$children": [
+      {
+        "path": {
+          "d": "M 10,30 A 20,20 0,0,1 50,30 A 20,20 0,0,1 90,30 Q 90,60 50,90 Q 10,60 10,30 z",
+          "fill": "#e74c3c",
+          "stroke": "#c0392b",
+          "stroke-width": "2"
+        }
+      }
+    ]
+  }
+}
+```
+
+### SVG Groups and Transform
+
+Organize related elements using the `g` tag and apply transformations:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "g": {
+          "transform": "translate(100, 100) rotate(45)",
+          "$children": [
+            {
+              "rect": {
+                "x": "-25",
+                "y": "-25",
+                "width": "50",
+                "height": "50",
+                "fill": "#9b59b6"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+### SVG with Data Binding
+
+Create dynamic, data-driven visualizations:
+
+```json
+{
+  "svg": {
+    "width": "400",
+    "height": "200",
+    "viewBox": "0 0 400 200",
+    "$children": [
+      {
+        "rect": {
+          "$bind": "bars",
+          "x": "{{x}}",
+          "y": "{{y}}",
+          "width": "50",
+          "height": "{{height}}",
+          "fill": "{{color}}"
+        }
+      }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "bars": [
+    { "x": "10", "y": "50", "height": "150", "color": "#3498db" },
+    { "x": "80", "y": "80", "height": "120", "color": "#2ecc71" },
+    { "x": "150", "y": "30", "height": "170", "color": "#e74c3c" },
+    { "x": "220", "y": "100", "height": "100", "color": "#f39c12" }
+  ]
+}
+```
+
+Output:
+```html
+<svg width="400" height="200" viewBox="0 0 400 200">
+  <rect x="10" y="50" width="50" height="150" fill="#3498db"></rect>
+  <rect x="80" y="80" width="50" height="120" fill="#2ecc71"></rect>
+  <rect x="150" y="30" width="50" height="170" fill="#e74c3c"></rect>
+  <rect x="220" y="100" width="50" height="100" fill="#f39c12"></rect>
+</svg>
+```
+
+### SVG Text
+
+Add text elements to your SVG:
+
+```json
+{
+  "svg": {
+    "width": "300",
+    "height": "100",
+    "viewBox": "0 0 300 100",
+    "$children": [
+      {
+        "text": {
+          "x": "150",
+          "y": "50",
+          "text-anchor": "middle",
+          "font-family": "Arial, sans-serif",
+          "font-size": "24",
+          "fill": "#2c3e50",
+          "$children": ["Hello SVG"]
+        }
+      }
+    ]
+  }
+}
+```
+
+### SVG with Gradients
+
+Create gradients for fills:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "defs": {
+          "$children": [
+            {
+              "linearGradient": {
+                "id": "grad1",
+                "x1": "0%",
+                "y1": "0%",
+                "x2": "100%",
+                "y2": "100%",
+                "$children": [
+                  {
+                    "stop": {
+                      "offset": "0%",
+                      "stop-color": "#3498db",
+                      "stop-opacity": "1"
+                    }
+                  },
+                  {
+                    "stop": {
+                      "offset": "100%",
+                      "stop-color": "#2ecc71",
+                      "stop-opacity": "1"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "rect": {
+          "x": "10",
+          "y": "10",
+          "width": "180",
+          "height": "180",
+          "fill": "url(#grad1)"
+        }
+      }
+    ]
+  }
+}
+```
+
+### Conditional SVG Elements
+
+Use conditional rendering with SVG elements:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "$if": {
+          "$check": "showCircle",
+          "$then": {
+            "circle": {
+              "cx": "100",
+              "cy": "100",
+              "r": "50",
+              "fill": "#3498db"
+            }
+          },
+          "$else": {
+            "rect": {
+              "x": "50",
+              "y": "50",
+              "width": "100",
+              "height": "100",
+              "fill": "#e74c3c"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+### Interactive SVG with Data
+
+Create interactive data visualizations:
+
+```json
+{
+  "div": {
+    "class": "chart-container",
+    "$children": [
+      { "h3": "Sales Data" },
+      {
+        "svg": {
+          "width": "500",
+          "height": "300",
+          "viewBox": "0 0 500 300",
+          "$children": [
+            {
+              "g": {
+                "$bind": "dataPoints",
+                "$children": [
+                  {
+                    "circle": {
+                      "cx": "{{x}}",
+                      "cy": "{{y}}",
+                      "r": "{{radius}}",
+                      "fill": "{{color}}",
+                      "opacity": "0.7"
+                    }
+                  },
+                  {
+                    "text": {
+                      "x": "{{x}}",
+                      "y": "{{../..labelY}}",
+                      "text-anchor": "middle",
+                      "font-size": "12",
+                      "fill": "#2c3e50",
+                      "$children": ["{{label}}"]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+Data:
+```json
+{
+  "labelY": "290",
+  "dataPoints": [
+    { "x": "50", "y": "100", "radius": "20", "color": "#3498db", "label": "Jan" },
+    { "x": "150", "y": "80", "radius": "25", "color": "#2ecc71", "label": "Feb" },
+    { "x": "250", "y": "120", "radius": "18", "color": "#e74c3c", "label": "Mar" },
+    { "x": "350", "y": "60", "radius": "30", "color": "#f39c12", "label": "Apr" }
+  ]
+}
+```
+
+### SVG Icons
+
+Create reusable icon components with the `symbol` and `use` tags:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "defs": {
+          "$children": [
+            {
+              "symbol": {
+                "id": "star",
+                "viewBox": "0 0 24 24",
+                "$children": [
+                  {
+                    "path": {
+                      "d": "M12 2 L15 9 L22 10 L17 15 L18 22 L12 18 L6 22 L7 15 L2 10 L9 9 Z",
+                      "fill": "currentColor"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "use": {
+          "href": "#star",
+          "x": "50",
+          "y": "50",
+          "width": "100",
+          "height": "100",
+          "fill": "#f39c12"
+        }
+      }
+    ]
+  }
+}
+```
+
+### SVG Animations
+
+Add basic animations to SVG elements:
+
+```json
+{
+  "svg": {
+    "width": "200",
+    "height": "200",
+    "viewBox": "0 0 200 200",
+    "$children": [
+      {
+        "circle": {
+          "cx": "100",
+          "cy": "100",
+          "r": "50",
+          "fill": "#3498db",
+          "$children": [
+            {
+              "animate": {
+                "attributeName": "r",
+                "from": "30",
+                "to": "70",
+                "dur": "2s",
+                "repeatCount": "indefinite"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
+
+**Note on SVG:**
+- SVG elements follow the same security model as HTML elements
+- All SVG attributes are sanitized to prevent XSS attacks
+- Data binding and conditional rendering work seamlessly with SVG
+- SVG elements can be mixed with HTML elements in the same template
+- The `xmlns` attribute is automatically added to `<svg>` root elements when needed
 
 ## Error Handling
 
