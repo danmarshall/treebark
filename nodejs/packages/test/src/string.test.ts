@@ -23,6 +23,9 @@ import {
   styleObjectTests,
   styleObjectWarningTests,
   styleObjectErrorTests,
+  jailbreakDefenseTests,
+  jailbreakValidationTests,
+  jailbreakPropertyAccessTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -1057,6 +1060,111 @@ describe('String Renderer', () => {
     // Style error tests
     styleObjectErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToString);
+    });
+  });
+
+  // Jailbreak defense tests - comprehensive security tests
+  describe('Jailbreak Defense', () => {
+    describe('Tag Name Manipulation Attacks', () => {
+      jailbreakDefenseTests.forEach(testCase => {
+        createErrorTest(testCase, renderToString);
+      });
+    });
+
+    describe('CSS Injection and Style Attacks', () => {
+      jailbreakValidationTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const result = renderToString(testCase.input, { logger: mockLogger });
+
+          // Check specific expectations based on test name
+          switch (testCase.name) {
+            case 'blocks url() with spacing variations':
+            case 'blocks URL() with uppercase':
+            case 'blocks uRl() with mixed case':
+            case 'blocks @import with url':
+            case 'blocks expression() with spacing':
+            case 'blocks EXPRESSION() with uppercase':
+            case 'blocks javascript: protocol variations':
+            case 'blocks JavaScript: with mixed case':
+              // Should warn about dangerous patterns
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Should not include the dangerous style
+              expect(result).not.toContain('url(http');
+              // Don't check for 'expression' text as it might appear in the content itself
+              expect(result).not.toContain('javascript:');
+              expect(result).not.toContain('@import');
+              break;
+
+            case 'allows data: URIs in url()':
+              // Data URIs should be allowed
+              expect(result).toContain('data:image');
+              break;
+
+            case 'blocks multiple property injection via semicolon':
+            case 'blocks property injection with important':
+              // Should warn about semicolon injection
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Should only include the first property value
+              expect(result).toContain('color: red');
+              expect(result).not.toContain('position:');
+              expect(result).not.toContain('background:');
+              break;
+
+            case 'blocks event handler attributes':
+            case 'blocks on* attributes with uppercase':
+              // Should warn about invalid attributes
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Should not include event handlers
+              expect(result).not.toContain('onclick');
+              expect(result).not.toContain('onload');
+              expect(result).not.toContain('onerror');
+              expect(result).not.toContain('onmouseover');
+              expect(result).not.toContain('onClick');
+              expect(result).not.toContain('ONCLICK');
+              break;
+
+            case 'allows safe href protocols':
+              expect(result).toBe('<a href="https://example.com">Safe link</a>');
+              break;
+
+            case 'allows safe img src':
+              expect(result).toBe('<img src="https://example.com/image.png" alt="Safe image">');
+              break;
+          }
+        });
+      });
+    });
+
+    describe('Property Access Attacks', () => {
+      jailbreakPropertyAccessTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const result = renderToString(testCase.input);
+
+          // Note: These tests document current behavior where prototype chain
+          // properties ARE accessible. This could be a security concern.
+          switch (testCase.name) {
+            case 'accesses constructor property (security note: currently accessible)':
+              // Constructor is currently accessible and renders
+              expect(result).toContain('function');
+              expect(result).toContain('Object');
+              break;
+            case 'accesses __proto__ property (security note: currently accessible)':
+              // __proto__ is currently accessible and renders as [object Object]
+              expect(result).toContain('[object Object]');
+              break;
+            case 'accesses prototype property when not in data':
+              // prototype property doesn't exist on the data object itself, so renders empty
+              expect(result).toBe('<div></div>');
+              break;
+          }
+        });
+      });
     });
   });
 });

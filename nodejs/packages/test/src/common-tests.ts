@@ -2268,6 +2268,322 @@ export const ifTagErrorTests: ErrorTestCase[] = [
   }
 ];
 
+// Jailbreak defense tests - comprehensive security tests to prevent bypassing security restrictions
+export const jailbreakDefenseTests: ErrorTestCase[] = [
+  // Tag name manipulation attacks
+  {
+    name: 'blocks script tag with uppercase',
+    input: { template: { SCRIPT: 'alert("xss")' } as any },
+    expectedError: 'Tag "SCRIPT" is not allowed'
+  },
+  {
+    name: 'blocks script tag with mixed case',
+    input: { template: { ScRiPt: 'alert("xss")' } as any },
+    expectedError: 'Tag "ScRiPt" is not allowed'
+  },
+  {
+    name: 'blocks iframe tag',
+    input: { template: { iframe: { src: 'javascript:alert(1)' } } as any },
+    expectedError: 'Tag "iframe" is not allowed'
+  },
+  {
+    name: 'blocks object tag',
+    input: { template: { object: { data: 'data:text/html,<script>alert(1)</script>' } } as any },
+    expectedError: 'Tag "object" is not allowed'
+  },
+  {
+    name: 'blocks embed tag',
+    input: { template: { embed: { src: 'javascript:alert(1)' } } as any },
+    expectedError: 'Tag "embed" is not allowed'
+  },
+  {
+    name: 'blocks style tag',
+    input: { template: { style: 'body { background: red; }' } as any },
+    expectedError: 'Tag "style" is not allowed'
+  },
+  {
+    name: 'blocks link tag',
+    input: { template: { link: { rel: 'stylesheet', href: 'evil.css' } } as any },
+    expectedError: 'Tag "link" is not allowed'
+  },
+  {
+    name: 'blocks meta tag',
+    input: { template: { meta: { 'http-equiv': 'refresh', content: '0; url=http://evil.com' } } as any },
+    expectedError: 'Tag "meta" is not allowed'
+  },
+  {
+    name: 'blocks base tag',
+    input: { template: { base: { href: 'http://evil.com' } } as any },
+    expectedError: 'Tag "base" is not allowed'
+  },
+  {
+    name: 'blocks form tag',
+    input: { template: { form: { action: 'http://evil.com', method: 'post' } } as any },
+    expectedError: 'Tag "form" is not allowed'
+  },
+  {
+    name: 'blocks input tag',
+    input: { template: { input: { type: 'text', name: 'data' } } as any },
+    expectedError: 'Tag "input" is not allowed'
+  },
+  {
+    name: 'blocks button tag',
+    input: { template: { button: 'Click me' } as any },
+    expectedError: 'Tag "button" is not allowed'
+  },
+  {
+    name: 'blocks svg tag',
+    input: { template: { svg: { onload: 'alert(1)' } } as any },
+    expectedError: 'Tag "svg" is not allowed'
+  },
+  {
+    name: 'blocks math tag',
+    input: { template: { math: { onload: 'alert(1)' } } as any },
+    expectedError: 'Tag "math" is not allowed'
+  },
+  {
+    name: 'blocks audio tag',
+    input: { template: { audio: { src: 'audio.mp3', autoplay: true } } as any },
+    expectedError: 'Tag "audio" is not allowed'
+  },
+  {
+    name: 'blocks video tag',
+    input: { template: { video: { src: 'video.mp4', autoplay: true } } as any },
+    expectedError: 'Tag "video" is not allowed'
+  },
+  {
+    name: 'blocks canvas tag',
+    input: { template: { canvas: {} } as any },
+    expectedError: 'Tag "canvas" is not allowed'
+  }
+];
+
+// Additional jailbreak validation tests (non-error cases that should still be defended)
+export const jailbreakValidationTests: TestCase[] = [
+  // CSS injection attempts - various url() bypass techniques
+  {
+    name: 'blocks url() with spacing variations',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'url  (  http://evil.com/track.gif  )'
+          },
+          $children: ['URL with spaces']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks URL() with uppercase',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'URL(http://evil.com/track.gif)'
+          },
+          $children: ['Uppercase URL']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks uRl() with mixed case',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'uRl(http://evil.com/track.gif)'
+          },
+          $children: ['Mixed case URL']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows data: URIs in url()',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background-image': 'url(data:image/png;base64,iVBORw0KGgo=)'
+          },
+          $children: ['Data URI']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks @import with url',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': '@import url(http://evil.com/evil.css)'
+          },
+          $children: ['Import blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks expression() with spacing',
+    input: {
+      template: {
+        div: {
+          style: {
+            'width': 'expression  (  alert(1)  )'
+          },
+          $children: ['Expression with spaces']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks EXPRESSION() with uppercase',
+    input: {
+      template: {
+        div: {
+          style: {
+            'width': 'EXPRESSION(alert(1))'
+          },
+          $children: ['Uppercase expression']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks javascript: protocol variations',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'javascript:alert(1)'
+          },
+          $children: ['JavaScript protocol']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks JavaScript: with mixed case',
+    input: {
+      template: {
+        div: {
+          style: {
+            'background': 'JavaScript:alert(1)'
+          },
+          $children: ['Mixed case JavaScript']
+        }
+      }
+    }
+  },
+  // Semicolon injection attempts
+  {
+    name: 'blocks multiple property injection via semicolon',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red; position: absolute; top: 0; left: 0; width: 100%; height: 100%'
+          },
+          $children: ['Multiple properties blocked']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks property injection with important',
+    input: {
+      template: {
+        div: {
+          style: {
+            'color': 'red; background: url(evil.com) !important'
+          },
+          $children: ['Important blocked']
+        }
+      }
+    }
+  },
+  // Attribute name bypass attempts
+  {
+    name: 'blocks event handler attributes',
+    input: {
+      template: {
+        div: {
+          onclick: 'alert(1)',
+          onload: 'alert(1)',
+          onerror: 'alert(1)',
+          onmouseover: 'alert(1)',
+          $children: ['Event handlers blocked']
+        } as any
+      }
+    }
+  },
+  {
+    name: 'blocks on* attributes with uppercase',
+    input: {
+      template: {
+        div: {
+          onClick: 'alert(1)',
+          ONCLICK: 'alert(1)',
+          $children: ['Uppercase event handlers']
+        } as any
+      }
+    }
+  },
+  // Protocol injection in href/src
+  {
+    name: 'allows safe href protocols',
+    input: {
+      template: {
+        a: {
+          href: 'https://example.com',
+          $children: ['Safe link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows safe img src',
+    input: {
+      template: {
+        img: {
+          src: 'https://example.com/image.png',
+          alt: 'Safe image'
+        }
+      }
+    }
+  }
+];
+
+// Property access attack tests - these test that the library handles
+// potentially dangerous property names. Currently these properties ARE accessible
+// through interpolation, which could be a security concern in certain contexts.
+export const jailbreakPropertyAccessTests: TestCase[] = [
+  {
+    name: 'accesses constructor property (security note: currently accessible)',
+    input: {
+      template: { div: '{{constructor}}' },
+      data: { name: 'Alice' }
+    }
+  },
+  {
+    name: 'accesses __proto__ property (security note: currently accessible)',
+    input: {
+      template: { div: '{{__proto__}}' },
+      data: { name: 'Alice' }
+    }
+  },
+  {
+    name: 'accesses prototype property when not in data',
+    input: {
+      template: { div: '{{prototype}}' },
+      data: { name: 'Alice' }
+    }
+  }
+];
+
 
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
