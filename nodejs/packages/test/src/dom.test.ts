@@ -976,6 +976,7 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalled();
               // Check that the dangerous style was not applied
               const el1 = fragment.firstChild as HTMLElement;
+              expect(el1).toBeTruthy();
               if (el1 && el1.style) {
                 // Style should either be empty or not contain dangerous patterns
                 const styleText = el1.getAttribute('style') || '';
@@ -989,6 +990,7 @@ describe('DOM Renderer', () => {
             case 'allows data: URIs in url()':
               // Data URIs should be allowed
               const el2 = fragment.firstChild as HTMLElement;
+              expect(el2).toBeTruthy();
               if (el2 && el2.style) {
                 const styleText = el2.getAttribute('style') || '';
                 expect(styleText).toContain('data:image');
@@ -1001,6 +1003,7 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalled();
               // Should only include the first property value
               const el3 = fragment.firstChild as HTMLElement;
+              expect(el3).toBeTruthy();
               if (el3 && el3.style) {
                 const styleText = el3.getAttribute('style') || '';
                 expect(styleText).toContain('color: red');
@@ -1015,6 +1018,7 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalled();
               // Should not include event handlers
               const el4 = fragment.firstChild as HTMLElement;
+              expect(el4).toBeTruthy();
               if (el4) {
                 expect(el4.getAttribute('onclick')).toBeNull();
                 expect(el4.getAttribute('onload')).toBeNull();
@@ -1038,6 +1042,9 @@ describe('DOM Renderer', () => {
               expect(img.src).toBe('https://example.com/image.png');
               expect(img.alt).toBe('Safe image');
               break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
           }
         });
       });
@@ -1068,6 +1075,9 @@ describe('DOM Renderer', () => {
               // prototype property doesn't exist on the data object itself, so renders empty
               expect(div.textContent).toBe('');
               break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
           }
         });
       });

@@ -1136,6 +1136,9 @@ describe('String Renderer', () => {
             case 'allows safe img src':
               expect(result).toBe('<img src="https://example.com/image.png" alt="Safe image">');
               break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
           }
         });
       });
@@ -1162,6 +1165,9 @@ describe('String Renderer', () => {
               // prototype property doesn't exist on the data object itself, so renders empty
               expect(result).toBe('<div></div>');
               break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
           }
         });
       });
