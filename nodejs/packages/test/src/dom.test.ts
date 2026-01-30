@@ -1053,26 +1053,28 @@ describe('DOM Renderer', () => {
     describe('Property Access Attacks', () => {
       jailbreakPropertyAccessTests.forEach(testCase => {
         test(testCase.name, () => {
-          const fragment = renderToDOM(testCase.input);
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const fragment = renderToDOM(testCase.input, { logger: mockLogger });
 
           const div = fragment.firstChild as HTMLElement;
           expect(div).toBeDefined();
           expect(div.tagName).toBe('DIV');
 
-          // Note: These tests document current behavior where prototype chain
-          // properties ARE accessible. This could be a security concern.
+          // Prototype chain properties should now be blocked
           switch (testCase.name) {
-            case 'accesses constructor property (security note: currently accessible)':
-              // Constructor is currently accessible and renders
-              expect(div.textContent).toContain('function');
-              expect(div.textContent).toContain('Object');
-              break;
-            case 'accesses __proto__ property (security note: currently accessible)':
-              // __proto__ is currently accessible and renders as [object Object]
-              expect(div.textContent).toContain('[object Object]');
-              break;
-            case 'accesses prototype property when not in data':
-              // prototype property doesn't exist on the data object itself, so renders empty
+            case 'blocks constructor property access':
+            case 'blocks __proto__ property access':
+            case 'blocks prototype property access':
+              // Should warn about blocked property access
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Access to property .* is blocked for security reasons/)
+              );
+              // Should render as empty string since property is blocked
               expect(div.textContent).toBe('');
               break;
 

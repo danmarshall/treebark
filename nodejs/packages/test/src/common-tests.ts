@@ -2557,26 +2557,25 @@ export const jailbreakValidationTests: TestCase[] = [
   }
 ];
 
-// Property access attack tests - these test that the library handles
-// potentially dangerous property names. Currently these properties ARE accessible
-// through interpolation, which could be a security concern in certain contexts.
+// Property access attack tests - these test that the library blocks
+// access to prototype chain properties for security
 export const jailbreakPropertyAccessTests: TestCase[] = [
   {
-    name: 'accesses constructor property (security note: currently accessible)',
+    name: 'blocks constructor property access',
     input: {
       template: { div: '{{constructor}}' },
       data: { name: 'Alice' }
     }
   },
   {
-    name: 'accesses __proto__ property (security note: currently accessible)',
+    name: 'blocks __proto__ property access',
     input: {
       template: { div: '{{__proto__}}' },
       data: { name: 'Alice' }
     }
   },
   {
-    name: 'accesses prototype property when not in data',
+    name: 'blocks prototype property access',
     input: {
       template: { div: '{{prototype}}' },
       data: { name: 'Alice' }

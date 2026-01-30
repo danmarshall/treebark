@@ -65,6 +65,13 @@ const BLOCKED_CSS_PROPERTIES = new Set([
   '-moz-binding',       // Firefox XBL binding - can execute code
 ]);
 
+// Blocked property names that access the prototype chain
+const BLOCKED_PROPERTY_NAMES = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
+
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
@@ -122,8 +129,17 @@ export function getProperty(
       logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
       return undefined;
     }
-    const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
-      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentData);
+    
+    const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown => {
+      // Block access to prototype chain properties for security
+      if (BLOCKED_PROPERTY_NAMES.has(k)) {
+        if (logger) {
+          logger.warn(`Access to property "${k}" is blocked for security reasons`);
+        }
+        return undefined;
+      }
+      return (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined);
+    }, currentData);
     
     // If result is undefined, try outer property resolver
     if (result === undefined && getOuterProperty) {

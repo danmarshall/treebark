@@ -60,6 +60,11 @@
     "-moz-binding"
     // Firefox XBL binding - can execute code
   ]);
+  const BLOCKED_PROPERTY_NAMES = /* @__PURE__ */ new Set([
+    "__proto__",
+    "constructor",
+    "prototype"
+  ]);
   function getProperty(data, path, parents = [], logger, getOuterProperty) {
     if (path === ".") {
       return data;
@@ -91,7 +96,15 @@
         logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
         return void 0;
       }
-      const result = remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentData);
+      const result = remainingPath.split(".").reduce((o, k) => {
+        if (BLOCKED_PROPERTY_NAMES.has(k)) {
+          if (logger) {
+            logger.warn(`Access to property "${k}" is blocked for security reasons`);
+          }
+          return void 0;
+        }
+        return o && typeof o === "object" && o !== null ? o[k] : void 0;
+      }, currentData);
       if (result === void 0 && getOuterProperty) {
         return getOuterProperty(path, data, parents);
       }
