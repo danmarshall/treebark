@@ -29,6 +29,7 @@ import {
   jailbreakDefenseTests,
   jailbreakValidationTests,
   jailbreakPropertyAccessTests,
+  urlProtocolValidationTests,
   createTest,
   createErrorTest,
   TestCase
@@ -1076,6 +1077,130 @@ describe('DOM Renderer', () => {
               );
               // Should render as empty string since property is blocked
               expect(div.textContent).toBe('');
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('URL Protocol Validation', () => {
+      urlProtocolValidationTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+
+          // Check specific expectations based on test name
+          switch (testCase.name) {
+            case 'blocks javascript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a1 = fragment.firstChild as HTMLAnchorElement;
+              expect(a1.tagName).toBe('A');
+              expect(a1.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks javascript: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              const img1 = fragment.firstChild as HTMLImageElement;
+              expect(img1.tagName).toBe('IMG');
+              expect(img1.hasAttribute('src')).toBe(false);
+              break;
+
+            case 'blocks data: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a2 = fragment.firstChild as HTMLAnchorElement;
+              expect(a2.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks data: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              const img2 = fragment.firstChild as HTMLImageElement;
+              expect(img2.hasAttribute('src')).toBe(false);
+              break;
+
+            case 'blocks vbscript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a3 = fragment.firstChild as HTMLAnchorElement;
+              expect(a3.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks file: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a4 = fragment.firstChild as HTMLAnchorElement;
+              expect(a4.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'allows https: protocol in href':
+              const a5 = fragment.firstChild as HTMLAnchorElement;
+              expect(a5.href).toBe('https://example.com/');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows http: protocol in href':
+              const a6 = fragment.firstChild as HTMLAnchorElement;
+              expect(a6.href).toBe('http://example.com/');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows https: protocol in src':
+              const img3 = fragment.firstChild as HTMLImageElement;
+              expect(img3.src).toBe('https://example.com/image.png');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows mailto: protocol in href':
+              const a7 = fragment.firstChild as HTMLAnchorElement;
+              expect(a7.href).toBe('mailto:test@example.com');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows tel: protocol in href':
+              const a8 = fragment.firstChild as HTMLAnchorElement;
+              expect(a8.href).toBe('tel:+1234567890');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with slash in href':
+              const a9 = fragment.firstChild as HTMLAnchorElement;
+              expect(a9.getAttribute('href')).toBe('/path/to/page');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with hash in href':
+              const a10 = fragment.firstChild as HTMLAnchorElement;
+              expect(a10.getAttribute('href')).toBe('#section');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL without protocol in href':
+              const a11 = fragment.firstChild as HTMLAnchorElement;
+              expect(a11.getAttribute('href')).toBe('page.html');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows query string in href':
+              const a12 = fragment.firstChild as HTMLAnchorElement;
+              expect(a12.getAttribute('href')).toBe('?param=value');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             default:

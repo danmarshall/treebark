@@ -6,6 +6,7 @@ import {
   interpolate,
   escape,
   validateAttribute,
+  validateUrlAttribute,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -223,6 +224,12 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
           attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
         } else {
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
+        }
+        
+        // Validate URL protocols for href and src attributes
+        attrValue = validateUrlAttribute(k, attrValue, logger);
+        if (!attrValue) {
+          return null;
         }
       }
       

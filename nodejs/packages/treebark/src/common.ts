@@ -72,6 +72,20 @@ const BLOCKED_PROPERTY_NAMES = new Set([
   'prototype',
 ]);
 
+// Safe URL protocols that are allowed in href and src attributes
+const SAFE_URL_PROTOCOLS = new Set([
+  'http:',
+  'https:',
+  'mailto:',
+  'tel:',
+  'sms:',
+  'ftp:',
+  'ftps:',
+]);
+
+// URL-based attributes that require protocol validation
+const URL_ATTRIBUTES = new Set(['href', 'src']);
+
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
@@ -314,6 +328,49 @@ export function validateAttribute(key: string, tag: string, logger: Logger): boo
     return false; // Return false to skip the attribute
   }
   return true;
+}
+
+/**
+ * Validate URL protocol for href and src attributes
+ * Returns sanitized URL or empty string if dangerous protocol detected
+ */
+export function validateUrlAttribute(attrName: string, value: string, logger: Logger): string {
+  // Only validate URL-based attributes
+  if (!URL_ATTRIBUTES.has(attrName)) {
+    return value;
+  }
+
+  const trimmedValue = value.trim();
+  
+  // Allow empty values
+  if (!trimmedValue) {
+    return trimmedValue;
+  }
+  
+  // Allow relative URLs (starting with /, #, or ? or containing no colon)
+  if (trimmedValue.startsWith('/') || 
+      trimmedValue.startsWith('#') || 
+      trimmedValue.startsWith('?') ||
+      !trimmedValue.includes(':')) {
+    return trimmedValue;
+  }
+  
+  // Extract protocol (everything before first colon)
+  const colonIndex = trimmedValue.indexOf(':');
+  if (colonIndex === -1) {
+    return trimmedValue;
+  }
+  
+  const protocol = trimmedValue.substring(0, colonIndex + 1).toLowerCase();
+  
+  // Check if protocol is safe
+  if (SAFE_URL_PROTOCOLS.has(protocol)) {
+    return trimmedValue;
+  }
+  
+  // Dangerous protocol detected
+  logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(', ')}, or relative URLs`);
+  return '';
 }
 
 /**

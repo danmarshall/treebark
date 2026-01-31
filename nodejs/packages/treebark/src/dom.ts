@@ -5,6 +5,7 @@ import {
   getProperty, 
   interpolate, 
   validateAttribute,
+  validateUrlAttribute,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -203,6 +204,12 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
         attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
       } else {
         attrValue = interpolate(String(value), data, false, parents, logger, getOuterProperty);
+      }
+      
+      // Validate URL protocols for href and src attributes
+      attrValue = validateUrlAttribute(key, attrValue, logger);
+      if (!attrValue) {
+        return;
       }
     }
     

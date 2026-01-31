@@ -65,6 +65,16 @@
     "constructor",
     "prototype"
   ]);
+  const SAFE_URL_PROTOCOLS = /* @__PURE__ */ new Set([
+    "http:",
+    "https:",
+    "mailto:",
+    "tel:",
+    "sms:",
+    "ftp:",
+    "ftps:"
+  ]);
+  const URL_ATTRIBUTES = /* @__PURE__ */ new Set(["href", "src"]);
   function getProperty(data, path, parents = [], logger, getOuterProperty) {
     if (path === ".") {
       return data;
@@ -194,6 +204,28 @@
       return false;
     }
     return true;
+  }
+  function validateUrlAttribute(attrName, value, logger) {
+    if (!URL_ATTRIBUTES.has(attrName)) {
+      return value;
+    }
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return trimmedValue;
+    }
+    if (trimmedValue.startsWith("/") || trimmedValue.startsWith("#") || trimmedValue.startsWith("?") || !trimmedValue.includes(":")) {
+      return trimmedValue;
+    }
+    const colonIndex = trimmedValue.indexOf(":");
+    if (colonIndex === -1) {
+      return trimmedValue;
+    }
+    const protocol = trimmedValue.substring(0, colonIndex + 1).toLowerCase();
+    if (SAFE_URL_PROTOCOLS.has(protocol)) {
+      return trimmedValue;
+    }
+    logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(", ")}, or relative URLs`);
+    return "";
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
@@ -455,6 +487,10 @@
           attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
         } else {
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
+        }
+        attrValue = validateUrlAttribute(k, attrValue, logger);
+        if (!attrValue) {
+          return null;
         }
       }
       return `${k}="${escape(attrValue)}"`;

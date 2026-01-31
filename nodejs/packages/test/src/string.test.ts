@@ -26,6 +26,7 @@ import {
   jailbreakDefenseTests,
   jailbreakValidationTests,
   jailbreakPropertyAccessTests,
+  urlProtocolValidationTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -1166,6 +1167,115 @@ describe('String Renderer', () => {
               );
               // Should render as empty string since property is blocked
               expect(result).toBe('<div></div>');
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('URL Protocol Validation', () => {
+      urlProtocolValidationTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const result = renderToString(testCase.input, { logger: mockLogger });
+
+          // Check specific expectations based on test name
+          switch (testCase.name) {
+            case 'blocks javascript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              expect(result).not.toContain('href=');
+              expect(result).toContain('<a>');
+              break;
+
+            case 'blocks javascript: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              expect(result).not.toContain('src=');
+              expect(result).toContain('<img');
+              break;
+
+            case 'blocks data: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              expect(result).not.toContain('href=');
+              break;
+
+            case 'blocks data: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              expect(result).not.toContain('src=');
+              break;
+
+            case 'blocks vbscript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              expect(result).not.toContain('href=');
+              break;
+
+            case 'blocks file: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              expect(result).not.toContain('href=');
+              break;
+
+            case 'allows https: protocol in href':
+              expect(result).toContain('href="https://example.com"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows http: protocol in href':
+              expect(result).toContain('href="http://example.com"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows https: protocol in src':
+              expect(result).toContain('src="https://example.com/image.png"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows mailto: protocol in href':
+              expect(result).toContain('href="mailto:test@example.com"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows tel: protocol in href':
+              expect(result).toContain('href="tel:+1234567890"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with slash in href':
+              expect(result).toContain('href="/path/to/page"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with hash in href':
+              expect(result).toContain('href="#section"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL without protocol in href':
+              expect(result).toContain('href="page.html"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows query string in href':
+              expect(result).toContain('href="?param=value"');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             default:

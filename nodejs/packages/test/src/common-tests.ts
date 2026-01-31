@@ -2583,6 +2583,175 @@ export const jailbreakPropertyAccessTests: TestCase[] = [
   }
 ];
 
+// URL protocol validation tests - validates href and src attribute security
+export const urlProtocolValidationTests: TestCase[] = [
+  {
+    name: 'blocks javascript: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'javascript:alert(1)',
+          $children: ['Click me']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks javascript: protocol in src',
+    input: {
+      template: {
+        img: {
+          src: 'javascript:alert(1)',
+          alt: 'test'
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks data: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'data:text/html,<script>alert(1)</script>',
+          $children: ['Click me']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks data: protocol in src',
+    input: {
+      template: {
+        img: {
+          src: 'data:text/html,alert',
+          alt: 'test'
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks vbscript: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'vbscript:msgbox(1)',
+          $children: ['Click me']
+        }
+      }
+    }
+  },
+  {
+    name: 'blocks file: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'file:///etc/passwd',
+          $children: ['Click me']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows https: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'https://example.com',
+          $children: ['Safe link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows http: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'http://example.com',
+          $children: ['Safe link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows https: protocol in src',
+    input: {
+      template: {
+        img: {
+          src: 'https://example.com/image.png',
+          alt: 'Safe image'
+        }
+      }
+    }
+  },
+  {
+    name: 'allows mailto: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'mailto:test@example.com',
+          $children: ['Email link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows tel: protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'tel:+1234567890',
+          $children: ['Phone link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows relative URL with slash in href',
+    input: {
+      template: {
+        a: {
+          href: '/path/to/page',
+          $children: ['Relative link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows relative URL with hash in href',
+    input: {
+      template: {
+        a: {
+          href: '#section',
+          $children: ['Anchor link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows relative URL without protocol in href',
+    input: {
+      template: {
+        a: {
+          href: 'page.html',
+          $children: ['Relative link']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows query string in href',
+    input: {
+      template: {
+        a: {
+          href: '?param=value',
+          $children: ['Query link']
+        }
+      }
+    }
+  }
+];
+
 
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {
