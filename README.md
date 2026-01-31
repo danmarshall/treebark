@@ -42,6 +42,11 @@ Output:
   - [Comments](#comments)
   - [Conditional Rendering](#conditional-rendering)
 - [Error Handling](#error-handling)
+- [Security](#security)
+  - [XSS Prevention](#xss-prevention)
+  - [Style Attribute Protection](#style-attribute-protection)
+  - [URL Protocol Validation](#url-protocol-validation)
+  - [Prototype Chain Protection](#prototype-chain-protection)
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
   - [Implementations](#implementations)
@@ -230,9 +235,10 @@ Output:
 
 **Key features:**
 - **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Dangerous patterns blocked**: `url()` (except data: URIs), `expression()`, `javascript:`, `@import`
+- **Dangerous patterns blocked**: `url()` with external URLs, `expression()`, `javascript:` protocol in CSS values, `@import`
 - **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
 - **Type safety**: Values are strings
+- **Semicolon sanitization**: Prevents multi-property injection by accepting only the first value
 
 **Flexbox example:**
 ```json
@@ -1018,6 +1024,120 @@ Treebark follows a **no-throw policy**: instead of throwing exceptions, errors a
 - **Nested comments**: The nested comment is skipped, and an error is logged
 
 Treebark will render as much valid content as possible, skipping only the problematic elements while logging issues for debugging.
+
+## Security
+
+Treebark is designed with **security as a priority**. Multiple layers of protection defend against XSS attacks and other security vulnerabilities.
+
+### XSS Prevention
+
+**Tag Allowlist:**
+Only safe HTML tags are permitted. Dangerous tags like `<script>`, `<iframe>`, `<object>`, `<embed>`, `<style>`, and `<form>` are blocked:
+
+```javascript
+// ❌ Blocked - logs error and renders nothing
+{ script: 'alert("xss")' }
+{ iframe: { src: 'evil.com' } }
+```
+
+**Attribute Allowlist:**
+Only safe attributes are allowed per tag. Event handlers like `onclick`, `onload`, `onerror` are blocked:
+
+```javascript
+// ❌ Blocked - logs warning and attribute is omitted
+{ div: { onclick: 'alert(1)', $children: ['text'] } }
+// Renders: <div>text</div>
+```
+
+**HTML Escaping:**
+All content and attribute values are automatically HTML-escaped to prevent injection:
+
+```javascript
+{ div: '<script>alert(1)</script>' }
+// Renders: <div>&lt;script&gt;alert(1)&lt;/script&gt;</div>
+```
+
+### Style Attribute Protection
+
+The `style` attribute uses a **structured object format** that blocks multiple attack vectors:
+
+**Dangerous CSS patterns blocked:**
+- `url()` - External URLs blocked (data: URIs allowed)
+- `expression()` - IE expression injection blocked
+- `javascript:` - JavaScript protocol blocked
+- `@import` - CSS imports blocked
+
+**Dangerous CSS properties blocked:**
+- `behavior` - IE behavior property blocked
+- `-moz-binding` - Firefox XBL binding blocked
+
+**Semicolon injection prevented:**
+Only the first CSS value before a semicolon is used, preventing multi-property injection:
+
+```javascript
+// ❌ Injection attempt blocked
+{
+  div: {
+    style: {
+      color: 'red; position: absolute; z-index: 999'
+    },
+    $children: ['text']
+  }
+}
+// Renders: <div style="color: red">text</div>
+// Warning logged: CSS value contained semicolon - using only first part
+```
+
+### URL Protocol Validation
+
+The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
+
+**Safe protocols allowed:**
+- `http:`, `https:` - Standard web protocols
+- `mailto:`, `tel:`, `sms:` - Communication protocols
+- `ftp:`, `ftps:` - File transfer protocols
+- Relative URLs (e.g., `/path`, `#anchor`, `?query`, `page.html`)
+
+**Dangerous protocols blocked:**
+- `javascript:` - JavaScript execution blocked
+- `data:` - Data URIs blocked (can contain HTML/scripts)
+- `vbscript:` - VBScript execution blocked
+- `file:` - Local file access blocked
+
+```javascript
+// ❌ Blocked - logs warning and attribute is omitted
+{ a: { href: 'javascript:alert(1)', $children: ['Click'] } }
+// Renders: <a>Click</a>
+
+// ✅ Allowed
+{ a: { href: 'https://example.com', $children: ['Safe'] } }
+{ a: { href: '/page', $children: ['Relative'] } }
+{ a: { href: 'mailto:user@example.com', $children: ['Email'] } }
+```
+
+### Prototype Chain Protection
+
+Access to JavaScript prototype chain properties is blocked in template interpolation to prevent information leakage:
+
+**Blocked properties:**
+- `constructor` - Prevents access to object constructor
+- `__proto__` - Prevents prototype chain access
+- `prototype` - Prevents prototype property access
+
+```javascript
+// ❌ Blocked - logs warning and renders empty
+{ div: '{{constructor}}' }
+{ div: '{{__proto__}}' }
+// Renders: <div></div>
+// Warning logged: Access to property "constructor" is blocked for security reasons
+```
+
+**Security principle:** Defense in depth with multiple layers:
+1. Tag and attribute allowlists
+2. HTML escaping for all content
+3. Structured style objects with pattern blocking
+4. URL protocol validation
+5. Prototype chain access prevention
 
 ## Format Notes
 
