@@ -5,7 +5,8 @@ import {
   getProperty,
   interpolate,
   escape,
-  validateAttribute,
+  validateAttributeName,
+  validateAttributeValue,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -205,6 +206,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): string {
   const pairs = Object.entries(attrs)
+    .filter(([key]) => validateAttributeName(key, tag, logger))
     .map(([k, v]) => {
       let attrValue: string;
       
@@ -225,9 +227,9 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
         }
       }
       
-      // Validate attribute name and value (after value is computed)
-      const validatedValue = validateAttribute(k, tag, attrValue, logger);
-      if (validatedValue === null || !validatedValue) {
+      // Validate attribute value (name already validated by filter above)
+      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      if (!validatedValue) {
         return null;
       }
       

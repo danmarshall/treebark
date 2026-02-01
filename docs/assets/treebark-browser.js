@@ -230,12 +230,6 @@
     }
     return value;
   }
-  function validateAttribute(key, tag, value, logger) {
-    if (!validateAttributeName(key, tag, logger)) {
-      return null;
-    }
-    return validateAttributeValue(key, value, logger);
-  }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
   }
@@ -483,7 +477,7 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
   }
   function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
-    const pairs = Object.entries(attrs).map(([k, v]) => {
+    const pairs = Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger)).map(([k, v]) => {
       let attrValue;
       if (k === "style") {
         attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
@@ -498,8 +492,8 @@
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
       }
-      const validatedValue = validateAttribute(k, tag, attrValue, logger);
-      if (validatedValue === null || !validatedValue) {
+      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      if (!validatedValue) {
         return null;
       }
       return `${k}="${escape(validatedValue)}"`;
