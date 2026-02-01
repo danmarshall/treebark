@@ -206,9 +206,6 @@
     return true;
   }
   function validateUrlProtocol(attrName, value, logger) {
-    if (!URL_ATTRIBUTES.has(attrName)) {
-      return value;
-    }
     const trimmedValue = value.trim();
     if (!trimmedValue) {
       return trimmedValue;
@@ -227,11 +224,17 @@
     logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(", ")}, or relative URLs`);
     return "";
   }
+  function validateAttributeValue(attrName, value, logger) {
+    if (URL_ATTRIBUTES.has(attrName)) {
+      return validateUrlProtocol(attrName, value, logger);
+    }
+    return value;
+  }
   function validateAttribute(key, tag, value, logger) {
     if (!validateAttributeName(key, tag, logger)) {
       return null;
     }
-    return validateUrlProtocol(key, value, logger);
+    return validateAttributeValue(key, value, logger);
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
