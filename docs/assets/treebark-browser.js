@@ -195,7 +195,7 @@
     logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
     return "";
   }
-  function validateAttribute(key, tag, logger) {
+  function validateAttributeName(key, tag, logger) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
     const isTagSpecific = tagAttrs && tagAttrs.has(key);
@@ -205,7 +205,7 @@
     }
     return true;
   }
-  function validateUrlAttribute(attrName, value, logger) {
+  function validateUrlProtocol(attrName, value, logger) {
     if (!URL_ATTRIBUTES.has(attrName)) {
       return value;
     }
@@ -226,6 +226,12 @@
     }
     logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(", ")}, or relative URLs`);
     return "";
+  }
+  function validateAttribute(key, tag, value, logger) {
+    if (!validateAttributeName(key, tag, logger)) {
+      return null;
+    }
+    return validateUrlProtocol(key, value, logger);
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
@@ -474,13 +480,18 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
   }
   function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
-    const pairs = Object.entries(attrs).filter(([key]) => validateAttribute(key, tag, logger)).map(([k, v]) => {
+    const pairs = Object.entries(attrs).map(([k, v]) => {
       let attrValue;
       if (k === "style") {
         attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
         if (!attrValue) {
           return null;
         }
+        const validatedValue = validateAttribute(k, tag, attrValue, logger);
+        if (validatedValue === null) {
+          return null;
+        }
+        attrValue = validatedValue;
       } else {
         if (isConditionalValue(v)) {
           const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
@@ -488,10 +499,11 @@
         } else {
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
-        attrValue = validateUrlAttribute(k, attrValue, logger);
-        if (!attrValue) {
+        const validatedValue = validateAttribute(k, tag, attrValue, logger);
+        if (validatedValue === null || !validatedValue) {
           return null;
         }
+        attrValue = validatedValue;
       }
       return `${k}="${escape(attrValue)}"`;
     }).filter((pair) => pair !== null).join(" ");

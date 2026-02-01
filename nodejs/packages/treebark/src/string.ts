@@ -6,7 +6,6 @@ import {
   interpolate,
   escape,
   validateAttribute,
-  validateUrlAttribute,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -206,7 +205,6 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
 function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): string {
   const pairs = Object.entries(attrs)
-    .filter(([key]) => validateAttribute(key, tag, logger))
     .map(([k, v]) => {
       let attrValue: string;
       
@@ -217,6 +215,12 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
         if (!attrValue) {
           return null;
         }
+        // Validate attribute name only (style has its own value validation)
+        const validatedValue = validateAttribute(k, tag, attrValue, logger);
+        if (validatedValue === null) {
+          return null;
+        }
+        attrValue = validatedValue;
       } else {
         // Regular attribute handling
         if (isConditionalValue(v)) {
@@ -226,11 +230,12 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
         
-        // Validate URL protocols for href and src attributes
-        attrValue = validateUrlAttribute(k, attrValue, logger);
-        if (!attrValue) {
+        // Validate attribute name and value (includes URL protocol validation)
+        const validatedValue = validateAttribute(k, tag, attrValue, logger);
+        if (validatedValue === null || !validatedValue) {
           return null;
         }
+        attrValue = validatedValue;
       }
       
       return `${k}="${escape(attrValue)}"`;

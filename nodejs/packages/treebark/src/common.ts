@@ -315,7 +315,11 @@ export function processStyleAttribute(
  * Validate that an attribute is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttribute(key: string, tag: string, logger: Logger): boolean {
+/**
+ * Validate that an attribute name is allowed for the given tag
+ * Returns true if valid, false if invalid (logs warning for invalid)
+ */
+export function validateAttributeName(key: string, tag: string, logger: Logger): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
@@ -334,7 +338,7 @@ export function validateAttribute(key: string, tag: string, logger: Logger): boo
  * Validate URL protocol for href and src attributes
  * Returns sanitized URL or empty string if dangerous protocol detected
  */
-export function validateUrlAttribute(attrName: string, value: string, logger: Logger): string {
+function validateUrlProtocol(attrName: string, value: string, logger: Logger): string {
   // Only validate URL-based attributes
   if (!URL_ATTRIBUTES.has(attrName)) {
     return value;
@@ -371,6 +375,21 @@ export function validateUrlAttribute(attrName: string, value: string, logger: Lo
   // Dangerous protocol detected
   logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(', ')}, or relative URLs`);
   return '';
+}
+
+/**
+ * Validate attribute name and value
+ * Returns validated value or empty string if validation fails
+ * Returns null if attribute name is not allowed
+ */
+export function validateAttribute(key: string, tag: string, value: string, logger: Logger): string | null {
+  // First validate the attribute name is allowed for this tag
+  if (!validateAttributeName(key, tag, logger)) {
+    return null;
+  }
+  
+  // Then validate the attribute value (URL protocol check for href/src)
+  return validateUrlProtocol(key, value, logger);
 }
 
 /**

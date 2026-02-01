@@ -5,7 +5,6 @@ import {
   getProperty, 
   interpolate, 
   validateAttribute,
-  validateUrlAttribute,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -184,10 +183,6 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    if (!validateAttribute(key, tag, logger)) {
-      return; // Skip invalid attributes
-    }
-    
     let attrValue: string;
     
     // Special handling for style attribute
@@ -197,6 +192,12 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
       if (!attrValue) {
         return;
       }
+      // Validate attribute name only (style has its own value validation)
+      const validatedValue = validateAttribute(key, tag, attrValue, logger);
+      if (validatedValue === null) {
+        return;
+      }
+      attrValue = validatedValue;
     } else {
       // Regular attribute handling
       if (isConditionalValue(value)) {
@@ -206,11 +207,12 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
         attrValue = interpolate(String(value), data, false, parents, logger, getOuterProperty);
       }
       
-      // Validate URL protocols for href and src attributes
-      attrValue = validateUrlAttribute(key, attrValue, logger);
-      if (!attrValue) {
+      // Validate attribute name and value (includes URL protocol validation)
+      const validatedValue = validateAttribute(key, tag, attrValue, logger);
+      if (validatedValue === null || !validatedValue) {
         return;
       }
+      attrValue = validatedValue;
     }
     
     element.setAttribute(key, attrValue);
