@@ -493,7 +493,7 @@
         }
       }
       const validatedValue = validateAttributeValue(k, attrValue, logger);
-      if (validatedValue === null) {
+      if (validatedValue == null) {
         return null;
       }
       return `${k}="${escape(validatedValue)}"`;
