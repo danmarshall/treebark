@@ -229,7 +229,7 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       
       // Validate attribute value (name already validated by filter above)
       const validatedValue = validateAttributeValue(k, attrValue, logger);
-      if (!validatedValue) {
+      if (validatedValue === '') {
         return null;
       }
       

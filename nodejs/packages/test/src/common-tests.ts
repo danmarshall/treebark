@@ -2752,6 +2752,57 @@ export const urlProtocolValidationTests: TestCase[] = [
   }
 ];
 
+// Zero value tests - ensure zero is treated as valid value, not falsy
+export const zeroValueAttributeTests: TestCase[] = [
+  {
+    name: 'allows zero in data-* attribute',
+    input: {
+      template: {
+        div: {
+          'data-count': '{{count}}',
+          $children: ['Items']
+        }
+      },
+      data: { count: 0 }
+    }
+  },
+  {
+    name: 'allows zero string in attribute',
+    input: {
+      template: {
+        div: {
+          'data-index': '0',
+          $children: ['Item']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows zero in title attribute',
+    input: {
+      template: {
+        div: {
+          title: '{{score}}',
+          $children: ['Score']
+        }
+      },
+      data: { score: 0 }
+    }
+  },
+  {
+    name: 'allows zero in width attribute',
+    input: {
+      template: {
+        img: {
+          src: 'https://example.com/image.png',
+          width: '0',
+          alt: 'test'
+        }
+      }
+    }
+  }
+];
+
 
 // Utility function to create test from test case data
 export function createTest(testCase: TestCase, renderFunction: (input: any, options?: any) => any, assertFunction: (result: any, testCase: TestCase) => void) {

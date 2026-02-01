@@ -27,6 +27,7 @@ import {
   jailbreakValidationTests,
   jailbreakPropertyAccessTests,
   urlProtocolValidationTests,
+  zeroValueAttributeTests,
   createTest,
   createErrorTest,
 } from './common-tests';
@@ -1276,6 +1277,35 @@ describe('String Renderer', () => {
             case 'allows query string in href':
               expect(result).toContain('href="?param=value"');
               expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('Zero Value Handling', () => {
+      zeroValueAttributeTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const result = renderToString(testCase.input);
+
+          switch (testCase.name) {
+            case 'allows zero in data-* attribute':
+              expect(result).toBe('<div data-count="0">Items</div>');
+              break;
+
+            case 'allows zero string in attribute':
+              expect(result).toBe('<div data-index="0">Item</div>');
+              break;
+
+            case 'allows zero in title attribute':
+              expect(result).toBe('<div title="0">Score</div>');
+              break;
+
+            case 'allows zero in width attribute':
+              expect(result).toBe('<img src="https://example.com/image.png" width="0" alt="test">');
               break;
 
             default:

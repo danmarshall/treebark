@@ -30,6 +30,7 @@ import {
   jailbreakValidationTests,
   jailbreakPropertyAccessTests,
   urlProtocolValidationTests,
+  zeroValueAttributeTests,
   createTest,
   createErrorTest,
   TestCase
@@ -1201,6 +1202,43 @@ describe('DOM Renderer', () => {
               const a12 = fragment.firstChild as HTMLAnchorElement;
               expect(a12.getAttribute('href')).toBe('?param=value');
               expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('Zero Value Handling', () => {
+      zeroValueAttributeTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const fragment = renderToDOM(testCase.input);
+
+          switch (testCase.name) {
+            case 'allows zero in data-* attribute':
+              const div1 = fragment.firstChild as HTMLElement;
+              expect(div1.getAttribute('data-count')).toBe('0');
+              expect(div1.textContent).toBe('Items');
+              break;
+
+            case 'allows zero string in attribute':
+              const div2 = fragment.firstChild as HTMLElement;
+              expect(div2.getAttribute('data-index')).toBe('0');
+              expect(div2.textContent).toBe('Item');
+              break;
+
+            case 'allows zero in title attribute':
+              const div3 = fragment.firstChild as HTMLElement;
+              expect(div3.getAttribute('title')).toBe('0');
+              expect(div3.textContent).toBe('Score');
+              break;
+
+            case 'allows zero in width attribute':
+              const img = fragment.firstChild as HTMLImageElement;
+              expect(img.getAttribute('width')).toBe('0');
+              expect(img.alt).toBe('test');
               break;
 
             default:
