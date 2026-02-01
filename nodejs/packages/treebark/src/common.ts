@@ -336,9 +336,9 @@ export function validateAttributeName(key: string, tag: string, logger: Logger):
 
 /**
  * Validate URL protocol for href and src attributes
- * Returns sanitized URL or empty string if dangerous protocol detected
+ * Returns sanitized URL or null if dangerous protocol detected
  */
-function validateUrlProtocol(attrName: string, value: string, logger: Logger): string {
+function validateUrlProtocol(attrName: string, value: string, logger: Logger): string | null {
   const trimmedValue = value.trim();
   
   // Allow empty values
@@ -369,20 +369,20 @@ function validateUrlProtocol(attrName: string, value: string, logger: Logger): s
   
   // Dangerous protocol detected
   logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(', ')}, or relative URLs`);
-  return '';
+  return null;
 }
 
 /**
  * Validate attribute value
- * Returns sanitized value or empty string if validation fails
+ * Returns sanitized value or null if validation fails
  */
-export function validateAttributeValue(attrName: string, value: string, logger: Logger): string {
+export function validateAttributeValue(attrName: string, value: string, logger: Logger): string | null {
   // Check if this is a URL-based attribute that needs protocol validation
   if (URL_ATTRIBUTES.has(attrName)) {
     return validateUrlProtocol(attrName, value, logger);
   }
   
-  // For non-URL attributes, return value as-is
+  // For non-URL attributes, return value as-is (including empty string)
   return value;
 }
 

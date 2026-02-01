@@ -222,7 +222,7 @@
       return trimmedValue;
     }
     logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(", ")}, or relative URLs`);
-    return "";
+    return null;
   }
   function validateAttributeValue(attrName, value, logger) {
     if (URL_ATTRIBUTES.has(attrName)) {
@@ -493,7 +493,7 @@
         }
       }
       const validatedValue = validateAttributeValue(k, attrValue, logger);
-      if (validatedValue === "") {
+      if (validatedValue === null) {
         return null;
       }
       return `${k}="${escape(validatedValue)}"`;

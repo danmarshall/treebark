@@ -2800,6 +2800,40 @@ export const zeroValueAttributeTests: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name: 'allows empty string in alt attribute',
+    input: {
+      template: {
+        img: {
+          src: 'https://example.com/image.png',
+          alt: ''
+        }
+      }
+    }
+  },
+  {
+    name: 'allows empty string in title attribute',
+    input: {
+      template: {
+        div: {
+          title: '',
+          $children: ['Content']
+        }
+      }
+    }
+  },
+  {
+    name: 'allows empty string from interpolation',
+    input: {
+      template: {
+        div: {
+          'data-value': '{{empty}}',
+          $children: ['Content']
+        }
+      },
+      data: { empty: '' }
+    }
   }
 ];
 

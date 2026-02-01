@@ -1241,6 +1241,26 @@ describe('DOM Renderer', () => {
               expect(img.alt).toBe('test');
               break;
 
+            case 'allows empty string in alt attribute':
+              const img2 = fragment.firstChild as HTMLImageElement;
+              expect(img2.getAttribute('alt')).toBe('');
+              expect(img2.hasAttribute('alt')).toBe(true);
+              break;
+
+            case 'allows empty string in title attribute':
+              const div4 = fragment.firstChild as HTMLElement;
+              expect(div4.getAttribute('title')).toBe('');
+              expect(div4.hasAttribute('title')).toBe(true);
+              expect(div4.textContent).toBe('Content');
+              break;
+
+            case 'allows empty string from interpolation':
+              const div5 = fragment.firstChild as HTMLElement;
+              expect(div5.getAttribute('data-value')).toBe('');
+              expect(div5.hasAttribute('data-value')).toBe(true);
+              expect(div5.textContent).toBe('Content');
+              break;
+
             default:
               throw new Error(`Unhandled test case: ${testCase.name}`);
           }

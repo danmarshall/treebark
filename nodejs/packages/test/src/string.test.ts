@@ -1308,6 +1308,18 @@ describe('String Renderer', () => {
               expect(result).toBe('<img src="https://example.com/image.png" width="0" alt="test">');
               break;
 
+            case 'allows empty string in alt attribute':
+              expect(result).toBe('<img src="https://example.com/image.png" alt="">');
+              break;
+
+            case 'allows empty string in title attribute':
+              expect(result).toBe('<div title="">Content</div>');
+              break;
+
+            case 'allows empty string from interpolation':
+              expect(result).toBe('<div data-value="">Content</div>');
+              break;
+
             default:
               throw new Error(`Unhandled test case: ${testCase.name}`);
           }

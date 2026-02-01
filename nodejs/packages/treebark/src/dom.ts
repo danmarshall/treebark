@@ -210,7 +210,7 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     
     // Validate attribute value (name already validated above)
     const validatedValue = validateAttributeValue(key, attrValue, logger);
-    if (validatedValue === '') {
+    if (validatedValue === null) {
       return;
     }
     
