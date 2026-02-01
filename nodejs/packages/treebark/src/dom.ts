@@ -192,12 +192,6 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
       if (!attrValue) {
         return;
       }
-      // Validate attribute name only (style has its own value validation)
-      const validatedValue = validateAttribute(key, tag, attrValue, logger);
-      if (validatedValue === null) {
-        return;
-      }
-      attrValue = validatedValue;
     } else {
       // Regular attribute handling
       if (isConditionalValue(value)) {
@@ -206,16 +200,15 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
       } else {
         attrValue = interpolate(String(value), data, false, parents, logger, getOuterProperty);
       }
-      
-      // Validate attribute name and value (includes URL protocol validation)
-      const validatedValue = validateAttribute(key, tag, attrValue, logger);
-      if (validatedValue === null || !validatedValue) {
-        return;
-      }
-      attrValue = validatedValue;
     }
     
-    element.setAttribute(key, attrValue);
+    // Validate attribute name and value (after value is computed)
+    const validatedValue = validateAttribute(key, tag, attrValue, logger);
+    if (validatedValue === null || !validatedValue) {
+      return;
+    }
+    
+    element.setAttribute(key, validatedValue);
   });
 }
 

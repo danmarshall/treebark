@@ -490,11 +490,6 @@
         if (!attrValue) {
           return null;
         }
-        const validatedValue = validateAttribute(k, tag, attrValue, logger);
-        if (validatedValue === null) {
-          return null;
-        }
-        attrValue = validatedValue;
       } else {
         if (isConditionalValue(v)) {
           const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
@@ -502,13 +497,12 @@
         } else {
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
-        const validatedValue = validateAttribute(k, tag, attrValue, logger);
-        if (validatedValue === null || !validatedValue) {
-          return null;
-        }
-        attrValue = validatedValue;
       }
-      return `${k}="${escape(attrValue)}"`;
+      const validatedValue = validateAttribute(k, tag, attrValue, logger);
+      if (validatedValue === null || !validatedValue) {
+        return null;
+      }
+      return `${k}="${escape(validatedValue)}"`;
     }).filter((pair) => pair !== null).join(" ");
     return pairs ? " " + pairs : "";
   }

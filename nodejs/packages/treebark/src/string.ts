@@ -215,12 +215,6 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
         if (!attrValue) {
           return null;
         }
-        // Validate attribute name only (style has its own value validation)
-        const validatedValue = validateAttribute(k, tag, attrValue, logger);
-        if (validatedValue === null) {
-          return null;
-        }
-        attrValue = validatedValue;
       } else {
         // Regular attribute handling
         if (isConditionalValue(v)) {
@@ -229,16 +223,15 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
         } else {
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
-        
-        // Validate attribute name and value (includes URL protocol validation)
-        const validatedValue = validateAttribute(k, tag, attrValue, logger);
-        if (validatedValue === null || !validatedValue) {
-          return null;
-        }
-        attrValue = validatedValue;
       }
       
-      return `${k}="${escape(attrValue)}"`;
+      // Validate attribute name and value (after value is computed)
+      const validatedValue = validateAttribute(k, tag, attrValue, logger);
+      if (validatedValue === null || !validatedValue) {
+        return null;
+      }
+      
+      return `${k}="${escape(validatedValue)}"`;
     })
     .filter(pair => pair !== null)
     .join(" ");
