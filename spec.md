@@ -170,7 +170,7 @@ div:
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
   - `blockquote`: `cite`  
-- Blocked: event handlers (`on*` attributes like `onclick`, `onload`)
+- Disallowed: event handlers (`on*` attributes like `onclick`, `onload`)
 - See [Security](#14-security) section for comprehensive security details
 
 ---
@@ -340,7 +340,7 @@ JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is spl
 **Special tags:**  
 `comment`, `if`
 
-Blocked tags:  
+Disallowed tags:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
 `form`, `input`, `button`, `select`,  
 `video`, `audio`,  
@@ -931,16 +931,16 @@ Treebark implements multiple layers of security to prevent XSS attacks and other
 
 ### 14.1 Tag Allowlist
 
-Only safe HTML tags are permitted. Dangerous tags are blocked and logged as errors:
+Only safe HTML tags are permitted. Dangerous tags are not allowed and logged as errors:
 
-**Blocked tags:**
+**Disallowed tags:**
 - `script`, `iframe`, `object`, `embed`, `applet` - XSS vectors
 - `form`, `input`, `button`, `select`, `textarea` - Form hijacking
 - `style`, `link`, `meta`, `base` - Style/metadata injection
 - `video`, `audio`, `canvas` - Media-based attacks
 - `svg`, `math` - Vector-based attacks
 
-**Case variations blocked:** Tag names are case-sensitive. `ScRiPt`, `IFRAME`, etc. are also blocked.
+**Case variations disallowed:** Tag names are case-sensitive. `ScRiPt`, `IFRAME`, etc. are also disallowed.
 
 **Example:**
 ```javascript
@@ -951,11 +951,11 @@ Only safe HTML tags are permitted. Dangerous tags are blocked and logged as erro
 
 ### 14.2 Attribute Allowlist
 
-Only safe attributes are permitted per tag. Event handlers are blocked:
+Only safe attributes are permitted per tag. Event handlers are not allowed:
 
-**Blocked attributes:**
+**Disallowed attributes:**
 - `onclick`, `onload`, `onerror`, `onmouseover`, etc. - All `on*` event handlers
-- Case variations: `onClick`, `ONCLICK`, etc. are also blocked
+- Case variations: `onClick`, `ONCLICK`, etc. are also disallowed
 
 **Allowed attributes per tag:**
 - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`
@@ -984,15 +984,15 @@ All content and attribute values are automatically HTML-escaped to prevent injec
 
 ### 14.4 Style Attribute Protection
 
-The `style` attribute uses a structured object format that blocks multiple attack vectors:
+The `style` attribute uses a structured object format that rejects multiple attack vectors:
 
-**Dangerous CSS patterns blocked:**
+**Dangerous CSS patterns rejected:**
 - `url()` with external URLs (data: URIs allowed for inline images)
 - `expression()` - IE expression injection
 - `javascript:` protocol in CSS values
 - `@import` - CSS imports
 
-**Dangerous CSS properties blocked:**
+**Dangerous CSS properties rejected:**
 - `behavior` - IE behavior property (can execute code)
 - `-moz-binding` - Firefox XBL binding (can execute code)
 
@@ -1026,7 +1026,7 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 - `ftp:`, `ftps:` - File transfer protocols
 - Relative URLs: `/path`, `#anchor`, `?query`, `page.html`
 
-**Dangerous protocols blocked:**
+**Dangerous protocols rejected:**
 - `javascript:` - JavaScript execution
 - `data:` - Data URIs (can contain HTML/scripts)
 - `vbscript:` - VBScript execution
@@ -1036,7 +1036,7 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 **Example:**
 ```javascript
 { a: { href: 'javascript:alert(1)', $children: ['Click'] } }
-// Logs warning: Attribute "href" contains blocked protocol "javascript:"
+// Logs warning: Attribute "href" contains disallowed protocol "javascript:"
 // Renders: <a>Click</a> (href omitted)
 
 { a: { href: 'https://example.com', $children: ['Safe'] } }
@@ -1045,9 +1045,9 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 
 ### 14.6 Prototype Chain Protection
 
-Access to JavaScript prototype chain properties is blocked in template interpolation:
+Access to JavaScript prototype chain properties is prevented in template interpolation:
 
-**Blocked properties:**
+**Disallowed properties:**
 - `constructor` - Object constructor access
 - `__proto__` - Prototype chain access
 - `prototype` - Prototype property access
@@ -1055,7 +1055,7 @@ Access to JavaScript prototype chain properties is blocked in template interpola
 **Example:**
 ```javascript
 { div: '{{constructor}}' }
-// Logs warning: Access to property "constructor" is blocked for security reasons
+// Logs warning: Access to property "constructor" is prevented for security reasons
 // Renders: <div></div>
 
 { div: '{{name}}' }
@@ -1070,9 +1070,9 @@ Treebark implements multiple overlapping security layers:
 2. **Attribute allowlist** - Only safe attributes permitted per tag
 3. **HTML escaping** - All content and attribute values escaped
 4. **Structured style objects** - Prevents CSS string injection
-5. **CSS pattern blocking** - Blocks dangerous CSS patterns and properties
-6. **URL protocol validation** - Blocks dangerous protocols in href/src
-7. **Prototype chain blocking** - Prevents access to internal object properties
+5. **CSS pattern rejection** - Rejects dangerous CSS patterns and properties
+6. **URL protocol validation** - Rejects dangerous protocols in href/src
+7. **Prototype chain protection** - Prevents access to internal object properties
 
 This defense-in-depth approach ensures that even if one layer is bypassed, others remain to protect against attacks.
 

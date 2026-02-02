@@ -241,8 +241,8 @@ Output:
 
 **Key features:**
 - **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Dangerous patterns blocked**: `url()` with external URLs, `expression()`, `javascript:` protocol in CSS values, `@import`
-- **Blocked properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Dangerous patterns rejected**: `url()` with external URLs, `expression()`, `javascript:` protocol in CSS values, `@import`
+- **Rejected properties**: `behavior`, `-moz-binding` (known dangerous properties)
 - **Type safety**: Values are strings
 - **Semicolon sanitization**: Prevents multi-property injection by accepting only the first value
 
@@ -1038,19 +1038,19 @@ Treebark is designed with **security as a priority**. Multiple layers of protect
 ### XSS Prevention
 
 **Tag Allowlist:**
-Only safe HTML tags are permitted. Dangerous tags like `<script>`, `<iframe>`, `<object>`, `<embed>`, `<style>`, and `<form>` are blocked:
+Only safe HTML tags are permitted. Dangerous tags like `<script>`, `<iframe>`, `<object>`, `<embed>`, `<style>`, and `<form>` are not allowed:
 
 ```javascript
-// ❌ Blocked - logs error and renders nothing
+// ❌ Not allowed - logs error and renders nothing
 { script: 'alert("xss")' }
 { iframe: { src: 'evil.com' } }
 ```
 
 **Attribute Allowlist:**
-Only safe attributes are allowed per tag. Event handlers like `onclick`, `onload`, `onerror` are blocked:
+Only safe attributes are allowed per tag. Event handlers like `onclick`, `onload`, `onerror` are not allowed:
 
 ```javascript
-// ❌ Blocked - logs warning and attribute is omitted
+// ❌ Not allowed - logs warning and attribute is omitted
 { div: { onclick: 'alert(1)', $children: ['text'] } }
 // Renders: <div>text</div>
 ```
@@ -1065,23 +1065,23 @@ All content and attribute values are automatically HTML-escaped to prevent injec
 
 ### Style Attribute Protection
 
-The `style` attribute uses a **structured object format** that blocks multiple attack vectors:
+The `style` attribute uses a **structured object format** that rejects multiple attack vectors:
 
-**Dangerous CSS patterns blocked:**
-- `url()` - External URLs blocked (data: URIs allowed)
-- `expression()` - IE expression injection blocked
-- `javascript:` - JavaScript protocol blocked
-- `@import` - CSS imports blocked
+**Dangerous CSS patterns rejected:**
+- `url()` - External URLs rejected (data: URIs allowed)
+- `expression()` - IE expression injection rejected
+- `javascript:` - JavaScript protocol rejected
+- `@import` - CSS imports rejected
 
-**Dangerous CSS properties blocked:**
-- `behavior` - IE behavior property blocked
-- `-moz-binding` - Firefox XBL binding blocked
+**Dangerous CSS properties rejected:**
+- `behavior` - IE behavior property rejected
+- `-moz-binding` - Firefox XBL binding rejected
 
 **Semicolon injection prevented:**
 Only the first CSS value before a semicolon is used, preventing multi-property injection:
 
 ```javascript
-// ❌ Injection attempt blocked
+// ❌ Injection attempt rejected
 {
   div: {
     style: {
@@ -1104,14 +1104,14 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 - `ftp:`, `ftps:` - File transfer protocols
 - Relative URLs (e.g., `/path`, `#anchor`, `?query`, `page.html`)
 
-**Dangerous protocols blocked:**
-- `javascript:` - JavaScript execution blocked
-- `data:` - Data URIs blocked (can contain HTML/scripts)
-- `vbscript:` - VBScript execution blocked
-- `file:` - Local file access blocked
+**Dangerous protocols rejected:**
+- `javascript:` - JavaScript execution rejected
+- `data:` - Data URIs rejected (can contain HTML/scripts)
+- `vbscript:` - VBScript execution rejected
+- `file:` - Local file access rejected
 
 ```javascript
-// ❌ Blocked - logs warning and attribute is omitted
+// ❌ Not allowed - logs warning and attribute is omitted
 { a: { href: 'javascript:alert(1)', $children: ['Click'] } }
 // Renders: <a>Click</a>
 
@@ -1123,25 +1123,25 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 
 ### Prototype Chain Protection
 
-Access to JavaScript prototype chain properties is blocked in template interpolation to prevent information leakage:
+Access to JavaScript prototype chain properties is prevented in template interpolation to prevent information leakage:
 
-**Blocked properties:**
+**Disallowed properties:**
 - `constructor` - Prevents access to object constructor
 - `__proto__` - Prevents prototype chain access
 - `prototype` - Prevents prototype property access
 
 ```javascript
-// ❌ Blocked - logs warning and renders empty
+// ❌ Not allowed - logs warning and renders empty
 { div: '{% raw %}{{constructor}}{% endraw %}' }
 { div: '{% raw %}{{__proto__}}{% endraw %}' }
 // Renders: <div></div>
-// Warning logged: Access to property "constructor" is blocked for security reasons
+// Warning logged: Access to property "constructor" is prevented for security reasons
 ```
 
 **Security principle:** Defense in depth with multiple layers:
 1. Tag and attribute allowlists
 2. HTML escaping for all content
-3. Structured style objects with pattern blocking
+3. Structured style objects with pattern rejection
 4. URL protocol validation
 5. Prototype chain access prevention
 
