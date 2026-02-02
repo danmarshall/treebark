@@ -4,7 +4,8 @@ import {
   VOID_TAGS,
   getProperty, 
   interpolate, 
-  validateAttribute,
+  validateAttributeName,
+  validateAttributeValue,
   processStyleAttribute,
   hasBinding,
   validatePathExpression,
@@ -183,7 +184,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
 
 function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): void {
   Object.entries(attrs).forEach(([key, value]) => {
-    if (!validateAttribute(key, tag, logger)) {
+    // First check if attribute name is allowed for this tag
+    if (!validateAttributeName(key, tag, logger)) {
       return; // Skip invalid attributes
     }
     
@@ -206,7 +208,13 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
       }
     }
     
-    element.setAttribute(key, attrValue);
+    // Validate attribute value (name already validated above)
+    const validatedValue = validateAttributeValue(key, attrValue, logger);
+    if (validatedValue == null) {  // Checks both null and undefined
+      return;
+    }
+    
+    element.setAttribute(key, validatedValue);
   });
 }
 

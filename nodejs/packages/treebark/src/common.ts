@@ -65,6 +65,27 @@ const BLOCKED_CSS_PROPERTIES = new Set([
   '-moz-binding',       // Firefox XBL binding - can execute code
 ]);
 
+// Blocked property names that access the prototype chain
+const BLOCKED_PROPERTY_NAMES = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
+
+// Safe URL protocols that are allowed in href and src attributes
+const SAFE_URL_PROTOCOLS = new Set([
+  'http:',
+  'https:',
+  'mailto:',
+  'tel:',
+  'sms:',
+  'ftp:',
+  'ftps:',
+]);
+
+// URL-based attributes that require protocol validation
+const URL_ATTRIBUTES = new Set(['href', 'src']);
+
 /**
  * Get a nested property from data using dot notation
  * Supports parent property access with .. notation
@@ -122,8 +143,17 @@ export function getProperty(
       logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
       return undefined;
     }
-    const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown =>
-      (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined), currentData);
+    
+    const result = remainingPath.split('.').reduce((o: unknown, k: string): unknown => {
+      // Block access to prototype chain properties for security
+      if (BLOCKED_PROPERTY_NAMES.has(k)) {
+        if (logger) {
+          logger.warn(`Access to property "${k}" is blocked for security reasons`);
+        }
+        return undefined;
+      }
+      return (o && typeof o === 'object' && o !== null ? (o as Record<string, unknown>)[k] : undefined);
+    }, currentData);
     
     // If result is undefined, try outer property resolver
     if (result === undefined && getOuterProperty) {
@@ -285,7 +315,11 @@ export function processStyleAttribute(
  * Validate that an attribute is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttribute(key: string, tag: string, logger: Logger): boolean {
+/**
+ * Validate that an attribute name is allowed for the given tag
+ * Returns true if valid, false if invalid (logs warning for invalid)
+ */
+export function validateAttributeName(key: string, tag: string, logger: Logger): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
@@ -298,6 +332,73 @@ export function validateAttribute(key: string, tag: string, logger: Logger): boo
     return false; // Return false to skip the attribute
   }
   return true;
+}
+
+/**
+ * Validate URL protocol for href and src attributes
+ * Returns sanitized URL or null if dangerous protocol detected
+ */
+function validateUrlProtocol(attrName: string, value: string, logger: Logger): string | null {
+  const trimmedValue = value.trim();
+  
+  // Allow empty values
+  if (!trimmedValue) {
+    return trimmedValue;
+  }
+  
+  // Allow relative URLs (starting with /, #, or ? or containing no colon)
+  if (trimmedValue.startsWith('/') || 
+      trimmedValue.startsWith('#') || 
+      trimmedValue.startsWith('?') ||
+      !trimmedValue.includes(':')) {
+    return trimmedValue;
+  }
+  
+  // Extract protocol (everything before first colon)
+  const colonIndex = trimmedValue.indexOf(':');
+  if (colonIndex === -1) {
+    return trimmedValue;
+  }
+  
+  const protocol = trimmedValue.substring(0, colonIndex + 1).toLowerCase();
+  
+  // Check if protocol is safe
+  if (SAFE_URL_PROTOCOLS.has(protocol)) {
+    return trimmedValue;
+  }
+  
+  // Dangerous protocol detected
+  logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(', ')}, or relative URLs`);
+  return null;
+}
+
+/**
+ * Validate attribute value
+ * Returns sanitized value or null if validation fails
+ */
+export function validateAttributeValue(attrName: string, value: string, logger: Logger): string | null {
+  // Check if this is a URL-based attribute that needs protocol validation
+  if (URL_ATTRIBUTES.has(attrName)) {
+    return validateUrlProtocol(attrName, value, logger);
+  }
+  
+  // For non-URL attributes, return value as-is (including empty string)
+  return value;
+}
+
+/**
+ * Validate attribute name and value
+ * Returns validated value or empty string if validation fails
+ * Returns null if attribute name is not allowed
+ */
+export function validateAttribute(key: string, tag: string, value: string, logger: Logger): string | null {
+  // First validate the attribute name is allowed for this tag
+  if (!validateAttributeName(key, tag, logger)) {
+    return null;
+  }
+  
+  // Then validate the attribute value
+  return validateAttributeValue(key, value, logger);
 }
 
 /**

@@ -60,6 +60,21 @@
     "-moz-binding"
     // Firefox XBL binding - can execute code
   ]);
+  const BLOCKED_PROPERTY_NAMES = /* @__PURE__ */ new Set([
+    "__proto__",
+    "constructor",
+    "prototype"
+  ]);
+  const SAFE_URL_PROTOCOLS = /* @__PURE__ */ new Set([
+    "http:",
+    "https:",
+    "mailto:",
+    "tel:",
+    "sms:",
+    "ftp:",
+    "ftps:"
+  ]);
+  const URL_ATTRIBUTES = /* @__PURE__ */ new Set(["href", "src"]);
   function getProperty(data, path, parents = [], logger, getOuterProperty) {
     if (path === ".") {
       return data;
@@ -91,7 +106,15 @@
         logger.error(`Cannot access property "${remainingPath}" on primitive value of type "${typeof currentData}"`);
         return void 0;
       }
-      const result = remainingPath.split(".").reduce((o, k) => o && typeof o === "object" && o !== null ? o[k] : void 0, currentData);
+      const result = remainingPath.split(".").reduce((o, k) => {
+        if (BLOCKED_PROPERTY_NAMES.has(k)) {
+          if (logger) {
+            logger.warn(`Access to property "${k}" is blocked for security reasons`);
+          }
+          return void 0;
+        }
+        return o && typeof o === "object" && o !== null ? o[k] : void 0;
+      }, currentData);
       if (result === void 0 && getOuterProperty) {
         return getOuterProperty(path, data, parents);
       }
@@ -172,7 +195,7 @@
     logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
     return "";
   }
-  function validateAttribute(key, tag, logger) {
+  function validateAttributeName(key, tag, logger) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
     const isTagSpecific = tagAttrs && tagAttrs.has(key);
@@ -181,6 +204,31 @@
       return false;
     }
     return true;
+  }
+  function validateUrlProtocol(attrName, value, logger) {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+      return trimmedValue;
+    }
+    if (trimmedValue.startsWith("/") || trimmedValue.startsWith("#") || trimmedValue.startsWith("?") || !trimmedValue.includes(":")) {
+      return trimmedValue;
+    }
+    const colonIndex = trimmedValue.indexOf(":");
+    if (colonIndex === -1) {
+      return trimmedValue;
+    }
+    const protocol = trimmedValue.substring(0, colonIndex + 1).toLowerCase();
+    if (SAFE_URL_PROTOCOLS.has(protocol)) {
+      return trimmedValue;
+    }
+    logger.warn(`Attribute "${attrName}" contains blocked protocol "${protocol}". Allowed protocols: ${[...SAFE_URL_PROTOCOLS].join(", ")}, or relative URLs`);
+    return null;
+  }
+  function validateAttributeValue(attrName, value, logger) {
+    if (URL_ATTRIBUTES.has(attrName)) {
+      return validateUrlProtocol(attrName, value, logger);
+    }
+    return value;
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
@@ -429,7 +477,7 @@
     return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
   }
   function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
-    const pairs = Object.entries(attrs).filter(([key]) => validateAttribute(key, tag, logger)).map(([k, v]) => {
+    const pairs = Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger)).map(([k, v]) => {
       let attrValue;
       if (k === "style") {
         attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
@@ -444,7 +492,11 @@
           attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
         }
       }
-      return `${k}="${escape(attrValue)}"`;
+      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      if (validatedValue == null) {
+        return null;
+      }
+      return `${k}="${escape(validatedValue)}"`;
     }).filter((pair) => pair !== null).join(" ");
     return pairs ? " " + pairs : "";
   }

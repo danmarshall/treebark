@@ -26,6 +26,11 @@ import {
   styleObjectTests,
   styleObjectWarningTests,
   styleObjectErrorTests,
+  jailbreakDefenseTests,
+  jailbreakValidationTests,
+  jailbreakPropertyAccessTests,
+  urlProtocolValidationTests,
+  zeroValueAttributeTests,
   createTest,
   createErrorTest,
   TestCase
@@ -937,6 +942,330 @@ describe('DOM Renderer', () => {
     // Style error tests
     styleObjectErrorTests.forEach(testCase => {
       createErrorTest(testCase, renderToDOM);
+    });
+  });
+
+  // Jailbreak defense tests - comprehensive security tests
+  describe('Jailbreak Defense', () => {
+    describe('Tag Name Manipulation Attacks', () => {
+      jailbreakDefenseTests.forEach(testCase => {
+        createErrorTest(testCase, renderToDOM);
+      });
+    });
+
+    describe('CSS Injection and Style Attacks', () => {
+      jailbreakValidationTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+
+          // Check specific expectations based on test name
+          switch (testCase.name) {
+            case 'blocks url() with spacing variations':
+            case 'blocks URL() with uppercase':
+            case 'blocks uRl() with mixed case':
+            case 'blocks @import with url':
+            case 'blocks expression() with spacing':
+            case 'blocks EXPRESSION() with uppercase':
+            case 'blocks javascript: protocol variations':
+            case 'blocks JavaScript: with mixed case':
+              // Should warn about dangerous patterns
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Check that the dangerous style was not applied
+              const el1 = fragment.firstChild as HTMLElement;
+              expect(el1).toBeTruthy();
+              if (el1 && el1.style) {
+                // Style should either be empty or not contain dangerous patterns
+                const styleText = el1.getAttribute('style') || '';
+                expect(styleText).not.toContain('url(http');
+                // Don't check for 'expression' text as it might appear in element content
+                expect(styleText).not.toContain('javascript:');
+                expect(styleText).not.toContain('@import');
+              }
+              break;
+
+            case 'allows data: URIs in url()':
+              // Data URIs should be allowed
+              const el2 = fragment.firstChild as HTMLElement;
+              expect(el2).toBeTruthy();
+              if (el2 && el2.style) {
+                const styleText = el2.getAttribute('style') || '';
+                expect(styleText).toContain('data:image');
+              }
+              break;
+
+            case 'blocks multiple property injection via semicolon':
+            case 'blocks property injection with important':
+              // Should warn about semicolon injection
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Should only include the first property value
+              const el3 = fragment.firstChild as HTMLElement;
+              expect(el3).toBeTruthy();
+              if (el3 && el3.style) {
+                const styleText = el3.getAttribute('style') || '';
+                expect(styleText).toContain('color: red');
+                expect(styleText).not.toContain('position:');
+                expect(styleText).not.toContain('background:');
+              }
+              break;
+
+            case 'blocks event handler attributes':
+            case 'blocks on* attributes with uppercase':
+              // Should warn about invalid attributes
+              expect(mockLogger.warn).toHaveBeenCalled();
+              // Should not include event handlers
+              const el4 = fragment.firstChild as HTMLElement;
+              expect(el4).toBeTruthy();
+              if (el4) {
+                expect(el4.getAttribute('onclick')).toBeNull();
+                expect(el4.getAttribute('onload')).toBeNull();
+                expect(el4.getAttribute('onerror')).toBeNull();
+                expect(el4.getAttribute('onmouseover')).toBeNull();
+                expect(el4.getAttribute('onClick')).toBeNull();
+                expect(el4.getAttribute('ONCLICK')).toBeNull();
+              }
+              break;
+
+            case 'allows safe href protocols':
+              const link = fragment.firstChild as HTMLAnchorElement;
+              expect(link.tagName).toBe('A');
+              expect(link.href).toBe('https://example.com/');
+              expect(link.textContent).toBe('Safe link');
+              break;
+
+            case 'allows safe img src':
+              const img = fragment.firstChild as HTMLImageElement;
+              expect(img.tagName).toBe('IMG');
+              expect(img.src).toBe('https://example.com/image.png');
+              expect(img.alt).toBe('Safe image');
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('Property Access Attacks', () => {
+      jailbreakPropertyAccessTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+
+          const div = fragment.firstChild as HTMLElement;
+          expect(div).toBeDefined();
+          expect(div.tagName).toBe('DIV');
+
+          // Prototype chain properties should now be blocked
+          switch (testCase.name) {
+            case 'blocks constructor property access':
+            case 'blocks __proto__ property access':
+            case 'blocks prototype property access':
+              // Should warn about blocked property access
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Access to property .* is blocked for security reasons/)
+              );
+              // Should render as empty string since property is blocked
+              expect(div.textContent).toBe('');
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('URL Protocol Validation', () => {
+      urlProtocolValidationTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const mockLogger = {
+            error: jest.fn(),
+            warn: jest.fn(),
+            log: jest.fn()
+          };
+
+          const fragment = renderToDOM(testCase.input, { logger: mockLogger });
+
+          // Check specific expectations based on test name
+          switch (testCase.name) {
+            case 'blocks javascript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a1 = fragment.firstChild as HTMLAnchorElement;
+              expect(a1.tagName).toBe('A');
+              expect(a1.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks javascript: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              const img1 = fragment.firstChild as HTMLImageElement;
+              expect(img1.tagName).toBe('IMG');
+              expect(img1.hasAttribute('src')).toBe(false);
+              break;
+
+            case 'blocks data: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a2 = fragment.firstChild as HTMLAnchorElement;
+              expect(a2.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks data: protocol in src':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "src" contains blocked protocol/)
+              );
+              const img2 = fragment.firstChild as HTMLImageElement;
+              expect(img2.hasAttribute('src')).toBe(false);
+              break;
+
+            case 'blocks vbscript: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a3 = fragment.firstChild as HTMLAnchorElement;
+              expect(a3.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'blocks file: protocol in href':
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringMatching(/Attribute "href" contains blocked protocol/)
+              );
+              const a4 = fragment.firstChild as HTMLAnchorElement;
+              expect(a4.hasAttribute('href')).toBe(false);
+              break;
+
+            case 'allows https: protocol in href':
+              const a5 = fragment.firstChild as HTMLAnchorElement;
+              expect(a5.href).toBe('https://example.com/');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows http: protocol in href':
+              const a6 = fragment.firstChild as HTMLAnchorElement;
+              expect(a6.href).toBe('http://example.com/');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows https: protocol in src':
+              const img3 = fragment.firstChild as HTMLImageElement;
+              expect(img3.src).toBe('https://example.com/image.png');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows mailto: protocol in href':
+              const a7 = fragment.firstChild as HTMLAnchorElement;
+              expect(a7.href).toBe('mailto:test@example.com');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows tel: protocol in href':
+              const a8 = fragment.firstChild as HTMLAnchorElement;
+              expect(a8.href).toBe('tel:+1234567890');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with slash in href':
+              const a9 = fragment.firstChild as HTMLAnchorElement;
+              expect(a9.getAttribute('href')).toBe('/path/to/page');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL with hash in href':
+              const a10 = fragment.firstChild as HTMLAnchorElement;
+              expect(a10.getAttribute('href')).toBe('#section');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows relative URL without protocol in href':
+              const a11 = fragment.firstChild as HTMLAnchorElement;
+              expect(a11.getAttribute('href')).toBe('page.html');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            case 'allows query string in href':
+              const a12 = fragment.firstChild as HTMLAnchorElement;
+              expect(a12.getAttribute('href')).toBe('?param=value');
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
+    });
+
+    describe('Zero Value Handling', () => {
+      zeroValueAttributeTests.forEach(testCase => {
+        test(testCase.name, () => {
+          const fragment = renderToDOM(testCase.input);
+
+          switch (testCase.name) {
+            case 'allows zero in data-* attribute':
+              const div1 = fragment.firstChild as HTMLElement;
+              expect(div1.getAttribute('data-count')).toBe('0');
+              expect(div1.textContent).toBe('Items');
+              break;
+
+            case 'allows zero string in attribute':
+              const div2 = fragment.firstChild as HTMLElement;
+              expect(div2.getAttribute('data-index')).toBe('0');
+              expect(div2.textContent).toBe('Item');
+              break;
+
+            case 'allows zero in title attribute':
+              const div3 = fragment.firstChild as HTMLElement;
+              expect(div3.getAttribute('title')).toBe('0');
+              expect(div3.textContent).toBe('Score');
+              break;
+
+            case 'allows zero in width attribute':
+              const img = fragment.firstChild as HTMLImageElement;
+              expect(img.getAttribute('width')).toBe('0');
+              expect(img.alt).toBe('test');
+              break;
+
+            case 'allows empty string in alt attribute':
+              const img2 = fragment.firstChild as HTMLImageElement;
+              expect(img2.getAttribute('alt')).toBe('');
+              expect(img2.hasAttribute('alt')).toBe(true);
+              break;
+
+            case 'allows empty string in title attribute':
+              const div4 = fragment.firstChild as HTMLElement;
+              expect(div4.getAttribute('title')).toBe('');
+              expect(div4.hasAttribute('title')).toBe(true);
+              expect(div4.textContent).toBe('Content');
+              break;
+
+            case 'allows empty string from interpolation':
+              const div5 = fragment.firstChild as HTMLElement;
+              expect(div5.getAttribute('data-value')).toBe('');
+              expect(div5.hasAttribute('data-value')).toBe(true);
+              expect(div5.textContent).toBe('Content');
+              break;
+
+            default:
+              throw new Error(`Unhandled test case: ${testCase.name}`);
+          }
+        });
+      });
     });
   });
 });
