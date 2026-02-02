@@ -50,7 +50,7 @@
   "bugs": {
     "url": "https://github.com/danmarshall/treebark/issues"
   },
-  "homepage": "https://danmarshall.github.io/treebark/",
+  "homepage": "https://treebark.js.org",
   "license": "MIT",
   "devDependencies": {},
   "engines": {

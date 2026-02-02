@@ -2,7 +2,7 @@
 
 A [markdown-it](https://github.com/markdown-it/markdown-it) plugin for rendering [treebark](https://github.com/danmarshall/treebark) templates in fenced code blocks.
 
-**[Try it in the interactive playground!](https://danmarshall.github.io/treebark/markdown-playground.html)**
+**[Try it in the interactive playground!](https://treebark.js.org/markdown-playground.html)**
 
 ## Installation
 
