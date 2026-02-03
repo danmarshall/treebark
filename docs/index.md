@@ -241,8 +241,8 @@ Output:
 
 **Key features:**
 - **Kebab-case property names**: Use standard CSS property names like `font-size`, `background-color`, etc.
-- **Dangerous patterns rejected**: `url()` with external URLs, `expression()`, `javascript:` protocol in CSS values, `@import`
-- **Rejected properties**: `behavior`, `-moz-binding` (known dangerous properties)
+- **Safe patterns recognized**: Standard CSS properties in kebab-case format
+- **Examples not recognized**: `url()` with external URLs, `expression()`, `javascript:` protocol in CSS values, `@import`
 - **Type safety**: Values are strings
 - **Semicolon sanitization**: Prevents multi-property injection by accepting only the first value
 
@@ -1038,19 +1038,19 @@ Treebark is designed with **security as a priority**. Multiple layers of protect
 ### XSS Prevention
 
 **Tag Allowlist:**
-Only safe HTML tags are permitted. Dangerous tags like `<script>`, `<iframe>`, `<object>`, `<embed>`, `<style>`, and `<form>` are not allowed:
+Only a curated set of safe HTML tags are recognized. Examples of tags not on the allowlist like `<script>`, `<iframe>`, `<object>`, `<embed>`, `<style>`, and `<form>` are logged as errors:
 
 ```javascript
-// ❌ Not allowed - logs error and renders nothing
+// ❌ Not on allowlist - logs error and renders nothing
 { script: 'alert("xss")' }
 { iframe: { src: 'evil.com' } }
 ```
 
 **Attribute Allowlist:**
-Only safe attributes are allowed per tag. Event handlers like `onclick`, `onload`, `onerror` are not allowed:
+Only safe attributes are recognized per tag. Event handlers like `onclick`, `onload`, `onerror` are not on the allowlist:
 
 ```javascript
-// ❌ Not allowed - logs warning and attribute is omitted
+// ❌ Not on allowlist - logs warning and attribute is omitted
 { div: { onclick: 'alert(1)', $children: ['text'] } }
 // Renders: <div>text</div>
 ```
@@ -1065,23 +1065,23 @@ All content and attribute values are automatically HTML-escaped to prevent injec
 
 ### Style Attribute Protection
 
-The `style` attribute uses a **structured object format** that rejects multiple attack vectors:
+The `style` attribute uses a **structured object format** that only recognizes safe patterns:
 
-**Dangerous CSS patterns rejected:**
-- `url()` - External URLs rejected (data: URIs allowed)
-- `expression()` - IE expression injection rejected
-- `javascript:` - JavaScript protocol rejected
-- `@import` - CSS imports rejected
+**Examples of patterns not recognized:**
+- `url()` - External URLs not recognized (data: URIs allowed)
+- `expression()` - IE expression injection not recognized
+- `javascript:` - JavaScript protocol not recognized
+- `@import` - CSS imports not recognized
 
-**Dangerous CSS properties rejected:**
-- `behavior` - IE behavior property rejected
-- `-moz-binding` - Firefox XBL binding rejected
+**Examples of properties not recognized:**
+- `behavior` - IE behavior property not recognized
+- `-moz-binding` - Firefox XBL binding not recognized
 
 **Semicolon injection prevented:**
 Only the first CSS value before a semicolon is used, preventing multi-property injection:
 
 ```javascript
-// ❌ Injection attempt rejected
+// ❌ Pattern not recognized
 {
   div: {
     style: {
@@ -1123,27 +1123,27 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 
 ### Prototype Chain Protection
 
-Access to JavaScript prototype chain properties is prevented in template interpolation to prevent information leakage:
+Access to JavaScript prototype chain properties is actively blocked in template interpolation to prevent information leakage:
 
-**Disallowed properties:**
+**Blocked properties:**
 - `constructor` - Prevents access to object constructor
 - `__proto__` - Prevents prototype chain access
 - `prototype` - Prevents prototype property access
 
 ```javascript
-// ❌ Not allowed - logs warning and renders empty
+// ❌ Blocked - logs warning and renders empty
 { div: '{% raw %}{{constructor}}{% endraw %}' }
 { div: '{% raw %}{{__proto__}}{% endraw %}' }
 // Renders: <div></div>
-// Warning logged: Access to property "constructor" is prevented for security reasons
+// Warning logged: Access to property "constructor" is blocked for security reasons
 ```
 
-**Security principle:** Defense in depth with multiple layers:
-1. Tag and attribute allowlists
+**Security principle:** Curated output through defense in depth with multiple layers:
+1. Curated tags and attributes
 2. HTML escaping for all content
-3. Structured style objects with pattern rejection
-4. URL protocol validation
-5. Prototype chain access prevention
+3. Curated style patterns
+4. Curated URL protocols
+5. Prototype chain blocking
 
 ## Format Notes
 

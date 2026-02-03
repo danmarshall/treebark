@@ -352,7 +352,7 @@ div:
 
 ## Security
 
-Treebark is safe by default and only allows whitelisted HTML tags and attributes. Dangerous elements like `<script>`, `<iframe>`, and event handlers are not allowed.
+Treebark is safe by default and produces curated output. Only whitelisted HTML tags and attributes are recognized. Elements like `<script>`, `<iframe>`, and event handlers are not on the allowlist.
 
 ## Error Handling
 
