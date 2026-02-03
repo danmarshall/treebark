@@ -170,7 +170,7 @@ div:
   - `table`: `summary`  
   - `th`/`td`: `scope`, `colspan`, `rowspan`  
   - `blockquote`: `cite`  
-- Blocked: event handlers (`on*` attributes like `onclick`, `onload`)
+- Examples: event handlers (`on*` attributes like `onclick`, `onload`)
 - See [Security](#14-security) section for comprehensive security details
 
 ---
@@ -340,7 +340,7 @@ JavaScript allows both `array[0]` and `array["0"]` syntax. Since the path is spl
 **Special tags:**  
 `comment`, `if`
 
-Blocked tags:  
+Tags not on the allowlist:  
 `script`, `iframe`, `embed`, `object`, `applet`,  
 `form`, `input`, `button`, `select`,  
 `video`, `audio`,  
@@ -931,16 +931,16 @@ Treebark implements multiple layers of security to prevent XSS attacks and other
 
 ### 14.1 Tag Allowlist
 
-Only safe HTML tags are permitted. Dangerous tags are blocked and logged as errors:
+Only a curated set of safe HTML tags are recognized. Examples include: `div`, `span`, `p`, `h1`-`h6`, `ul`, `ol`, `li`, `a`, `img`, `table`, and other common semantic HTML elements.
 
-**Blocked tags:**
+**Examples of tags not on the allowlist:**
 - `script`, `iframe`, `object`, `embed`, `applet` - XSS vectors
 - `form`, `input`, `button`, `select`, `textarea` - Form hijacking
 - `style`, `link`, `meta`, `base` - Style/metadata injection
 - `video`, `audio`, `canvas` - Media-based attacks
 - `svg`, `math` - Vector-based attacks
 
-**Case variations blocked:** Tag names are case-sensitive. `ScRiPt`, `IFRAME`, etc. are also blocked.
+**Only recognized case:** Tag names are case-sensitive. Only lowercase tag names like `script` (which itself is not on the allowlist) would be recognized; case variations like `ScRiPt`, `IFRAME` are not recognized.
 
 **Example:**
 ```javascript
@@ -951,11 +951,7 @@ Only safe HTML tags are permitted. Dangerous tags are blocked and logged as erro
 
 ### 14.2 Attribute Allowlist
 
-Only safe attributes are permitted per tag. Event handlers are blocked:
-
-**Blocked attributes:**
-- `onclick`, `onload`, `onerror`, `onmouseover`, etc. - All `on*` event handlers
-- Case variations: `onClick`, `ONCLICK`, etc. are also blocked
+Only safe attributes are recognized per tag. The allowlist includes:
 
 **Allowed attributes per tag:**
 - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`
@@ -964,6 +960,10 @@ Only safe attributes are permitted per tag. Event handlers are blocked:
 - `table`: `summary`
 - `th`/`td`: `scope`, `colspan`, `rowspan`
 - `blockquote`: `cite`
+
+**Examples of attributes not on the allowlist:**
+- `onclick`, `onload`, `onerror`, `onmouseover`, etc. - All `on*` event handlers
+- Case variations: `onClick`, `ONCLICK`, etc. are not recognized
 
 **Example:**
 ```javascript
@@ -984,15 +984,20 @@ All content and attribute values are automatically HTML-escaped to prevent injec
 
 ### 14.4 Style Attribute Protection
 
-The `style` attribute uses a structured object format that blocks multiple attack vectors:
+The `style` attribute uses a structured object format that only recognizes safe patterns:
 
-**Dangerous CSS patterns blocked:**
+**Safe CSS patterns recognized:**
+- Standard CSS properties in kebab-case format
+- Color values, numeric values with units
+- `data:` URIs for inline images (base64 encoded)
+
+**Examples of patterns not recognized:**
 - `url()` with external URLs (data: URIs allowed for inline images)
 - `expression()` - IE expression injection
 - `javascript:` protocol in CSS values
 - `@import` - CSS imports
 
-**Dangerous CSS properties blocked:**
+**Examples of properties not recognized:**
 - `behavior` - IE behavior property (can execute code)
 - `-moz-binding` - Firefox XBL binding (can execute code)
 
@@ -1020,13 +1025,13 @@ Only the first CSS value before a semicolon is used:
 
 The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 
-**Safe protocols allowed:**
+**Safe protocols recognized:**
 - `http:`, `https:` - Standard web protocols
 - `mailto:`, `tel:`, `sms:` - Communication protocols
 - `ftp:`, `ftps:` - File transfer protocols
 - Relative URLs: `/path`, `#anchor`, `?query`, `page.html`
 
-**Dangerous protocols blocked:**
+**Examples of protocols not recognized:**
 - `javascript:` - JavaScript execution
 - `data:` - Data URIs (can contain HTML/scripts)
 - `vbscript:` - VBScript execution
@@ -1036,7 +1041,7 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 **Example:**
 ```javascript
 { a: { href: 'javascript:alert(1)', $children: ['Click'] } }
-// Logs warning: Attribute "href" contains blocked protocol "javascript:"
+// Logs warning: Attribute "href" contains unsafe protocol "javascript:"
 // Renders: <a>Click</a> (href omitted)
 
 { a: { href: 'https://example.com', $children: ['Safe'] } }
@@ -1045,12 +1050,12 @@ The `href` and `src` attributes validate URL protocols to prevent XSS attacks:
 
 ### 14.6 Prototype Chain Protection
 
-Access to JavaScript prototype chain properties is blocked in template interpolation:
+Access to JavaScript prototype chain properties is actively blocked in template interpolation to prevent information leakage:
 
 **Blocked properties:**
-- `constructor` - Object constructor access
-- `__proto__` - Prototype chain access
-- `prototype` - Prototype property access
+- `constructor` - Object constructor access blocked
+- `__proto__` - Prototype chain access blocked
+- `prototype` - Prototype property access blocked
 
 **Example:**
 ```javascript
@@ -1064,15 +1069,15 @@ Access to JavaScript prototype chain properties is blocked in template interpola
 
 ### 14.7 Defense in Depth
 
-Treebark implements multiple overlapping security layers:
+Treebark provides a curated, secure output through multiple overlapping layers:
 
-1. **Tag allowlist** - Only safe HTML tags permitted
-2. **Attribute allowlist** - Only safe attributes permitted per tag
+1. **Curated tag set** - Only safe HTML tags recognized
+2. **Curated attributes** - Only safe attributes recognized per tag
 3. **HTML escaping** - All content and attribute values escaped
 4. **Structured style objects** - Prevents CSS string injection
-5. **CSS pattern blocking** - Blocks dangerous CSS patterns and properties
-6. **URL protocol validation** - Blocks dangerous protocols in href/src
-7. **Prototype chain blocking** - Prevents access to internal object properties
+5. **Curated CSS patterns** - Only safe CSS patterns and properties recognized
+6. **Curated URL protocols** - Only safe protocols recognized in href/src
+7. **Prototype chain blocking** - Actively blocks access to internal object properties
 
 This defense-in-depth approach ensures that even if one layer is bypassed, others remain to protect against attacks.
 
