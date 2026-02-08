@@ -71,6 +71,40 @@ const fragment = renderToDOM({
 document.body.appendChild(fragment);
 ```
 
+### Shadow DOM Support (Browser Only)
+
+Treebark supports rendering into Shadow DOM for style encapsulation:
+
+```javascript
+import { renderToDOM } from 'treebark';
+
+// Render with Shadow DOM enabled
+const fragment = renderToDOM({
+  template: {
+    div: {
+      class: "card",
+      $children: [
+        { h2: "{{title}}" },
+        { p: "{{content}}" }
+      ]
+    }
+  },
+  data: {
+    title: "Encapsulated Component",
+    content: "Styles won't leak in or out!"
+  }
+}, { useShadowDOM: true });
+
+// The fragment contains a div with an open shadow root
+document.body.appendChild(fragment);
+```
+
+When `useShadowDOM: true` is set:
+- Content is rendered inside a shadow root attached to a container `<div>`
+- Provides style encapsulation for web components
+- External styles won't affect shadow DOM content
+- Shadow DOM styles won't affect the page
+
 ## Tree Shaking
 
 Treebark supports tree shaking for optimal bundle sizes. Import only what you need:
@@ -107,8 +141,14 @@ Renders a template to DOM nodes (browser only).
 **Parameters:**
 - `input: TreebarkInput` - Object with `template` and optional `data`  
 - `options?: RenderOptions` - Optional rendering options
+  - `logger?: Logger` - Custom logger for errors/warnings (default: `console`)
+  - `propertyFallback?: OuterPropertyResolver` - Custom property resolver
+  - `useShadowDOM?: boolean` - Enable shadow DOM rendering (default: `false`)
 
 **Returns:** `DocumentFragment` - DOM fragment containing rendered nodes
+
+**Shadow DOM Mode:**
+When `useShadowDOM: true`, the fragment contains a container element with a shadow root. The template content is rendered inside the shadow root, providing style encapsulation.
 
 ## Examples
 
