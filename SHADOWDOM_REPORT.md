@@ -6,19 +6,37 @@
 
 ## Executive Summary
 
-After analyzing treebark's architecture, security model, and positioning attack vectors, I recommend **implementing shadow DOM as an opt-in security feature** for `renderToDOM`. This report examines three key areas:
+After analyzing treebark's architecture, security model, and **critical user-generated template use case**, I recommend implementing **BOTH shadow DOM and block container options**, with **block container as the eventual default** for `renderToDOM`.
 
-1. **Should shadow DOM be the default?** - No initially (backward compatibility), but strongly recommended for user-controlled content
-2. **Clickjacking attack surface** - **Critical finding**: Treebark content can overlay page elements like sign-in links; shadow DOM provides meaningful protection
-3. **Alternative containment strategies** - Block containers offer style inheritance but don't prevent page overlay attacks
+### Key Findings:
 
-**Key Security Insight:** Shadow DOM creates stacking context isolation that prevents treebark-rendered content from overlaying host page elements (e.g., sign-in links, buttons). This is a meaningful security benefit that wasn't fully appreciated in the initial analysis.
+1. **Should shadow DOM be the default?** - No, **block container should be the default**
+   - Block container provides stacking context isolation (prevents page overlays)
+   - Maintains style inheritance (better for content rendering)
+   - Simpler than shadow DOM (better developer experience)
+   - Safe for both developer and user-generated templates
+
+2. **Clickjacking attack surface** - **CRITICAL finding**: Three distinct scenarios:
+   - **Scenario 1**: Template-internal overlays (education needed)
+   - **Scenario 2**: Developer templates overlaying page elements (containment helps)
+   - **Scenario 3**: **User-generated templates** overlaying page elements (containment MANDATORY)
+
+3. **Alternative containment strategies** - **Block containers are the optimal solution**:
+   - Provides stacking context isolation via CSS `isolation: isolate`
+   - Prevents page overlay attacks
+   - Maintains style inheritance
+   - Better developer experience than shadow DOM
+   - Should be the default in v3.0
+
+### Critical Security Insight
+
+**User-generated templates are a common use case** for treebark (blogs, forums, CMS, wikis). Users can store malicious templates in databases with hardcoded evil links and positioning to overlay page elements like sign-in links. **Containment is MANDATORY** for this use case - block containers or shadow DOM must be used to safely render untrusted templates.
 
 ---
 
-## 1. Should Shadow DOM Be the Default?
+## 1. Should Shadow DOM (or Block Container) Be the Default?
 
-### Recommendation: **Opt-in initially, strongly recommended for security**
+### Recommendation: **Block Container should be the eventual default (v3.0)**
 
 ### Rationale
 
@@ -232,7 +250,7 @@ const template = {
 
 A treebark template with user-controlled content is positioned to overlay **existing page elements** like a well-known sign-in link at the top right of the page.
 
-**Example Attack Code:**
+**Example Attack Code (Developer-Controlled Template):**
 ```javascript
 // Page has a sign-in link at top right
 // <nav style="position: fixed; top: 0; right: 0;">
@@ -260,20 +278,63 @@ const template = {
 const attackData = {
   userLink: "https://evil.com/phishing"
 };
-
-// Rendered content overlays the real sign-in link
-document.getElementById('user-content').appendChild(
-  renderToDOM({ template, data: attackData })
-);
 ```
+
+**Attack Scenario 3: User-Generated Templates (Highest Risk - NEW CONSIDERATION)**
+
+**Critical insight from @danmarshall:** Templates themselves can be stored in a database as user-generated content, not just developer-controlled.
+
+**Example Attack Code (User-Controlled Template):**
+```javascript
+// User submits this template to database (e.g., blog post, forum comment, wiki page)
+const maliciousTemplate = {
+  a: { 
+    href: "https://evil.com/phishing",  // Hardcoded evil link (no interpolation needed!)
+    style: {
+      "position": "fixed",
+      "top": "0",
+      "right": "0", 
+      "width": "100px",
+      "height": "40px",
+      "z-index": "9999",
+      "opacity": "0.01"
+    },
+    $children: ["Sign In"]
+  }
+};
+
+// App retrieves and renders user's template
+const userTemplate = database.getTemplate(userId);
+document.getElementById('user-content').appendChild(
+  renderToDOM({ template: userTemplate })
+);
+// Result: User's malicious template overlays the page's sign-in link
+```
+
+**Key Difference from Scenario 2:**
+- **Scenario 2**: Developer writes template, user controls data values
+- **Scenario 3**: **User controls the entire template structure**
+  - No need for interpolation (`{{userLink}}`) - attacker hardcodes evil URL
+  - Attacker has full control over positioning, z-index, opacity, dimensions
+  - Can target any known page element (sign-in, buttons, forms)
+  - **This is the highest risk scenario**
 
 **Is this attack possible in treebark?**
 
+**For Scenarios 1 & 2:**
 **YES, IF the developer writes a vulnerable template** that:
 1. Includes positioning styles (`position: fixed` or `position: absolute` with known coordinates)
 2. Uses high `z-index` values in the template
 3. Allows user-controlled link destinations via `href: "{{userLink}}"`
 4. Uses dimensions/positions that target known page elements
+
+**For Scenario 3 (User-Generated Templates):**
+**YES, ALWAYS** if the application allows users to create arbitrary templates:
+1. User has full control over template structure
+2. Can include any positioning, z-index, opacity values
+3. Can hardcode malicious links (no interpolation needed)
+4. Can create invisible overlays over any known page element
+5. **This completely bypasses the "template trust boundary" security model**
 
 **Critical Difference from Scenario 1:**
 
@@ -330,7 +391,7 @@ If the developer writes a template that positions elements absolutely with high 
 
 Shadow DOM provides style **isolation**, not **positioning constraints**. Elements inside shadow DOM can still use `position: absolute` and `z-index` to overlay other shadow DOM content.
 
-**For Scenario 2 (page overlay): YES, partially.**
+**For Scenario 2 (page overlay with developer template): YES.**
 
 Shadow DOM **would help** prevent treebark content from overlaying host page elements because:
 
@@ -338,27 +399,81 @@ Shadow DOM **would help** prevent treebark content from overlaying host page ele
 2. **z-index isolation**: `z-index` values inside shadow DOM are scoped to that shadow root
 3. **Position containment**: Fixed/absolute positioning inside shadow DOM is relative to the shadow host
 
-**Example with shadow DOM:**
-```javascript
-// Without shadow DOM: Can overlay page elements
-document.body.appendChild(renderToDOM({
-  template: {
-    a: {
-      style: { "position": "fixed", "top": "0", "right": "0", "z-index": "9999" },
-      href: "{{userLink}}"
-    }
-  }
-}));
-// Result: Can overlay the page's sign-in link
+**For Scenario 3 (user-generated templates): YES - Critical Protection.**
 
-// With shadow DOM: Cannot overlay page elements (confined to shadow root)
-document.body.appendChild(renderToDOM({
-  template: { /* same template */ }
-}, { useShadowDOM: true }));
-// Result: Positioning is scoped to shadow root container, cannot reach page elements
+Shadow DOM is **essential** when rendering user-generated templates:
+
+1. **Prevents page overlay attacks** - user templates cannot position over page elements
+2. **Creates containment boundary** - malicious templates confined to shadow root
+3. **Mandatory for untrusted templates** - only way to safely render user-generated content
+
+**Example comparison:**
+```javascript
+// User-generated malicious template
+const userTemplate = {
+  a: {
+    href: "https://evil.com",  // Hardcoded evil link
+    style: { "position": "fixed", "top": "0", "right": "0", "z-index": "9999" }
+  }
+};
+
+// Without shadow DOM: Overlays page sign-in link (DANGEROUS)
+document.body.appendChild(renderToDOM({ template: userTemplate }));
+// Result: Evil link covers real sign-in link - ATTACK SUCCEEDS
+
+// With shadow DOM: Confined to shadow boundary (SAFE)
+document.body.appendChild(renderToDOM({ template: userTemplate }, { useShadowDOM: true }));
+// Result: Evil link contained within shadow root - ATTACK PREVENTED
 ```
 
-**Key Insight:** Shadow DOM would provide **meaningful protection** against the page overlay attack (Scenario 2) by containing positioned elements within the shadow boundary.
+**Key Insight:** Shadow DOM provides **critical protection** for user-generated templates (Scenario 3) and meaningful protection for developer templates with user data (Scenario 2).
+
+### Block Container Alternative (Half-Step to Shadow DOM)
+
+**Block containers** provide a middle ground between no containment and full shadow DOM isolation:
+
+**What is a block container?**
+```javascript
+// Render into a block container
+const fragment = renderToDOM({ template }, { containerMode: 'block' });
+
+// Result DOM:
+// <div style="contain: content; isolation: isolate;" data-treebark-container>
+//   <!-- template content here -->
+// </div>
+```
+
+**CSS `contain: content` provides:**
+- **Layout containment**: Element's layout doesn't affect external elements
+- **Paint containment**: Rendering doesn't escape bounds
+- **Style containment**: Counters and quotes are scoped
+
+**CSS `isolation: isolate` provides:**
+- **New stacking context**: Creates a stacking context boundary
+- **z-index scoping**: z-index values are scoped to this container
+- **Blend mode isolation**: Prevents certain blend mode effects from escaping
+
+**Benefits of block containers:**
+- ✅ **Prevents page overlay attacks** (via stacking context from `isolation: isolate`)
+- ✅ **Style inheritance**: Content inherits page styles (fonts, colors, etc.)
+- ✅ **Simpler than shadow DOM**: No shadow root complexity
+- ✅ **Better developer experience**: Can inspect and style with normal CSS
+- ✅ **Performance**: Less overhead than shadow DOM
+
+**Limitations compared to shadow DOM:**
+- ❌ **No style isolation**: Page styles can affect content (both good and bad)
+- ❌ **No encapsulation**: CSS selectors from page can reach content
+- ❌ **Weaker boundary**: Not as strong as shadow DOM's true isolation
+
+**When to use each:**
+
+| Scenario | Recommendation | Reason |
+|----------|---------------|---------|
+| Developer templates, trusted data | None or block container | Style inheritance useful |
+| Developer templates, user data in links | Block container or shadow DOM | Prevent page overlays |
+| **User-generated templates** | **Shadow DOM (mandatory)** | **Must prevent attacks** |
+| Web components | Shadow DOM | Need full encapsulation |
+| Content rendering | Block container | Balance of safety and usability |
 
 ### Shadow DOM's Impact on Clickjacking
 
@@ -373,35 +488,44 @@ document.body.appendChild(renderToDOM({
 - Malicious styles defined in the treebark template itself
 - Template design vulnerabilities where developer combines positioning with user links
 
-**Revised Conclusion:** Shadow DOM's stacking context isolation **would help** prevent treebark content from overlaying host page elements. This is a more compelling security benefit than previously assessed.
+**Revised Conclusion:** Shadow DOM's stacking context isolation **would help** prevent treebark content from overlaying host page elements. Block containers with `isolation: isolate` provide similar protection with better style inheritance.
 
-### Threat Model Assessment
+### Threat Model Assessment (Revised)
 
-**Low Risk Scenario (Current Model, No Positioning):**
+**Low Risk Scenario (Developer Templates, No Positioning):**
 - **Template**: Controlled by developer (trusted), no positioning styles
 - **Data**: User-provided (untrusted)
 - **Risk**: Low - users can only provide values, not structure
+- **Mitigation**: None needed (safe by default)
 
-**Medium Risk Scenario 1 (Positioning Within Template):**
+**Medium Risk Scenario 1 (Template-Internal Overlay):**
 - **Template**: Controlled by developer with positioning styles
 - **Data**: User-provided (untrusted) including links and content
 - **Attack**: User link overlays other template elements (Scenario 1)
 - **Risk**: Medium - developer must avoid combining positioning with user-controlled links
-- **Shadow DOM**: Would NOT help (same stacking context)
+- **Shadow DOM/Block Container**: Would NOT help (same stacking context)
 - **Mitigation**: Developer education, linting rules, template review
 
-**Medium Risk Scenario 2 (Positioning That Could Target Page):**
+**Medium Risk Scenario 2 (Page Element Overlay):**
 - **Template**: Controlled by developer with fixed/absolute positioning
 - **Data**: User-provided (untrusted) including links
 - **Attack**: Template content overlays page elements like sign-in links (Scenario 2)
 - **Risk**: Medium to High - can attack any known page element
-- **Shadow DOM**: **Would help** - contains positioning within shadow boundary
-- **Mitigation**: Shadow DOM (recommended), or careful template design
+- **Shadow DOM/Block Container**: **Would help** - contains positioning within boundary
+- **Mitigation**: Shadow DOM or block container (recommended), or careful template design
 
-**High Risk Scenario:**
-- **Template**: User-provided (untrusted)
-- **Data**: User-provided (untrusted)
-- **Risk**: High - but this is explicitly **not** a supported use case
+**Critical Risk Scenario 3 (User-Generated Templates - NEW):**
+- **Template**: User-provided (untrusted) - stored in database, blog posts, forums, wiki
+- **Data**: User-provided (untrusted) or none
+- **Attack**: User template with hardcoded evil links overlays page elements (Scenario 3)
+- **Risk**: **CRITICAL** - attacker has full control over template structure
+- **Examples**: Blog platforms, forums, CMS, wikis, user-generated content sites
+- **Shadow DOM**: **MANDATORY** - only way to safely render untrusted templates
+- **Block Container**: **MANDATORY** (minimum) - provides stacking context isolation
+- **Mitigation**: Shadow DOM (strongly recommended) or block container (minimum acceptable)
+- **Note**: This completely changes the security model - template trust boundary no longer exists
+
+**Key Insight:** The user-generated template scenario (Scenario 3) is fundamentally different from the previous threat model. This is a **common use case** for treebark (blogs, forums, CMSs) and requires **mandatory containment**.
 
 ### Potential Mitigations for Positioning Attacks
 
@@ -498,32 +622,95 @@ Enable shadow DOM by default when rendering user-controlled content to prevent o
 **Compromise Approach:**
 ```typescript
 interface RenderOptions {
-  useShadowDOM?: boolean;  // Default: false (backward compatible)
-  // OR
-  containmentMode?: 'none' | 'shadow';  // Default: 'none'
+  // Recommended: Support both options
+  useShadowDOM?: boolean;           // Default: false (backward compatible)
+  useBlockContainer?: boolean;      // Default: false (backward compatible)
+  // OR unified option:
+  containmentMode?: 'none' | 'block' | 'shadow';  // Default: 'none'
 }
 ```
 
-### Recommended Approach (Revised)
+### Recommended Approach (Completely Revised for User-Generated Templates)
 
-**Given the page overlay attack vector, shadow DOM becomes more attractive:**
+**Critical Finding:** User-generated templates (Scenario 3) are a **common and expected use case** for treebark:
+- Blog platforms (users write posts with treebark templates)
+- Forums (users format their posts)
+- CMS systems (content creators build pages)
+- Wikis (users create formatted content)
+- Any platform with user-generated content
 
-1. **Make shadow DOM opt-in initially** to maintain backward compatibility
-2. **Strongly recommend shadow DOM** in documentation for templates with user-controlled links
-3. **Document both attack scenarios** clearly:
-   - Scenario 1: Template-internal overlays (education needed)
-   - Scenario 2: Page element overlays (shadow DOM solves this)
-4. **Provide clear guidance** on when to use shadow DOM
-5. **Consider making shadow DOM default** in a future major version
+**This fundamentally changes the recommendations:**
 
-**Why shadow DOM is now more compelling:**
-- Prevents the more dangerous attack (page overlay)
-- Creates a security boundary between treebark content and host page
-- Positioning remains usable within the shadow boundary
-- Aligns with web components best practices
+#### For User-Generated Templates (Scenario 3):
+
+1. **Shadow DOM or Block Container is MANDATORY**
+   - Cannot safely render untrusted templates without containment
+   - Attacker has full control over template structure
+   - No "template trust boundary" exists
+
+2. **Recommendation Priority:**
+   - **First choice**: Shadow DOM (strongest isolation)
+   - **Acceptable**: Block container with `isolation: isolate` (good balance)
+   - **Unacceptable**: No containment (vulnerable to page overlay attacks)
+
+3. **Implementation Approach:**
+   ```typescript
+   // For user-generated content
+   const userTemplate = database.getTemplate(userId);
+   
+   // REQUIRED: Use shadow DOM or block container
+   const fragment = renderToDOM(
+     { template: userTemplate },
+     { useShadowDOM: true }  // or useBlockContainer: true
+   );
+   ```
+
+4. **Documentation Requirements:**
+   - **Prominent warning**: Never render user templates without containment
+   - **Default recommendation**: Use shadow DOM for user-generated content
+   - **Block container option**: Available for apps that need style inheritance
+   - **Clear examples**: Show safe patterns for each scenario
+
+#### For Developer-Controlled Templates (Scenarios 1 & 2):
+
+1. **Shadow DOM or Block Container is RECOMMENDED** (not mandatory)
+2. **Opt-in initially** to maintain backward compatibility
+3. **Strongly recommend** for templates with user-controlled links
+4. **Document safe patterns** for developers who choose not to use containment
+
+#### Implementation Strategy:
+
+**Phase 1: Add Both Options (Backward Compatible)**
+```typescript
+interface RenderOptions {
+  useShadowDOM?: boolean;        // Default: false
+  useBlockContainer?: boolean;   // Default: false
+  // ... existing options
+}
+```
+
+**Phase 2: Document Security Model**
+- **Mandatory section**: "Rendering User-Generated Templates"
+- **Warning**: Must use shadow DOM or block container for untrusted templates
+- **Examples**: Show all three scenarios with appropriate mitigations
+
+**Phase 3: Consider Making Block Container Default (v3.0)**
+- Block container provides good balance of safety and usability
+- Less breaking than shadow DOM (style inheritance maintained)
+- Prevents most dangerous attacks (page overlays)
+- Can still opt-out with `containmentMode: 'none'`
+
+**Why Block Container as Default Makes Sense:**
+- ✅ Prevents page overlay attacks (Scenarios 2 & 3)
+- ✅ Maintains style inheritance (better UX for content rendering)
+- ✅ Simpler than shadow DOM (easier to debug and style)
+- ✅ Good default for both developer and user-generated templates
+- ✅ Can opt-in to shadow DOM for stronger isolation
+- ✅ Can opt-out for trusted developer-only scenarios
 
 **Why documentation alone is insufficient:**
-- Page overlay attacks are harder to detect during template review
+- User-generated templates are a common use case
+- Page overlay attacks are hard to detect during template review
 - Attack targets (sign-in links, etc.) are outside the template
 - Easy for developers to overlook the risk
 - Runtime protection is more reliable than developer vigilance
@@ -770,7 +957,33 @@ const fragment = renderToDOM({
 }, { useShadowDOM: true });  // Prevents overlay of page elements
 ```
 
-### Safe Data Binding Patterns
+### Safe Patterns for User-Generated Templates
+
+**❌ NEVER render user templates without containment:**
+```javascript
+const userTemplate = database.getTemplate(userId);
+const fragment = renderToDOM({ template: userTemplate });  // DANGEROUS!
+document.body.appendChild(fragment);
+```
+
+**✅ ALWAYS use shadow DOM or block container for user templates:**
+```javascript
+const userTemplate = database.getTemplate(userId);
+
+// Option 1: Shadow DOM (recommended - strongest isolation)
+const fragment = renderToDOM(
+  { template: userTemplate },
+  { useShadowDOM: true }
+);
+
+// Option 2: Block container (acceptable - good balance)
+const fragment = renderToDOM(
+  { template: userTemplate },
+  { useBlockContainer: true }  // or containmentMode: 'block'
+);
+```
+
+### Safe Data Binding Patterns (Developer Templates)
 
 **User provides values only:**
 ```javascript
@@ -778,79 +991,149 @@ const template = { div: { style: { color: "{{userColor}}" } } };
 const data = { userColor: "red" };  // User controlled, safe
 ```
 
-**Never allow user-provided templates:**
-```javascript
-const template = userProvidedJSON;  // ❌ NEVER DO THIS
 ```
 
-If you need to render user-provided templates, consider:
-- Template validation and sandboxing
-- Restricted template language subset
-- Server-side rendering with strict CSP
-- Separate rendering contexts for sensitive UI
-```
+### 4. Implement Both Shadow DOM and Block Container (Critical Recommendation)
 
-### 4. Implement Shadow DOM as Opt-In Security Feature (Revised Recommendation)
+**Reasons to implement BOTH options:**
 
-**Reasons to implement:**
-1. **Prevents page overlay attacks** - the most dangerous attack vector
-2. Shadow DOM creates stacking context isolation
-3. Contains positioning within shadow boundary
-4. Enables safe use of positioning with user-controlled content
-5. Aligns with web components security best practices
+1. **User-generated templates require containment** - common use case (blogs, forums, CMS)
+2. **Block container is best default** - balances safety and usability
+3. **Shadow DOM for maximum isolation** - available when needed
+4. **Backward compatibility** - both start as opt-in
 
 **Implementation approach:**
-- **Opt-in initially** via `useShadowDOM: true` option (backward compatible)
-- **Strongly recommend** in docs for templates with user-controlled links
-- **Document both attack scenarios** clearly
-- **Consider making default** in future major version
 
-**Note on limitations:** Shadow DOM prevents page overlay attacks (Scenario 2) but not template-internal overlays (Scenario 1). Both documentation and shadow DOM are needed.
+**Phase 1: Add Both Features (v2.x)**
+```typescript
+interface RenderOptions {
+  useShadowDOM?: boolean;        // Default: false
+  useBlockContainer?: boolean;   // Default: false
+  // OR unified:
+  containmentMode?: 'none' | 'block' | 'shadow';  // Default: 'none'
+}
+```
+
+**Phase 2: Make Block Container Default (v3.0)**
+```typescript
+interface RenderOptions {
+  containmentMode?: 'none' | 'block' | 'shadow';  // Default: 'block'
+}
+```
+
+**Rationale for Block Container as Default:**
+- Prevents page overlay attacks (Scenarios 2 & 3)
+- Maintains style inheritance (better for content rendering)
+- Simpler than shadow DOM (easier debugging, styling)
+- Safe for both developer and user-generated templates
+- Can opt-in to shadow DOM or opt-out to none
+
+**Documentation Requirements:**
+
+1. **Prominent security warning**:
+   > ⚠️ **CRITICAL**: When rendering user-generated templates (from databases, user input, etc.), you **MUST** use `useShadowDOM: true` or `useBlockContainer: true`. Without containment, malicious templates can overlay page elements like sign-in links.
+
+2. **Clear decision tree**:
+   - User-generated templates? → Shadow DOM (recommended) or block container (minimum)
+   - Developer templates with user data? → Block container (recommended) or shadow DOM
+   - Trusted developer templates only? → No containment needed (but block container is safer)
+
+3. **Examples for each scenario** with security implications explained
+
+**Note on limitations:** Shadow DOM and block containers prevent page overlay attacks (Scenarios 2 & 3) but not template-internal overlays (Scenario 1). Documentation and safe template patterns still needed.
 
 ---
 
 ## Conclusion
 
-**Revised Recommendation:** Implement shadow DOM as an **opt-in security feature** to protect against page overlay attacks.
+**Completely Revised Recommendation:** Implement **BOTH shadow DOM and block container** options, with block container as eventual default.
 
-### Key Findings (Revised)
+### Key Findings (Completely Revised)
 
-**Two Distinct Attack Scenarios:**
+**Three Distinct Attack Scenarios:**
 
 1. **Template-Internal Overlay (Lower Risk)**
    - User link overlays other elements within the same template
    - Requires developer to create vulnerable template pattern
-   - Shadow DOM doesn't help (same stacking context)
+   - Shadow DOM/block container doesn't help (same stacking context)
    - Mitigation: Developer education
 
-2. **Page Element Overlay (Higher Risk)**
-   - Treebark content overlays existing page elements (e.g., sign-in links)
+2. **Page Element Overlay - Developer Template (Higher Risk)**
+   - Developer template with user data overlays page elements (e.g., sign-in links)
    - More dangerous because attack target is outside template
-   - Harder to detect during template review
-   - **Shadow DOM DOES help** by creating stacking context isolation
+   - Shadow DOM/block container helps by creating stacking context isolation
+
+3. **Page Element Overlay - User-Generated Template (CRITICAL RISK - NEW)**
+   - **User-generated templates** can overlay page elements with hardcoded evil links
+   - **Common use case**: Blogs, forums, CMS, wikis, user-generated content platforms
+   - Attacker has full control over template structure
+   - **Shadow DOM or block container is MANDATORY** - only way to safely render
+   - This completely changes the security model and recommendations
 
 ### Revised Recommendation
 
-**Implement shadow DOM as opt-in initially, with strong recommendation for user-controlled content:**
+**Phase 1: Implement Both Options (v2.x - Backward Compatible)**
 
-1. **Add `useShadowDOM` option** to RenderOptions (default: false)
-2. **Document the page overlay attack** prominently in security section
-3. **Strongly recommend shadow DOM** when rendering templates with user-controlled links
-4. **Provide clear examples** of both attack scenarios
-5. **Consider making default** in a future major version after gathering feedback
+1. **Add both `useShadowDOM` and `useBlockContainer` options** (both default: false)
+2. **Document CRITICAL security requirement** for user-generated templates
+3. **Provide clear decision tree** for choosing containment mode
+4. **Show examples** for all three scenarios
+
+**Phase 2: Make Block Container Default (v3.0)**
+
+1. **Change default** to `containmentMode: 'block'`
+2. **Reason**: Safely handles most use cases including user-generated templates
+3. **Allows opt-out** for trusted developer-only scenarios
+4. **Allows opt-in** to shadow DOM for stronger isolation
+
+**Why Block Container as Default:**
+- ✅ Prevents page overlay attacks (Scenarios 2 & 3)
+- ✅ Safe for user-generated templates
+- ✅ Maintains style inheritance (better for content rendering)
+- ✅ Simpler than shadow DOM (easier debugging, styling)
+- ✅ Good balance of security and usability
+- ✅ Can still opt-in to shadow DOM or opt-out to none
 
 **Security Documentation Focus:**
 
-- **Document both attack scenarios** clearly
-- **Explain when shadow DOM helps** (page overlays) vs doesn't (template-internal)
-- **Provide safe template patterns** with examples
-- **Add "Security Best Practices" section** to main docs
-- **Warning about positioning + user links** in prominent location
+1. **CRITICAL WARNING** for user-generated templates:
+   > ⚠️ When rendering user-generated templates, you **MUST** use containment. Without it, malicious templates can overlay page elements like sign-in links.
+
+2. **Clear decision tree**:
+   - User-generated templates? → **Shadow DOM (best)** or block container (minimum acceptable)
+   - Developer templates + user data? → Block container (recommended) or shadow DOM
+   - Trusted developer templates? → No containment needed (but block container safer as default)
+
+3. **Document all three scenarios** with examples and security implications
+
+4. **Explain containment options**:
+   - Shadow DOM: Strongest isolation, no style inheritance
+   - Block container: Good isolation with style inheritance (recommended default)
+   - None: Only for trusted developer templates
 
 **Implementation Priority:**
 
-1. ✅ **High Priority**: Implement opt-in shadow DOM feature
-2. ✅ **High Priority**: Add comprehensive security documentation
+1. ✅ **CRITICAL**: Implement block container option (minimum acceptable protection)
+2. ✅ **HIGH**: Implement shadow DOM option (maximum protection)
+3. ✅ **HIGH**: Add comprehensive security documentation with CRITICAL warnings
+4. ✅ **MEDIUM**: Make block container default in v3.0
+5. ⚠️ **LOW**: Consider CSS property blocking (too restrictive, not recommended)
+
+**Key Insight:** The user-generated template scenario (Scenario 3) is a **common and expected use case** for treebark. This requires rethinking the security model from "templates are trusted" to "templates may be untrusted." Block containers provide an excellent balance of security and usability, making them the right default for v3.0.
+
+**Block Container vs Shadow DOM Trade-offs:**
+
+| Feature | Block Container | Shadow DOM |
+|---------|----------------|------------|
+| Prevents page overlays | ✅ Yes | ✅ Yes |
+| Style inheritance | ✅ Yes | ❌ No |
+| Developer experience | ✅ Easy | ⚠️ Complex |
+| Debugging | ✅ Easy | ⚠️ Harder |
+| Suitable for user templates | ✅ Yes | ✅ Yes |
+| Suitable for content rendering | ✅ Yes | ⚠️ Limited |
+| Recommended default | ✅ Yes | ❌ No |
+
+The existing CSS security model is robust against injection attacks. Adding block containers as the default (with shadow DOM available) provides strong protection against positioning-based overlay attacks while maintaining usability for content rendering use cases.
 3. ⚠️ **Medium Priority**: Consider making shadow DOM default in v3.0
 4. ⚠️ **Low Priority**: Block container mode (less important given shadow DOM)
 
