@@ -2874,10 +2874,27 @@ export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input:
     if (isCriticalError) {
       // Critical errors should result in empty output
       if (typeof result === 'string') {
-        expect(result).toBe('');
+        // For string renderer, check for either empty string or empty container
+        const emptyContainer = '<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>';
+        expect(result === '' || result === emptyContainer).toBe(true);
       } else if (result && typeof result === 'object' && 'childNodes' in result) {
-        // For DOM fragments, check that it's empty
-        expect(result.childNodes.length).toBe(0);
+        // For DOM fragments, check that it's empty or has an empty container
+        if (result.childNodes.length === 0) {
+          // Completely empty - no container created
+          // This is the expected state for critical errors
+        } else if (result.childNodes.length === 1) {
+          // Container created - check if it's empty
+          const container = result.childNodes[0] as HTMLElement;
+          if (container.getAttribute && container.getAttribute('data-treebark-container') === 'true') {
+            expect(container.childNodes.length).toBe(0);
+          } else {
+            // If it's not a container, it shouldn't exist for critical errors
+            expect(result.childNodes.length).toBe(0);
+          }
+        } else {
+          // Multiple nodes - this is wrong for critical errors
+          expect(result.childNodes.length).toBe(0);
+        }
       }
     }
     // For other errors (like $bind validation, nested comments, invalid attributes), we allow graceful degradation

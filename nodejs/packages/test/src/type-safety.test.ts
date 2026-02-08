@@ -11,7 +11,7 @@ describe('Type Safety', () => {
     it('should accept valid tag names', () => {
       const template: TemplateObject = { div: 'content' };
       const result = renderToString({ template });
-      expect(result).toBe('<div>content</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>content</div></div>');
     });
 
     it('should accept $if with conditional properties', () => {
@@ -23,7 +23,7 @@ describe('Type Safety', () => {
         }
       };
       const result = renderToString({ template, data: { isActive: true } });
-      expect(result).toBe('<div>Active</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Active</div></div>');
     });
 
     it('should accept regular tags with attributes', () => {
@@ -34,7 +34,7 @@ describe('Type Safety', () => {
         }
       };
       const result = renderToString({ template });
-      expect(result).toBe('<div class="test">content</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="test">content</div></div>');
     });
 
     it('should accept all container tags', () => {
@@ -72,7 +72,7 @@ describe('Type Safety', () => {
         $comment: 'This is a comment'
       };
       const result = renderToString({ template });
-      expect(result).toBe('<!--This is a comment-->');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--This is a comment--></div>');
     });
   });
 
@@ -87,7 +87,7 @@ describe('Type Safety', () => {
         
         expect.stringContaining('Tag "zoo" is not allowed')
       );
-      expect(result).toBe('');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
     });
 
     it('should reject mixing $if with regular tag properties', () => {
@@ -108,7 +108,7 @@ describe('Type Safety', () => {
         expect.stringContaining('does not support')
       );
       // Should still process despite warnings
-      expect(result).toBe('yes');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true">yes</div>');
     });
 
     it('should reject invalid attribute keys for specific tags', () => {
@@ -179,7 +179,7 @@ describe('Type Safety', () => {
         }
       };
       const result = renderToString({ template, data: { age: 30 } });
-      expect(result).toBe('<div>Adult</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Adult</div></div>');
     });
 
     it('should not allow $join in regular tag attributes', () => {
@@ -192,7 +192,7 @@ describe('Type Safety', () => {
         }
       };
       const result = renderToString({ template });
-      expect(result).toBe('<div class="test">content</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="test">content</div></div>');
     });
 
     it('should reject $join in regular tags at runtime', () => {
@@ -274,7 +274,7 @@ describe('Type Safety', () => {
         }
       };
       const result = renderToString({ template, data: { test: true } });
-      expect(result).toBe('<div>Result</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Result</div></div>');
     });
   });
 

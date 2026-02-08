@@ -45,22 +45,29 @@ describe('DOM Renderer', () => {
           case 'renders simple text':
             expect(fragment.textContent).toBe('Hello world');
             expect(fragment.childNodes.length).toBe(1);
-            expect(fragment.childNodes[0].nodeType).toBe(Node.TEXT_NODE);
+            const container1 = fragment.firstChild as HTMLElement;
+            expect(container1.tagName).toBe('DIV');
+            expect(container1.getAttribute('data-treebark-container')).toBe('true');
+            expect(container1.firstChild?.nodeType).toBe(Node.TEXT_NODE);
             break;
           case 'renders simple element':
-            const div = fragment.firstChild as HTMLElement;
+            const container2 = fragment.firstChild as HTMLElement;
+            expect(container2.tagName).toBe('DIV');
+            const div = container2.firstChild as HTMLElement;
             expect(div.tagName).toBe('DIV');
             expect(div.textContent).toBe('Hello world');
             break;
           case 'renders element with attributes':
-            const divWithAttrs = fragment.firstChild as HTMLElement;
+            const container3 = fragment.firstChild as HTMLElement;
+            const divWithAttrs = container3.firstChild as HTMLElement;
             expect(divWithAttrs.tagName).toBe('DIV');
             expect(divWithAttrs.className).toBe('greeting');
             expect(divWithAttrs.id).toBe('hello');
             expect(divWithAttrs.textContent).toBe('Hello world');
             break;
           case 'renders nested elements':
-            const divNested = fragment.firstChild as HTMLElement;
+            const container4 = fragment.firstChild as HTMLElement;
+            const divNested = container4.firstChild as HTMLElement;
             expect(divNested.tagName).toBe('DIV');
             expect(divNested.children.length).toBe(2);
             expect(divNested.children[0].tagName).toBe('H1');
@@ -69,14 +76,16 @@ describe('DOM Renderer', () => {
             expect(divNested.children[1].textContent).toBe('Content');
             break;
           case 'renders array as fragment':
-            expect(fragment.children.length).toBe(2);
-            expect(fragment.children[0].tagName).toBe('H1');
-            expect(fragment.children[0].textContent).toBe('Title');
-            expect(fragment.children[1].tagName).toBe('P');
-            expect(fragment.children[1].textContent).toBe('Content');
+            const container5 = fragment.firstChild as HTMLElement;
+            expect(container5.children.length).toBe(2);
+            expect(container5.children[0].tagName).toBe('H1');
+            expect(container5.children[0].textContent).toBe('Title');
+            expect(container5.children[1].tagName).toBe('P');
+            expect(container5.children[1].textContent).toBe('Content');
             break;
           case 'renders mixed content':
-            const divMixed = fragment.firstChild as HTMLElement;
+            const container6 = fragment.firstChild as HTMLElement;
+            const divMixed = container6.firstChild as HTMLElement;
             expect(divMixed.childNodes.length).toBe(3);
             expect(divMixed.childNodes[0].textContent).toBe('Hello ');
             expect((divMixed.childNodes[1] as HTMLElement).tagName).toBe('SPAN');
@@ -94,15 +103,18 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'interpolates data':
-            const div = fragment.firstChild as HTMLElement;
+            const container7 = fragment.firstChild as HTMLElement;
+            const div = container7.firstChild as HTMLElement;
             expect(div.textContent).toBe('Hello Alice!');
             break;
           case 'interpolates nested properties':
-            const divNested = fragment.firstChild as HTMLElement;
+            const container8 = fragment.firstChild as HTMLElement;
+            const divNested = container8.firstChild as HTMLElement;
             expect(divNested.textContent).toBe('Price: $99');
             break;
           case 'interpolates in attributes':
-            const a = fragment.firstChild as HTMLAnchorElement;
+            const container9 = fragment.firstChild as HTMLElement;
+            const a = container9.firstChild as HTMLAnchorElement;
             expect(a.href).toBe('http://localhost/user/123');
             expect(a.textContent).toBe('Alice');
             break;
@@ -110,7 +122,8 @@ describe('DOM Renderer', () => {
             expect(fragment.textContent).toBe('Hello {{name}}!');
             break;
           case 'handles special characters without HTML encoding':
-            const divSpecial = fragment.firstChild as HTMLElement;
+            const container10 = fragment.firstChild as HTMLElement;
+            const divSpecial = container10.firstChild as HTMLElement;
             expect(divSpecial.textContent).toBe("I'll help you analyze the Q4 sales data. Let me start by loading and examining the data structure.");
             break;
         }
@@ -124,7 +137,8 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'handles array binding':
-            const ul = fragment.firstChild as HTMLElement;
+            const container11 = fragment.firstChild as HTMLElement;
+            const ul = container11.firstChild as HTMLElement;
             expect(ul.tagName).toBe('UL');
             const lis = ul.querySelectorAll('li');
             expect(lis.length).toBe(2);
@@ -132,23 +146,27 @@ describe('DOM Renderer', () => {
             expect(lis[1].textContent).toBe('Banana - $2');
             break;
           case 'handles object binding':
-            const div = fragment.firstChild as HTMLElement;
+            const container12 = fragment.firstChild as HTMLElement;
+            const div = container12.firstChild as HTMLElement;
             expect(div.className).toBe('user-card');
             expect(div.querySelector('h2')?.textContent).toBe('Alice');
             expect(div.querySelector('p')?.textContent).toBe('alice@example.com');
             break;
           case 'handles TreebarkInput format':
-            const pNew = fragment.firstChild as HTMLElement;
+            const container13 = fragment.firstChild as HTMLElement;
+            const pNew = container13.firstChild as HTMLElement;
             expect(pNew.tagName).toBe('P');
             expect(pNew.textContent).toBe('Hello Bob!');
             break;
           case 'handles TreebarkInput format without data':
-            const divNew = fragment.firstChild as HTMLElement;
+            const container14 = fragment.firstChild as HTMLElement;
+            const divNew = container14.firstChild as HTMLElement;
             expect(divNew.tagName).toBe('DIV');
             expect(divNew.textContent).toBe('Static content');
             break;
           case 'handles $bind: "." to bind to current data object (array)':
-            const ulDotArray = fragment.firstChild as HTMLElement;
+            const container15 = fragment.firstChild as HTMLElement;
+            const ulDotArray = container15.firstChild as HTMLElement;
             expect(ulDotArray.tagName).toBe('UL');
             expect(ulDotArray.querySelectorAll('li').length).toBe(3);
             expect(ulDotArray.querySelectorAll('li')[0].textContent).toBe('Item 1');
@@ -156,7 +174,8 @@ describe('DOM Renderer', () => {
             expect(ulDotArray.querySelectorAll('li')[2].textContent).toBe('Item 3');
             break;
           case 'handles $bind: "." to bind to current data object (nested)':
-            const divDotNested = fragment.firstChild as HTMLElement;
+            const container16 = fragment.firstChild as HTMLElement;
+            const divDotNested = container16.firstChild as HTMLElement;
             expect(divDotNested.querySelector('h2')?.textContent).toBe('Alice');
             expect(divDotNested.querySelectorAll('p')[0].textContent).toBe('Email: alice@example.com');
             expect(divDotNested.querySelectorAll('p')[1].textContent).toBe('Role: Admin');
@@ -172,12 +191,14 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'accesses parent property with double dots':
-            const div = fragment.firstChild as HTMLElement;
+            const container17 = fragment.firstChild as HTMLElement;
+            const div = container17.firstChild as HTMLElement;
             expect(div.querySelector('h2')?.textContent).toBe('Alice');
             expect(div.querySelector('p')?.textContent).toBe('Organization: ACME Corp');
             break;
           case 'accesses grandparent property with double dots and slash':
-            const outerDiv = fragment.firstChild as HTMLElement;
+            const container18 = fragment.firstChild as HTMLElement;
+            const outerDiv = container18.firstChild as HTMLElement;
             const innerDiv = outerDiv.firstChild as HTMLElement;
             const spans = innerDiv.querySelectorAll('span');
             expect(spans.length).toBe(2);
@@ -185,7 +206,8 @@ describe('DOM Renderer', () => {
             expect(spans[1].textContent).toBe('Bob works at Tech Solutions Inc');
             break;
           case 'handles parent property in attributes':
-            const container = fragment.firstChild as HTMLElement;
+            const container19 = fragment.firstChild as HTMLElement;
+            const container = container19.firstChild as HTMLElement;
             const links = container.querySelectorAll('a');
             expect(links.length).toBe(2);
             expect(links[0].getAttribute('href')).toBe('/products/1');
@@ -194,15 +216,18 @@ describe('DOM Renderer', () => {
             expect(links[1].textContent).toBe('Mouse');
             break;
           case 'returns empty string when parent not found':
-            const containerDiv = fragment.firstChild as HTMLElement;
+            const container20 = fragment.firstChild as HTMLElement;
+            const containerDiv = container20.firstChild as HTMLElement;
             expect(containerDiv.querySelector('p')?.textContent).toBe('Missing: ');
             break;
           case 'returns empty string when too many parent levels requested':
-            const containerDiv2 = fragment.firstChild as HTMLElement;
+            const container21 = fragment.firstChild as HTMLElement;
+            const containerDiv2 = container21.firstChild as HTMLElement;
             expect(containerDiv2.querySelector('p')?.textContent).toBe('Missing: ');
             break;
           case 'works with nested object binding':
-            const companyDiv = fragment.firstChild as HTMLElement;
+            const container22 = fragment.firstChild as HTMLElement;
+            const companyDiv = container22.firstChild as HTMLElement;
             expect(companyDiv.querySelector('h1')?.textContent).toBe('ACME Corp');
             const deptDiv = companyDiv.querySelector('div');
             expect(deptDiv?.querySelector('h2')?.textContent).toBe('Engineering');
@@ -241,7 +266,8 @@ describe('DOM Renderer', () => {
         expect.stringContaining('Attribute "onclick" is not allowed')
       );
       // Should render without the dangerous attribute (XSS prevented)
-      const div = fragment.firstChild as HTMLElement;
+      const container = fragment.firstChild as HTMLElement;
+      const div = container.firstChild as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.textContent).toBe('Content');
       expect(div.hasAttribute('onclick')).toBe(false);
@@ -251,7 +277,8 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'allows data- and aria- attributes':
-            const div = fragment.firstChild as HTMLElement;
+            const container23 = fragment.firstChild as HTMLElement;
+            const div = container23.firstChild as HTMLElement;
             expect(div.getAttribute('data-test')).toBe('value');
             expect(div.getAttribute('aria-label')).toBe('Test');
             break;
@@ -266,21 +293,24 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'allows tag-specific attributes for img':
-            const img = fragment.firstChild as HTMLImageElement;
+            const container24 = fragment.firstChild as HTMLElement;
+            const img = container24.firstChild as HTMLImageElement;
             expect(img.src).toBe('http://localhost/image.jpg');
             expect(img.alt).toBe('An image');
             expect(img.getAttribute('width')).toBe('100');
             expect(img.getAttribute('height')).toBe('200');
             break;
           case 'allows tag-specific attributes for a':
-            const a = fragment.firstChild as HTMLAnchorElement;
+            const container25 = fragment.firstChild as HTMLElement;
+            const a = container25.firstChild as HTMLAnchorElement;
             expect(a.href).toBe('https://example.com/');
             expect(a.target).toBe('_blank');
             expect(a.rel).toBe('noopener');
             expect(a.textContent).toBe('Link text');
             break;
           case 'allows global attributes on any tag':
-            const span = fragment.firstChild as HTMLElement;
+            const container26 = fragment.firstChild as HTMLElement;
+            const span = container26.firstChild as HTMLElement;
             expect(span.id).toBe('test-id');
             expect(span.className).toBe('test-class');
             expect(span.getAttribute('style')).toBe('color: red');
@@ -289,7 +319,8 @@ describe('DOM Renderer', () => {
             expect(span.textContent).toBe('Content');
             break;
           case 'allows tag-specific attributes for table elements':
-            const table = fragment.firstChild as HTMLTableElement;
+            const container27 = fragment.firstChild as HTMLElement;
+            const table = container27.firstChild as HTMLTableElement;
             expect(table.getAttribute('summary')).toBe('Test table');
             const th = table.querySelector('th') as HTMLTableCellElement;
             expect(th.getAttribute('scope')).toBe('col');
@@ -298,13 +329,15 @@ describe('DOM Renderer', () => {
             expect(td.getAttribute('rowspan')).toBe('1');
             break;
           case 'allows tag-specific attributes for blockquote':
-            const blockquote = fragment.firstChild as HTMLElement;
+            const container28 = fragment.firstChild as HTMLElement;
+            const blockquote = container28.firstChild as HTMLElement;
             expect(blockquote.getAttribute('cite')).toBe('https://example.com');
             expect(blockquote.textContent).toBe('Quote text');
             break;
           case 'warns but continues for invalid attribute on tag': {
             // Should render with valid attributes, invalid ones skipped
-            const div = fragment.firstChild as HTMLElement;
+            const container29 = fragment.firstChild as HTMLElement;
+            const div = container29.firstChild as HTMLElement;
             expect(div.tagName).toBe('DIV');
             expect(div.getAttribute('class')).toBe('valid');
             expect(div.getAttribute('src')).toBeNull(); // Invalid attribute not rendered
@@ -338,7 +371,8 @@ describe('DOM Renderer', () => {
         expect.stringContaining('Attribute "src" is not allowed on tag "div"')
       );
       // Should still render with valid attributes
-      const div = fragment.firstChild as HTMLElement;
+      const container = fragment.firstChild as HTMLElement;
+      const div = container.firstChild as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.getAttribute('class')).toBe('valid');
       expect(div.textContent).toBe('Content');
@@ -378,7 +412,8 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'renders shorthand array syntax for nodes without attributes':
-            const div = fragment.firstChild as HTMLElement;
+            const container30 = fragment.firstChild as HTMLElement;
+            const div = container30.firstChild as HTMLElement;
             expect(div.tagName).toBe('DIV');
             expect(div.children.length).toBe(2);
             expect(div.children[0].tagName).toBe('H2');
@@ -387,7 +422,8 @@ describe('DOM Renderer', () => {
             expect(div.children[1].textContent).toBe('Content');
             break;
           case 'shorthand array syntax with mixed content':
-            const divMixed = fragment.firstChild as HTMLElement;
+            const container31 = fragment.firstChild as HTMLElement;
+            const divMixed = container31.firstChild as HTMLElement;
             expect(divMixed.childNodes.length).toBe(3);
             expect(divMixed.childNodes[0].textContent).toBe('Hello ');
             expect((divMixed.childNodes[1] as HTMLElement).tagName).toBe('SPAN');
@@ -395,12 +431,14 @@ describe('DOM Renderer', () => {
             expect(divMixed.childNodes[2].textContent).toBe('!');
             break;
           case 'shorthand array syntax with data interpolation':
-            const divInterp = fragment.firstChild as HTMLElement;
+            const container32 = fragment.firstChild as HTMLElement;
+            const divInterp = container32.firstChild as HTMLElement;
             expect(divInterp.querySelector('h1')?.textContent).toBe('Welcome');
             expect(divInterp.querySelector('p')?.textContent).toBe('This is a test.');
             break;
           case 'shorthand array syntax works with empty arrays':
-            const divEmpty = fragment.firstChild as HTMLElement;
+            const container33 = fragment.firstChild as HTMLElement;
+            const divEmpty = container33.firstChild as HTMLElement;
             expect(divEmpty.tagName).toBe('DIV');
             expect(divEmpty.children.length).toBe(0);
             expect(divEmpty.textContent).toBe('');
@@ -432,8 +470,10 @@ describe('DOM Renderer', () => {
         }
       });
 
-      const shorthandDiv = shorthand.firstChild as HTMLElement;
-      const explicitDiv = explicit.firstChild as HTMLElement;
+      const shorthandContainer = shorthand.firstChild as HTMLElement;
+      const shorthandDiv = shorthandContainer.firstChild as HTMLElement;
+      const explicitContainer = explicit.firstChild as HTMLElement;
+      const explicitDiv = explicitContainer.firstChild as HTMLElement;
 
       expect(shorthandDiv.tagName).toBe(explicitDiv.tagName);
       expect(shorthandDiv.children.length).toBe(explicitDiv.children.length);
@@ -447,7 +487,8 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'allows void tags without children':
-            const img = fragment.firstChild as HTMLImageElement;
+            const container34 = fragment.firstChild as HTMLElement;
+            const img = container34.firstChild as HTMLImageElement;
             expect(img.tagName).toBe('IMG');
             expect(img.src).toContain('image.jpg');
             expect(img.alt).toBe('Test image');
@@ -486,7 +527,8 @@ describe('DOM Renderer', () => {
           }
         }
       });
-      const div = fragment.firstChild as HTMLElement;
+      const container = fragment.firstChild as HTMLElement;
+      const div = container.firstChild as HTMLElement;
       expect(div.children.length).toBe(2);
       expect((div.children[0] as HTMLImageElement).tagName).toBe('IMG');
       expect((div.children[1] as HTMLImageElement).tagName).toBe('IMG');
@@ -501,32 +543,38 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'renders basic comment':
-            const basicComment = fragment.firstChild as Comment;
+            const container35 = fragment.firstChild as HTMLElement;
+            const basicComment = container35.firstChild as Comment;
             expect(basicComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(basicComment.textContent).toBe('This is a comment');
             break;
           case 'renders comment with interpolation':
-            const interpolatedComment = fragment.firstChild as Comment;
+            const container36 = fragment.firstChild as HTMLElement;
+            const interpolatedComment = container36.firstChild as Comment;
             expect(interpolatedComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(interpolatedComment.textContent).toBe('User: Alice');
             break;
           case 'renders comment containing other tags':
-            const tagComment = fragment.firstChild as Comment;
+            const container37 = fragment.firstChild as HTMLElement;
+            const tagComment = container37.firstChild as Comment;
             expect(tagComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(tagComment.textContent).toBe('Start: <span>highlighted text</span> :End');
             break;
           case 'renders empty comment':
-            const emptyComment = fragment.firstChild as Comment;
+            const container38 = fragment.firstChild as HTMLElement;
+            const emptyComment = container38.firstChild as Comment;
             expect(emptyComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(emptyComment.textContent).toBe('');
             break;
           case 'renders comment with special characters':
-            const specialComment = fragment.firstChild as Comment;
+            const container39 = fragment.firstChild as HTMLElement;
+            const specialComment = container39.firstChild as Comment;
             expect(specialComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(specialComment.textContent).toBe('Special chars: &amp; &lt; &gt; " \'');
             break;
           case 'safely handles malicious interpolation':
-            const secureComment = fragment.firstChild as Comment;
+            const container40 = fragment.firstChild as HTMLElement;
+            const secureComment = container40.firstChild as Comment;
             expect(secureComment.nodeType).toBe(Node.COMMENT_NODE);
             expect(secureComment.textContent).toBe('User input: evil --&amp;gt; &amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;');
             break;
@@ -549,55 +597,65 @@ describe('DOM Renderer', () => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
         switch (tc.name) {
           case 'renders children when condition is truthy (true)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container41 = fragment.firstChild as HTMLElement;
+            const div = container41.firstChild as HTMLElement;
             expect(div.tagName).toBe('DIV');
             expect(div.querySelector('p')?.textContent).toBe('Message is shown');
             break;
           }
           case 'renders children when condition is truthy (non-empty string)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container42 = fragment.firstChild as HTMLElement;
+            const div = container42.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('Hello Alice');
             break;
           }
           case 'renders children when condition is truthy (number)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container43 = fragment.firstChild as HTMLElement;
+            const div = container43.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('Count: 5');
             break;
           }
           case 'does not render children when condition is falsy (false)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container44 = fragment.firstChild as HTMLElement;
+            const div = container44.firstChild as HTMLElement;
             expect(div.querySelectorAll('p').length).toBe(2);
             expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
             expect(div.querySelectorAll('p')[1].textContent).toBe('After');
             break;
           }
           case 'does not render children when condition is falsy (null)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container45 = fragment.firstChild as HTMLElement;
+            const div = container45.firstChild as HTMLElement;
             expect(div.childNodes.length).toBe(0);
             break;
           }
           case 'does not render children when condition is falsy (undefined)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container46 = fragment.firstChild as HTMLElement;
+            const div = container46.firstChild as HTMLElement;
             expect(div.childNodes.length).toBe(0);
             break;
           }
           case 'does not render children when condition is falsy (empty string)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container47 = fragment.firstChild as HTMLElement;
+            const div = container47.firstChild as HTMLElement;
             expect(div.childNodes.length).toBe(0);
             break;
           }
           case 'does not render children when condition is falsy (zero)': {
-            const div = fragment.firstChild as HTMLElement;
+            const container48 = fragment.firstChild as HTMLElement;
+            const div = container48.firstChild as HTMLElement;
             expect(div.childNodes.length).toBe(0);
             break;
           }
           case 'works with nested property access': {
-            const div = fragment.firstChild as HTMLElement;
+            const container49 = fragment.firstChild as HTMLElement;
+            const div = container49.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('Admin panel');
             break;
           }
           case 'works with multiple children (wrapped in div)': {
-            const outerDiv = fragment.firstChild as HTMLElement;
+            const container50 = fragment.firstChild as HTMLElement;
+            const outerDiv = container50.firstChild as HTMLElement;
             const innerDiv = outerDiv.firstChild as HTMLElement;
             expect(innerDiv.querySelector('h1')?.textContent).toBe('Title');
             expect(innerDiv.querySelectorAll('p').length).toBe(2);
@@ -606,7 +664,8 @@ describe('DOM Renderer', () => {
             break;
           }
           case 'works with nested if tags': {
-            const outerDiv = fragment.firstChild as HTMLElement;
+            const container51 = fragment.firstChild as HTMLElement;
+            const outerDiv = container51.firstChild as HTMLElement;
             const innerDiv = outerDiv.firstChild as HTMLElement;
             expect(innerDiv.querySelectorAll('p').length).toBe(2);
             expect(innerDiv.querySelectorAll('p')[0].textContent).toBe('Level 1 visible');
@@ -614,44 +673,52 @@ describe('DOM Renderer', () => {
             break;
           }
           case 'works at root level': {
-            const div = fragment.firstChild as HTMLElement;
+            const container52 = fragment.firstChild as HTMLElement;
+            const div = container52.firstChild as HTMLElement;
             expect(div.tagName).toBe('DIV');
             expect(div.textContent).toBe('Content');
             break;
           }
           case 'renders nothing at root level when falsy': {
-            expect(fragment.childNodes.length).toBe(0);
+            const container53 = fragment.firstChild as HTMLElement;
+            expect(container53.childNodes.length).toBe(0);
             break;
           }
           case 'renders children with $not when condition is falsy': {
-            const div = fragment.firstChild as HTMLElement;
+            const container54 = fragment.firstChild as HTMLElement;
+            const div = container54.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('Message is hidden, showing this instead');
             break;
           }
           case 'does not render children with $not when condition is truthy': {
-            const div = fragment.firstChild as HTMLElement;
+            const container55 = fragment.firstChild as HTMLElement;
+            const div = container55.firstChild as HTMLElement;
             expect(div.querySelectorAll('p').length).toBe(2);
             expect(div.querySelectorAll('p')[0].textContent).toBe('Before');
             expect(div.querySelectorAll('p')[1].textContent).toBe('After');
             break;
           }
           case 'works with $not and nested properties': {
-            const div = fragment.firstChild as HTMLElement;
+            const container56 = fragment.firstChild as HTMLElement;
+            const div = container56.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('Welcome back, member!');
             break;
           }
           case 'works with $not and zero': {
-            const div = fragment.firstChild as HTMLElement;
+            const container57 = fragment.firstChild as HTMLElement;
+            const div = container57.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('No items');
             break;
           }
           case 'works with $not and empty string': {
-            const div = fragment.firstChild as HTMLElement;
+            const container58 = fragment.firstChild as HTMLElement;
+            const div = container58.firstChild as HTMLElement;
             expect(div.querySelector('p')?.textContent).toBe('No message provided');
             break;
           }
           case 'preserves indentation with multiple children (one level)': {
-            const outerDiv = fragment.firstChild as HTMLElement;
+            const container59 = fragment.firstChild as HTMLElement;
+            const outerDiv = container59.firstChild as HTMLElement;
             expect(outerDiv.className).toBe('container');
             const paragraphs = outerDiv.querySelectorAll('p');
             expect(paragraphs.length).toBe(5); // Before, First, Second, Third, After
@@ -663,7 +730,8 @@ describe('DOM Renderer', () => {
             break;
           }
           case 'preserves indentation with multiple children (two levels)': {
-            const outerDiv = fragment.firstChild as HTMLElement;
+            const container60 = fragment.firstChild as HTMLElement;
+            const outerDiv = container60.firstChild as HTMLElement;
             expect(outerDiv.className).toBe('outer');
             expect(outerDiv.querySelector('h1')?.textContent).toBe('Title');
             const inner = outerDiv.querySelector('.inner');
@@ -678,14 +746,16 @@ describe('DOM Renderer', () => {
           }
           case 'warns but continues when $if tag has unsupported attributes': {
             // Should still render the content despite the warning
-            const p = fragment.firstChild as HTMLElement;
+            const container61 = fragment.firstChild as HTMLElement;
+            const p = container61.firstChild as HTMLElement;
             expect(p.tagName).toBe('P');
             expect(p.textContent).toBe('Content');
             break;
           }
           case 'warns but continues when $if tag has $children': {
             // Should render $then, ignore $children
-            const p = fragment.firstChild as HTMLElement;
+            const container62 = fragment.firstChild as HTMLElement;
+            const p = container62.firstChild as HTMLElement;
             expect(p.tagName).toBe('P');
             expect(p.textContent).toBe('Content');
             break;
@@ -718,7 +788,8 @@ describe('DOM Renderer', () => {
         expect.stringContaining('"$if" tag does not support attributes')
       );
       // Should still render the content
-      const p = fragment.firstChild as HTMLElement;
+      const container = fragment.firstChild as HTMLElement;
+      const p = container.firstChild as HTMLElement;
       expect(p.tagName).toBe('P');
       expect(p.textContent).toBe('Content');
     });
@@ -747,7 +818,8 @@ describe('DOM Renderer', () => {
         expect.stringContaining('"$if" tag does not support $children')
       );
       // Should render $then, not $children
-      const p = fragment.firstChild as HTMLElement;
+      const container = fragment.firstChild as HTMLElement;
+      const p = container.firstChild as HTMLElement;
       expect(p.tagName).toBe('P');
       expect(p.textContent).toBe('Content');
     });
@@ -755,7 +827,8 @@ describe('DOM Renderer', () => {
     // Operator tests
     ifTagOperatorTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
-        const div = fragment.firstChild as HTMLElement;
+        const container = fragment.firstChild as HTMLElement;
+        const div = container.firstChild as HTMLElement;
         switch (tc.name) {
           case 'less than operator: renders when true':
             expect(div.querySelector('p')?.textContent).toBe('Minor');
@@ -806,7 +879,8 @@ describe('DOM Renderer', () => {
     // $then and $else tests
     ifTagThenElseTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
-        const div = fragment.firstChild as HTMLElement;
+        const container = fragment.firstChild as HTMLElement;
+        const div = container.firstChild as HTMLElement;
         switch (tc.name) {
           case 'renders $then when condition is true':
             expect(div.querySelector('p')?.textContent).toBe('Active user');
@@ -827,7 +901,8 @@ describe('DOM Renderer', () => {
     // Conditional attribute tests
     conditionalAttributeTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
-        const div = fragment.firstChild as HTMLElement;
+        const container = fragment.firstChild as HTMLElement;
+        const div = container.firstChild as HTMLElement;
         switch (tc.name) {
           case 'conditional attribute with $then and $else':
             expect(div.className).toBe('active');
@@ -861,7 +936,8 @@ describe('DOM Renderer', () => {
   describe('Style Objects', () => {
     styleObjectTests.forEach(testCase => {
       createTest(testCase, renderToDOM, (fragment, tc) => {
-        const element = fragment.firstChild as HTMLElement;
+        const container = fragment.firstChild as HTMLElement;
+        const element = container.firstChild as HTMLElement;
         
         switch (tc.name) {
           case 'renders style object with single property':
@@ -903,7 +979,8 @@ describe('DOM Renderer', () => {
         };
 
         const fragment = renderToDOM(testCase.input, { logger: mockLogger });
-        const element = fragment.firstChild as HTMLElement;
+        const container = fragment.firstChild as HTMLElement;
+        const element = container.firstChild as HTMLElement;
         
         // Check results based on test case
         switch (testCase.name) {
@@ -977,7 +1054,8 @@ describe('DOM Renderer', () => {
               // Should warn about dangerous patterns
               expect(mockLogger.warn).toHaveBeenCalled();
               // Check that the dangerous style was not applied
-              const el1 = fragment.firstChild as HTMLElement;
+              const container1 = fragment.firstChild as HTMLElement;
+              const el1 = container1.firstChild as HTMLElement;
               expect(el1).toBeTruthy();
               if (el1 && el1.style) {
                 // Style should either be empty or not contain dangerous patterns
@@ -991,7 +1069,8 @@ describe('DOM Renderer', () => {
 
             case 'allows data: URIs in url()':
               // Data URIs should be allowed
-              const el2 = fragment.firstChild as HTMLElement;
+              const container2 = fragment.firstChild as HTMLElement;
+              const el2 = container2.firstChild as HTMLElement;
               expect(el2).toBeTruthy();
               if (el2 && el2.style) {
                 const styleText = el2.getAttribute('style') || '';
@@ -1004,7 +1083,8 @@ describe('DOM Renderer', () => {
               // Should warn about semicolon injection
               expect(mockLogger.warn).toHaveBeenCalled();
               // Should only include the first property value
-              const el3 = fragment.firstChild as HTMLElement;
+              const container3 = fragment.firstChild as HTMLElement;
+              const el3 = container3.firstChild as HTMLElement;
               expect(el3).toBeTruthy();
               if (el3 && el3.style) {
                 const styleText = el3.getAttribute('style') || '';
@@ -1019,7 +1099,8 @@ describe('DOM Renderer', () => {
               // Should warn about invalid attributes
               expect(mockLogger.warn).toHaveBeenCalled();
               // Should not include event handlers
-              const el4 = fragment.firstChild as HTMLElement;
+              const container4 = fragment.firstChild as HTMLElement;
+              const el4 = container4.firstChild as HTMLElement;
               expect(el4).toBeTruthy();
               if (el4) {
                 expect(el4.getAttribute('onclick')).toBeNull();
@@ -1032,14 +1113,16 @@ describe('DOM Renderer', () => {
               break;
 
             case 'allows safe href protocols':
-              const link = fragment.firstChild as HTMLAnchorElement;
+              const container5 = fragment.firstChild as HTMLElement;
+              const link = container5.firstChild as HTMLAnchorElement;
               expect(link.tagName).toBe('A');
               expect(link.href).toBe('https://example.com/');
               expect(link.textContent).toBe('Safe link');
               break;
 
             case 'allows safe img src':
-              const img = fragment.firstChild as HTMLImageElement;
+              const container6 = fragment.firstChild as HTMLElement;
+              const img = container6.firstChild as HTMLImageElement;
               expect(img.tagName).toBe('IMG');
               expect(img.src).toBe('https://example.com/image.png');
               expect(img.alt).toBe('Safe image');
@@ -1063,7 +1146,8 @@ describe('DOM Renderer', () => {
 
           const fragment = renderToDOM(testCase.input, { logger: mockLogger });
 
-          const div = fragment.firstChild as HTMLElement;
+          const container = fragment.firstChild as HTMLElement;
+          const div = container.firstChild as HTMLElement;
           expect(div).toBeDefined();
           expect(div.tagName).toBe('DIV');
 
@@ -1104,7 +1188,8 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "href" contains blocked protocol/)
               );
-              const a1 = fragment.firstChild as HTMLAnchorElement;
+              const container7 = fragment.firstChild as HTMLElement;
+              const a1 = container7.firstChild as HTMLAnchorElement;
               expect(a1.tagName).toBe('A');
               expect(a1.hasAttribute('href')).toBe(false);
               break;
@@ -1113,7 +1198,8 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "src" contains blocked protocol/)
               );
-              const img1 = fragment.firstChild as HTMLImageElement;
+              const container8 = fragment.firstChild as HTMLElement;
+              const img1 = container8.firstChild as HTMLImageElement;
               expect(img1.tagName).toBe('IMG');
               expect(img1.hasAttribute('src')).toBe(false);
               break;
@@ -1122,7 +1208,8 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "href" contains blocked protocol/)
               );
-              const a2 = fragment.firstChild as HTMLAnchorElement;
+              const container9 = fragment.firstChild as HTMLElement;
+              const a2 = container9.firstChild as HTMLAnchorElement;
               expect(a2.hasAttribute('href')).toBe(false);
               break;
 
@@ -1130,7 +1217,8 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "src" contains blocked protocol/)
               );
-              const img2 = fragment.firstChild as HTMLImageElement;
+              const container10 = fragment.firstChild as HTMLElement;
+              const img2 = container10.firstChild as HTMLImageElement;
               expect(img2.hasAttribute('src')).toBe(false);
               break;
 
@@ -1138,7 +1226,8 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "href" contains blocked protocol/)
               );
-              const a3 = fragment.firstChild as HTMLAnchorElement;
+              const container11 = fragment.firstChild as HTMLElement;
+              const a3 = container11.firstChild as HTMLAnchorElement;
               expect(a3.hasAttribute('href')).toBe(false);
               break;
 
@@ -1146,60 +1235,70 @@ describe('DOM Renderer', () => {
               expect(mockLogger.warn).toHaveBeenCalledWith(
                 expect.stringMatching(/Attribute "href" contains blocked protocol/)
               );
-              const a4 = fragment.firstChild as HTMLAnchorElement;
+              const container12 = fragment.firstChild as HTMLElement;
+              const a4 = container12.firstChild as HTMLAnchorElement;
               expect(a4.hasAttribute('href')).toBe(false);
               break;
 
             case 'allows https: protocol in href':
-              const a5 = fragment.firstChild as HTMLAnchorElement;
+              const container13 = fragment.firstChild as HTMLElement;
+              const a5 = container13.firstChild as HTMLAnchorElement;
               expect(a5.href).toBe('https://example.com/');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows http: protocol in href':
-              const a6 = fragment.firstChild as HTMLAnchorElement;
+              const container14 = fragment.firstChild as HTMLElement;
+              const a6 = container14.firstChild as HTMLAnchorElement;
               expect(a6.href).toBe('http://example.com/');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows https: protocol in src':
-              const img3 = fragment.firstChild as HTMLImageElement;
+              const container15 = fragment.firstChild as HTMLElement;
+              const img3 = container15.firstChild as HTMLImageElement;
               expect(img3.src).toBe('https://example.com/image.png');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows mailto: protocol in href':
-              const a7 = fragment.firstChild as HTMLAnchorElement;
+              const container16 = fragment.firstChild as HTMLElement;
+              const a7 = container16.firstChild as HTMLAnchorElement;
               expect(a7.href).toBe('mailto:test@example.com');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows tel: protocol in href':
-              const a8 = fragment.firstChild as HTMLAnchorElement;
+              const container17 = fragment.firstChild as HTMLElement;
+              const a8 = container17.firstChild as HTMLAnchorElement;
               expect(a8.href).toBe('tel:+1234567890');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows relative URL with slash in href':
-              const a9 = fragment.firstChild as HTMLAnchorElement;
+              const container18 = fragment.firstChild as HTMLElement;
+              const a9 = container18.firstChild as HTMLAnchorElement;
               expect(a9.getAttribute('href')).toBe('/path/to/page');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows relative URL with hash in href':
-              const a10 = fragment.firstChild as HTMLAnchorElement;
+              const container19 = fragment.firstChild as HTMLElement;
+              const a10 = container19.firstChild as HTMLAnchorElement;
               expect(a10.getAttribute('href')).toBe('#section');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows relative URL without protocol in href':
-              const a11 = fragment.firstChild as HTMLAnchorElement;
+              const container20 = fragment.firstChild as HTMLElement;
+              const a11 = container20.firstChild as HTMLAnchorElement;
               expect(a11.getAttribute('href')).toBe('page.html');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
 
             case 'allows query string in href':
-              const a12 = fragment.firstChild as HTMLAnchorElement;
+              const container21 = fragment.firstChild as HTMLElement;
+              const a12 = container21.firstChild as HTMLAnchorElement;
               expect(a12.getAttribute('href')).toBe('?param=value');
               expect(mockLogger.warn).not.toHaveBeenCalled();
               break;
@@ -1218,44 +1317,51 @@ describe('DOM Renderer', () => {
 
           switch (testCase.name) {
             case 'allows zero in data-* attribute':
-              const div1 = fragment.firstChild as HTMLElement;
+              const container22 = fragment.firstChild as HTMLElement;
+              const div1 = container22.firstChild as HTMLElement;
               expect(div1.getAttribute('data-count')).toBe('0');
               expect(div1.textContent).toBe('Items');
               break;
 
             case 'allows zero string in attribute':
-              const div2 = fragment.firstChild as HTMLElement;
+              const container23 = fragment.firstChild as HTMLElement;
+              const div2 = container23.firstChild as HTMLElement;
               expect(div2.getAttribute('data-index')).toBe('0');
               expect(div2.textContent).toBe('Item');
               break;
 
             case 'allows zero in title attribute':
-              const div3 = fragment.firstChild as HTMLElement;
+              const container24 = fragment.firstChild as HTMLElement;
+              const div3 = container24.firstChild as HTMLElement;
               expect(div3.getAttribute('title')).toBe('0');
               expect(div3.textContent).toBe('Score');
               break;
 
             case 'allows zero in width attribute':
-              const img = fragment.firstChild as HTMLImageElement;
+              const container25 = fragment.firstChild as HTMLElement;
+              const img = container25.firstChild as HTMLImageElement;
               expect(img.getAttribute('width')).toBe('0');
               expect(img.alt).toBe('test');
               break;
 
             case 'allows empty string in alt attribute':
-              const img2 = fragment.firstChild as HTMLImageElement;
+              const container26 = fragment.firstChild as HTMLElement;
+              const img2 = container26.firstChild as HTMLImageElement;
               expect(img2.getAttribute('alt')).toBe('');
               expect(img2.hasAttribute('alt')).toBe(true);
               break;
 
             case 'allows empty string in title attribute':
-              const div4 = fragment.firstChild as HTMLElement;
+              const container27 = fragment.firstChild as HTMLElement;
+              const div4 = container27.firstChild as HTMLElement;
               expect(div4.getAttribute('title')).toBe('');
               expect(div4.hasAttribute('title')).toBe(true);
               expect(div4.textContent).toBe('Content');
               break;
 
             case 'allows empty string from interpolation':
-              const div5 = fragment.firstChild as HTMLElement;
+              const container28 = fragment.firstChild as HTMLElement;
+              const div5 = container28.firstChild as HTMLElement;
               expect(div5.getAttribute('data-value')).toBe('');
               expect(div5.hasAttribute('data-value')).toBe(true);
               expect(div5.textContent).toBe('Content');

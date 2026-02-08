@@ -52,6 +52,8 @@ export function renderToString(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  // Default to true for security - defaults to true unless explicitly set to false
+  const useBlockContainer = options.useBlockContainer !== false;
 
   // Conditionally set indent context
   const context = options.indent ? {
@@ -62,7 +64,15 @@ export function renderToString(
     getOuterProperty
   } : { logger, getOuterProperty };
 
-  return render(input.template, data, context);
+  const content = render(input.template, data, context);
+  
+  // Wrap in block container if requested
+  if (useBlockContainer) {
+    const containerStyle = 'contain: content; isolation: isolate;';
+    return `<div style="${containerStyle}" data-treebark-container="true">${content}</div>`;
+  }
+  
+  return content;
 }
 
 // Helper function to render tag, deciding internally whether to close or not

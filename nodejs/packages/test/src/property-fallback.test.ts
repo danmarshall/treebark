@@ -21,7 +21,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<div>Welcome to My Website by John Doe</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Welcome to My Website by John Doe</div></div>');
     });
 
     it('should prefer local data over fallback', () => {
@@ -36,7 +36,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<div>Hello Local Name</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello Local Name</div></div>');
     });
 
     it('should use fallback in conditional attributes', () => {
@@ -60,7 +60,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<div class="active">Status</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="active">Status</div></div>');
     });
 
     it('should use fallback in $if tags', () => {
@@ -87,7 +87,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<div><p>This message is shown</p></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>This message is shown</p></div></div>');
     });
 
     it('should use fallback in $bind', () => {
@@ -114,7 +114,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<ul><li>Item 1</li><li>Item 2</li></ul>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul><li>Item 1</li><li>Item 2</li></ul></div>');
     });
 
     it('should pass path, data, and parents to fallback handler', () => {
@@ -158,7 +158,7 @@ describe('Property Fallback Handler', () => {
         { propertyFallback: fallback }
       );
       
-      expect(result).toBe('<div><h1>My Application</h1><p>Version: 1.0.0</p><p>Welcome!</p></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h1>My Application</h1><p>Version: 1.0.0</p><p>Welcome!</p></div></div>');
     });
   });
 
@@ -171,7 +171,7 @@ describe('Property Fallback Handler', () => {
         }
       );
       
-      expect(result).toBe('<div>First</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>First</div></div>');
     });
 
     it('should support multiple array indices in same path', () => {
@@ -194,7 +194,7 @@ describe('Property Fallback Handler', () => {
         }
       );
       
-      expect(result).toBe('<div><p>Item 1</p><p>Item 2</p></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Item 1</p><p>Item 2</p></div></div>');
     });
 
     it('should support nested arrays with numeric indices', () => {
@@ -210,7 +210,7 @@ describe('Property Fallback Handler', () => {
         }
       );
       
-      expect(result).toBe('<div>b</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>b</div></div>');
     });
 
     it('should work with array at root level', () => {
@@ -221,7 +221,7 @@ describe('Property Fallback Handler', () => {
         }
       );
       
-      expect(result).toBe('<div>Alice and Bob</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Alice and Bob</div></div>');
     });
   });
 });

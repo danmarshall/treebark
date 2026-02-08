@@ -163,4 +163,5 @@ export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  useBlockContainer?: boolean;  // When true (default), wraps content in a block container with CSS containment for security
 }

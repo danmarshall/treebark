@@ -29,13 +29,20 @@ export interface TreebarkPluginOptions {
    * Defaults to console if not provided
    */
   logger?: Logger;
+
+  /**
+   * Block container for security (default: true)
+   * When true, wraps templates in a container with CSS containment
+   * Set to false to opt-out (only for trusted templates)
+   */
+  useBlockContainer?: boolean;
 }
 
 /**
  * Markdown-it plugin for rendering treebark templates
  */
 export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOptions = {}) {
-  const { data = {}, yaml, indent, logger } = options;
+  const { data = {}, yaml, indent, logger, useBlockContainer } = options;
 
   // Store the original fence rule
   const originalFence = md.renderer.rules.fence;
@@ -47,7 +54,7 @@ export default function treebarkPlugin(md: MarkdownIt, options: TreebarkPluginOp
     // Check if this is a treebark block
     if (info === 'treebark' || info.startsWith('treebark ')) {
       try {
-        return renderTreebarkBlock(token.content, data, yaml, indent, logger) + '\n';
+        return renderTreebarkBlock(token.content, data, yaml, indent, logger, useBlockContainer) + '\n';
       } catch (error) {
         // On error, return the original content with error message
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -68,7 +75,8 @@ function renderTreebarkBlock(
   defaultData: Record<string, any>,
   yaml?: { load: (content: string) => any },
   indent?: string | number | boolean,
-  logger?: Logger
+  logger?: Logger,
+  useBlockContainer?: boolean
 ): string {
   let template: any;
   let yamlError: Error | null = null;
@@ -104,8 +112,8 @@ function renderTreebarkBlock(
     throw new Error('Empty or invalid template');
   }
 
-  // Create render options
-  const renderOptions: RenderOptions = { indent, logger };
+  // Create render options - pass through useBlockContainer
+  const renderOptions: RenderOptions = { indent, logger, useBlockContainer };
 
   // Check if template is already in TreebarkInput format
   if (template && typeof template === 'object' && 'template' in template) {
