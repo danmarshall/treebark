@@ -24,12 +24,34 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const useShadowDOM = options.useShadowDOM || false;
   
   const fragment = document.createDocumentFragment();
   
   const result = render(input.template, data, { logger, getOuterProperty });
-  if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
-  else fragment.appendChild(result);
+  
+  if (useShadowDOM) {
+    // Create a container element with shadow DOM
+    const container = document.createElement('div');
+    const shadowRoot = container.attachShadow({ mode: 'open' });
+    
+    // Append rendered content to shadow root
+    if (Array.isArray(result)) {
+      result.forEach(n => shadowRoot.appendChild(n));
+    } else {
+      shadowRoot.appendChild(result);
+    }
+    
+    fragment.appendChild(container);
+  } else {
+    // Standard rendering without shadow DOM
+    if (Array.isArray(result)) {
+      result.forEach(n => fragment.appendChild(n));
+    } else {
+      fragment.appendChild(result);
+    }
+  }
+  
   return fragment;
 }
 

@@ -163,4 +163,5 @@ export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  useShadowDOM?: boolean;  // When true, renders into shadow DOM (only for renderToDOM)
 }
