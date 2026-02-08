@@ -1173,7 +1173,6 @@ div:
 
 - [Node.js/Browser](nodejs/packages/treebark/)
   - [Core library](nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
-  - `renderToDOM` supports shadow DOM for style encapsulation (use `useShadowDOM: true` option)
   - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
 - **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
 

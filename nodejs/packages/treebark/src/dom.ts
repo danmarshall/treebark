@@ -24,32 +24,12 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
-  const useShadowDOM = !!options.useShadowDOM;
   
   const fragment = document.createDocumentFragment();
   
   const result = render(input.template, data, { logger, getOuterProperty });
-  
-  // Determine the target for appending rendered nodes
-  let target: Node;
-  if (useShadowDOM) {
-    // Create a container element with shadow DOM
-    // Using div as a generic container - users can wrap in their own custom element if needed
-    const container = document.createElement('div');
-    target = container.attachShadow({ mode: 'open' });
-    fragment.appendChild(container);
-  } else {
-    // Standard rendering without shadow DOM
-    target = fragment;
-  }
-  
-  // Append rendered content to target
-  if (Array.isArray(result)) {
-    result.forEach(n => target.appendChild(n));
-  } else {
-    target.appendChild(result);
-  }
-  
+  if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
+  else fragment.appendChild(result);
   return fragment;
 }
 
