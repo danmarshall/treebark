@@ -195,6 +195,105 @@ const userData = {
 };
 ```
 
+### Specific Attack: Malicious Link Overlay
+
+**Attack Scenario (raised by @danmarshall):**
+A malicious hyperlink or text content is absolutely positioned to cover an existing button, causing users to click the malicious link when they think they're clicking the legitimate button.
+
+**Example Attack Code:**
+```javascript
+// Developer template (trusted)
+const template = {
+  div: [
+    { button: { id: "pay-button", $children: ["Pay $100"] } },
+    { 
+      a: { 
+        href: "{{userLink}}",  // User controls link destination
+        style: {
+          "position": "absolute",
+          "top": "0",
+          "left": "0", 
+          "width": "100%",
+          "height": "100%",
+          "z-index": "9999",
+          "opacity": "0.01"
+        },
+        $children: ["{{userText}}"]  // User controls text
+      }
+    }
+  ]
+};
+
+// Attacker provides data
+const attackData = {
+  userLink: "https://evil.com/steal-money",
+  userText: "Innocent text"
+};
+```
+
+**Is this attack possible in treebark?**
+
+**YES, IF the developer writes a vulnerable template** that:
+1. Includes positioning styles (`position: absolute`, `z-index`) in the template
+2. Allows user-controlled link destinations via `href: "{{userLink}}"`
+3. Allows user-controlled content via `$children: ["{{userText}}"]`
+
+**Key Point:** This is a **template design vulnerability**, not a treebark security vulnerability. The developer has explicitly chosen to:
+- Put absolute positioning in the template structure
+- Allow user data in both the link and content
+
+### Why Treebark Can't Prevent This
+
+Treebark's security model is:
+- **Template structure** = Developer-controlled (trusted)
+- **Data values** = User-controlled (untrusted)
+
+If the developer writes a template that positions elements absolutely with high z-index, that's a developer choice. Treebark correctly allows all legitimate CSS properties because:
+
+1. **Positioning is legitimate**: Many valid use cases require `position: absolute` (tooltips, dropdowns, modals)
+2. **Injection is prevented**: The structured format prevents users from injecting new CSS properties
+3. **Template control**: Developers are responsible for not creating vulnerable positioning patterns
+
+**Developer Responsibility:**
+```javascript
+// ❌ VULNERABLE pattern - don't do this
+{
+  a: {
+    href: "{{userLink}}",  // User controls destination
+    style: { "position": "absolute", "z-index": "9999" },  // Dangerous positioning
+    $children: ["{{userText}}"]
+  }
+}
+
+// ✅ SAFE pattern - user content without dangerous positioning
+{
+  a: {
+    href: "{{userLink}}",
+    style: { "color": "blue", "text-decoration": "underline" },  // Safe styles
+    $children: ["{{userText}}"]
+  }
+}
+
+// ✅ SAFE pattern - positioned elements without user control
+{
+  div: {
+    style: { "position": "absolute", "top": "10px", "right": "10px" },
+    $children: ["Close"]  // Hardcoded content
+  }
+}
+```
+
+### Could Shadow DOM Help?
+
+**No.** Shadow DOM provides style **isolation**, not **positioning constraints**. Elements inside shadow DOM can still use `position: absolute` and `z-index` to overlay other shadow DOM content.
+
+Shadow DOM would only help if:
+- The malicious content was in one shadow root
+- The button was in a different shadow root or outside shadow DOM
+- They had different stacking contexts
+
+But this doesn't match typical usage patterns where all user content is rendered together.
+
 ### Shadow DOM's Impact on Clickjacking
 
 **Shadow DOM provides:**
@@ -204,6 +303,7 @@ const userData = {
 **Shadow DOM does NOT prevent:**
 - Malicious styles defined in the treebark template itself
 - An attacker who controls the template can still create overlays
+- Elements within the same shadow root from overlaying each other
 - Clickjacking attacks from the host page context
 
 **Conclusion:** Shadow DOM's style isolation is orthogonal to clickjacking protection. The real security boundary is **who controls the template structure**.
@@ -215,9 +315,117 @@ const userData = {
 - **Data**: User-provided (untrusted)
 - **Risk**: Low - users can only provide values, not structure
 
+**Medium Risk Scenario (Positioning in Template):**
+- **Template**: Controlled by developer but includes positioning styles
+- **Data**: User-provided (untrusted) including links and content
+- **Risk**: Medium - developer must be careful not to combine positioning with user-controlled links/content
+- **Mitigation**: Developer education, linting rules, template review
+
 **High Risk Scenario:**
 - **Template**: User-provided (untrusted)
 - **Data**: User-provided (untrusted)
+- **Risk**: High - but this is explicitly **not** a supported use case
+
+### Potential Mitigations for Positioning Attacks
+
+If treebark wanted to provide additional protection against the positioning attack vector, here are options:
+
+**Option 1: Block Positioning Properties (Breaking Change)**
+```typescript
+const BLOCKED_CSS_PROPERTIES = new Set([
+  'behavior',
+  '-moz-binding',
+  'position',      // NEW: Block all positioning
+  'z-index',       // NEW: Block z-index
+  'top', 'left', 'right', 'bottom'  // NEW: Block position offsets
+]);
+```
+
+**Pros:** Prevents overlay attacks entirely  
+**Cons:** 
+- Breaks many legitimate use cases (modals, tooltips, dropdowns, sticky headers)
+- Major breaking change for existing users
+- Over-constrains the library
+
+**Option 2: Warning Mode (Non-Breaking)**
+```typescript
+// Warn when positioning is used with interpolated content
+if (hasPositioning(style) && hasInterpolation(children)) {
+  logger.warn('Positioning styles with user-controlled content may create overlay attacks');
+}
+```
+
+**Pros:** Educates developers without breaking functionality  
+**Cons:** 
+- Doesn't prevent the attack
+- May create warning fatigue
+- Hard to determine "user-controlled" at template level
+
+**Option 3: Documentation Only (Recommended)**
+
+Add prominent security documentation:
+
+```markdown
+## Security Best Practices
+
+### Avoid Positioning User-Controlled Content
+
+Do not combine positioning styles with user-controlled links or content:
+
+❌ **DANGEROUS PATTERN:**
+```javascript
+{
+  a: {
+    href: "{{userLink}}",
+    style: { "position": "absolute", "z-index": "999" },
+    $children: ["{{userText}}"]
+  }
+}
+```
+
+The user could provide a malicious link that overlays legitimate UI elements.
+
+✅ **SAFE ALTERNATIVES:**
+- Use positioning only with hardcoded content
+- Use user content only with safe styles (color, font-size, etc.)
+- Separate layers: position static container, user content inside without positioning
+```
+
+**Pros:** 
+- No breaking changes
+- Developers stay in control
+- Aligns with treebark's security model
+
+**Cons:**
+- Relies on developer awareness
+- No runtime enforcement
+
+**Option 4: Separate Rendering Contexts (Complex)**
+
+Render user-controlled content and sensitive UI elements in separate stacking contexts (separate containers or shadow roots) so they can't overlay each other.
+
+**Pros:** Provides strong separation  
+**Cons:**
+- Complex to implement correctly
+- Doesn't fit treebark's model (single template renders together)
+- Requires developers to split their templates
+
+### Recommended Approach
+
+**Document the security model clearly** with emphasis on template design responsibility:
+
+1. **Templates must be developer-controlled** - this is already the model
+2. **Positioning + user-controlled links = dangerous pattern** - document this explicitly
+3. **Provide safe pattern examples** - show how to use positioning safely
+4. **Consider adding to docs**: A "Security Best Practices" section with common pitfalls
+
+**Why not block positioning CSS?**
+- Treebark's philosophy is to allow legitimate CSS while preventing injection
+- Positioning is legitimate for many use cases (tooltips, modals, dropdowns)
+- The vulnerability requires specific template patterns (positioning + user links)
+- Better to educate developers than over-constrain the library
+
+### Threat Model Assessment
 - **Risk**: High - but this is explicitly **not** a supported use case
 
 **Recommendation:** Document that treebark templates must be developer-controlled. User data should only populate values within a trusted template structure.
@@ -403,33 +611,91 @@ with the assumption that:
 ### Why This Matters
 
 While treebark provides robust protection against common attacks (XSS, CSS injection),
-certain attacks require control over the template structure. For example:
+certain attacks require control over the template structure.
 
-**Safe Pattern (User provides data):**
+### Dangerous Pattern: Positioning + User Links
+
+**❌ DO NOT combine positioning styles with user-controlled links:**
+
+```javascript
+// VULNERABLE: User controls link destination over positioned element
+const template = {
+  a: {
+    href: "{{userLink}}",  // User controlled
+    style: {
+      "position": "absolute",
+      "z-index": "9999"  // Dangerous positioning
+    },
+    $children: ["{{userText}}"]  // User controlled
+  }
+};
+```
+
+This allows a malicious user to overlay their link on top of legitimate UI elements,
+causing users to click the attacker's link when they think they're clicking a button.
+
+**✅ Safe Patterns:**
+
+```javascript
+// Safe: User content without positioning
+const template = {
+  a: {
+    href: "{{userLink}}",
+    style: { "color": "blue" },  // Safe styles only
+    $children: ["{{userText}}"]
+  }
+};
+
+// Safe: Positioning without user-controlled links
+const template = {
+  div: {
+    style: { "position": "absolute", "top": "10px" },
+    $children: ["Close"]  // Hardcoded content
+  }
+};
+
+// Safe: User content inside static container
+const template = {
+  div: {
+    style: { "position": "relative" },  // Container positioning
+    $children: [
+      { a: { href: "{{userLink}}", $children: ["{{userText}}"] } }  // No positioning on user element
+    ]
+  }
+};
+```
+
+### Safe Data Binding Patterns
+
+**User provides values only:**
 ```javascript
 const template = { div: { style: { color: "{{userColor}}" } } };
 const data = { userColor: "red" };  // User controlled, safe
 ```
 
-**Unsafe Pattern (User provides template - DO NOT DO THIS):**
+**Never allow user-provided templates:**
 ```javascript
-const template = userProvidedJSON;  // ❌ User controls structure
+const template = userProvidedJSON;  // ❌ NEVER DO THIS
 ```
 
 If you need to render user-provided templates, consider:
 - Template validation and sandboxing
 - Restricted template language subset
 - Server-side rendering with strict CSP
+- Separate rendering contexts for sensitive UI
 ```
 
 ### 4. Skip Shadow DOM Implementation for Now
 
 **Reasons:**
 1. No compelling security benefit for the threat model
-2. Treebark's current security is already strong
-3. Shadow DOM adds complexity (debugging, styling, learning curve)
-4. Main use case (content rendering) doesn't benefit from isolation
-5. Can always add later as opt-in if user demand emerges
+2. Shadow DOM doesn't prevent positioning attacks within the same shadow root
+3. Treebark's current security is already strong
+4. Shadow DOM adds complexity (debugging, styling, learning curve)
+5. Main use case (content rendering) doesn't benefit from isolation
+6. Can always add later as opt-in if user demand emerges
+
+**Note on positioning attacks:** Shadow DOM would only help if sensitive UI and user content were in separate shadow roots, which doesn't match typical usage patterns.
 
 ---
 
@@ -437,16 +703,22 @@ If you need to render user-provided templates, consider:
 
 **Primary Recommendation:** Do not implement shadow DOM as default, and consider whether it's needed at all given treebark's use cases.
 
+**Security Focus:** The key security concern is the **positioning attack vector** where user-controlled links with positioning styles can overlay legitimate UI. The solution is **developer education and documentation**, not shadow DOM.
+
 **If implementing:**
 - Make it **opt-in only** via `useShadowDOM: true` option
 - Provide clear documentation on when to use it
 - Consider adding block container mode as a middle ground
-- Document the security model and template trust boundary
+- **Emphasize documentation** about positioning + user-controlled links
 
-**Alternative Path:**
-- Focus on improving existing security documentation
-- Add examples of safe data binding patterns
+**Recommended Path:**
+- **Focus on security documentation** - especially the positioning attack vector
+- Add prominent warnings about combining positioning with user-controlled links
+- Provide safe pattern examples
+- Consider adding a "Security Best Practices" section to docs
 - Consider block container mode for semantic grouping
 - Defer shadow DOM until clear user demand exists
 
-The existing CSS security model is robust, and treebark's architecture (developer-controlled templates with user-provided data) provides appropriate separation of concerns for its primary use cases.
+**Key Insight:** The positioning attack is a **template design vulnerability**, not a library vulnerability. Treebark correctly allows legitimate CSS properties. The solution is educating developers about dangerous patterns, not restricting the CSS model.
+
+The existing CSS security model is robust against injection attacks, and treebark's architecture (developer-controlled templates with user-provided data) provides appropriate separation of concerns for its primary use cases.
