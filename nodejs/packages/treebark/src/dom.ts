@@ -30,26 +30,23 @@ export function renderToDOM(
   
   const result = render(input.template, data, { logger, getOuterProperty });
   
+  // Determine the target for appending rendered nodes
+  let target: Node;
   if (useShadowDOM) {
     // Create a container element with shadow DOM
     const container = document.createElement('div');
-    const shadowRoot = container.attachShadow({ mode: 'open' });
-    
-    // Append rendered content to shadow root
-    if (Array.isArray(result)) {
-      result.forEach(n => shadowRoot.appendChild(n));
-    } else {
-      shadowRoot.appendChild(result);
-    }
-    
+    target = container.attachShadow({ mode: 'open' });
     fragment.appendChild(container);
   } else {
     // Standard rendering without shadow DOM
-    if (Array.isArray(result)) {
-      result.forEach(n => fragment.appendChild(n));
-    } else {
-      fragment.appendChild(result);
-    }
+    target = fragment;
+  }
+  
+  // Append rendered content to target
+  if (Array.isArray(result)) {
+    result.forEach(n => target.appendChild(n));
+  } else {
+    target.appendChild(result);
   }
   
   return fragment;
