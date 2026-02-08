@@ -71,6 +71,33 @@ const fragment = renderToDOM({
 document.body.appendChild(fragment);
 ```
 
+### Block Container for Security (Browser Only)
+
+When rendering user-generated templates, use block container to prevent positioning attacks:
+
+```javascript
+import { renderToDOM } from 'treebark';
+
+// Render with block container enabled
+const fragment = renderToDOM({
+  template: userGeneratedTemplate,  // From database, user input, CMS, etc.
+  data: { /* ... */ }
+}, { useBlockContainer: true });
+
+document.body.appendChild(fragment);
+```
+
+**What block container does:**
+- Wraps content in a `<div>` with CSS `contain: content` and `isolation: isolate`
+- Creates stacking context boundary (prevents overlaying page elements)
+- Maintains style inheritance (unlike shadow DOM)
+- Essential for safely rendering user-generated templates
+
+**When to use:**
+- ✅ **Required** for user-generated templates (blogs, forums, CMS, wikis)
+- ✅ **Recommended** for templates with user-controlled links
+- ⚠️ **Optional** for trusted developer-only templates
+
 ## Tree Shaking
 
 Treebark supports tree shaking for optimal bundle sizes. Import only what you need:
@@ -107,8 +134,19 @@ Renders a template to DOM nodes (browser only).
 **Parameters:**
 - `input: TreebarkInput` - Object with `template` and optional `data`  
 - `options?: RenderOptions` - Optional rendering options
+  - `logger?: Logger` - Custom logger for errors/warnings (default: `console`)
+  - `propertyFallback?: OuterPropertyResolver` - Custom property resolver
+  - `useBlockContainer?: boolean` - Wrap content in block container with CSS containment (default: `false`)
 
 **Returns:** `DocumentFragment` - DOM fragment containing rendered nodes
+
+**Block Container Mode:**
+When `useBlockContainer: true`, wraps content in a container with:
+- CSS `contain: content` for layout/paint containment
+- CSS `isolation: isolate` for stacking context isolation
+- Prevents positioned elements from overlaying page elements
+- **Essential for user-generated templates** (blogs, forums, CMS)
+- Maintains style inheritance (unlike shadow DOM)
 
 ## Examples
 
