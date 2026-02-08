@@ -2881,7 +2881,7 @@ export function createErrorTest(testCase: ErrorTestCase, renderFunction: (input:
         // For DOM fragments, check that it's empty or has an empty container
         if (result.childNodes.length === 0) {
           // Completely empty - no container created
-          expect(result.childNodes.length).toBe(0);
+          // This is the expected state for critical errors
         } else if (result.childNodes.length === 1) {
           // Container created - check if it's empty
           const container = result.childNodes[0] as HTMLElement;

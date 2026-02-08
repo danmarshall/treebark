@@ -52,7 +52,7 @@ export function renderToString(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
-  // Default to true for security - users must explicitly opt-out
+  // Default to true for security - defaults to true unless explicitly set to false
   const useBlockContainer = options.useBlockContainer !== false;
 
   // Conditionally set indent context
