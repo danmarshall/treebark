@@ -5,10 +5,36 @@ import { renderToDOM } from 'treebark';
 
 describe('Block Container', () => {
   describe('Basic functionality', () => {
-    test('renders without block container by default', () => {
+    test('wraps content in block container by default', () => {
       const fragment = renderToDOM({
         template: { div: 'Hello world' }
       });
+
+      expect(fragment.childNodes.length).toBe(1);
+      const container = fragment.firstChild as HTMLElement;
+      
+      // Check container has the right attributes
+      expect(container.tagName).toBe('DIV');
+      expect(container.getAttribute('data-treebark-container')).toBe('true');
+      
+      // Check CSS containment styles are applied
+      expect(container.style.contain).toBe('content');
+      expect(container.style.isolation).toBe('isolate');
+      
+      // Check actual content is inside the container
+      expect(container.childNodes.length).toBe(1);
+      const div = container.firstChild as HTMLElement;
+      expect(div.tagName).toBe('DIV');
+      expect(div.textContent).toBe('Hello world');
+    });
+
+    test('renders without block container when explicitly disabled', () => {
+      const fragment = renderToDOM(
+        {
+          template: { div: 'Hello world' }
+        },
+        { useBlockContainer: false }
+      );
 
       expect(fragment.childNodes.length).toBe(1);
       const div = fragment.firstChild as HTMLElement;

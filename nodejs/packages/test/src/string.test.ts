@@ -39,22 +39,22 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders simple text':
-            expect(result).toBe('Hello world');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true">Hello world</div>');
             break;
           case 'renders simple element':
-            expect(result).toBe('<div>Hello world</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello world</div></div>');
             break;
           case 'renders element with attributes':
-            expect(result).toBe('<div class="greeting" id="hello">Hello world</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="greeting" id="hello">Hello world</div></div>');
             break;
           case 'renders nested elements':
-            expect(result).toBe('<div><h1>Title</h1><p>Content</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h1>Title</h1><p>Content</p></div></div>');
             break;
           case 'renders array as fragment':
-            expect(result).toBe('<h1>Title</h1><p>Content</p>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><h1>Title</h1><p>Content</p></div>');
             break;
           case 'renders mixed content':
-            expect(result).toBe('<div>Hello <span>world</span>!</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello <span>world</span>!</div></div>');
             break;
         }
       });
@@ -67,19 +67,19 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'interpolates data':
-            expect(result).toBe('<div>Hello Alice!</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello Alice!</div></div>');
             break;
           case 'interpolates nested properties':
-            expect(result).toBe('<div>Price: $99</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Price: $99</div></div>');
             break;
           case 'interpolates in attributes':
-            expect(result).toBe('<a href="/user/123">Alice</a>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><a href="/user/123">Alice</a></div>');
             break;
           case 'handles escaped interpolation':
-            expect(result).toBe('Hello {{name}}!');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true">Hello {{name}}!</div>');
             break;
           case 'handles special characters without HTML encoding':
-            expect(result).toBe("<div>I&#39;ll help you analyze the Q4 sales data. Let me start by loading and examining the data structure.</div>");
+            expect(result).toBe("<div style=\"contain: content; isolation: isolate;\" data-treebark-container=\"true\"><div>I&#39;ll help you analyze the Q4 sales data. Let me start by loading and examining the data structure.</div></div>");
             break;
         }
       });
@@ -92,22 +92,22 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'handles array binding':
-            expect(result).toBe('<ul><li>Apple - $1</li><li>Banana - $2</li></ul>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul><li>Apple - $1</li><li>Banana - $2</li></ul></div>');
             break;
           case 'handles object binding':
-            expect(result).toBe('<div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="user-card"><h2>Alice</h2><p>alice@example.com</p></div></div>');
             break;
           case 'handles TreebarkInput format':
-            expect(result).toBe('<p>Hello Bob!</p>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Hello Bob!</p></div>');
             break;
           case 'handles TreebarkInput format without data':
-            expect(result).toBe('<div>Static content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Static content</div></div>');
             break;
           case 'handles $bind: "." to bind to current data object (array)':
-            expect(result).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul></div>');
             break;
           case 'handles $bind: "." to bind to current data object (nested)':
-            expect(result).toBe('<div><h2>Alice</h2><div><p>Email: alice@example.com</p><p>Role: Admin</p></div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h2>Alice</h2><div><p>Email: alice@example.com</p><p>Role: Admin</p></div></div></div>');
             break;
         }
       });
@@ -120,22 +120,22 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'accesses parent property with double dots':
-            expect(result).toBe('<div><h2>Alice</h2><p>Organization: ACME Corp</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h2>Alice</h2><p>Organization: ACME Corp</p></div></div>');
             break;
           case 'accesses grandparent property with double dots and slash':
-            expect(result).toBe('<div><div><span>Alice works at Tech Solutions Inc</span><span>Bob works at Tech Solutions Inc</span></div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><div><span>Alice works at Tech Solutions Inc</span><span>Bob works at Tech Solutions Inc</span></div></div></div>');
             break;
           case 'handles parent property in attributes':
-            expect(result).toBe('<div><a href="/products/1">Laptop</a><a href="/products/2">Mouse</a></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><a href="/products/1">Laptop</a><a href="/products/2">Mouse</a></div></div>');
             break;
           case 'returns empty string when parent not found':
-            expect(result).toBe('<div><p>Missing: </p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Missing: </p></div></div>');
             break;
           case 'returns empty string when too many parent levels requested':
-            expect(result).toBe('<div><p>Missing: </p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Missing: </p></div></div>');
             break;
           case 'works with nested object binding':
-            expect(result).toBe('<div><h1>ACME Corp</h1><div><h2>Engineering</h2><p>Part of ACME Corp</p></div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h1>ACME Corp</h1><div><h2>Engineering</h2><p>Part of ACME Corp</p></div></div></div>');
             break;
         }
       });
@@ -148,7 +148,7 @@ describe('String Renderer', () => {
       template: { div: '{{content}}' },
       data: { content: '<script>alert("xss")</script>' }
     });
-    expect(result).toBe('<div>&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;</div>');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;</div></div>');
   });
 
   test('escapes HTML in attributes', () => {
@@ -161,7 +161,7 @@ describe('String Renderer', () => {
       },
       data: { title: '<script>alert("xss")</script>' }
     });
-    expect(result).toBe('<div title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;">Content</div>');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div title="&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;">Content</div></div>');
   });
 
   // Security and validation tests
@@ -192,7 +192,7 @@ describe('String Renderer', () => {
         expect.stringContaining('Attribute "onclick" is not allowed')
       );
       // Should render without the dangerous attribute (XSS prevented)
-      expect(result).toBe('<div>Content</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Content</div></div>');
       expect(result).not.toContain('onclick');
     });
 
@@ -200,7 +200,7 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'allows data- and aria- attributes':
-            expect(result).toBe('<div data-test="value" aria-label="Test">Content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div data-test="value" aria-label="Test">Content</div></div>');
             break;
         }
       });
@@ -213,23 +213,23 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'allows tag-specific attributes for img':
-            expect(result).toBe('<img src="image.jpg" alt="An image" width="100" height="200">');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><img src="image.jpg" alt="An image" width="100" height="200"></div>');
             break;
           case 'allows tag-specific attributes for a':
-            expect(result).toBe('<a href="https://example.com" target="_blank" rel="noopener">Link text</a>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><a href="https://example.com" target="_blank" rel="noopener">Link text</a></div>');
             break;
           case 'allows global attributes on any tag':
-            expect(result).toBe('<span id="test-id" class="test-class" style="color: red" title="Test title" role="button">Content</span>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><span id="test-id" class="test-class" style="color: red" title="Test title" role="button">Content</span></div>');
             break;
           case 'allows tag-specific attributes for table elements':
-            expect(result).toBe('<table summary="Test table"><tr><th scope="col" colspan="2">Header</th><td rowspan="1">Data</td></tr></table>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><table summary="Test table"><tr><th scope="col" colspan="2">Header</th><td rowspan="1">Data</td></tr></table></div>');
             break;
           case 'allows tag-specific attributes for blockquote':
-            expect(result).toBe('<blockquote cite="https://example.com">Quote text</blockquote>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><blockquote cite="https://example.com">Quote text</blockquote></div>');
             break;
           case 'warns but continues for invalid attribute on tag':
             // Should render with valid attributes, invalid ones skipped
-            expect(result).toBe('<div class="valid">Content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="valid">Content</div></div>');
             break;
         }
       });
@@ -258,7 +258,7 @@ describe('String Renderer', () => {
         expect.stringContaining('Attribute "src" is not allowed on tag "div"')
       );
       // Should still render with valid attributes
-      expect(result).toBe('<div class="valid">Content</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="valid">Content</div></div>');
     });
 
     tagSpecificAttributeErrorTests.forEach(testCase => {
@@ -272,16 +272,16 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders shorthand array syntax for nodes without attributes':
-            expect(result).toBe('<div><h2>Title</h2><p>Content</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h2>Title</h2><p>Content</p></div></div>');
             break;
           case 'shorthand array syntax with mixed content':
-            expect(result).toBe('<div>Hello <span>world</span>!</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello <span>world</span>!</div></div>');
             break;
           case 'shorthand array syntax with data interpolation':
-            expect(result).toBe('<div><h1>Welcome</h1><p>This is a test.</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><h1>Welcome</h1><p>This is a test.</p></div></div>');
             break;
           case 'shorthand array syntax works with empty arrays':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
         }
       });
@@ -311,7 +311,7 @@ describe('String Renderer', () => {
       });
 
       expect(shorthand).toBe(explicit);
-      expect(shorthand).toBe('<ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul>');
+      expect(shorthand).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul></div>');
     });
 
     test('shorthand array syntax with nested structures', () => {
@@ -333,7 +333,7 @@ describe('String Renderer', () => {
           ]
         }
       });
-      expect(result).toBe('<div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><div><h1>Article Title</h1><p>Published on 2024</p></div><div><p>First paragraph</p><p>Second paragraph</p></div></div></div>');
     });
   });
 
@@ -343,7 +343,7 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'allows void tags without children':
-            expect(result).toBe('<img src="image.jpg" alt="Test image">');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><img src="image.jpg" alt="Test image"></div>');
             break;
         }
       });
@@ -377,7 +377,7 @@ describe('String Renderer', () => {
           }
         }
       });
-      expect(result).toBe('<div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><img src="image1.jpg" alt="First"> <img src="image2.jpg" alt="Second"></div></div>');
     });
   });
 
@@ -387,22 +387,22 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders basic comment':
-            expect(result).toBe('<!--This is a comment-->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--This is a comment--></div>');
             break;
           case 'renders comment with interpolation':
-            expect(result).toBe('<!--User: Alice-->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--User: Alice--></div>');
             break;
           case 'renders comment containing other tags':
-            expect(result).toBe('<!--Start: <span>highlighted text</span> :End-->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--Start: <span>highlighted text</span> :End--></div>');
             break;
           case 'renders empty comment':
-            expect(result).toBe('<!---->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!----></div>');
             break;
           case 'renders comment with special characters':
-            expect(result).toBe('<!--Special chars: & < > " \'-->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--Special chars: & < > " \'--></div>');
             break;
           case 'safely handles malicious interpolation':
-            expect(result).toBe('<!--User input: evil --&gt; &lt;script&gt;alert(1)&lt;/script&gt;-->');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--User input: evil --&gt; &lt;script&gt;alert(1)&lt;/script&gt;--></div>');
             break;
         }
       });
@@ -428,7 +428,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--Start of content-->\n  <h1>Title</h1>\n  <!--End of content-->\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <!--Start of content-->\n  <h1>Title</h1>\n  <!--End of content-->\n</div></div>');
     });
 
     test('renders nested comments with proper indentation', () => {
@@ -449,7 +449,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--Outer comment-->\n  <section>\n    <!--Inner comment-->\n    <p>Content</p>\n  </section>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <!--Outer comment-->\n  <section>\n    <!--Inner comment-->\n    <p>Content</p>\n  </section>\n</div></div>');
     });
   });
 
@@ -467,7 +467,7 @@ describe('String Renderer', () => {
           }
         }
       });
-      expect(result).toBe('<div class="card"><h2>Title</h2><p>Content</p></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="card"><h2>Title</h2><p>Content</p></div></div>');
     });
 
     test('renders with default indentation when indent is true', () => {
@@ -482,7 +482,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div class="card">\n  <h2>Title</h2>\n  <p>Content</p>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="card">\n  <h2>Title</h2>\n  <p>Content</p>\n</div></div>');
     });
 
     test('renders with custom space indentation', () => {
@@ -495,7 +495,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: 4 });
-      expect(result).toBe('<div>\n    <h1>Header</h1>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n    <h1>Header</h1>\n</div></div>');
     });
 
     test('renders with custom string indentation', () => {
@@ -508,7 +508,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: '\t' });
-      expect(result).toBe('<div>\n\t<h1>Header</h1>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n\t<h1>Header</h1>\n</div></div>');
     });
 
     test('renders nested elements with proper indentation', () => {
@@ -525,14 +525,14 @@ describe('String Renderer', () => {
           ]
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <h1>Welcome</h1>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n  </ul>\n</div></div>');
     });
 
     test('does not indent elements with only text content', () => {
       const result = renderToString({
         template: { p: 'Simple text content' }
       }, { indent: true });
-      expect(result).toBe('<p>Simple text content</p>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Simple text content</p></div>');
     });
 
     test('works with bound arrays', () => {
@@ -547,7 +547,7 @@ describe('String Renderer', () => {
         },
         data: { items: [{ name: 'Item 1' }, { name: 'Item 2' }] }
       }, { indent: true });
-      expect(result).toBe('<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul></div>');
     });
 
     test('indents multiple text strings in sequence', () => {
@@ -562,7 +562,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  First string\n  Second string\n  Third string\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  First string\n  Second string\n  Third string\n</div></div>');
     });
 
     test('preserves template functionality with indentation', () => {
@@ -581,7 +581,7 @@ describe('String Renderer', () => {
         }
       };
       const result = renderToString(input, { indent: true });
-      expect(result).toBe('<div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <h1>Test Title</h1>\n  <p>Test Content</p>\n</div></div>');
     });
 
     test('renders comment surrounding nested content', () => {
@@ -603,7 +603,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\n  Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\n  After content\n-->');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--\n  Before content\n  <div>\n    <h1>Nested Title</h1>\n    <p>Nested paragraph</p>\n  </div>\n  After content\n--></div>');
     });
 
     test('handles interpolated data with newlines when indentation is enabled', () => {
@@ -615,7 +615,7 @@ describe('String Renderer', () => {
           text: 'Line 1\nLine 2\nLine 3'
         }
       }, { indent: true });
-      expect(result).toBe('<p>\n  Line 1\n  Line 2\n  Line 3\n</p>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>\n  Line 1\n  Line 2\n  Line 3\n</p></div>');
     });
 
     test('handles mixed literal and interpolated newlines with indentation', () => {
@@ -633,7 +633,7 @@ describe('String Renderer', () => {
           multiline: 'Data line 1\nData line 2'
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  First line\n  <p>\n    Data line 1\n    Data line 2\n  </p>\n  Last line\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  First line\n  <p>\n    Data line 1\n    Data line 2\n  </p>\n  Last line\n</div></div>');
     });
 
     test('renders complex nested structure with comments at multiple levels', () => {
@@ -665,7 +665,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="container">\n  <!--Container start-->\n  <section>\n    <!--Section content-->\n    <article>\n      <!--Article metadata-->\n      <h1>Title</h1>\n      <p>Content</p>\n      <!--Article end-->\n    </article>\n  </section>\n  <!--Container end-->\n</div></div>');
     });
 
     test('properly indents comments containing HTML elements', () => {
@@ -695,7 +695,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--\n    Start: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n     :End\n  -->\n  <p>Regular content</p>\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <!--\n    Start: \n    <h2>Welcome</h2>\n    <p>This is much cleaner with shorthand array syntax!</p>\n    <ul>\n      <li>Item 1</li>\n      <li>Item 2</li>\n      <li>Item 3</li>\n    </ul>\n     :End\n  -->\n  <p>Regular content</p>\n</div></div>');
     });
 
     test('comments with mixed text and HTML content indent properly', () => {
@@ -710,7 +710,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<!--\n  Debug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\n  End debug\n-->');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><!--\n  Debug info:\n  <div class="debug">\n    <span>value: 42</span>\n  </div>\n  End debug\n--></div>');
     });
 
     test('deeply nested comment content indents correctly', () => {
@@ -742,7 +742,7 @@ describe('String Renderer', () => {
           }
         }
       }, { indent: true });
-      expect(result).toBe('<div>\n  <!--\n    <section>\n      <article>\n        <h3>Deep Title</h3>\n        <p>Deep content</p>\n      </article>\n    </section>\n  -->\n</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>\n  <!--\n    <section>\n      <article>\n        <h3>Deep Title</h3>\n        <p>Deep content</p>\n      </article>\n    </section>\n  -->\n</div></div>');
     });
   });
 
@@ -752,72 +752,72 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders children when condition is truthy (true)':
-            expect(result).toBe('<div><p>Message is shown</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Message is shown</p></div></div>');
             break;
           case 'renders children when condition is truthy (non-empty string)':
-            expect(result).toBe('<div><p>Hello Alice</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Hello Alice</p></div></div>');
             break;
           case 'renders children when condition is truthy (number)':
-            expect(result).toBe('<div><p>Count: 5</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Count: 5</p></div></div>');
             break;
           case 'does not render children when condition is falsy (false)':
-            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Before</p><p>After</p></div></div>');
             break;
           case 'does not render children when condition is falsy (null)':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'does not render children when condition is falsy (undefined)':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'does not render children when condition is falsy (empty string)':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'does not render children when condition is falsy (zero)':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'works with nested property access':
-            expect(result).toBe('<div><p>Admin panel</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Admin panel</p></div></div>');
             break;
           case 'works with multiple children (wrapped in div)':
-            expect(result).toBe('<div><div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><div><h1>Title</h1><p>Paragraph 1</p><p>Paragraph 2</p></div></div></div>');
             break;
           case 'works with nested if tags':
-            expect(result).toBe('<div><div><p>Level 1 visible</p><p>Level 2 visible</p></div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><div><p>Level 1 visible</p><p>Level 2 visible</p></div></div></div>');
             break;
           case 'works at root level':
-            expect(result).toBe('<div>Content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Content</div></div>');
             break;
           case 'renders nothing at root level when falsy':
-            expect(result).toBe('');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
             break;
           case 'renders children with $not when condition is falsy':
-            expect(result).toBe('<div><p>Message is hidden, showing this instead</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Message is hidden, showing this instead</p></div></div>');
             break;
           case 'does not render children with $not when condition is truthy':
-            expect(result).toBe('<div><p>Before</p><p>After</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Before</p><p>After</p></div></div>');
             break;
           case 'works with $not and nested properties':
-            expect(result).toBe('<div><p>Welcome back, member!</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Welcome back, member!</p></div></div>');
             break;
           case 'works with $not and zero':
-            expect(result).toBe('<div><p>No items</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>No items</p></div></div>');
             break;
           case 'works with $not and empty string':
-            expect(result).toBe('<div><p>No message provided</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>No message provided</p></div></div>');
             break;
           case 'preserves indentation with multiple children (one level)':
-            expect(result).toBe('<div class="container">\n  <p>Before</p>\n  <div>\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>After</p>\n</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="container">\n  <p>Before</p>\n  <div>\n    <p>First</p>\n    <p>Second</p>\n    <p>Third</p>\n  </div>\n  <p>After</p>\n</div></div>');
             break;
           case 'preserves indentation with multiple children (two levels)':
-            expect(result).toBe('<div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="outer">\n  <h1>Title</h1>\n  <div class="inner">\n    <div>\n      <p>First</p>\n      <p>Second</p>\n      <p>Third</p>\n    </div>\n  </div>\n  <p>Footer</p>\n</div></div>');
             break;
           case 'warns but continues when $if tag has unsupported attributes':
             // Should still render the content despite the warning
-            expect(result).toBe('<p>Content</p>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Content</p></div>');
             break;
           case 'warns but continues when $if tag has $children':
             // Should render $then, ignore $children
-            expect(result).toBe('<p>Content</p>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Content</p></div>');
             break;
         }
       });
@@ -847,7 +847,7 @@ describe('String Renderer', () => {
         expect.stringContaining('"$if" tag does not support attributes')
       );
       // Should still render the content
-      expect(result).toBe('<p>Content</p>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Content</p></div>');
     });
 
     // Test that warning is logged for $children on $if tag
@@ -874,7 +874,7 @@ describe('String Renderer', () => {
         expect.stringContaining('"$if" tag does not support $children')
       );
       // Should render $then, not $children
-      expect(result).toBe('<p>Content</p>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Content</p></div>');
     });
 
     // Operator tests
@@ -882,46 +882,46 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'less than operator: renders when true':
-            expect(result).toBe('<div><p>Minor</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Minor</p></div></div>');
             break;
           case 'less than operator: does not render when false':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'greater than operator: renders when true':
-            expect(result).toBe('<div><p>Excellent</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Excellent</p></div></div>');
             break;
           case 'greater than operator: does not render when false':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'equals operator: renders when equal':
-            expect(result).toBe('<div><p>User is active</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>User is active</p></div></div>');
             break;
           case 'equals operator: does not render when not equal':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case '$in operator: renders when value is in array':
-            expect(result).toBe('<div><p>Has special privileges</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Has special privileges</p></div></div>');
             break;
           case '$in operator: does not render when value is not in array':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'multiple operators with AND (default): all must be true':
-            expect(result).toBe('<div><p>Working age adult</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Working age adult</p></div></div>');
             break;
           case 'multiple operators with AND: does not render if one is false':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'multiple operators with OR: renders if one is true':
-            expect(result).toBe('<div><p>Non-working age</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Non-working age</p></div></div>');
             break;
           case 'multiple operators with OR: does not render if all are false':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
           case 'operator with $not: inverts result':
-            expect(result).toBe('<div><p>Adult</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Adult</p></div></div>');
             break;
           case 'complex condition: multiple operators with OR and $not':
-            expect(result).toBe('<div><p>Valid status</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Valid status</p></div></div>');
             break;
         }
       });
@@ -932,16 +932,16 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders $then when condition is true':
-            expect(result).toBe('<div><p>Active user</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Active user</p></div></div>');
             break;
           case 'renders $else when condition is false':
-            expect(result).toBe('<div><p>Inactive user</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Inactive user</p></div></div>');
             break;
           case 'renders $then when condition is true with both branches':
-            expect(result).toBe('<div><p>Excellent!</p></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div><p>Excellent!</p></div></div>');
             break;
           case 'renders empty when $else not provided and condition false':
-            expect(result).toBe('<div></div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
             break;
         }
       });
@@ -952,22 +952,22 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'conditional attribute with $then and $else':
-            expect(result).toBe('<div class="active">Content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="active">Content</div></div>');
             break;
           case 'conditional attribute evaluates to $else when false':
-            expect(result).toBe('<div class="inactive">Content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="inactive">Content</div></div>');
             break;
           case 'conditional attribute with operator':
-            expect(result).toBe('<div class="excellent">Score display</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="excellent">Score display</div></div>');
             break;
           case 'conditional attribute with $in operator':
-            expect(result).toBe('<div class="privileged">User</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="privileged">User</div></div>');
             break;
           case 'conditional attribute with $not modifier':
-            expect(result).toBe('<div class="member">User</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="member">User</div></div>');
             break;
           case 'multiple attributes with conditionals':
-            expect(result).toBe('<div class="dark-mode" data-theme="dark">Themed content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="dark-mode" data-theme="dark">Themed content</div></div>');
             break;
         }
       });
@@ -984,28 +984,28 @@ describe('String Renderer', () => {
       createTest(testCase, renderToString, (result, tc) => {
         switch (tc.name) {
           case 'renders style object with single property':
-            expect(result).toBe('<div style="color: red">Styled content</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red">Styled content</div></div>');
             break;
           case 'renders style object with multiple properties':
-            expect(result).toBe('<div style="color: red; background-color: blue; font-size: 14px">Multiple styles</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red; background-color: blue; font-size: 14px">Multiple styles</div></div>');
             break;
           case 'handles kebab-case CSS properties':
-            expect(result).toBe('<div style="font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px">Kebab-case properties</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="font-size: 16px; font-weight: bold; text-align: center; border-radius: 5px">Kebab-case properties</div></div>');
             break;
           case 'handles numeric values':
-            expect(result).toBe('<div style="width: 100px; height: 50px; opacity: 0.5; z-index: 10">Numeric values</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="width: 100px; height: 50px; opacity: 0.5; z-index: 10">Numeric values</div></div>');
             break;
           case 'skips null and undefined style values':
-            expect(result).toBe('<div style="color: red; padding: 10px">Skip null/undefined</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red; padding: 10px">Skip null/undefined</div></div>');
             break;
           case 'works with flexbox properties':
-            expect(result).toBe('<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px">Flexbox</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px">Flexbox</div></div>');
             break;
           case 'works with grid properties':
-            expect(result).toBe('<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">Grid layout</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">Grid layout</div></div>');
             break;
           case 'handles conditional style object':
-            expect(result).toBe('<div style="color: green; font-weight: bold">Conditional style</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: green; font-weight: bold">Conditional style</div></div>');
             break;
         }
       });
@@ -1033,27 +1033,35 @@ describe('String Renderer', () => {
           case 'warns for invalid property name format (uppercase)':
           case 'warns for invalid property name format (underscores)':
             expect(mockLogger.warn).toHaveBeenCalled();
-            expect(result).toBe('<div style="color: red">Invalid format</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red">Invalid format</div></div>');
             break;
           case 'blocks behavior property':
           case 'blocks -moz-binding property':
             expect(mockLogger.warn).toHaveBeenCalled();
-            expect(result).toBe('<div style="color: red">Blocked property</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red">Blocked property</div></div>');
             break;
           case 'accepts trailing semicolon in style values':
             expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon but accepts value
-            expect(result).toBe('<div style="color: red">Trailing semicolon accepted</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red">Trailing semicolon accepted</div></div>');
             break;
           case 'sanitizes semicolon injection by taking first chunk':
             expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
-            expect(result).toBe('<div style="color: red">Semicolon sanitized</div>');
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div style="color: red">Semicolon sanitized</div></div>');
             break;
           case 'blocks url() in style object values':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            // The inner div should not have a style attribute (blocked styles should be omitted)
+            expect(result).toContain('<div>URL blocked</div>');
+            break;
           case 'blocks expression() in style object values':
+            expect(mockLogger.warn).toHaveBeenCalled();
+            // The inner div should not have a style attribute (blocked styles should be omitted)
+            expect(result).toContain('<div>Expression blocked</div>');
+            break;
           case 'blocks javascript: protocol in style object values':
             expect(mockLogger.warn).toHaveBeenCalled();
-            // Style attribute should be omitted entirely
-            expect(result).not.toContain('style=');
+            // The inner div should not have a style attribute (blocked styles should be omitted)
+            expect(result).toContain('<div>JavaScript protocol blocked</div>');
             break;
         }
       });
@@ -1132,11 +1140,11 @@ describe('String Renderer', () => {
               break;
 
             case 'allows safe href protocols':
-              expect(result).toBe('<a href="https://example.com">Safe link</a>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><a href="https://example.com">Safe link</a></div>');
               break;
 
             case 'allows safe img src':
-              expect(result).toBe('<img src="https://example.com/image.png" alt="Safe image">');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><img src="https://example.com/image.png" alt="Safe image"></div>');
               break;
 
             default:
@@ -1167,7 +1175,7 @@ describe('String Renderer', () => {
                 expect.stringMatching(/Access to property .* is blocked for security reasons/)
               );
               // Should render as empty string since property is blocked
-              expect(result).toBe('<div></div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
               break;
 
             default:
@@ -1293,31 +1301,31 @@ describe('String Renderer', () => {
 
           switch (testCase.name) {
             case 'allows zero in data-* attribute':
-              expect(result).toBe('<div data-count="0">Items</div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div data-count="0">Items</div></div>');
               break;
 
             case 'allows zero string in attribute':
-              expect(result).toBe('<div data-index="0">Item</div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div data-index="0">Item</div></div>');
               break;
 
             case 'allows zero in title attribute':
-              expect(result).toBe('<div title="0">Score</div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div title="0">Score</div></div>');
               break;
 
             case 'allows zero in width attribute':
-              expect(result).toBe('<img src="https://example.com/image.png" width="0" alt="test">');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><img src="https://example.com/image.png" width="0" alt="test"></div>');
               break;
 
             case 'allows empty string in alt attribute':
-              expect(result).toBe('<img src="https://example.com/image.png" alt="">');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><img src="https://example.com/image.png" alt=""></div>');
               break;
 
             case 'allows empty string in title attribute':
-              expect(result).toBe('<div title="">Content</div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div title="">Content</div></div>');
               break;
 
             case 'allows empty string from interpolation':
-              expect(result).toBe('<div data-value="">Content</div>');
+              expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div data-value="">Content</div></div>');
               break;
 
             default:
@@ -1333,7 +1341,7 @@ describe('String Renderer', () => {
       const result = renderToString({
         template: { div: 'Hello world' }
       });
-      expect(result).toBe('<div>Hello world</div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello world</div></div>');
     });
 
     test('wraps content in block container when useBlockContainer is true', () => {

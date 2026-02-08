@@ -371,7 +371,7 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
-    const useBlockContainer = !!options.useBlockContainer;
+    const useBlockContainer = options.useBlockContainer !== false;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,

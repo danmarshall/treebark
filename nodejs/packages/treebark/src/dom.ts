@@ -24,7 +24,8 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
-  const useBlockContainer = !!options.useBlockContainer;
+  // Default to true for security - users must explicitly opt-out
+  const useBlockContainer = options.useBlockContainer !== false;
   
   const fragment = document.createDocumentFragment();
   
@@ -41,7 +42,7 @@ export function renderToDOM(
     target = container;
     fragment.appendChild(container);
   } else {
-    // Standard rendering without containment
+    // Standard rendering without containment (opt-out for trusted templates)
     target = fragment;
   }
   
