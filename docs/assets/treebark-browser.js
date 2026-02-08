@@ -371,13 +371,19 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
+    const useBlockContainer = !!options.useBlockContainer;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
       logger,
       getOuterProperty
     } : { logger, getOuterProperty };
-    return render(input.template, data, context);
+    const content = render(input.template, data, context);
+    if (useBlockContainer) {
+      const containerStyle = "contain: content; isolation: isolate;";
+      return `<div style="${containerStyle}" data-treebark-container="true">${content}</div>`;
+    }
+    return content;
   }
   function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);

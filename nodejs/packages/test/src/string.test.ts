@@ -1327,4 +1327,86 @@ describe('String Renderer', () => {
       });
     });
   });
+
+  describe('Block Container', () => {
+    test('renders without block container by default', () => {
+      const result = renderToString({
+        template: { div: 'Hello world' }
+      });
+      expect(result).toBe('<div>Hello world</div>');
+    });
+
+    test('wraps content in block container when useBlockContainer is true', () => {
+      const result = renderToString(
+        {
+          template: { div: 'Hello world' }
+        },
+        { useBlockContainer: true }
+      );
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello world</div></div>');
+    });
+
+    test('wraps multiple elements in block container', () => {
+      const result = renderToString(
+        {
+          template: [
+            { h1: 'Title' },
+            { p: 'Content' }
+          ]
+        },
+        { useBlockContainer: true }
+      );
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><h1>Title</h1><p>Content</p></div>');
+    });
+
+    test('renders data interpolation in block container', () => {
+      const result = renderToString(
+        {
+          template: { div: 'Hello {{name}}' },
+          data: { name: 'Alice' }
+        },
+        { useBlockContainer: true }
+      );
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>Hello Alice</div></div>');
+    });
+
+    test('preserves attributes in block container', () => {
+      const result = renderToString(
+        {
+          template: {
+            div: {
+              class: 'card',
+              id: 'test',
+              $children: ['Content']
+            }
+          }
+        },
+        { useBlockContainer: true }
+      );
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="card" id="test">Content</div></div>');
+    });
+
+    test('works with array binding in block container', () => {
+      const result = renderToString(
+        {
+          template: {
+            ul: {
+              $bind: 'items',
+              $children: [
+                { li: '{{name}}' }
+              ]
+            }
+          },
+          data: {
+            items: [
+              { name: 'Item 1' },
+              { name: 'Item 2' }
+            ]
+          }
+        },
+        { useBlockContainer: true }
+      );
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><ul><li>Item 1</li><li>Item 2</li></ul></div>');
+    });
+  });
 });
