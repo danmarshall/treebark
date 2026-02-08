@@ -56,7 +56,7 @@ console.log(html);
 ```javascript
 import { renderToDOM } from 'treebark';
 
-// Create DOM elements directly
+// Create DOM elements (wrapped in block container by default for security)
 const fragment = renderToDOM({
   template: {
     div: {
@@ -71,32 +71,40 @@ const fragment = renderToDOM({
 document.body.appendChild(fragment);
 ```
 
-### Block Container for Security (Browser Only)
+### Block Container Security (Default Behavior)
 
-When rendering user-generated templates, use block container to prevent positioning attacks:
+**Block container is now enabled by default** to prevent positioning attacks. Content is automatically wrapped in a secure container.
 
+**Default behavior:**
 ```javascript
-import { renderToDOM } from 'treebark';
-
-// Render with block container enabled
+// Block container is enabled by default (secure)
 const fragment = renderToDOM({
-  template: userGeneratedTemplate,  // From database, user input, CMS, etc.
-  data: { /* ... */ }
-}, { useBlockContainer: true });
-
-document.body.appendChild(fragment);
+  template: userGeneratedTemplate
+});
+// Result: <div style="contain: content; isolation: isolate;" data-treebark-container="true">
+//   <!-- your content here -->
+// </div>
 ```
 
-**What block container does:**
-- Wraps content in a `<div>` with CSS `contain: content` and `isolation: isolate`
-- Creates stacking context boundary (prevents overlaying page elements)
-- Maintains style inheritance (unlike shadow DOM)
-- Essential for safely rendering user-generated templates
+**Opt-out for trusted templates only:**
+```javascript
+// Disable block container (only for trusted developer templates)
+const fragment = renderToDOM({
+  template: trustedTemplate
+}, { useBlockContainer: false });
+```
 
-**When to use:**
-- ✅ **Required** for user-generated templates (blogs, forums, CMS, wikis)
-- ✅ **Recommended** for templates with user-controlled links
-- ⚠️ **Optional** for trusted developer-only templates
+**What block container provides:**
+- ✅ Prevents positioned elements from overlaying page elements (e.g., sign-in links)
+- ✅ Creates stacking context boundary via CSS `isolation: isolate`
+- ✅ Maintains style inheritance (page styles still apply)
+- ✅ Safe for user-generated templates (blogs, forums, CMS, wikis)
+- ✅ Minimal performance impact
+
+**When to opt-out (`useBlockContainer: false`):**
+- Only for trusted, developer-controlled templates
+- When you understand and accept the security risk
+- Not recommended for user-generated content
 
 ## Tree Shaking
 
@@ -123,9 +131,16 @@ Renders a template to an HTML string.
 
 **Parameters:**
 - `input: TreebarkInput` - Object with `template` and optional `data`
-- `options?: RenderOptions` - Optional rendering options (indentation, etc.)
+- `options?: RenderOptions` - Optional rendering options
+  - `indent?: string | number | boolean` - Indentation for formatted output
+  - `logger?: Logger` - Custom logger for errors/warnings (default: `console`)
+  - `propertyFallback?: OuterPropertyResolver` - Custom property resolver
+  - `useBlockContainer?: boolean` - Wrap content in block container (default: `true`)
 
-**Returns:** `string` - Generated HTML
+**Returns:** `string` - Generated HTML (wrapped in security container by default)
+
+**Block Container (Default):**
+By default, output is wrapped in `<div style="contain: content; isolation: isolate;" data-treebark-container="true">` for security. Set `useBlockContainer: false` to opt-out (only for trusted templates).
 
 ### `renderToDOM(input, options?)`
 
@@ -136,17 +151,18 @@ Renders a template to DOM nodes (browser only).
 - `options?: RenderOptions` - Optional rendering options
   - `logger?: Logger` - Custom logger for errors/warnings (default: `console`)
   - `propertyFallback?: OuterPropertyResolver` - Custom property resolver
-  - `useBlockContainer?: boolean` - Wrap content in block container with CSS containment (default: `false`)
+  - `useBlockContainer?: boolean` - Wrap content in block container (default: `true`)
 
-**Returns:** `DocumentFragment` - DOM fragment containing rendered nodes
+**Returns:** `DocumentFragment` - DOM fragment containing rendered nodes (wrapped in security container by default)
 
-**Block Container Mode:**
-When `useBlockContainer: true`, wraps content in a container with:
+**Block Container (Default):**
+By default, content is wrapped in a container div with:
 - CSS `contain: content` for layout/paint containment
 - CSS `isolation: isolate` for stacking context isolation
 - Prevents positioned elements from overlaying page elements
 - **Essential for user-generated templates** (blogs, forums, CMS)
 - Maintains style inheritance (unlike shadow DOM)
+- Set `useBlockContainer: false` to opt-out (only for trusted templates)
 
 ## Examples
 
