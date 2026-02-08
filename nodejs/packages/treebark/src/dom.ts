@@ -24,7 +24,7 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
-  const useShadowDOM = options.useShadowDOM || false;
+  const useShadowDOM = !!options.useShadowDOM;
   
   const fragment = document.createDocumentFragment();
   
@@ -34,6 +34,7 @@ export function renderToDOM(
   let target: Node;
   if (useShadowDOM) {
     // Create a container element with shadow DOM
+    // Using div as a generic container - users can wrap in their own custom element if needed
     const container = document.createElement('div');
     target = container.attachShadow({ mode: 'open' });
     fragment.appendChild(container);
