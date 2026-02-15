@@ -110,7 +110,26 @@ Renders a template to DOM nodes (browser only).
 
 **Returns:** `DocumentFragment` - DOM fragment containing rendered nodes
 
-## Examples
+### `getProperty(data, path, parents?, logger?, getOuterProperty?)`
+
+Get a nested property from data using dot notation. This utility function is used internally by Treebark but is also exported for use in custom property resolution scenarios.
+
+**Parameters:**
+- `data: Data` - The data object to retrieve the property from
+- `path: BindPath` - The property path using dot notation (e.g., `"user.name"` or `"items.0.value"`)
+- `parents?: Data[]` - (Optional) Array of parent data contexts for parent property access
+- `logger?: Logger` - (Optional) Logger instance for error messages
+- `getOuterProperty?: OuterPropertyResolver` - (Optional) Fallback function called when property is not found
+
+**Returns:** `unknown` - The value at the specified path, or `undefined` if not found
+
+**Special path syntax:**
+- `"propName"` - Access a simple property (e.g., `"name"`, `"age"`)
+- `"user.name"` - Access nested properties with dot notation
+- `"items.0"` - Access array elements by index
+- `"."` - Returns the data object itself
+- `"..parentProp"` - Access parent context (requires `parents` array)
+- `"../../grandProp"` - Access grandparent context
 
 For comprehensive examples, documentation, and advanced features, see the [main Treebark repository](https://github.com/danmarshall/treebark).
 
