@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treebark hosted bundle smoke test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.3rem; }
+  .case { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+  .pass { color: #137333; font-weight: 600; }
+  .fail { color: #c5221f; font-weight: 600; }
+  pre { background: #f6f8fa; padding: .6rem; border-radius: 6px; overflow-x: auto; }
+  code { font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<h1>Treebark hosted bundle smoke test</h1>
+<p>Loads the UMD bundles straight from <code>assets/</code> (the same files served at
+<code>https://treebark.js.org/assets/</code>) and exercises both flavors.</p>
+
+<!-- String flavor: exposes window.Treebark.renderToString -->
+<script src="assets/treebark-browser.min.js"></script>
+<!-- DOM flavor: merges window.Treebark.renderToDOM (extend: true) -->
+<script src="assets/treebark-dom-browser.min.js"></script>
+
+<div class="case">
+  <h2>String flavor — <code>Treebark.renderToString</code></h2>
+  <div id="string-status">running…</div>
+  <pre><code id="string-out"></code></pre>
+</div>
+
+<div class="case">
+  <h2>DOM flavor — <code>Treebark.renderToDOM</code></h2>
+  <div id="dom-status">running…</div>
+  <div id="dom-out"></div>
+</div>
+
+<script>
+(function () {
+  function report(el, ok, detail) {
+    el.className = ok ? 'pass' : 'fail';
+    el.textContent = (ok ? 'PASS' : 'FAIL') + (detail ? ' — ' + detail : '');
+  }
+
+  // String flavor
+  try {
+    var html = Treebark.renderToString({
+      template: { div: { class: 'greeting', $children: ['Hello {{name}}!'] } },
+      data: { name: 'World' }
+    });
+    document.getElementById('string-out').textContent = html;
+    var stringOk = html === '<div class="greeting">Hello World!</div>';
+    report(document.getElementById('string-status'), stringOk,
+      stringOk ? 'renderToString produced expected HTML' : 'unexpected output');
+  } catch (e) {
+    report(document.getElementById('string-status'), false, String(e));
+  }
+
+  // DOM flavor
+  try {
+    var frag = Treebark.renderToDOM({
+      template: { ul: { $bind: 'items', $children: [{ li: '{{.}}' }] } },
+      data: { items: ['a', 'b', 'c'] }
+    });
+    var host = document.getElementById('dom-out');
+    host.appendChild(frag);
+    var domOk = host.querySelectorAll('li').length === 3 &&
+      host.querySelector('li').textContent === 'a';
+    report(document.getElementById('dom-status'), domOk,
+      domOk ? 'renderToDOM appended 3 <li> nodes' : 'unexpected DOM');
+  } catch (e) {
+    report(document.getElementById('dom-status'), false, String(e));
+  }
+})();
+</script>
+</body>
+</html>
