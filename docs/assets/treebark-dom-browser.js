@@ -351,156 +351,148 @@
     const valueToRender = condition ? $then : $else;
     return { valueToRender };
   }
-  const flattenOutput = (output, indentStr) => {
-    if (!indentStr) {
-      return output.length <= 1 ? output[0]?.[1] ?? "" : output.reduce((acc, [, content]) => acc + content, "");
-    }
-    if (output.length === 0) return "";
-    if (output.length === 1 && !output[0][1].includes("<")) {
-      return output[0][1];
-    }
-    let result = "\n";
-    for (let i = 0; i < output.length; i++) {
-      result += indentStr.repeat(output[i][0]) + output[i][1];
-      if (i < output.length - 1) result += "\n";
-    }
-    result += "\n";
-    return result;
-  };
-  function renderToString(input, options = {}) {
+  function renderToDOM(input, options = {}) {
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
-    const context = options.indent ? {
-      indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
-      level: 0,
-      logger,
-      getOuterProperty
-    } : { logger, getOuterProperty };
-    return render(input.template, data, context);
-  }
-  function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
-    const formattedContent = flattenOutput(childrenOutput, indentStr);
-    const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
-    if (tag === "$comment") {
-      return `<!--${formattedContent}${parentIndent}-->`;
-    }
-    const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
-    if (VOID_TAGS.has(tag)) {
-      return openTag;
-    }
-    return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
+    const fragment = document.createDocumentFragment();
+    const result = render(input.template, data, { logger, getOuterProperty });
+    if (Array.isArray(result)) result.forEach((n) => fragment.appendChild(n));
+    else fragment.appendChild(result);
+    return fragment;
   }
   function render(template, data, context) {
     const parents = context.parents || [];
     const logger = context.logger;
     const getOuterProperty = context.getOuterProperty;
-    if (typeof template === "string") return interpolate(template, data, true, parents, logger, getOuterProperty);
+    if (typeof template === "string") {
+      const shouldEscape = context.insideComment || false;
+      return document.createTextNode(interpolate(template, data, shouldEscape, parents, logger, getOuterProperty));
+    }
     if (Array.isArray(template)) {
-      return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
+      const results = [];
+      for (const t of template) {
+        const r = render(t, data, context);
+        if (Array.isArray(r)) results.push(...r);
+        else results.push(r);
+      }
+      return results;
     }
     const parsed = parseTemplateObject(template, logger);
     if (!parsed) {
-      return "";
+      return [];
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
       logger.error(`Tag "${tag}" is not allowed`);
-      return "";
+      return [];
     }
     if (tag === "$comment" && context.insideComment) {
       logger.error("Nested comments are not allowed");
-      return "";
+      return [];
     }
     if (tag === "$if") {
       const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
       if (valueToRender === void 0) {
-        return "";
-      }
-      return render(valueToRender, data, context);
-    }
-    if (VOID_TAGS.has(tag) && children.length > 0) {
-      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
-    }
-    const childContext = {
-      ...context,
-      insideComment: tag === "$comment" || context.insideComment,
-      level: (context.level || 0) + 1
-    };
-    const processContent = (content) => {
-      if (content === "") {
         return [];
       }
-      if (context.indentStr && content.includes("\n") && !content.includes("<")) {
-        return content.split("\n").map((line) => [childContext.level, line]);
+      const nodes = render(valueToRender, data, context);
+      return Array.isArray(nodes) ? nodes : [nodes];
+    }
+    const hasChildren = children.length > 0;
+    const isVoid = VOID_TAGS.has(tag);
+    if (isVoid && hasChildren) {
+      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
+    }
+    if (tag === "$comment") {
+      const tempContainer = document.createElement("div");
+      const commentContext = { ...context, insideComment: true };
+      for (const c of children) {
+        const nodes = render(c, data, commentContext);
+        if (Array.isArray(nodes)) {
+          for (const n of nodes) tempContainer.appendChild(n);
+        } else {
+          tempContainer.appendChild(nodes);
+        }
       }
-      return [[childContext.level, content]];
-    };
-    let childrenOutput;
-    let contentAttrs;
+      return document.createComment(tempContainer.innerHTML);
+    }
+    const element = document.createElement(tag);
     if (hasBinding(rest)) {
       if (!validatePathExpression(rest.$bind, "$bind", logger)) {
-        return "";
+        return [];
       }
       const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
       const { $bind, $children = [], ...bindAttrs } = rest;
-      if (!Array.isArray(bound)) {
-        if (bound !== null && bound !== void 0 && typeof bound !== "object") {
-          logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
-          return "";
-        }
-        const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
-        const newParents = [...parents, data];
-        return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+      setAttrs(element, bindAttrs, data, tag, parents, logger, getOuterProperty);
+      if (isVoid && $children.length > 0) {
+        logger.warn(`Tag "${tag}" is a void element and cannot have children`);
       }
-      childrenOutput = [];
-      if (!VOID_TAGS.has(tag)) {
+      if (Array.isArray(bound)) {
         for (const item of bound) {
-          const newParents = [...parents, data];
-          for (const child of $children) {
-            const content = render(child, item, { ...childContext, parents: newParents });
-            childrenOutput.push(...processContent(content));
+          const newParents2 = [...parents, data];
+          if (!isVoid) {
+            for (const c of $children) {
+              const nodes = render(c, item, { ...context, parents: newParents2 });
+              if (Array.isArray(nodes)) {
+                for (const n of nodes) element.appendChild(n);
+              } else {
+                element.appendChild(nodes);
+              }
+            }
           }
         }
+        return element;
       }
-      contentAttrs = bindAttrs;
-    } else {
-      childrenOutput = [];
-      if (!VOID_TAGS.has(tag)) {
-        for (const child of children) {
-          const content = render(child, data, { ...childContext, parents });
-          childrenOutput.push(...processContent(content));
+      if (bound !== null && bound !== void 0 && typeof bound !== "object") {
+        logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
+        return [];
+      }
+      const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
+      const newParents = [...parents, data];
+      const childNodes = render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+      return Array.isArray(childNodes) ? childNodes : [childNodes];
+    }
+    setAttrs(element, attrs, data, tag, parents, logger, getOuterProperty);
+    if (!isVoid) {
+      for (const c of children) {
+        const nodes = render(c, data, context);
+        if (Array.isArray(nodes)) {
+          for (const n of nodes) element.appendChild(n);
+        } else {
+          element.appendChild(nodes);
         }
       }
-      contentAttrs = attrs;
     }
-    return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
+    return element;
   }
-  function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
-    const pairs = Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger)).map(([k, v]) => {
+  function setAttrs(element, attrs, data, tag, parents = [], logger, getOuterProperty) {
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (!validateAttributeName(key, tag, logger)) {
+        return;
+      }
       let attrValue;
-      if (k === "style") {
-        attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
+      if (key === "style") {
+        attrValue = processStyleAttribute(value, data, parents, logger, getOuterProperty);
         if (!attrValue) {
-          return null;
+          return;
         }
       } else {
-        if (isConditionalValue(v)) {
-          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
+        if (isConditionalValue(value)) {
+          const evaluatedValue = evaluateConditionalValue(value, data, parents, logger, getOuterProperty);
           attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
         } else {
-          attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
+          attrValue = interpolate(String(value), data, false, parents, logger, getOuterProperty);
         }
       }
-      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      const validatedValue = validateAttributeValue(key, attrValue, logger);
       if (validatedValue == null) {
-        return null;
+        return;
       }
-      return `${k}="${escape(validatedValue)}"`;
-    }).filter((pair) => pair !== null).join(" ");
-    return pairs ? " " + pairs : "";
+      element.setAttribute(key, validatedValue);
+    });
   }
-  exports2.renderToString = renderToString;
+  exports2.renderToDOM = renderToDOM;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 }));
-//# sourceMappingURL=treebark-browser.js.map
+//# sourceMappingURL=treebark-dom-browser.js.map
