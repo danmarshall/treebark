@@ -43,7 +43,7 @@ export const VOID_TAGS = new Set([
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
 
 // Global attributes allowed on all tags
-export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'data-', 'aria-']);
+export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
 // Tag-specific attributes
 export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {

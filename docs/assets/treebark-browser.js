@@ -43,7 +43,7 @@
     "hr"
   ]);
   const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
-  const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
+  const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "tabindex", "data-", "aria-"]);
   const TAG_SPECIFIC_ATTRS = {
     "a": /* @__PURE__ */ new Set(["href", "target", "rel"]),
     "img": /* @__PURE__ */ new Set(["src", "alt", "width", "height"]),

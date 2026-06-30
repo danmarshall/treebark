@@ -1,12 +1,12 @@
 {
   "name": "treebark-playground",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Interactive playground for treebark templates",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "clean": "rm -rf ../../../docs/js/playground.js"
+    "clean": "node -e \"require('fs').rmSync('../../../docs/js/playground.js',{force:true});\""
   },
   "engines": {
     "node": ">=16.0.0"

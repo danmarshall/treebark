@@ -236,6 +236,18 @@ export const securityValidTests: TestCase[] = [
         }
       }
     }
+  },
+  {
+    name: 'allows tabindex and role attributes',
+    input: {
+      template: {
+        div: {
+          role: 'button',
+          tabindex: '0',
+          $children: ['Click me']
+        }
+      }
+    }
   }
 ];
 
