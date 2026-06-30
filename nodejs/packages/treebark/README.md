@@ -88,6 +88,41 @@ import { renderToString, renderToDOM } from 'treebark';
 
 Modern bundlers like Vite, Webpack, and Rollup will automatically remove unused code from your bundle.
 
+## Browser via `<script>` (no build step)
+
+Prebuilt UMD bundles are hosted on the project site, so you can drop Treebark into any
+page without npm or a bundler. Pick the flavor you need:
+
+```html
+<!-- String flavor: exposes window.Treebark.renderToString -->
+<script src="https://treebark.js.org/assets/treebark-browser.min.js"></script>
+<script>
+  const html = Treebark.renderToString({
+    template: { div: { class: "greeting", $children: ["Hello {{name}}!"] } },
+    data: { name: "World" }
+  });
+  document.body.insertAdjacentHTML("beforeend", html);
+</script>
+```
+
+```html
+<!-- DOM flavor: exposes window.Treebark.renderToDOM -->
+<script src="https://treebark.js.org/assets/treebark-dom-browser.min.js"></script>
+<script>
+  const fragment = Treebark.renderToDOM({
+    template: { div: { class: "greeting", $children: ["Hello {{name}}!"] } },
+    data: { name: "World" }
+  });
+  document.body.appendChild(fragment);
+</script>
+```
+
+Both bundles attach to the **same `Treebark` global** and are built with Rollup's
+`output.extend`, so loading both on one page merges their exports (`renderToString`
+**and** `renderToDOM`) instead of overwriting. Unminified builds
+(`treebark-browser.js`, `treebark-dom-browser.js`) with source maps are available at
+the same path for debugging.
+
 ## API
 
 ### `renderToString(input, options?)`
