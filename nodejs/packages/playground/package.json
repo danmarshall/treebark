@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "clean": "rm -rf ../../../docs/js/playground.js"
+    "clean": "node -e \"require('fs').rmSync('../../../docs/js/playground.js',{force:true});\""
   },
   "engines": {
     "node": ">=16.0.0"

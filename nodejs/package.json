@@ -9,7 +9,10 @@
     "build": "npm run build --workspace=packages/treebark && npm run build --workspace=packages/markdown-it-treebark && npm run build --workspace=packages/playground && npm run build --workspace=packages/markdown-it-playground && npm run build --workspace=packages/test",
     "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces",
-    "bump:all": "node scripts/bump-all-packages.mjs"
+    "bump:all": "node scripts/bump-all-packages.mjs",
+    "publish:all": "node scripts/publish-all-packages.mjs",
+    "publish:all:dry-run": "node scripts/publish-all-packages.mjs --dry-run",
+    "publish:all:dry-run:local": "node scripts/publish-all-packages.mjs --dry-run --ignore-scripts --skip-whoami"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
