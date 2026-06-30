@@ -164,7 +164,7 @@ div:
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
 - Allowed:  
-  - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
+  - Global: `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*`  
   - `a`: `href`, `target`, `rel`  
   - `img`: `src`, `alt`, `width`, `height`  
   - `table`: `summary`  
@@ -958,7 +958,7 @@ Only safe attributes are permitted per tag. Event handlers are blocked:
 - Case variations: `onClick`, `ONCLICK`, etc. are also blocked
 
 **Allowed attributes per tag:**
-- Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`
+- Global: `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*`
 - `a`: `href`, `target`, `rel`
 - `img`: `src`, `alt`, `width`, `height`
 - `table`: `summary`
