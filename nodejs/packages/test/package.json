@@ -1,6 +1,6 @@
 {
   "name": "treebark-test",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tests for treebark",
   "type": "module",
   "private": true,
@@ -21,7 +21,9 @@
   "jest": {
     "preset": "ts-jest/presets/default-esm",
     "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [".ts"],
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
@@ -37,14 +39,20 @@
         }
       ]
     },
-    "modulePathIgnorePatterns": ["<rootDir>/dist/"],
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist/"
+    ],
     "projects": [
       {
         "displayName": "string",
-        "testMatch": ["<rootDir>/src/string.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/string.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "node",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
@@ -63,10 +71,14 @@
       },
       {
         "displayName": "dom",
-        "testMatch": ["<rootDir>/src/dom.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/dom.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "jsdom",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
@@ -85,10 +97,14 @@
       },
       {
         "displayName": "type-safety",
-        "testMatch": ["<rootDir>/src/type-safety.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/type-safety.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "node",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
@@ -107,10 +123,14 @@
       },
       {
         "displayName": "logger",
-        "testMatch": ["<rootDir>/src/logger.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/logger.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "jsdom",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
@@ -129,10 +149,14 @@
       },
       {
         "displayName": "public-api",
-        "testMatch": ["<rootDir>/src/public-api.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/public-api.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "node",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
@@ -151,10 +175,14 @@
       },
       {
         "displayName": "property-fallback",
-        "testMatch": ["<rootDir>/src/property-fallback.test.ts"],
+        "testMatch": [
+          "<rootDir>/src/property-fallback.test.ts"
+        ],
         "preset": "ts-jest/presets/default-esm",
         "testEnvironment": "node",
-        "extensionsToTreatAsEsm": [".ts"],
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
         "moduleNameMapper": {
           "^(\\.{1,2}/.*)\\.js$": "$1"
         },
