@@ -6,7 +6,7 @@ description: Safe HTML tree structures for Markdown and content-driven apps
 
 # Treebark  
 
-> Safe HTML tree structures for Markdown and content-driven apps.
+> Safe HTML and UI tree structures for AI-generated, Markdown, and content-driven apps.
 
 ### Hello World
 
@@ -60,22 +60,22 @@ Output:
 - [Name Origin](#name-origin)
 
 ## Problem  
-You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
+You want to store and render structured UI from untrusted sources, such as user-authored Markdown and LLM-generated layouts.
 
-Markdown was originally designed as a **superset of HTML** — you could drop raw `<div>`s, `<table>`s, or even `<script>`s straight into your content.  
+LLM output is useful, but it is often generated at runtime and then stored in a database, CMS, or workflow system for later rendering. Raw HTML in that pipeline is risky and inconsistent across environments.
 
-But for **safety and consistency**, many Markdown parsers (especially in CMSs, wikis, and chat apps) **disallow raw HTML**. That means:  
+Markdown adds the same challenge. It was originally designed as a **superset of HTML**, but for **safety and consistency**, many parsers disallow raw HTML. That means:  
 
-- Authors can’t use existing site CSS components (headers, footers, grids).  
-- Structured layouts like tables or cards are awkward or impossible.  
+- Generated UI is hard to store safely in a portable format.
+- Structured layouts like tables, cards, and component blocks become awkward or brittle.
 - Allowing raw HTML invites XSS and security issues.  
 
 ## Solution  
 
-**Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
+**Treebark** provides safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
 
 - Safe by default: only whitelisted tags/attributes are allowed.  
-- Fits naturally into Markdown fenced code blocks.  
+- Fits naturally into Markdown fenced code blocks and LLM output pipelines.
 - Flexible enough for both **static content** and **data-bound apps**.  
 
 #### Key Insight  
