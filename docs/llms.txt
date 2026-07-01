@@ -4,6 +4,26 @@
 
 Treebark is a lightweight specification and library for expressing safe HTML structures as JSON or YAML tree schemas. It is designed to embed structured markup inside Markdown fenced code blocks without raw HTML, preventing XSS while enabling rich layouts. The spec and implementations are fully open source.
 
+A template is a plain JSON object where keys are HTML tag names and values are children:
+
+```json
+{
+  "div": [
+    { "h1": "Hello world" },
+    { "p": "Welcome to treebark templates" }
+  ]
+}
+```
+
+This renders to:
+
+```html
+<div>
+  <h1>Hello world</h1>
+  <p>Welcome to treebark templates</p>
+</div>
+```
+
 ## Links
 
 - [Home](https://treebark.js.org/): Overview and live playground
