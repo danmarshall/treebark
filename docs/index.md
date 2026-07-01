@@ -56,6 +56,10 @@ Output:
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
   - [Implementations](#implementations)
+    - [Node.js / Browser](#nodejs--browser)
+      - [Renderers](#renderers)
+        - [React renderer](#react-renderer)
+    - [Other Languages](#other-languages)
 - [Name Origin](#name-origin)
 
 ## Problem  
@@ -107,7 +111,7 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
@@ -1177,10 +1181,59 @@ div:
 
 ### Implementations
 
-- [Node.js/Browser](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark/)
-  - [Core library](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
-  - [markdown-it plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
-- **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
+#### Node.js / Browser
+
+- [Core library](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark) with `renderToString`, `renderToDOM`, and `renderToReact` renderers
+- [markdown-it plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
+
+##### Core Library Renderers
+
+The same template (and the same allowlists, data binding, and security guarantees) can be rendered three ways. Templates are always authored as YAML/JSON with HTML attribute names — the renderer you pick only changes the output type.
+
+| Renderer | Import | Returns | Use when |
+| --- | --- | --- | --- |
+| `renderToString` | `treebark` or `treebark/string` | HTML `string` | Server-side rendering, Markdown, storing/serializing HTML |
+| `renderToDOM` | `treebark/dom` | `DocumentFragment` | Directly inserting nodes into the live DOM in the browser |
+| `renderToReact` / `Treebark` | `treebark/react` | `ReactNode` / component | Embedding inside a React app without `dangerouslySetInnerHTML` |
+
+```js
+import { renderToString } from 'treebark';
+import { renderToDOM } from 'treebark/dom';
+import { Treebark, renderToReact } from 'treebark/react';
+
+const input = { template: { div: { class: 'card', $children: ['Hello {% raw %}{{name}}{% endraw %}'] } }, data: { name: 'Alice' } };
+
+renderToString(input);                  // '<div class="card">Hello Alice</div>'
+document.body.append(renderToDOM(input)); // inserts a real <div> node
+const card = <Treebark {...input} />;     // an idiomatic React component
+```
+
+###### React renderer
+
+The React build offers two equivalent entry points from `treebark/react`:
+
+- **`<Treebark template={...} data={...} />`** — an idiomatic React component, the easiest way to drop a template into JSX.
+- **`renderToReact(input, options)`** — the lower-level primitive (a sibling of `renderToString`/`renderToDOM`) that returns a `ReactNode`, handy outside JSX.
+
+Both produce a real React element tree (`React.createElement` under the hood), so React handles reconciliation and text escaping — you never need `dangerouslySetInnerHTML`. `react` is an optional peer dependency; install the version your app already uses (React 17, 18, or 19 are supported).
+
+```jsx
+import { Treebark } from 'treebark/react';
+
+function Profile({ template, data }) {
+  return (
+    <div className="profile">
+      <Treebark template={template} data={data} />
+    </div>
+  );
+}
+```
+
+Templates are unchanged from the other renderers — you still write HTML attribute names like `class`, `for`, and `colspan` in your YAML/JSON. The renderer maps these to React's prop names (`className`, `htmlFor`, `colSpan`, …) and converts the `style` object to React's inline-style object internally; this is invisible to template authors. List items produced by `$bind` automatically receive React `key`s. Because React has no comment node, `$comment` tags render nothing.
+
+#### Other Languages
+
+Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
 
 ## Name Origin
 

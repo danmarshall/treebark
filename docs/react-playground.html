@@ -14,6 +14,12 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
 </p>
 
 <div class="control-group">
+    <label for="example-select">Load Example:</label>
+    <select id="example-select" onchange="loadReactExample()">
+    </select>
+</div>
+
+<div class="control-group">
     <strong>Bundle status:</strong> <span id="bundle-status">checking…</span>
 </div>
 
@@ -44,6 +50,7 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="{{ '/assets/treebark-react-browser.js' | relative_url }}"></script>
+<script src="{{ '/js/react-playground.js' | relative_url }}"></script>
 
 <script>
 (function () {
@@ -63,27 +70,6 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
     statusEl.style.color = '#137333';
 
     var root = ReactDOM.createRoot(rootEl);
-
-    var defaultTemplate = {
-        div: {
-            class: 'card',
-            $children: [
-                { h2: '{{title}}' },
-                { p: 'Rendered with React from a Treebark template.' },
-                { ul: { $bind: 'items', $children: [{ li: '{{name}} — {{role}}' }] } }
-            ]
-        }
-    };
-    var defaultData = {
-        title: 'Hello from Treebark + React',
-        items: [
-            { name: 'Alice', role: 'Admin' },
-            { name: 'Bob', role: 'Editor' }
-        ]
-    };
-
-    templateEl.value = JSON.stringify(defaultTemplate, null, 2);
-    dataEl.value = JSON.stringify(defaultData, null, 2);
 
     function showError(message) {
         errorEl.textContent = message;
@@ -119,5 +105,16 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
     templateEl.addEventListener('input', render);
     dataEl.addEventListener('input', render);
     render();
+
+    window.loadReactExample = function () {
+        var select = document.getElementById('example-select');
+        var examples = window.TreebarkExamples;
+        if (!select || !examples) return;
+        var ex = examples[select.value];
+        if (!ex) return;
+        templateEl.value = JSON.stringify(ex.template, null, 2);
+        dataEl.value = JSON.stringify(ex.data, null, 2);
+        render();
+    };
 })();
 </script>
