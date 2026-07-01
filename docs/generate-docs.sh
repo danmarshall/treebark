@@ -34,3 +34,15 @@ sed 's|\](nodejs/packages/|](https://github.com/danmarshall/treebark/tree/main/n
 
 echo "✅ Successfully generated docs/index.md"
 echo "📄 Combined front matter with README.md"
+
+# Copy llms.txt from repo root to docs so it is served at the site root
+LLMS_SRC="$(dirname "$DOCS_DIR")/llms.txt"
+LLMS_DEST="$DOCS_DIR/llms.txt"
+
+if [ ! -f "$LLMS_SRC" ]; then
+    echo "Error: llms.txt not found at $LLMS_SRC"
+    exit 1
+fi
+
+cp "$LLMS_SRC" "$LLMS_DEST"
+echo "✅ Copied llms.txt to docs/"
