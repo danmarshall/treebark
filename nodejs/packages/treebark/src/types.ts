@@ -77,6 +77,7 @@ type GlobalAttrs = {
   style?: StyleValue;
   title?: AttributeValue;
   role?: AttributeValue;
+  tabindex?: AttributeValue;
   [key: `data-${string}`]: AttributeValue;
   [key: `aria-${string}`]: AttributeValue;
 };

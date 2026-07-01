@@ -136,8 +136,8 @@
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
-  function styleObjectToString(styleObj, logger) {
-    const cssDeclarations = [];
+  function getValidatedStyleDeclarations(styleObj, logger) {
+    const declarations = [];
     for (const [prop, value] of Object.entries(styleObj)) {
       const cssProp = prop;
       if (!/^[a-z]([a-z0-9-]*[a-z0-9])?$/.test(cssProp)) {
@@ -168,32 +168,42 @@
         logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
         continue;
       }
-      cssDeclarations.push(`${cssProp}: ${cssValue}`);
+      declarations.push([cssProp, cssValue]);
     }
-    return cssDeclarations.join("; ").trim();
+    return declarations;
   }
-  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
+  function styleObjectToString(styleObj, logger) {
+    return getValidatedStyleDeclarations(styleObj, logger).map(([prop, value]) => `${prop}: ${value}`).join("; ").trim();
+  }
+  function resolveStyleValue(value, data, parents, logger, getOuterProperty) {
     if (value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string") {
       const conditional = value;
       if (!validatePathExpression(conditional.$check, "$check", logger)) {
-        return "";
+        return null;
       }
       const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
       const condition = evaluateCondition(checkValue, conditional);
       const resultValue = condition ? conditional.$then : conditional.$else;
       if (resultValue === void 0) {
-        return "";
+        return null;
       }
       if (typeof resultValue === "object" && resultValue !== null && !Array.isArray(resultValue)) {
-        return styleObjectToString(resultValue, logger);
+        return resultValue;
       }
-      return "";
+      return null;
     }
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      return styleObjectToString(value, logger);
+      return value;
     }
     logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
-    return "";
+    return null;
+  }
+  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
+    const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+    if (!resolved) {
+      return "";
+    }
+    return styleObjectToString(resolved, logger);
   }
   function validateAttributeName(key, tag, logger) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));

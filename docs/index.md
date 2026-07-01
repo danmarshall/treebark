@@ -55,7 +55,8 @@ Output:
   - [Prototype Chain Protection](#prototype-chain-protection)
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
-  - [Implementations](#implementations)
+  - [Node.js / Browser](#nodejs--browser)
+  - [Other Languages](#other-languages)
 - [Name Origin](#name-origin)
 
 ## Problem  
@@ -107,7 +108,7 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
@@ -1175,12 +1176,14 @@ div:
 
 ## Available Libraries
 
-### Implementations
+### Node.js / Browser
 
-- [Node.js/Browser](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark/)
-  - [Core library](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
-  - [markdown-it plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
-- **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
+- [Core library](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/treebark) - Full documentation for `renderToString`, `renderToDOM`, and `renderToReact`
+- [markdown-it plugin](https://github.com/danmarshall/treebark/tree/main/nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
+
+### Other Languages
+
+Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
 
 ## Name Origin
 
