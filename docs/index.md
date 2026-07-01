@@ -107,7 +107,7 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
