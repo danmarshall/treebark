@@ -206,8 +206,8 @@ export function interpolate(
  * Uses generic property validation - allows any kebab-case CSS property
  * but validates values for dangerous patterns
  */
-export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
-  const cssDeclarations: string[] = [];
+function getValidatedStyleDeclarations(styleObj: Record<string, unknown>, logger: Logger): Array<[string, string]> {
+  const declarations: Array<[string, string]> = [];
   
   for (const [prop, value] of Object.entries(styleObj)) {
     // Property names should be in kebab-case format
@@ -261,10 +261,87 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
       continue;
     }
     
-    cssDeclarations.push(`${cssProp}: ${cssValue}`);
+    declarations.push([cssProp, cssValue]);
   }
   
-  return cssDeclarations.join('; ').trim();
+  return declarations;
+}
+
+/**
+ * Convert a style object to a CSS string
+ * Uses generic property validation - allows any kebab-case CSS property
+ * but validates values for dangerous patterns
+ */
+export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
+  return getValidatedStyleDeclarations(styleObj, logger)
+    .map(([prop, value]) => `${prop}: ${value}`)
+    .join('; ')
+    .trim();
+}
+
+/**
+ * Convert a kebab-case CSS property name to the camelCase form React expects
+ * for inline style objects (e.g. "font-size" -> "fontSize").
+ */
+function kebabToCamel(prop: string): string {
+  return prop.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+}
+
+/**
+ * Convert a style object to a React inline-style object with camelCase keys.
+ * Applies the exact same security validation as styleObjectToString.
+ */
+export function styleObjectToProperties(styleObj: Record<string, unknown>, logger: Logger): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [prop, value] of getValidatedStyleDeclarations(styleObj, logger)) {
+    result[kebabToCamel(prop)] = value;
+  }
+  return result;
+}
+
+/**
+ * Resolve a style attribute value (object or conditional) to a plain CSSProperties
+ * object, or null when invalid. Shared by the string and React style formatters so the
+ * conditional/security logic lives in one place.
+ */
+function resolveStyleValue(
+  value: unknown,
+  data: Data,
+  parents: Data[],
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): Record<string, unknown> | null {
+  // Handle conditional style values - check for $check property to detect conditionals
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as any).$check === 'string'
+  ) {
+    const conditional = value as ConditionalBase<CSSProperties>;
+    if (!validatePathExpression(conditional.$check, '$check', logger)) {
+      return null;
+    }
+    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
+    const condition = evaluateCondition(checkValue, conditional);
+    
+    const resultValue = condition ? conditional.$then : conditional.$else;
+    if (resultValue === undefined) {
+      return null;
+    }
+    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
+      return resultValue as Record<string, unknown>;
+    }
+    return null;
+  }
+  
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  
+  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
+  return null;
 }
 
 /**
@@ -278,37 +355,29 @@ export function processStyleAttribute(
   logger: Logger,
   getOuterProperty?: OuterPropertyResolver
 ): string {
-  // Handle conditional style values - check for $check property to detect conditionals
-  if (
-    value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    '$check' in value &&
-    typeof (value as any).$check === 'string'
-  ) {
-    const conditional = value as ConditionalBase<CSSProperties>;
-    if (!validatePathExpression(conditional.$check, '$check', logger)) {
-      return '';
-    }
-    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
-    const condition = evaluateCondition(checkValue, conditional);
-    
-    const resultValue = condition ? conditional.$then : conditional.$else;
-    if (resultValue === undefined) {
-      return '';
-    }
-    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
-      return styleObjectToString(resultValue as Record<string, unknown>, logger);
-    }
+  const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+  if (!resolved) {
     return '';
   }
-  
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    return styleObjectToString(value as Record<string, unknown>, logger);
+  return styleObjectToString(resolved, logger);
+}
+
+/**
+ * Process style attribute value into a React inline-style object (camelCase keys).
+ * Returns null if invalid. Applies the same security validation as processStyleAttribute.
+ */
+export function processStyleAttributeToProperties(
+  value: unknown,
+  data: Data,
+  parents: Data[],
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): Record<string, string> | null {
+  const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+  if (!resolved) {
+    return null;
   }
-  
-  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
-  return '';
+  return styleObjectToProperties(resolved, logger);
 }
 
 /**

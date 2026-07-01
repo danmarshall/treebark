@@ -9,6 +9,13 @@
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "string": ["./dist/string.d.ts"],
+      "dom": ["./dist/dom.d.ts"],
+      "react": ["./dist/react.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,16 +28,22 @@
     "./dom": {
       "types": "./dist/dom.d.ts",
       "default": "./dist/dom.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
     }
   },
   "scripts": {
-    "build": "tsc && npm run build:browser && npm run build:browser:min && npm run build:browser:dom && npm run build:browser:dom:min && npm run copy:browser",
+    "build": "tsc && npm run build:browser && npm run build:browser:min && npm run build:browser:dom && npm run build:browser:dom:min && npm run build:browser:react && npm run build:browser:react:min && npm run copy:browser",
     "build:browser": "vite build --config vite.browser.config.ts",
     "build:browser:min": "vite build --config vite.browser.min.config.ts",
     "build:browser:dom": "vite build --config vite.browser.dom.config.ts",
     "build:browser:dom:min": "vite build --config vite.browser.dom.min.config.ts",
+    "build:browser:react": "vite build --config vite.browser.react.config.ts",
+    "build:browser:react:min": "vite build --config vite.browser.react.min.config.ts",
     "build:vite": "vite build",
-    "copy:browser": "node -e \"const fs=require('fs'),path=require('path'); const dir=path.join(__dirname,'../../../docs/assets'); if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true}); for(const f of ['treebark-browser.js','treebark-browser.min.js','treebark-dom-browser.js','treebark-dom-browser.min.js']) fs.copyFileSync(path.join('browser',f), path.join(dir,f));\"",
+    "copy:browser": "node -e \"const fs=require('fs'),path=require('path'); const dir=path.join(__dirname,'../../../docs/assets'); if(!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true}); for(const f of ['treebark-browser.js','treebark-browser.min.js','treebark-dom-browser.js','treebark-dom-browser.min.js','treebark-react-browser.js','treebark-react-browser.min.js']) fs.copyFileSync(path.join('browser',f), path.join(dir,f));\"",
     "clean": "node -e \"const fs=require('fs'); fs.rmSync('dist',{recursive:true,force:true}); fs.rmSync('browser',{recursive:true,force:true});\"",
     "prepublishOnly": "npm run clean && npm run build"
   },
@@ -54,7 +67,18 @@
   },
   "homepage": "https://treebark.js.org",
   "license": "MIT",
-  "devDependencies": {},
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "react": "^18.3.0"
+  },
   "engines": {
     "node": ">=16.0.0"
   }

@@ -1,6 +1,6 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = global.Treebark || {}));
-})(this, (function(exports2) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("react")) : typeof define === "function" && define.amd ? define(["exports", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = global.Treebark || {}, global.React));
+})(this, (function(exports2, react) {
   "use strict";
   const CONTAINER_TAGS = /* @__PURE__ */ new Set([
     "div",
@@ -172,8 +172,15 @@
     }
     return declarations;
   }
-  function styleObjectToString(styleObj, logger) {
-    return getValidatedStyleDeclarations(styleObj, logger).map(([prop, value]) => `${prop}: ${value}`).join("; ").trim();
+  function kebabToCamel(prop) {
+    return prop.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+  }
+  function styleObjectToProperties(styleObj, logger) {
+    const result = {};
+    for (const [prop, value] of getValidatedStyleDeclarations(styleObj, logger)) {
+      result[kebabToCamel(prop)] = value;
+    }
+    return result;
   }
   function resolveStyleValue(value, data, parents, logger, getOuterProperty) {
     if (value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string") {
@@ -198,12 +205,12 @@
     logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
     return null;
   }
-  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
+  function processStyleAttributeToProperties(value, data, parents, logger, getOuterProperty) {
     const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
     if (!resolved) {
-      return "";
+      return null;
     }
-    return styleObjectToString(resolved, logger);
+    return styleObjectToProperties(resolved, logger);
   }
   function validateAttributeName(key, tag, logger) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
@@ -361,156 +368,145 @@
     const valueToRender = condition ? $then : $else;
     return { valueToRender };
   }
-  const flattenOutput = (output, indentStr) => {
-    if (!indentStr) {
-      return output.length <= 1 ? output[0]?.[1] ?? "" : output.reduce((acc, [, content]) => acc + content, "");
-    }
-    if (output.length === 0) return "";
-    if (output.length === 1 && !output[0][1].includes("<")) {
-      return output[0][1];
-    }
-    let result = "\n";
-    for (let i = 0; i < output.length; i++) {
-      result += indentStr.repeat(output[i][0]) + output[i][1];
-      if (i < output.length - 1) result += "\n";
-    }
-    result += "\n";
-    return result;
+  const REACT_PROP_NAMES = {
+    class: "className",
+    for: "htmlFor",
+    colspan: "colSpan",
+    rowspan: "rowSpan",
+    tabindex: "tabIndex"
   };
-  function renderToString(input, options = {}) {
+  function renderToReact(input, options = {}) {
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
-    const context = options.indent ? {
-      indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
-      level: 0,
-      logger,
-      getOuterProperty
-    } : { logger, getOuterProperty };
-    return render(input.template, data, context);
+    const result = render(input.template, data, { logger, getOuterProperty });
+    const nodes = Array.isArray(result) ? result : [result];
+    return react.createElement(react.Fragment, null, ...withKeys(nodes));
   }
-  function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
-    const formattedContent = flattenOutput(childrenOutput, indentStr);
-    const parentIndent = formattedContent.startsWith("\n") && indentStr ? indentStr.repeat(level || 0) : "";
-    if (tag === "$comment") {
-      return `<!--${formattedContent}${parentIndent}-->`;
-    }
-    const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
-    if (VOID_TAGS.has(tag)) {
-      return openTag;
-    }
-    return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
+  function withKeys(nodes) {
+    return nodes.map(
+      (node, index) => react.isValidElement(node) && node.key == null ? react.cloneElement(node, { key: String(index) }) : node
+    );
   }
   function render(template, data, context) {
     const parents = context.parents || [];
     const logger = context.logger;
     const getOuterProperty = context.getOuterProperty;
-    if (typeof template === "string") return interpolate(template, data, true, parents, logger, getOuterProperty);
+    if (typeof template === "string") {
+      return interpolate(template, data, false, parents, logger, getOuterProperty);
+    }
     if (Array.isArray(template)) {
-      return template.map((t) => render(t, data, context)).join(context.indentStr ? "\n" : "");
+      const results = [];
+      for (const t of template) {
+        const r = render(t, data, context);
+        if (Array.isArray(r)) results.push(...r);
+        else results.push(r);
+      }
+      return results;
     }
     const parsed = parseTemplateObject(template, logger);
     if (!parsed) {
-      return "";
+      return [];
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
       logger.error(`Tag "${tag}" is not allowed`);
-      return "";
+      return [];
     }
-    if (tag === "$comment" && context.insideComment) {
-      logger.error("Nested comments are not allowed");
-      return "";
+    if (tag === "$comment") {
+      return [];
     }
     if (tag === "$if") {
       const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
       if (valueToRender === void 0) {
-        return "";
-      }
-      return render(valueToRender, data, context);
-    }
-    if (VOID_TAGS.has(tag) && children.length > 0) {
-      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
-    }
-    const childContext = {
-      ...context,
-      insideComment: tag === "$comment" || context.insideComment,
-      level: (context.level || 0) + 1
-    };
-    const processContent = (content) => {
-      if (content === "") {
         return [];
       }
-      if (context.indentStr && content.includes("\n") && !content.includes("<")) {
-        return content.split("\n").map((line) => [childContext.level, line]);
-      }
-      return [[childContext.level, content]];
-    };
-    let childrenOutput;
-    let contentAttrs;
+      const nodes = render(valueToRender, data, context);
+      return Array.isArray(nodes) ? nodes : [nodes];
+    }
+    const isVoid = VOID_TAGS.has(tag);
+    if (isVoid && children.length > 0) {
+      logger.warn(`Tag "${tag}" is a void element and cannot have children`);
+    }
     if (hasBinding(rest)) {
       if (!validatePathExpression(rest.$bind, "$bind", logger)) {
-        return "";
+        return [];
       }
       const bound = getProperty(data, rest.$bind, [], logger, getOuterProperty);
       const { $bind, $children = [], ...bindAttrs } = rest;
-      if (!Array.isArray(bound)) {
-        if (bound !== null && bound !== void 0 && typeof bound !== "object") {
-          logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
-          return "";
-        }
-        const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
-        const newParents = [...parents, data];
-        return render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+      if (isVoid && $children.length > 0) {
+        logger.warn(`Tag "${tag}" is a void element and cannot have children`);
       }
-      childrenOutput = [];
-      if (!VOID_TAGS.has(tag)) {
-        for (const item of bound) {
-          const newParents = [...parents, data];
-          for (const child of $children) {
-            const content = render(child, item, { ...childContext, parents: newParents });
-            childrenOutput.push(...processContent(content));
+      if (Array.isArray(bound)) {
+        const childNodes3 = [];
+        if (!isVoid) {
+          for (const item of bound) {
+            const newParents2 = [...parents, data];
+            for (const c of $children) {
+              const nodes = render(c, item, { ...context, parents: newParents2 });
+              if (Array.isArray(nodes)) childNodes3.push(...nodes);
+              else childNodes3.push(nodes);
+            }
           }
         }
+        return createElementWithAttrs(tag, bindAttrs, data, parents, logger, getOuterProperty, childNodes3);
       }
-      contentAttrs = bindAttrs;
-    } else {
-      childrenOutput = [];
-      if (!VOID_TAGS.has(tag)) {
-        for (const child of children) {
-          const content = render(child, data, { ...childContext, parents });
-          childrenOutput.push(...processContent(content));
-        }
+      if (bound !== null && bound !== void 0 && typeof bound !== "object") {
+        logger.error(`$bind resolved to primitive value of type "${typeof bound}", cannot render children`);
+        return [];
       }
-      contentAttrs = attrs;
+      const boundData = bound && typeof bound === "object" && bound !== null ? bound : {};
+      const newParents = [...parents, data];
+      const childNodes2 = render({ [tag]: { ...bindAttrs, $children } }, boundData, { ...context, parents: newParents });
+      return Array.isArray(childNodes2) ? childNodes2 : [childNodes2];
     }
-    return renderTag(tag, contentAttrs, data, childrenOutput, logger, context.indentStr, context.level, parents, getOuterProperty);
+    const childNodes = [];
+    if (!isVoid) {
+      for (const c of children) {
+        const nodes = render(c, data, context);
+        if (Array.isArray(nodes)) childNodes.push(...nodes);
+        else childNodes.push(nodes);
+      }
+    }
+    return createElementWithAttrs(tag, attrs, data, parents, logger, getOuterProperty, childNodes);
   }
-  function renderAttrs(attrs, data, tag, parents = [], logger, getOuterProperty) {
-    const pairs = Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger)).map(([k, v]) => {
+  function createElementWithAttrs(tag, attrs, data, parents, logger, getOuterProperty, childNodes) {
+    const props = buildProps(attrs, data, tag, parents, logger, getOuterProperty);
+    if (childNodes.length === 0) {
+      return react.createElement(tag, props);
+    }
+    return react.createElement(tag, props, ...withKeys(childNodes));
+  }
+  function buildProps(attrs, data, tag, parents, logger, getOuterProperty) {
+    const props = {};
+    Object.entries(attrs).forEach(([key, value]) => {
+      if (!validateAttributeName(key, tag, logger)) {
+        return;
+      }
+      if (key === "style") {
+        const styleObj = processStyleAttributeToProperties(value, data, parents, logger, getOuterProperty);
+        if (styleObj && Object.keys(styleObj).length > 0) {
+          props.style = styleObj;
+        }
+        return;
+      }
       let attrValue;
-      if (k === "style") {
-        attrValue = processStyleAttribute(v, data, parents, logger, getOuterProperty);
-        if (!attrValue) {
-          return null;
-        }
+      if (isConditionalValue(value)) {
+        const evaluatedValue = evaluateConditionalValue(value, data, parents, logger, getOuterProperty);
+        attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
       } else {
-        if (isConditionalValue(v)) {
-          const evaluatedValue = evaluateConditionalValue(v, data, parents, logger, getOuterProperty);
-          attrValue = interpolate(String(evaluatedValue), data, false, parents, logger, getOuterProperty);
-        } else {
-          attrValue = interpolate(String(v), data, false, parents, logger, getOuterProperty);
-        }
+        attrValue = interpolate(String(value), data, false, parents, logger, getOuterProperty);
       }
-      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      const validatedValue = validateAttributeValue(key, attrValue, logger);
       if (validatedValue == null) {
-        return null;
+        return;
       }
-      return `${k}="${escape(validatedValue)}"`;
-    }).filter((pair) => pair !== null).join(" ");
-    return pairs ? " " + pairs : "";
+      const propName = REACT_PROP_NAMES[key] || key;
+      props[propName] = validatedValue;
+    });
+    return props;
   }
-  exports2.renderToString = renderToString;
+  exports2.renderToReact = renderToReact;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 }));
-//# sourceMappingURL=treebark-browser.js.map
+//# sourceMappingURL=treebark-react-browser.js.map

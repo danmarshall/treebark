@@ -37,6 +37,18 @@ describe('Type Safety', () => {
       expect(result).toBe('<div class="test">content</div>');
     });
 
+    it('should accept global a11y attributes (role, tabindex)', () => {
+      const template: TemplateObject = {
+        div: {
+          role: 'button',
+          tabindex: '0',
+          $children: ['Click me'],
+        },
+      };
+      const result = renderToString({ template });
+      expect(result).toBe('<div role="button" tabindex="0">Click me</div>');
+    });
+
     it('should accept all container tags', () => {
       const templates: TemplateObject[] = [
         { div: 'test' },
