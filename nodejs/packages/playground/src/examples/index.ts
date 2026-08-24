@@ -19,7 +19,7 @@ import { conditionalJoinOr } from './conditional-join-or.js';
 import { conditionalAttributeValues } from './conditional-attribute-values.js';
 import { styleObjects } from './style-objects.js';
 import { calendar } from './calendar.js';
-import { customTag } from './custom-tag.js';
+import { activityLog } from './activity-log.js';
 
 export type Examples = Record<string, Example>;
 
@@ -44,5 +44,5 @@ export const examples: Examples = {
   'Conditional Attribute Values': conditionalAttributeValues,
   'Style Objects': styleObjects,
   'Calendar': calendar,
-  'Custom Tag': customTag
+  'Activity Log': activityLog
 };
