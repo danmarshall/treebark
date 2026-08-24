@@ -266,10 +266,11 @@ function buildProps(
   extraAllowedAttrs?: Iterable<string>
 ): Record<string, unknown> {
   const props: Record<string, unknown> = {};
+  const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined;
 
   Object.entries(attrs).forEach(([key, value]) => {
     // First check if attribute name is allowed for this tag
-    if (!validateAttributeName(key, tag, logger, extraAllowedAttrs)) {
+    if (!validateAttributeName(key, tag, logger, extraAllowed)) {
       return; // Skip invalid attributes
     }
 

@@ -390,13 +390,13 @@ export function processStyleAttributeToProperties(
  * Validate that an attribute name is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: Iterable<string>): boolean {
+export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
   // Check tag-specific attributes
   const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-  const isTagSpecific = (tagAttrs && tagAttrs.has(key)) || (extraAllowedAttrs !== undefined && new Set(extraAllowedAttrs).has(key));
+  const isTagSpecific = (tagAttrs && tagAttrs.has(key)) || (extraAllowedAttrs !== undefined && extraAllowedAttrs.has(key));
 
   if (!isGlobal && !isTagSpecific) {
     logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
@@ -487,10 +487,18 @@ export function createTagHookArgs(
     data,
     parents,
     logger,
-    validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(key, tag, logger, extraAllowedAttrs),
-    filterAttrs: (extraAllowedAttrs) => Object.fromEntries(
-      Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowedAttrs))
-    )
+    validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(
+      key,
+      tag,
+      logger,
+      extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined
+    ),
+    filterAttrs: (extraAllowedAttrs) => {
+      const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined;
+      return Object.fromEntries(
+        Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowed))
+      );
+    }
   };
 }
 
