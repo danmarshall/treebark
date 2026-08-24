@@ -345,13 +345,31 @@
         logger.error(`Custom tag "${tag}" must contain a hyphen (e.g. "my-tag") and will be ignored`);
         continue;
       }
+      if (!definition.expand && !definition.component) {
+        logger.error(`Custom tag "${tag}" must define "expand" and/or "component" and will be ignored`);
+        continue;
+      }
       resolved[tag] = definition;
     }
     return Object.keys(resolved).length > 0 ? resolved : void 0;
   }
+  function filterCustomTagAttrs(tag, attrs, definition, logger) {
+    const allowedAttrs = definition.attrs ? new Set(definition.attrs) : void 0;
+    const filteredAttrs = {};
+    for (const [key, value] of Object.entries(attrs)) {
+      if (validateAttributeName(key, tag, logger, allowedAttrs)) {
+        filteredAttrs[key] = value;
+      }
+    }
+    return filteredAttrs;
+  }
   function expandCustomTag(tag, attrs, children, customTags, expandingTags, logger) {
     const definition = customTags[tag];
     if (!definition) {
+      return void 0;
+    }
+    if (!definition.expand) {
+      logger.error(`Custom tag "${tag}" has no "expand" function; this renderer requires "expand" (its "component" is only honored by the React renderer)`);
       return void 0;
     }
     if (expandingTags.has(tag)) {
@@ -362,13 +380,7 @@
       logger.error(`Custom tag "${tag}" exceeded maximum expansion depth of ${MAX_CUSTOM_TAG_EXPANSION_DEPTH}`);
       return void 0;
     }
-    const allowedAttrs = definition.attrs ? new Set(definition.attrs) : void 0;
-    const filteredAttrs = {};
-    for (const [key, value] of Object.entries(attrs)) {
-      if (validateAttributeName(key, tag, logger, allowedAttrs)) {
-        filteredAttrs[key] = value;
-      }
-    }
+    const filteredAttrs = filterCustomTagAttrs(tag, attrs, definition, logger);
     let expanded;
     try {
       expanded = definition.expand(filteredAttrs, children);
