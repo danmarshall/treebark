@@ -61,8 +61,9 @@ export function renderToReact(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const hooks = options.hooks;
 
-  const result = render(input.template, data, { logger, getOuterProperty });
+  const result = render(input.template, data, { logger, getOuterProperty, hooks });
   const nodes = Array.isArray(result) ? result : [result];
   return createElement(Fragment, null, ...withKeys(nodes));
 }

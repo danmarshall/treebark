@@ -467,66 +467,72 @@ export function validateAttribute(key: string, tag: string, value: string, logge
   if (!validateAttributeName(key, tag, logger)) {
     return null;
   }
-
-  export function createTagHookArgs(
-    tag: string,
-    attrs: Record<string, unknown>,
-    children: (InterpolatedString | TemplateObject)[],
-    data: Data,
-    parents: Data[],
-    logger: Logger
-  ): TagHookArgs {
-    return {
-      tag,
-      attrs,
-      children,
-      data,
-      parents,
-      logger,
-      validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(key, tag, logger, extraAllowedAttrs),
-      filterAttrs: (extraAllowedAttrs) => Object.fromEntries(
-        Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowedAttrs))
-      )
-    };
-  }
-
-  const MAX_HOOK_EXPANSION_DEPTH = 10;
-
-  export function expandHookedTag(
-    tag: string,
-    attrs: Record<string, unknown>,
-    children: (InterpolatedString | TemplateObject)[],
-    data: Data,
-    parents: Data[],
-    hooks: RenderHooks | undefined,
-    expandingTags: Set<string>,
-    logger: Logger
-  ): { expanded: TemplateElement | TemplateElement[]; nextExpandingTags: Set<string> } | undefined {
-    if (!hooks?.expandTag) {
-      return undefined;
-    }
-
-    if (expandingTags.has(tag)) {
-      logger.error(`Tag hook expansion for "${tag}" is cyclic`);
-      return { expanded: '', nextExpandingTags: expandingTags };
-    }
-
-    if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
-      logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
-      return { expanded: '', nextExpandingTags: expandingTags };
-    }
-
-    const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
-    const expanded = hooks.expandTag(hookArgs);
-    if (expanded === undefined) {
-      return undefined;
-    }
-
-    return { expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
-  }
   
   // Then validate the attribute value
   return validateAttributeValue(key, value, logger);
+}
+
+export function createTagHookArgs(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  logger: Logger
+): TagHookArgs {
+  return {
+    tag,
+    attrs,
+    children,
+    data,
+    parents,
+    logger,
+    validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(key, tag, logger, extraAllowedAttrs),
+    filterAttrs: (extraAllowedAttrs) => Object.fromEntries(
+      Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowedAttrs))
+    )
+  };
+}
+
+const MAX_HOOK_EXPANSION_DEPTH = 10;
+
+export function expandHookedTag(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  hooks: RenderHooks | undefined,
+  expandingTags: Set<string>,
+  logger: Logger
+): { expanded: TemplateElement | TemplateElement[]; nextExpandingTags: Set<string> } | undefined {
+  if (!hooks?.expandTag) {
+    return undefined;
+  }
+
+  if (expandingTags.has(tag)) {
+    logger.error(`Tag hook expansion for "${tag}" is cyclic`);
+    return { expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
+    logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
+    return { expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
+  let expanded: TemplateElement | TemplateElement[] | undefined;
+  try {
+    expanded = hooks.expandTag(hookArgs);
+  } catch (err) {
+    logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    return { expanded: '', nextExpandingTags: expandingTags };
+  }
+  if (expanded === undefined) {
+    return undefined;
+  }
+
+  return { expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
 }
 
 /**

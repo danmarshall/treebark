@@ -225,31 +225,31 @@
                 "module": "ES2020",
                 "outDir": "dist"
               }
-            },
+            }
+          ]
+        }
+      },
+      {
+        "displayName": "custom-tag-hooks",
+        "testMatch": [
+          "<rootDir>/src/custom-tag-hooks.test.ts"
+        ],
+        "preset": "ts-jest/presets/default-esm",
+        "testEnvironment": "node",
+        "extensionsToTreatAsEsm": [
+          ".ts"
+        ],
+        "moduleNameMapper": {
+          "^(\\.{1,2}/.*)\\.js$": "$1"
+        },
+        "transform": {
+          "^.+\\.tsx?$": [
+            "ts-jest",
             {
-              "displayName": "custom-tag-hooks",
-              "testMatch": [
-                "<rootDir>/src/custom-tag-hooks.test.ts"
-              ],
-              "preset": "ts-jest/presets/default-esm",
-              "testEnvironment": "node",
-              "extensionsToTreatAsEsm": [
-                ".ts"
-              ],
-              "moduleNameMapper": {
-                "^(\\.{1,2}/.*)\\.js$": "$1"
-              },
-              "transform": {
-                "^.+\\.tsx?$": [
-                  "ts-jest",
-                  {
-                    "useESM": true,
-                    "tsconfig": {
-                      "module": "ES2020",
-                      "outDir": "dist"
-                    }
-                  }
-                ]
+              "useESM": true,
+              "tsconfig": {
+                "module": "ES2020",
+                "outDir": "dist"
               }
             }
           ]
