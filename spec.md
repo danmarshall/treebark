@@ -17,6 +17,7 @@ Rendering functions also accept optional `RenderOptions`:
 interface RenderOptions {
   indent?: string | number | boolean;  // Indentation for string renderer
   logger?: Logger;       // Custom logger for error/warning messages
+  hooks?: RenderHooks;    // Scoped custom tag render hooks
 }
 
 interface Logger {
@@ -351,6 +352,15 @@ Blocked tags:
 ## 11a. Custom Tag Hooks
 
 Unknown tags remain blocked by default. Before an unknown tag is rejected, a renderer may call application-provided hooks from the render options. Hooks are scoped to the current render call and are not global.
+
+Hooks are passed through the renderer entry point:
+
+```javascript
+render({ template }, { hooks });
+renderToString({ template }, { hooks });
+renderToDOM({ template }, { hooks });
+renderToReact({ template }, { hooks });
+```
 
 **Tier 1 — template expansion:**
 - `hooks.expandTag(args)` receives the unknown tag name, raw attributes, raw children, data context, parent contexts, logger, and helper functions.

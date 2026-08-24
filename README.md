@@ -153,9 +153,12 @@ const hooks = {
     return definition.expand(filterAttrs(definition.attrs), children);
   }
 };
+
+const html = render({ template }, { hooks });
 ```
 
 `expandTag` returns a normal Treebark template, so the expanded output still goes through Treebark's existing interpolation, escaping, attribute validation, and renderer-specific output.
+Pass the same `hooks` option to `renderToString`, `renderToDOM`, or `renderToReact` when using those renderer-specific entry points.
 
 **Tier 2 — React render hook**, only available from `treebark/react`:
 
@@ -167,6 +170,9 @@ const hooks = {
     return React.createElement(PersonPill, props, ...args.renderChildren());
   }
 };
+
+const node = renderToReact({ template }, { hooks });
+// or: <Treebark template={template} hooks={hooks} />
 ```
 
 `renderTag` can return a React node directly. If it returns `undefined`, React falls back to `expandTag`, then finally to the normal unknown-tag rejection. Hook expansion is scoped to the render call, protects against cyclic/deep expansion chains, and leaves unknown tags rejected unless the application hook explicitly handles them.
