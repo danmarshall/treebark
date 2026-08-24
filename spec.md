@@ -350,7 +350,9 @@ Blocked tags:
 
 ## 11a. Custom Tags
 
-Applications may register additional tags, mapped to expansion functions that build a template from the tag whitelist above. Registration is scoped to a single render call/instance (via the `customTags` render option), never global, and unknown/unregistered tags remain rejected exactly as before.
+Applications may register additional tags. Registration is scoped to a single render call/instance (via the `customTags` render option), never global, and unknown/unregistered tags remain rejected exactly as before. A custom tag definition supports two expansion modes, and must provide at least one:
+
+**Tier 1 — `expand` (template expansion):** builds a template from the tag whitelist above; supported by the string, DOM, and React renderers.
 
 ```yaml
 - person-pill:
@@ -370,12 +372,25 @@ const customTags = {
 };
 ```
 
+**Tier 2 — `component` (React component override):** a React component rendered directly for the tag, receiving its validated/interpolated attributes as props and its rendered children — no intermediate template is produced. Only honored by the React renderer; the string/DOM renderers ignore `component` and require `expand` for that tag.
+
+```js
+const customTags = {
+  'person-pill': {
+    attrs: ['data-person-id'],
+    component: PersonPill // (props) => ReactNode
+  }
+};
+```
+
 Rules:
 - **Naming:** Custom tag names must contain a hyphen (e.g. `person-pill`), matching the web platform's custom-element naming rule. This guarantees no collision with any current or future built-in HTML tag.
 - **No overrides:** A registration whose name matches a built-in tag is ignored (logged as an error); built-in tags can never be shadowed.
-- **Attribute allowlisting:** Before `expand` runs, attributes not in the tag's own `attrs` list or in the global attribute set (`id`, `class`, `style`, `data-*`, `aria-*`, etc.) are stripped with a logged warning — the expansion function never sees unvalidated attribute names.
-- **Renderer parity:** `expand` returns a plain template built from built-in tags/special keys (which may itself reference other custom tags). That template is rendered through the normal pipeline, so string, DOM, and React output stay in parity, and all existing interpolation/escaping/attribute-value validation applies to the expanded output.
-- **Cycle/depth protection:** A custom tag that (directly or indirectly) expands into itself is detected and rejected with a logged error, as is an expansion chain exceeding the maximum depth.
+- **At least one expansion mode:** A definition with neither `expand` nor `component` is ignored (logged as an error).
+- **Attribute allowlisting:** Before `expand`/`component` runs, attributes not in the tag's own `attrs` list or in the global attribute set (`id`, `class`, `style`, `data-*`, `aria-*`, etc.) are stripped with a logged warning — neither `expand` nor `component` ever sees unvalidated attribute names.
+- **Renderer parity (Tier 1):** `expand` returns a plain template built from built-in tags/special keys (which may itself reference other custom tags). That template is rendered through the normal pipeline, so string, DOM, and React output stay in parity, and all existing interpolation/escaping/attribute-value validation applies to the expanded output.
+- **React-only (Tier 2):** `component` is rendered directly by the React renderer with no expansion chain; the string/DOM renderers fall back to (and require) `expand` and log an error if it's missing.
+- **Cycle/depth protection:** Applies to Tier 1 only. A custom tag that (directly or indirectly) expands into itself is detected and rejected with a logged error, as is an expansion chain exceeding the maximum depth.
 
 ---
 

@@ -132,7 +132,9 @@ This means the implementation is featherweight.
 
 ### Custom Tags
 
-Applications can register additional, application-specific tags that expand into a template built from the built-in tags above. Only explicitly registered tags are accepted — unknown tags remain rejected, and built-in tags can never be overridden.
+Applications can register additional, application-specific tags. Only explicitly registered tags are accepted — unknown tags remain rejected, and built-in tags can never be overridden. Two expansion modes are supported (a definition must provide at least one):
+
+**Tier 1 — template expansion (`expand`)**, works with the string, DOM, and React renderers:
 
 ```js
 const customTags = {
@@ -150,12 +152,40 @@ renderToString({ template: {
 // <span class="person-pill" data-person-id="person-123">Alex</span>
 ```
 
-- `attrs`: Array of additional attribute names allowed on this tag, beyond the global attributes (`id`, `class`, `style`, `data-*`, `aria-*`, etc., which are always allowed). Attributes not on this list are stripped with a logged warning before `expand` runs.
+- `attrs`: Array of additional attribute names allowed on this tag, beyond the global attributes (`id`, `class`, `style`, `data-*`, `aria-*`, etc., which are always allowed). Attributes not on this list are stripped with a logged warning before `expand`/`component` runs.
 - `expand`: Function receiving the tag's validated attributes and raw (unrendered) children, returning a new template built from built-in tags/special keys — including other registered custom tags.
+- Because expansion produces ordinary Treebark templates, the same output renders consistently across the string, DOM, and React renderers, and passes through all normal interpolation, escaping, and attribute-value validation.
+
+**Tier 2 — React component override (`component`)**, only honored by the React renderer (`renderToReact`/`<Treebark>`):
+
+```jsx
+import type { ReactCustomTagDefinition } from 'treebark/react';
+
+const PersonPill = ({ className, 'data-person-id': personId, children }) => (
+  <span className={className} data-person-id={personId}>{children}</span>
+);
+
+const customTags: Record<string, ReactCustomTagDefinition> = {
+  'person-pill': {
+    attrs: ['data-person-id'],
+    component: PersonPill
+  }
+};
+
+renderToReact({ template: {
+  'person-pill': { class: 'person-pill', 'data-person-id': 'person-123', $children: ['Alex'] }
+} }, { customTags });
+```
+
+- `component`: A React component rendered directly for the tag, receiving its validated/interpolated attributes as props (translated to React prop names, e.g. `class` → `className`) plus its rendered `children`.
+- The string and DOM renderers ignore `component` and require `expand` for that tag — a definition with only `component` is rejected (with a logged error) when rendered outside React.
+- A definition may provide both `expand` and `component`: the React renderer prefers `component`, while the string/DOM renderers use `expand`.
+
+Common to both tiers:
 - Custom tag names must contain a hyphen (e.g. `person-pill`), matching the same naming rule as web platform custom elements, so they can never collide with a current or future built-in HTML tag.
 - Registrations are passed via the `customTags` render option (or the `customTags` prop on the React `<Treebark>` component) and apply only to that render call/instance — there is no global registry.
-- Because expansion produces ordinary Treebark templates, the same output renders consistently across the string, DOM, and React renderers, and passes through all normal interpolation, escaping, and attribute-value validation.
-- Cyclic expansions (a tag that expands into itself, directly or indirectly) and excessively deep expansion chains are detected and rejected with a logged error.
+- Cyclic expansions (a tag that expands into itself, directly or indirectly) and excessively deep expansion chains are detected and rejected with a logged error (Tier 1 only — Tier 2 renders directly with no expansion chain).
+
 
 ## Examples  
 

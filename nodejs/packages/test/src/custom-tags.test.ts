@@ -1,6 +1,8 @@
 import { renderToString } from 'treebark';
 import { renderToReact } from 'treebark/react';
+import type { ReactCustomTagDefinition } from 'treebark/react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement } from 'react';
 import { jest } from '@jest/globals';
 import type { CustomTagDefinition, Logger } from 'treebark';
 
@@ -13,6 +15,16 @@ const personPill: CustomTagDefinition = {
   expand: (attrs, children) => ({
     span: { class: 'person-pill', ...attrs, $children: children }
   })
+};
+
+function PersonPillComponent(props: any) {
+  const { className, 'data-person-id': personId, children } = props;
+  return createElement('span', { className, 'data-person-id': personId }, children);
+}
+
+const personPillReactComponent: ReactCustomTagDefinition = {
+  attrs: ['data-person-id'],
+  component: PersonPillComponent
 };
 
 describe('Custom tag expansion', () => {
@@ -193,5 +205,86 @@ describe('Custom tag expansion', () => {
     );
     expect(result).toBe('');
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('boom'));
+  });
+});
+
+describe('Custom tag React component override (Tier 2)', () => {
+  it('renders a registered custom tag via its React component instead of expanding a template', () => {
+    const template = {
+      'person-pill': {
+        class: 'person-pill',
+        'data-person-id': 'person-123',
+        $children: ['Alex']
+      }
+    } as any;
+    const node = renderToReact({ template }, { customTags: { 'person-pill': personPillReactComponent } });
+    const html = renderToStaticMarkup(node as any);
+    expect(html).toBe('<span class="person-pill" data-person-id="person-123">Alex</span>');
+  });
+
+  it('supports interpolation of data within component props/children', () => {
+    const template = {
+      'person-pill': {
+        'data-person-id': 'person-{{id}}',
+        $children: ['{{name}}']
+      }
+    } as any;
+    const node = renderToReact(
+      { template, data: { id: '456', name: 'Jamie' } },
+      { customTags: { 'person-pill': personPillReactComponent } }
+    );
+    const html = renderToStaticMarkup(node as any);
+    expect(html).toBe('<span data-person-id="person-456">Jamie</span>');
+  });
+
+  it('strips attributes not present in the allowlist or global attrs before calling the component', () => {
+    const logger = mockLogger();
+    const template = {
+      'person-pill': {
+        'data-person-id': 'person-123',
+        onclick: 'alert(1)',
+        $children: ['Alex']
+      }
+    } as any;
+    const node = renderToReact(
+      { template },
+      { logger, customTags: { 'person-pill': personPillReactComponent } }
+    );
+    const html = renderToStaticMarkup(node as any);
+    expect(html).toBe('<span data-person-id="person-123">Alex</span>');
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Attribute "onclick" is not allowed on tag "person-pill"'));
+  });
+
+  it('renders nested built-in tags as children of the component', () => {
+    const template = {
+      'person-pill': {
+        'data-person-id': 'person-1',
+        $children: [{ strong: 'Sam' }]
+      }
+    } as any;
+    const node = renderToReact({ template }, { customTags: { 'person-pill': personPillReactComponent } });
+    const html = renderToStaticMarkup(node as any);
+    expect(html).toBe('<span data-person-id="person-1"><strong>Sam</strong></span>');
+  });
+
+  it('falls back to requiring expand in the string renderer when a definition only has component', () => {
+    const logger = mockLogger();
+    const result = renderToString(
+      { template: { 'person-pill': { 'data-person-id': 'p-1', $children: ['Alex'] } } as any },
+      { logger, customTags: { 'person-pill': personPillReactComponent as any } }
+    );
+    expect(result).toBe('');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('has no "expand" function'));
+  });
+
+  it('rejects a custom tag definition with neither expand nor component', () => {
+    const logger = mockLogger();
+    const node = renderToReact(
+      { template: { 'empty-tag': 'x' } as any },
+      { logger, customTags: { 'empty-tag': {} as any } }
+    );
+    const html = renderToStaticMarkup(node as any);
+    expect(html).toBe('');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('must define "expand" and/or "component"'));
   });
 });

@@ -677,9 +677,35 @@ export function resolveCustomTags(customTags: CustomTags | undefined, logger: Lo
       logger.error(`Custom tag "${tag}" must contain a hyphen (e.g. "my-tag") and will be ignored`);
       continue;
     }
+    if (!definition.expand && !definition.component) {
+      logger.error(`Custom tag "${tag}" must define "expand" and/or "component" and will be ignored`);
+      continue;
+    }
     resolved[tag] = definition;
   }
   return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
+
+/**
+ * Filter a custom tag's attributes down to its own declared `attrs` allowlist
+ * plus the always-allowed global attributes, logging a warning for anything
+ * stripped. Shared by both the "Tier 1" (`expand`) and "Tier 2" (`component`)
+ * custom-tag expansion modes.
+ */
+export function filterCustomTagAttrs(
+  tag: string,
+  attrs: Record<string, unknown>,
+  definition: CustomTagDefinition,
+  logger: Logger
+): Record<string, unknown> {
+  const allowedAttrs = definition.attrs ? new Set(definition.attrs) : undefined;
+  const filteredAttrs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(attrs)) {
+    if (validateAttributeName(key, tag, logger, allowedAttrs)) {
+      filteredAttrs[key] = value;
+    }
+  }
+  return filteredAttrs;
 }
 
 /**
@@ -703,6 +729,11 @@ export function expandCustomTag(
     return undefined;
   }
 
+  if (!definition.expand) {
+    logger.error(`Custom tag "${tag}" has no "expand" function; this renderer requires "expand" (its "component" is only honored by the React renderer)`);
+    return undefined;
+  }
+
   if (expandingTags.has(tag)) {
     logger.error(`Custom tag "${tag}" expansion is cyclic (tag expands into itself, directly or indirectly)`);
     return undefined;
@@ -712,13 +743,7 @@ export function expandCustomTag(
     return undefined;
   }
 
-  const allowedAttrs = definition.attrs ? new Set(definition.attrs) : undefined;
-  const filteredAttrs: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(attrs)) {
-    if (validateAttributeName(key, tag, logger, allowedAttrs)) {
-      filteredAttrs[key] = value;
-    }
-  }
+  const filteredAttrs = filterCustomTagAttrs(tag, attrs, definition, logger);
 
   let expanded: TemplateElement;
   try {

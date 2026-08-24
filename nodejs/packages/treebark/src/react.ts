@@ -1,6 +1,6 @@
 import { createElement, Fragment, cloneElement, isValidElement } from 'react';
-import type { ReactNode } from 'react';
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, CustomTags } from './types.js';
+import type { ComponentType, ReactNode } from 'react';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, CustomTags, CustomTagDefinition, InterpolatedString } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -16,8 +16,23 @@ import {
   parseTemplateObject,
   processConditional,
   resolveCustomTags,
-  expandCustomTag
+  expandCustomTag,
+  filterCustomTagAttrs
 } from './common.js';
+
+// Props passed to a "Tier 2" React custom-tag `component`: the tag's validated,
+// interpolated attributes (translated to React prop names, e.g. class ->
+// className) plus its rendered children.
+export type ReactCustomTagProps = Record<string, unknown> & { children?: ReactNode };
+
+// A properly-typed variant of `CustomTagDefinition` for the React renderer's
+// "Tier 2" component-override mode: `component` receives the tag's rendered
+// props/children directly, instead of expanding into a Treebark template.
+// Only honored by `renderToReact`/`<Treebark>` — string/DOM renderers ignore
+// `component` and require `expand` instead.
+export interface ReactCustomTagDefinition extends Omit<CustomTagDefinition, 'component'> {
+  component?: ComponentType<ReactCustomTagProps>;
+}
 
 // Map treebark's HTML attribute names to the React prop names that React's
 // element model expects. Template authors always write the HTML names (class,
@@ -111,6 +126,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   if (!ALLOWED_TAGS.has(tag)) {
     const customTags = context.customTags;
     if (customTags && tag in customTags) {
+      const definition = customTags[tag] as ReactCustomTagDefinition;
+      if (definition.component) {
+        return renderCustomComponent(tag, definition, attrs, children, data, context);
+      }
       const expandingTags = context.expandingTags || new Set<string>();
       const result = expandCustomTag(tag, attrs, children, customTags, expandingTags, logger);
       if (!result) {
@@ -198,6 +217,43 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   }
 
   return createElementWithAttrs(tag, attrs, data, parents, logger, getOuterProperty, childNodes);
+}
+
+/**
+ * "Tier 2" custom-tag rendering: instead of expanding into a Treebark template,
+ * render the tag directly as the given React component, passing it the tag's
+ * validated/interpolated attributes (as React props) and its rendered children.
+ * Attribute filtering/validation and child rendering reuse the same logic as
+ * built-in tags, so the same safety guarantees (allowlisting, escaping,
+ * attribute-value validation) apply here too.
+ */
+function renderCustomComponent(
+  tag: string,
+  definition: ReactCustomTagDefinition,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  context: RenderContext
+): ReactNode {
+  const logger = context.logger;
+  const parents = context.parents || [];
+  const getOuterProperty = context.getOuterProperty;
+
+  const filteredAttrs = filterCustomTagAttrs(tag, attrs, definition, logger);
+  const props = buildProps(filteredAttrs, data, tag, parents, logger, getOuterProperty);
+
+  const childNodes: ReactNode[] = [];
+  for (const c of children) {
+    const nodes = render(c, data, context);
+    if (Array.isArray(nodes)) childNodes.push(...nodes);
+    else childNodes.push(nodes);
+  }
+
+  const component = definition.component as ComponentType<ReactCustomTagProps>;
+  if (childNodes.length === 0) {
+    return createElement(component, props);
+  }
+  return createElement(component, props, ...withKeys(childNodes));
 }
 
 function createElementWithAttrs(

@@ -159,19 +159,28 @@ export interface Logger {
 // Outer property resolver type for getProperty - called when a property is not found in local context
 export type OuterPropertyResolver = (path: BindPath, data: Data, parents: Data[]) => unknown;
 
-// Definition for a custom (userland) tag: expands into a template built from
-// built-in tags/special keys, so string/DOM/React renderers stay in parity.
+// Definition for a custom (userland) tag. Two mutually-compatible expansion
+// modes are supported (a definition must provide at least one):
+// - `expand` ("Tier 1" — template expansion): receives already name-validated
+//   (but not yet interpolated) attributes and the tag's raw, unrendered children,
+//   and must return a template built only from built-in tags/special keys (which
+//   may itself reference other custom tags). The returned template is rendered
+//   through the normal pipeline, so all existing interpolation, escaping, and
+//   attribute-value validation still applies to it. Supported by every renderer
+//   (string, DOM, React).
+// - `component` ("Tier 2" — React component override): only honored by the React
+//   renderer (`renderToReact`/`<Treebark>`); ignored by the string/DOM renderers,
+//   which fall back to `expand` (an error is logged if `expand` is missing there).
+//   Typed loosely here (renderer-agnostic file) — see `ReactCustomTagDefinition`
+//   in `react.ts` for the properly-typed React component signature.
 // - `attrs` is the name-only allowlist for this tag's own attributes, in addition
 //   to the global attributes (id, class, style, data-*, aria-*, ...) that are
-//   always allowed. Attributes not in either set are stripped before `expand` runs.
-// - `expand` receives already name-validated (but not yet interpolated) attributes
-//   and the tag's raw, unrendered children, and must return a template built only
-//   from built-in tags/special keys (which may itself reference other custom tags).
-//   The returned template is rendered through the normal pipeline, so all existing
-//   interpolation, escaping, and attribute-value validation still applies to it.
+//   always allowed. Attributes not in either set are stripped before `expand`/
+//   `component` runs.
 export interface CustomTagDefinition {
   attrs?: string[];
-  expand: (attrs: TemplateAttributes, children: (InterpolatedString | TemplateObject)[]) => TemplateElement;
+  expand?: (attrs: TemplateAttributes, children: (InterpolatedString | TemplateObject)[]) => TemplateElement;
+  component?: unknown;
 }
 
 // Registry of custom tag names to their definitions. Custom tag names must
