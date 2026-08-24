@@ -41,7 +41,7 @@ interface RenderContext {
 
 export interface ReactTagHookArgs extends TagHookArgs {
   renderChildren(children?: (InterpolatedString | TemplateObject)[]): ReactNode[];
-  buildProps(attrs?: Record<string, unknown>, extraAllowedAttrs?: Iterable<string>, validationTag?: string): Record<string, unknown>;
+  buildProps(attrs?: Record<string, unknown>, validationTag?: string, extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
 }
 
 export interface ReactRenderHooks extends RenderHooks {
@@ -235,7 +235,7 @@ function renderHookedReactTag(
       }
       return childNodes;
     },
-    buildProps: (attrsToBuild = attrs, extraAllowedAttrs, validationTag = tag) =>
+    buildProps: (attrsToBuild = attrs, validationTag = tag, extraAllowedAttrs) =>
       buildProps(attrsToBuild, data, validationTag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
   });
 }

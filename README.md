@@ -163,14 +163,14 @@ const hooks = {
 const hooks = {
   renderTag: (args) => {
     if (args.tag !== 'person-pill') return undefined;
-    const props = args.buildProps(args.filterAttrs(['data-person-id']), ['data-person-id']);
+    const props = args.buildProps(args.filterAttrs(['data-person-id']));
     return React.createElement(PersonPill, props, ...args.renderChildren());
   }
 };
 ```
 
 `renderTag` can return a React node directly. If it returns `undefined`, React falls back to `expandTag`, then finally to the normal unknown-tag rejection. Hook expansion is scoped to the render call, protects against cyclic/deep expansion chains, and leaves unknown tags rejected unless the application hook explicitly handles them.
-When using `buildProps`, pass the intended validation tag as the third argument if attributes should be validated against a built-in tag other than the custom tag name.
+When using `buildProps`, pass the intended validation tag as the second argument if attributes should be validated against a built-in tag other than the custom tag name.
 
 ## Examples  
 

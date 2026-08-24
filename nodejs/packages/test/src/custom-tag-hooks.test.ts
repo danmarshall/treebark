@@ -94,7 +94,7 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
       renderTag: (args) => {
         if (args.tag !== 'person-pill') return undefined;
 
-        const props = args.buildProps(args.filterAttrs(['data-person-id']), ['data-person-id']);
+        const props = args.buildProps(args.filterAttrs(['data-person-id']), undefined, ['data-person-id']);
         return createElement('strong', { ...props, className: 'person-pill' }, ...args.renderChildren());
       }
     };
@@ -129,7 +129,7 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
       renderTag: (args) => {
         if (args.tag !== 'link-pill') return undefined;
 
-        return createElement('a', args.buildProps(args.attrs, undefined, 'a'), ...args.renderChildren());
+        return createElement('a', args.buildProps(args.attrs, 'a'), ...args.renderChildren());
       }
     };
 
