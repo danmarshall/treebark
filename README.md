@@ -29,6 +29,7 @@ Output:
   - [Allowed Tags](#allowed-tags)
   - [Allowed Attributes](#allowed-attributes)
   - [Special Keys](#special-keys)
+  - [Custom Tag Hooks](#custom-tag-hooks)
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
@@ -128,6 +129,47 @@ This means the implementation is featherweight.
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
+
+### Custom Tag Hooks
+
+Treebark keeps the core tag whitelist closed, but render options can provide hooks that let applications recognize their own tag names before Treebark rejects them. This supports userland custom tag implementations without adding a built-in custom tag registry.
+
+**Tier 1 — template expansion**, supported by the string, DOM, and React renderers:
+
+```js
+const customTags = {
+  'person-pill': {
+    attrs: ['data-person-id'],
+    expand: (attrs, children) => ({
+      span: { class: 'person-pill', ...attrs, $children: children }
+    })
+  }
+};
+
+const hooks = {
+  expandTag: ({ tag, children, filterAttrs }) => {
+    const definition = customTags[tag];
+    if (!definition) return undefined;
+    return definition.expand(filterAttrs(definition.attrs), children);
+  }
+};
+```
+
+`expandTag` returns a normal Treebark template, so the expanded output still goes through Treebark's existing interpolation, escaping, attribute validation, and renderer-specific output.
+
+**Tier 2 — React render hook**, only available from `treebark/react`:
+
+```js
+const hooks = {
+  renderTag: (args) => {
+    if (args.tag !== 'person-pill') return undefined;
+    const props = args.buildProps(args.filterAttrs(['data-person-id']), ['data-person-id']);
+    return React.createElement(PersonPill, props, ...args.renderChildren());
+  }
+};
+```
+
+`renderTag` can return a React node directly. If it returns `undefined`, React falls back to `expandTag`, then finally to the normal unknown-tag rejection. Hook expansion is scoped to the render call, protects against cyclic/deep expansion chains, and leaves unknown tags rejected unless the application hook explicitly handles them.
 
 ## Examples  
 

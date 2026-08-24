@@ -159,9 +159,25 @@ export interface Logger {
 // Outer property resolver type for getProperty - called when a property is not found in local context
 export type OuterPropertyResolver = (path: BindPath, data: Data, parents: Data[]) => unknown;
 
+export interface TagHookArgs {
+  tag: string;
+  attrs: Record<string, unknown>;
+  children: (InterpolatedString | TemplateObject)[];
+  data: Data;
+  parents: Data[];
+  logger: Logger;
+  validateAttributeName(key: string, extraAllowedAttrs?: Iterable<string>): boolean;
+  filterAttrs(extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
+}
+
+export interface RenderHooks {
+  expandTag?(args: TagHookArgs): TemplateElement | TemplateElement[] | undefined;
+}
+
 // Options interface for render functions
 export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  hooks?: RenderHooks;
 }

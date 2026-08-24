@@ -1,6 +1,6 @@
 import { createElement, Fragment, cloneElement, isValidElement } from 'react';
 import type { ReactNode } from 'react';
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, RenderHooks, InterpolatedString, TagHookArgs } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -14,7 +14,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  expandHookedTag,
+  createTagHookArgs
 } from './common.js';
 
 // Map treebark's HTML attribute names to the React prop names that React's
@@ -33,11 +35,26 @@ interface RenderContext {
   parents?: Data[];
   logger: Logger;
   getOuterProperty?: OuterPropertyResolver;
+  hooks?: ReactRenderHooks;
+  expandingTags?: Set<string>;
+}
+
+export interface ReactTagHookArgs extends TagHookArgs {
+  renderChildren(children?: (InterpolatedString | TemplateObject)[]): ReactNode[];
+  buildProps(attrs?: Record<string, unknown>, extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
+}
+
+export interface ReactRenderHooks extends RenderHooks {
+  renderTag?(args: ReactTagHookArgs): ReactNode | undefined;
+}
+
+export interface ReactRenderOptions extends Omit<RenderOptions, 'hooks'> {
+  hooks?: ReactRenderHooks;
 }
 
 export function renderToReact(
   input: TreebarkInput,
-  options: RenderOptions = {}
+  options: ReactRenderOptions = {}
 ): ReactNode {
   const data = input.data;
 
@@ -55,6 +72,7 @@ export function renderToReact(
 export interface TreebarkProps extends TreebarkInput {
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  hooks?: ReactRenderHooks;
 }
 
 /**
@@ -62,8 +80,8 @@ export interface TreebarkProps extends TreebarkInput {
  *
  *   <Treebark template={template} data={data} />
  */
-export function Treebark({ template, data, logger, propertyFallback }: TreebarkProps): ReactNode {
-  return renderToReact({ template, data }, { logger, propertyFallback });
+export function Treebark({ template, data, logger, propertyFallback, hooks }: TreebarkProps): ReactNode {
+  return renderToReact({ template, data }, { logger, propertyFallback, hooks });
 }
 
 // React requires a `key` on each element rendered as part of an array. Text nodes
@@ -103,6 +121,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
+    const customNode = renderHookedReactTag(tag, attrs, children, data, parents, context);
+    if (customNode !== undefined) {
+      return customNode;
+    }
+    const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || new Set<string>(), logger);
+    if (result) {
+      return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+    }
     logger.error(`Tag "${tag}" is not allowed`);
     return [];
   }
@@ -185,6 +211,34 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return createElementWithAttrs(tag, attrs, data, parents, logger, getOuterProperty, childNodes);
 }
 
+function renderHookedReactTag(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  context: RenderContext
+): ReactNode | undefined {
+  if (!context.hooks?.renderTag) {
+    return undefined;
+  }
+
+  return context.hooks.renderTag({
+    ...createTagHookArgs(tag, attrs, children, data, parents, context.logger),
+    renderChildren: (childrenToRender = children) => {
+      const childNodes: ReactNode[] = [];
+      for (const c of childrenToRender) {
+        const nodes = render(c, data, context);
+        if (Array.isArray(nodes)) childNodes.push(...nodes);
+        else childNodes.push(nodes);
+      }
+      return childNodes;
+    },
+    buildProps: (attrsToBuild = attrs, extraAllowedAttrs) =>
+      buildProps(attrsToBuild, data, tag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
+  });
+}
+
 function createElementWithAttrs(
   tag: string,
   attrs: Record<string, unknown>,
@@ -207,13 +261,14 @@ function buildProps(
   tag: string,
   parents: Data[],
   logger: Logger,
-  getOuterProperty?: OuterPropertyResolver
+  getOuterProperty?: OuterPropertyResolver,
+  extraAllowedAttrs?: Iterable<string>
 ): Record<string, unknown> {
   const props: Record<string, unknown> = {};
 
   Object.entries(attrs).forEach(([key, value]) => {
     // First check if attribute name is allowed for this tag
-    if (!validateAttributeName(key, tag, logger)) {
+    if (!validateAttributeName(key, tag, logger, extraAllowedAttrs)) {
       return; // Skip invalid attributes
     }
 
