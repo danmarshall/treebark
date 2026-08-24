@@ -123,4 +123,26 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
 
     expect(result).toBe('<article class="calendar-event" data-event-id="event-1">Launch</article>');
   });
+
+  test('can validate props against the rendered target element', () => {
+    const hooks: ReactRenderHooks = {
+      renderTag: (args) => {
+        if (args.tag !== 'link-pill') return undefined;
+
+        return createElement('a', args.buildProps(args.attrs, undefined, 'a'), ...args.renderChildren());
+      }
+    };
+
+    const result = renderToStaticMarkup(renderToReact({
+      template: {
+        'link-pill': {
+          href: '/people/alex',
+          target: '_blank',
+          $children: ['Alex']
+        }
+      }
+    } as any, { hooks }));
+
+    expect(result).toBe('<a href="/people/alex" target="_blank">Alex</a>');
+  });
 });

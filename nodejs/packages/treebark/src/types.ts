@@ -174,6 +174,12 @@ export interface RenderHooks {
   expandTag?(args: TagHookArgs): TemplateElement | TemplateElement[] | undefined;
 }
 
+export interface HookExpansionResult {
+  handled: true;
+  expanded: TemplateElement | TemplateElement[];
+  nextExpandingTags: Set<string>;
+}
+
 // Options interface for render functions
 export interface RenderOptions {
   indent?: string | number | boolean;

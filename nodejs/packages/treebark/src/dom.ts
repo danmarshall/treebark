@@ -65,7 +65,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
     const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || new Set<string>(), logger);
-    if (result) {
+    if (result?.handled) {
       return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
     }
     logger.error(`Tag "${tag}" is not allowed`);

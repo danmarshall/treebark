@@ -18,6 +18,7 @@ import type {
   InterpolatedString,
   RenderHooks,
   TagHookArgs,
+  HookExpansionResult,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -513,19 +514,19 @@ export function expandHookedTag(
   hooks: RenderHooks | undefined,
   expandingTags: Set<string>,
   logger: Logger
-): { expanded: TemplateElement | TemplateElement[]; nextExpandingTags: Set<string> } | undefined {
+): HookExpansionResult | undefined {
   if (!hooks?.expandTag) {
     return undefined;
   }
 
   if (expandingTags.has(tag)) {
     logger.error(`Tag hook expansion for "${tag}" is cyclic`);
-    return { expanded: '', nextExpandingTags: expandingTags };
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
   }
 
   if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
     logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
-    return { expanded: '', nextExpandingTags: expandingTags };
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
   }
 
   const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
@@ -534,13 +535,13 @@ export function expandHookedTag(
     expanded = hooks.expandTag(hookArgs);
   } catch (err) {
     logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
-    return { expanded: '', nextExpandingTags: expandingTags };
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
   }
   if (expanded === undefined) {
     return undefined;
   }
 
-  return { expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
+  return { handled: true, expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
 }
 
 /**

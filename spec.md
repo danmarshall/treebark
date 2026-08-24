@@ -362,6 +362,7 @@ Unknown tags remain blocked by default. Before an unknown tag is rejected, a ren
 - `hooks.renderTag(args)` is available only in the React renderer.
 - It can return a React node directly for an unknown tag.
 - It receives helpers for safely rendering child templates and building React props from Treebark attributes.
+- Its prop-building helper may validate attributes against a specified built-in target tag when the custom tag renders as a known HTML element.
 - If it returns `undefined`, React falls back to Tier 1 expansion and then to normal unknown-tag rejection.
 
 Reference implementations should keep their own allowlist of custom tag names and attributes, use the provided attribute filtering helpers, and return `undefined` for tags they do not recognize.

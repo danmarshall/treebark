@@ -41,7 +41,7 @@ interface RenderContext {
 
 export interface ReactTagHookArgs extends TagHookArgs {
   renderChildren(children?: (InterpolatedString | TemplateObject)[]): ReactNode[];
-  buildProps(attrs?: Record<string, unknown>, extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
+  buildProps(attrs?: Record<string, unknown>, extraAllowedAttrs?: Iterable<string>, validationTag?: string): Record<string, unknown>;
 }
 
 export interface ReactRenderHooks extends RenderHooks {
@@ -127,7 +127,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
       return customNode;
     }
     const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || new Set<string>(), logger);
-    if (result) {
+    if (result?.handled) {
       return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
     }
     logger.error(`Tag "${tag}" is not allowed`);
@@ -235,8 +235,8 @@ function renderHookedReactTag(
       }
       return childNodes;
     },
-    buildProps: (attrsToBuild = attrs, extraAllowedAttrs) =>
-      buildProps(attrsToBuild, data, tag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
+    buildProps: (attrsToBuild = attrs, extraAllowedAttrs, validationTag = tag) =>
+      buildProps(attrsToBuild, data, validationTag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
   });
 }
 
