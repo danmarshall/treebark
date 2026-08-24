@@ -40,6 +40,7 @@ Output:
   - [Attributes](#attributes)
   - [Styling with Style Objects](#styling-with-style-objects)
   - [Mixed Content](#mixed-content)
+  - [Root-Level Fragments](#root-level-fragments)
   - [With Data Binding](#with-data-binding)
   - [Binding with $bind](#binding-with-bind)
   - [Parent Property Access](#parent-property-access)
@@ -337,6 +338,27 @@ Output:
 ```html
 <div>Hello <span>World</span>!</div>
 ```
+
+### Root-Level Fragments
+
+Templates can be root-level arrays, allowing multiple sibling elements and text without a wrapper element:
+
+```json
+[
+  "before",
+  { "h1": "Hello world" },
+  { "p": "Welcome to treebark templates" },
+  "and more"
+]
+```
+
+Output:
+
+```html
+before<h1>Hello world</h1><p>Welcome to treebark templates</p>and more
+```
+
+String rendering concatenates the root nodes. DOM rendering returns a `DocumentFragment`, and React rendering returns a React fragment.
 
 ### With Data Binding
 
