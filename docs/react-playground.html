@@ -70,6 +70,7 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
     statusEl.style.color = '#137333';
 
     var root = ReactDOM.createRoot(rootEl);
+    var currentCustomTags;
 
     function showError(message) {
         errorEl.textContent = message;
@@ -96,7 +97,7 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
         }
         try {
             clearError();
-            root.render(window.Treebark.renderToReact({ template: template, data: data }));
+            root.render(window.Treebark.renderToReact({ template: template, data: data }, { customTags: currentCustomTags }));
         } catch (e) {
             showError('Render error: ' + e.message);
         }
@@ -112,6 +113,7 @@ description: Try Treebark's React renderer in the browser using the hosted UMD b
         if (!select || !examples) return;
         var ex = examples[select.value];
         if (!ex) return;
+        currentCustomTags = ex.customTags;
         templateEl.value = JSON.stringify(ex.template, null, 2);
         dataEl.value = JSON.stringify(ex.data, null, 2);
         render();

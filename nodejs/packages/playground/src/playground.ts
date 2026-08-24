@@ -1,14 +1,15 @@
-import type { TemplateElement } from '../../treebark/dist/types.js';
+import type { TemplateElement, CustomTags } from '../../treebark/dist/types.js';
 import type JSYaml from 'js-yaml';
 import { examples } from './examples/index.js';
 
 declare const jsyaml: typeof JSYaml;
 
 declare const Treebark: {
-  renderToString(input: { template: TemplateElement | TemplateElement[]; data: unknown }, options?: { indent?: string | boolean }): string;
+  renderToString(input: { template: TemplateElement | TemplateElement[]; data: unknown }, options?: { indent?: string | boolean; customTags?: CustomTags }): string;
 };
 
 let currentTemplateFormat: 'json' | 'yaml' = 'json';
+let currentCustomTags: CustomTags | undefined;
 
 // Get DOM elements
 const templateEditor = document.getElementById('template-editor') as HTMLTextAreaElement;
@@ -122,7 +123,7 @@ function updateOutput(): void {
     try {
       // Render using treebark
       const input = { template, data };
-      const options = { indent };
+      const options = { indent, customTags: currentCustomTags };
 
       const html = Treebark.renderToString(input, options);
 
@@ -162,6 +163,7 @@ function escapeHtml(text: string): string {
 function loadExample(exampleId: string): void {
   const example = examples[exampleId];
   if (example) {
+    currentCustomTags = example.customTags;
     // Display template in the current format
     if (currentTemplateFormat === 'json') {
       templateEditor.value = JSON.stringify(example.template, null, 2);
