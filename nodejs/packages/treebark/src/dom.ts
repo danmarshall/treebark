@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, CustomTags } from './types.js';
 import { 
   ALLOWED_TAGS, 
   VOID_TAGS,
@@ -12,7 +12,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  resolveCustomTags,
+  expandCustomTag
 } from './common.js';
 
 export function renderToDOM(
@@ -24,16 +26,17 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const customTags = resolveCustomTags(options.customTags, logger);
   
   const fragment = document.createDocumentFragment();
   
-  const result = render(input.template, data, { logger, getOuterProperty });
+  const result = render(input.template, data, { logger, getOuterProperty, customTags });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; customTags?: CustomTags; expandingTags?: Set<string> }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -62,6 +65,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
+    const customTags = context.customTags;
+    if (customTags && tag in customTags) {
+      const expandingTags = context.expandingTags || new Set<string>();
+      const result = expandCustomTag(tag, attrs, children, customTags, expandingTags, logger);
+      if (!result) {
+        return [];
+      }
+      return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+    }
     logger.error(`Tag "${tag}" is not allowed`);
     return [];
   }

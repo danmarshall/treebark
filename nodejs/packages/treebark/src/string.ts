@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
+import { TreebarkInput, RenderOptions, Data, TemplateElement, TemplateObject, Logger, OuterPropertyResolver, CustomTags } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -13,7 +13,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  resolveCustomTags,
+  expandCustomTag
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -52,6 +54,7 @@ export function renderToString(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const customTags = resolveCustomTags(options.customTags, logger);
 
   // Conditionally set indent context
   const context = options.indent ? {
@@ -59,8 +62,9 @@ export function renderToString(
       typeof options.indent === 'string' ? options.indent : '  ',
     level: 0,
     logger,
-    getOuterProperty
-  } : { logger, getOuterProperty };
+    getOuterProperty,
+    customTags
+  } : { logger, getOuterProperty, customTags };
 
   return render(input.template, data, context);
 }
@@ -89,7 +93,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; customTags?: CustomTags; expandingTags?: Set<string> }): string {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -107,6 +111,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
+    const customTags = context.customTags;
+    if (customTags && tag in customTags) {
+      const expandingTags = context.expandingTags || new Set<string>();
+      const result = expandCustomTag(tag, attrs, children, customTags, expandingTags, logger);
+      if (!result) {
+        return '';
+      }
+      return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+    }
     logger.error(`Tag "${tag}" is not allowed`);
     return '';
   }

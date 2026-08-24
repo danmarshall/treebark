@@ -205,10 +205,10 @@
     }
     return styleObjectToString(resolved, logger);
   }
-  function validateAttributeName(key, tag, logger) {
+  function validateAttributeName(key, tag, logger, extraAllowed) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-    const isTagSpecific = tagAttrs && tagAttrs.has(key);
+    const isTagSpecific = tagAttrs && tagAttrs.has(key) || extraAllowed !== void 0 && extraAllowed.has(key);
     if (!isGlobal && !isTagSpecific) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
@@ -330,6 +330,54 @@
     const attrs = rest && typeof rest === "object" && !Array.isArray(rest) ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== "$children")) : {};
     return { tag, rest, children, attrs };
   }
+  const MAX_CUSTOM_TAG_EXPANSION_DEPTH = 10;
+  function resolveCustomTags(customTags, logger) {
+    if (!customTags) {
+      return void 0;
+    }
+    const resolved = {};
+    for (const [tag, definition] of Object.entries(customTags)) {
+      if (ALLOWED_TAGS.has(tag)) {
+        logger.error(`Custom tag "${tag}" conflicts with a built-in tag and will be ignored`);
+        continue;
+      }
+      if (!tag.includes("-")) {
+        logger.error(`Custom tag "${tag}" must contain a hyphen (e.g. "my-tag") and will be ignored`);
+        continue;
+      }
+      resolved[tag] = definition;
+    }
+    return Object.keys(resolved).length > 0 ? resolved : void 0;
+  }
+  function expandCustomTag(tag, attrs, children, customTags, expandingTags, logger) {
+    const definition = customTags[tag];
+    if (!definition) {
+      return void 0;
+    }
+    if (expandingTags.has(tag)) {
+      logger.error(`Custom tag "${tag}" expansion is cyclic (tag expands into itself, directly or indirectly)`);
+      return void 0;
+    }
+    if (expandingTags.size >= MAX_CUSTOM_TAG_EXPANSION_DEPTH) {
+      logger.error(`Custom tag "${tag}" exceeded maximum expansion depth of ${MAX_CUSTOM_TAG_EXPANSION_DEPTH}`);
+      return void 0;
+    }
+    const allowedAttrs = definition.attrs ? new Set(definition.attrs) : void 0;
+    const filteredAttrs = {};
+    for (const [key, value] of Object.entries(attrs)) {
+      if (validateAttributeName(key, tag, logger, allowedAttrs)) {
+        filteredAttrs[key] = value;
+      }
+    }
+    let expanded;
+    try {
+      expanded = definition.expand(filteredAttrs, children);
+    } catch (err) {
+      logger.error(`Custom tag "${tag}" expand function threw an error: ${err instanceof Error ? err.message : String(err)}`);
+      return void 0;
+    }
+    return { expanded, nextExpandingTags: /* @__PURE__ */ new Set([...expandingTags, tag]) };
+  }
   function processConditional(rest, data, parents = [], logger, getOuterProperty) {
     const conditional = rest;
     if (!conditional.$check) {
@@ -365,8 +413,9 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
+    const customTags = resolveCustomTags(options.customTags, logger);
     const fragment = document.createDocumentFragment();
-    const result = render(input.template, data, { logger, getOuterProperty });
+    const result = render(input.template, data, { logger, getOuterProperty, customTags });
     if (Array.isArray(result)) result.forEach((n) => fragment.appendChild(n));
     else fragment.appendChild(result);
     return fragment;
@@ -394,6 +443,15 @@
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
+      const customTags = context.customTags;
+      if (customTags && tag in customTags) {
+        const expandingTags = context.expandingTags || /* @__PURE__ */ new Set();
+        const result = expandCustomTag(tag, attrs, children, customTags, expandingTags, logger);
+        if (!result) {
+          return [];
+        }
+        return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+      }
       logger.error(`Tag "${tag}" is not allowed`);
       return [];
     }

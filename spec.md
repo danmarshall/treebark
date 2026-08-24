@@ -348,6 +348,37 @@ Blocked tags:
 
 ---
 
+## 11a. Custom Tags
+
+Applications may register additional tags, mapped to expansion functions that build a template from the tag whitelist above. Registration is scoped to a single render call/instance (via the `customTags` render option), never global, and unknown/unregistered tags remain rejected exactly as before.
+
+```yaml
+- person-pill:
+    data-person-id: "person-123"
+    $children:
+      - "Alex"
+```
+
+```js
+const customTags = {
+  'person-pill': {
+    attrs: ['data-person-id'], // additional allowed attribute names for this tag
+    expand: (attrs, children) => ({
+      span: { class: 'person-pill', ...attrs, $children: children }
+    })
+  }
+};
+```
+
+Rules:
+- **Naming:** Custom tag names must contain a hyphen (e.g. `person-pill`), matching the web platform's custom-element naming rule. This guarantees no collision with any current or future built-in HTML tag.
+- **No overrides:** A registration whose name matches a built-in tag is ignored (logged as an error); built-in tags can never be shadowed.
+- **Attribute allowlisting:** Before `expand` runs, attributes not in the tag's own `attrs` list or in the global attribute set (`id`, `class`, `style`, `data-*`, `aria-*`, etc.) are stripped with a logged warning — the expansion function never sees unvalidated attribute names.
+- **Renderer parity:** `expand` returns a plain template built from built-in tags/special keys (which may itself reference other custom tags). That template is rendered through the normal pipeline, so string, DOM, and React output stay in parity, and all existing interpolation/escaping/attribute-value validation applies to the expanded output.
+- **Cycle/depth protection:** A custom tag that (directly or indirectly) expands into itself is detected and rejected with a logged error, as is an expansion chain exceeding the maximum depth.
+
+---
+
 ## 12. Comments
 
 HTML comments are generated using the `$comment` tag:

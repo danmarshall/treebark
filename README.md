@@ -29,6 +29,7 @@ Output:
   - [Allowed Tags](#allowed-tags)
   - [Allowed Attributes](#allowed-attributes)
   - [Special Keys](#special-keys)
+  - [Custom Tags](#custom-tags)
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
@@ -128,6 +129,33 @@ This means the implementation is featherweight.
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
+
+### Custom Tags
+
+Applications can register additional, application-specific tags that expand into a template built from the built-in tags above. Only explicitly registered tags are accepted — unknown tags remain rejected, and built-in tags can never be overridden.
+
+```js
+const customTags = {
+  'person-pill': {
+    attrs: ['data-person-id'],
+    expand: (attrs, children) => ({
+      span: { class: 'person-pill', ...attrs, $children: children }
+    })
+  }
+};
+
+renderToString({ template: {
+  'person-pill': { 'data-person-id': 'person-123', $children: ['Alex'] }
+} }, { customTags });
+// <span class="person-pill" data-person-id="person-123">Alex</span>
+```
+
+- `attrs`: Array of additional attribute names allowed on this tag, beyond the global attributes (`id`, `class`, `style`, `data-*`, `aria-*`, etc., which are always allowed). Attributes not on this list are stripped with a logged warning before `expand` runs.
+- `expand`: Function receiving the tag's validated attributes and raw (unrendered) children, returning a new template built from built-in tags/special keys — including other registered custom tags.
+- Custom tag names must contain a hyphen (e.g. `person-pill`), matching the same naming rule as web platform custom elements, so they can never collide with a current or future built-in HTML tag.
+- Registrations are passed via the `customTags` render option (or the `customTags` prop on the React `<Treebark>` component) and apply only to that render call/instance — there is no global registry.
+- Because expansion produces ordinary Treebark templates, the same output renders consistently across the string, DOM, and React renderers, and passes through all normal interpolation, escaping, and attribute-value validation.
+- Cyclic expansions (a tag that expands into itself, directly or indirectly) and excessively deep expansion chains are detected and rejected with a logged error.
 
 ## Examples  
 

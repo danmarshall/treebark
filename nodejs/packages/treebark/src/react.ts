@@ -1,6 +1,6 @@
 import { createElement, Fragment, cloneElement, isValidElement } from 'react';
 import type { ReactNode } from 'react';
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, CustomTags } from './types.js';
 import {
   ALLOWED_TAGS,
   VOID_TAGS,
@@ -14,7 +14,9 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  resolveCustomTags,
+  expandCustomTag
 } from './common.js';
 
 // Map treebark's HTML attribute names to the React prop names that React's
@@ -33,6 +35,8 @@ interface RenderContext {
   parents?: Data[];
   logger: Logger;
   getOuterProperty?: OuterPropertyResolver;
+  customTags?: CustomTags;
+  expandingTags?: Set<string>;
 }
 
 export function renderToReact(
@@ -44,8 +48,9 @@ export function renderToReact(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const customTags = resolveCustomTags(options.customTags, logger);
 
-  const result = render(input.template, data, { logger, getOuterProperty });
+  const result = render(input.template, data, { logger, getOuterProperty, customTags });
   const nodes = Array.isArray(result) ? result : [result];
   return createElement(Fragment, null, ...withKeys(nodes));
 }
@@ -55,6 +60,7 @@ export function renderToReact(
 export interface TreebarkProps extends TreebarkInput {
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  customTags?: CustomTags;
 }
 
 /**
@@ -62,8 +68,8 @@ export interface TreebarkProps extends TreebarkInput {
  *
  *   <Treebark template={template} data={data} />
  */
-export function Treebark({ template, data, logger, propertyFallback }: TreebarkProps): ReactNode {
-  return renderToReact({ template, data }, { logger, propertyFallback });
+export function Treebark({ template, data, logger, propertyFallback, customTags }: TreebarkProps): ReactNode {
+  return renderToReact({ template, data }, { logger, propertyFallback, customTags });
 }
 
 // React requires a `key` on each element rendered as part of an array. Text nodes
@@ -103,6 +109,15 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const { tag, rest, children, attrs } = parsed;
 
   if (!ALLOWED_TAGS.has(tag)) {
+    const customTags = context.customTags;
+    if (customTags && tag in customTags) {
+      const expandingTags = context.expandingTags || new Set<string>();
+      const result = expandCustomTag(tag, attrs, children, customTags, expandingTags, logger);
+      if (!result) {
+        return [];
+      }
+      return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+    }
     logger.error(`Tag "${tag}" is not allowed`);
     return [];
   }

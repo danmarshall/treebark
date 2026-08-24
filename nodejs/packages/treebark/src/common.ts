@@ -16,6 +16,8 @@ import type {
   OuterPropertyResolver,
   BindPath,
   InterpolatedString,
+  CustomTagDefinition,
+  CustomTags,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -388,13 +390,13 @@ export function processStyleAttributeToProperties(
  * Validate that an attribute name is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttributeName(key: string, tag: string, logger: Logger): boolean {
+export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowed?: Set<string>): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
-  // Check tag-specific attributes
+  // Check tag-specific attributes (built-in table, or a custom tag's own declared allowlist)
   const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-  const isTagSpecific = tagAttrs && tagAttrs.has(key);
+  const isTagSpecific = (tagAttrs && tagAttrs.has(key)) || (extraAllowed !== undefined && extraAllowed.has(key));
 
   if (!isGlobal && !isTagSpecific) {
     logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
@@ -646,6 +648,87 @@ export function parseTemplateObject(templateObj: TemplateObject, logger: Logger)
     ? Object.fromEntries(Object.entries(rest).filter(([k]) => k !== '$children')) : {};
 
   return { tag, rest, children, attrs };
+}
+
+/**
+ * Maximum number of nested custom-tag expansions allowed in a single chain.
+ * Guards against runaway/adversarial expansion chains even when no cycle exists.
+ */
+export const MAX_CUSTOM_TAG_EXPANSION_DEPTH = 10;
+
+/**
+ * Filter and validate a registered custom-tag registry: drop any entry whose name
+ * collides with a built-in tag (built-ins can never be overridden) or that doesn't
+ * follow the hyphenated custom-tag naming convention (avoids collisions with any
+ * current or future built-in HTML tag, mirroring the Custom Elements spec rule).
+ * Safe to call once per render; invalid entries are logged and skipped.
+ */
+export function resolveCustomTags(customTags: CustomTags | undefined, logger: Logger): CustomTags | undefined {
+  if (!customTags) {
+    return undefined;
+  }
+  const resolved: CustomTags = {};
+  for (const [tag, definition] of Object.entries(customTags)) {
+    if (ALLOWED_TAGS.has(tag)) {
+      logger.error(`Custom tag "${tag}" conflicts with a built-in tag and will be ignored`);
+      continue;
+    }
+    if (!tag.includes('-')) {
+      logger.error(`Custom tag "${tag}" must contain a hyphen (e.g. "my-tag") and will be ignored`);
+      continue;
+    }
+    resolved[tag] = definition;
+  }
+  return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
+
+/**
+ * Expand a registered custom tag into a plain template built from built-in tags,
+ * guarding against cyclic/runaway expansion chains and enforcing the tag's own
+ * attribute name allowlist (plus global attrs) before the expand function runs.
+ *
+ * Returns undefined if expansion should not proceed (error already logged); callers
+ * should treat that the same as any other rejected tag (render nothing).
+ */
+export function expandCustomTag(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  customTags: CustomTags,
+  expandingTags: Set<string>,
+  logger: Logger
+): { expanded: TemplateElement; nextExpandingTags: Set<string> } | undefined {
+  const definition: CustomTagDefinition | undefined = customTags[tag];
+  if (!definition) {
+    return undefined;
+  }
+
+  if (expandingTags.has(tag)) {
+    logger.error(`Custom tag "${tag}" expansion is cyclic (tag expands into itself, directly or indirectly)`);
+    return undefined;
+  }
+  if (expandingTags.size >= MAX_CUSTOM_TAG_EXPANSION_DEPTH) {
+    logger.error(`Custom tag "${tag}" exceeded maximum expansion depth of ${MAX_CUSTOM_TAG_EXPANSION_DEPTH}`);
+    return undefined;
+  }
+
+  const allowedAttrs = definition.attrs ? new Set(definition.attrs) : undefined;
+  const filteredAttrs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(attrs)) {
+    if (validateAttributeName(key, tag, logger, allowedAttrs)) {
+      filteredAttrs[key] = value;
+    }
+  }
+
+  let expanded: TemplateElement;
+  try {
+    expanded = definition.expand(filteredAttrs as TemplateAttributes, children);
+  } catch (err) {
+    logger.error(`Custom tag "${tag}" expand function threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
+
+  return { expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
 }
 
 /**
