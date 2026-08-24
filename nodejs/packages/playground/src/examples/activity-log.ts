@@ -44,7 +44,7 @@ export const activityLog: Example = {
                       $children: [
                         '{{time}} — ',
                         { 'calendar-event': { 'data-location': '{{location}}', $children: ['{{eventName}}'] } },
-                        ' scheduled at {{location}}.'
+                        ' is scheduled.'
                       ]
                     }
                   }
