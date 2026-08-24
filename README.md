@@ -337,20 +337,21 @@ Output:
 
 Templates can be root-level arrays, allowing multiple sibling elements and text without a wrapper element:
 
-```json
-[
-  "before",
-  { "h1": "Hello world" },
-  { "p": "Welcome to treebark templates" },
-  "and more"
-]
+```yaml
+- "Treebark is "
+- strong: safe
+- " and "
+- em: flexible
+- "."
 ```
 
 Output:
 
 ```html
-before<h1>Hello world</h1><p>Welcome to treebark templates</p>and more
+Treebark is <strong>safe</strong> and <em>flexible</em>.
 ```
+
+Spaces in quoted text fragments are preserved.
 
 String rendering concatenates the root nodes. DOM rendering returns a `DocumentFragment`, and React rendering returns a React fragment.
 
