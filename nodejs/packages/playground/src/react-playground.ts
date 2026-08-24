@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
   exampleIds.forEach((id) => {
     const option = document.createElement('option');
     option.value = id;
-    option.textContent = id;
+    option.textContent = examples[id].customTags ? `${id} (uses custom tags)` : id;
     select.appendChild(option);
   });
 

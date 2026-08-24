@@ -181,11 +181,11 @@ function populateExampleDropdown(): void {
 
   const exampleIds = Object.keys(examples);
 
-  // Add options for each example (using key as-is)
+  // Add options for each example (using key as-is, flagging custom-tag examples)
   exampleIds.forEach(exampleId => {
     const option = document.createElement('option');
     option.value = exampleId;
-    option.textContent = exampleId;
+    option.textContent = examples[exampleId].customTags ? `${exampleId} (uses custom tags)` : exampleId;
     select.appendChild(option);
   });
 
