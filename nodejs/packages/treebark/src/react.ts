@@ -240,7 +240,8 @@ function renderHookedReactTag(
         buildProps(attrsToBuild, data, validationTag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
     });
   } catch (err) {
-    context.logger.error(`React tag hook for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    const detail = err instanceof Error ? err.stack || err.message : String(err);
+    context.logger.error(`React tag hook for "${tag}" threw an error: ${detail}`);
     return undefined;
   }
 }
