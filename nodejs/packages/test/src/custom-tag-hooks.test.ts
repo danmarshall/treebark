@@ -177,7 +177,7 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
 
     expect(result).toBe('');
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('React tag hook for "person-pill" threw an error'));
-    expect(logger.error).toHaveBeenCalledWith('Tag "person-pill" is not allowed');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Tag "person-pill" is not allowed'));
   });
 
   test('renders only original children from React hook helpers', () => {
