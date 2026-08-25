@@ -129,7 +129,7 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
       renderTag: (args) => {
         if (args.tag !== 'link-pill') return undefined;
 
-        return createElement('a', args.buildProps(args.attrs, 'a'), ...args.renderChildren());
+        return createElement('a', args.buildProps(args.filterAttrs(['href', 'target']), 'a'), ...args.renderChildren());
       }
     };
 
@@ -144,5 +144,60 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
     } as any, { hooks }));
 
     expect(result).toBe('<a href="/people/alex" target="_blank">Alex</a>');
+  });
+
+  test('falls back to Tier 1 expansion when the React hook throws', () => {
+    const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+    const hooks: ReactRenderHooks = {
+      ...createTier1CustomTagHooks(),
+      renderTag: () => {
+        throw new Error('adapter failed');
+      }
+    };
+
+    const result = renderToStaticMarkup(renderToReact({
+      template: { 'calendar-event': { 'data-event-id': 'event-1', $children: ['Launch'] } }
+    } as any, { logger, hooks }));
+
+    expect(result).toBe('<article class="calendar-event" data-event-id="event-1">Launch</article>');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('React tag hook for "calendar-event" threw an error'));
+  });
+
+  test('rejects unknown tags when the React hook throws and no expansion handles them', () => {
+    const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+    const hooks: ReactRenderHooks = {
+      renderTag: () => {
+        throw new Error('adapter failed');
+      }
+    };
+
+    const result = renderToStaticMarkup(renderToReact({
+      template: { 'person-pill': 'Alex' }
+    } as any, { logger, hooks }));
+
+    expect(result).toBe('');
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('React tag hook for "person-pill" threw an error'));
+    expect(logger.error).toHaveBeenCalledWith('Tag "person-pill" is not allowed');
+  });
+
+  test('renders only original children from React hook helpers', () => {
+    const hooks: ReactRenderHooks = {
+      renderTag: (args) => {
+        if (args.tag !== 'person-pill') return undefined;
+
+        const renderChildren = args.renderChildren as unknown as (children: any[]) => ReturnType<typeof args.renderChildren>;
+        return createElement('strong', null, ...renderChildren([{ 'person-pill': 'Recursive' }]));
+      }
+    };
+
+    const result = renderToStaticMarkup(renderToReact({
+      template: {
+        'person-pill': {
+          $children: ['Alex']
+        }
+      }
+    } as any, { hooks }));
+
+    expect(result).toBe('<strong>Alex</strong>');
   });
 });

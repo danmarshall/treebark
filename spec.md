@@ -367,12 +367,14 @@ renderToReact({ template }, { hooks });
 - It returns `undefined` to leave the tag unhandled, or returns a Treebark template/tree to render through the normal pipeline.
 - Expanded templates are still subject to the built-in tag whitelist, interpolation, escaping, attribute validation, and URL/style protections.
 - Recursive hook expansions are guarded with cycle and depth checks.
+- Hook implementations should use `filterAttrs()` to allow only recognized custom-tag attributes before passing attributes into expanded templates. Do not spread raw `attrs`, which may include Treebark control keys such as `$bind`.
 
 **Tier 2 — React render hook:**
 - `hooks.renderTag(args)` is available only in the React renderer.
 - It can return a React node directly for an unknown tag.
-- It receives helpers for safely rendering child templates and building React props from Treebark attributes.
+- It receives helpers for safely rendering the original child templates and building React props from Treebark attributes.
 - Its prop-building helper may validate attributes against a specified built-in target tag when the custom tag renders as a known HTML element.
+- If it throws, Treebark logs the hook error and falls back to Tier 1 expansion or normal unknown-tag rejection. This does not catch errors thrown later by custom React components.
 - If it returns `undefined`, React falls back to Tier 1 expansion and then to normal unknown-tag rejection.
 
 Reference implementations should keep their own allowlist of custom tag names and attributes, use the provided attribute filtering helpers, and return `undefined` for tags they do not recognize.

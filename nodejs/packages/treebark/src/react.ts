@@ -40,7 +40,7 @@ interface RenderContext {
 }
 
 export interface ReactTagHookArgs extends TagHookArgs {
-  renderChildren(children?: (InterpolatedString | TemplateObject)[]): ReactNode[];
+  renderChildren(): ReactNode[];
   buildProps(attrs?: Record<string, unknown>, validationTag?: string, extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
 }
 
@@ -224,20 +224,25 @@ function renderHookedReactTag(
     return undefined;
   }
 
-  return context.hooks.renderTag({
-    ...createTagHookArgs(tag, attrs, children, data, parents, context.logger),
-    renderChildren: (childrenToRender = children) => {
-      const childNodes: ReactNode[] = [];
-      for (const c of childrenToRender) {
-        const nodes = render(c, data, context);
-        if (Array.isArray(nodes)) childNodes.push(...nodes);
-        else childNodes.push(nodes);
-      }
-      return childNodes;
-    },
-    buildProps: (attrsToBuild = attrs, validationTag = tag, extraAllowedAttrs) =>
-      buildProps(attrsToBuild, data, validationTag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
-  });
+  try {
+    return context.hooks.renderTag({
+      ...createTagHookArgs(tag, attrs, children, data, parents, context.logger),
+      renderChildren: () => {
+        const childNodes: ReactNode[] = [];
+        for (const c of children) {
+          const nodes = render(c, data, context);
+          if (Array.isArray(nodes)) childNodes.push(...nodes);
+          else childNodes.push(nodes);
+        }
+        return childNodes;
+      },
+      buildProps: (attrsToBuild = attrs, validationTag = tag, extraAllowedAttrs) =>
+        buildProps(attrsToBuild, data, validationTag, parents, context.logger, context.getOuterProperty, extraAllowedAttrs)
+    });
+  } catch (err) {
+    context.logger.error(`React tag hook for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    return undefined;
+  }
 }
 
 function createElementWithAttrs(
