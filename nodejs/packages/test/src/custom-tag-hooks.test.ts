@@ -185,8 +185,8 @@ describe('Custom tag hooks (Tier 2 React reference)', () => {
       renderTag: (args) => {
         if (args.tag !== 'person-pill') return undefined;
 
-        const renderChildren = args.renderChildren as unknown as (children: any[]) => ReturnType<typeof args.renderChildren>;
-        return createElement('strong', null, ...renderChildren([{ 'person-pill': 'Recursive' }]));
+        // @ts-expect-error renderChildren intentionally does not accept synthetic children.
+        return createElement('strong', null, ...args.renderChildren([{ 'person-pill': 'Recursive' }]));
       }
     };
 
