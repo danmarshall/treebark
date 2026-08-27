@@ -1,4 +1,4 @@
-import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver } from './types.js';
+import { TreebarkInput, RenderOptions, TemplateElement, Data, TemplateObject, Logger, OuterPropertyResolver, RenderHooks } from './types.js';
 import { 
   ALLOWED_TAGS, 
   VOID_TAGS,
@@ -12,7 +12,8 @@ import {
   isConditionalValue,
   evaluateConditionalValue,
   parseTemplateObject,
-  processConditional
+  processConditional,
+  expandHookedTag
 } from './common.js';
 
 export function renderToDOM(
@@ -24,16 +25,17 @@ export function renderToDOM(
   // Set logger to console if not provided
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
+  const hooks = options.hooks;
   
   const fragment = document.createDocumentFragment();
   
-  const result = render(input.template, data, { logger, getOuterProperty });
+  const result = render(input.template, data, { logger, getOuterProperty, hooks });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -62,6 +64,10 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   
   // Inline validateTag: Validate that a tag is allowed
   if (!ALLOWED_TAGS.has(tag)) {
+    const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || new Set<string>(), logger);
+    if (result?.handled) {
+      return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+    }
     logger.error(`Tag "${tag}" is not allowed`);
     return [];
   }
@@ -217,4 +223,3 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     element.setAttribute(key, validatedValue);
   });
 }
-

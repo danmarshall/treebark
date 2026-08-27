@@ -205,10 +205,10 @@
     }
     return styleObjectToString(resolved, logger);
   }
-  function validateAttributeName(key, tag, logger) {
+  function validateAttributeName(key, tag, logger, extraAllowedAttrs) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-    const isTagSpecific = tagAttrs && tagAttrs.has(key);
+    const isTagSpecific = tagAttrs && tagAttrs.has(key) || extraAllowedAttrs !== void 0 && extraAllowedAttrs.has(key);
     if (!isGlobal && !isTagSpecific) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
@@ -239,6 +239,54 @@
       return validateUrlProtocol(attrName, value, logger);
     }
     return value;
+  }
+  function createTagHookArgs(tag, attrs, children, data, parents, logger) {
+    return {
+      tag,
+      attrs,
+      children,
+      data,
+      parents,
+      logger,
+      validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(
+        key,
+        tag,
+        logger,
+        extraAllowedAttrs ? new Set(extraAllowedAttrs) : void 0
+      ),
+      filterAttrs: (extraAllowedAttrs) => {
+        const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : void 0;
+        return Object.fromEntries(
+          Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowed))
+        );
+      }
+    };
+  }
+  const MAX_HOOK_EXPANSION_DEPTH = 10;
+  function expandHookedTag(tag, attrs, children, data, parents, hooks, expandingTags, logger) {
+    if (!hooks?.expandTag) {
+      return void 0;
+    }
+    if (expandingTags.has(tag)) {
+      logger.error(`Tag hook expansion for "${tag}" is cyclic`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
+      logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
+    let expanded;
+    try {
+      expanded = hooks.expandTag(hookArgs);
+    } catch (err) {
+      logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    if (expanded === void 0) {
+      return void 0;
+    }
+    return { handled: true, expanded, nextExpandingTags: /* @__PURE__ */ new Set([...expandingTags, tag]) };
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
@@ -381,12 +429,14 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
+    const hooks = options.hooks;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
       logger,
-      getOuterProperty
-    } : { logger, getOuterProperty };
+      getOuterProperty,
+      hooks
+    } : { logger, getOuterProperty, hooks };
     return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
@@ -415,6 +465,10 @@
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
+      const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || /* @__PURE__ */ new Set(), logger);
+      if (result?.handled) {
+        return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+      }
       logger.error(`Tag "${tag}" is not allowed`);
       return "";
     }

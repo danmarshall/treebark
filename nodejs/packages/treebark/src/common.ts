@@ -16,6 +16,9 @@ import type {
   OuterPropertyResolver,
   BindPath,
   InterpolatedString,
+  RenderHooks,
+  TagHookArgs,
+  HookExpansionResult,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -388,13 +391,13 @@ export function processStyleAttributeToProperties(
  * Validate that an attribute name is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttributeName(key: string, tag: string, logger: Logger): boolean {
+export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
   // Check tag-specific attributes
   const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-  const isTagSpecific = tagAttrs && tagAttrs.has(key);
+  const isTagSpecific = (tagAttrs && tagAttrs.has(key)) || (extraAllowedAttrs !== undefined && extraAllowedAttrs.has(key));
 
   if (!isGlobal && !isTagSpecific) {
     logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
@@ -468,6 +471,77 @@ export function validateAttribute(key: string, tag: string, value: string, logge
   
   // Then validate the attribute value
   return validateAttributeValue(key, value, logger);
+}
+
+export function createTagHookArgs(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  logger: Logger
+): TagHookArgs {
+  return {
+    tag,
+    attrs,
+    children,
+    data,
+    parents,
+    logger,
+    validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(
+      key,
+      tag,
+      logger,
+      extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined
+    ),
+    filterAttrs: (extraAllowedAttrs) => {
+      const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined;
+      return Object.fromEntries(
+        Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowed))
+      );
+    }
+  };
+}
+
+const MAX_HOOK_EXPANSION_DEPTH = 10;
+
+export function expandHookedTag(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  hooks: RenderHooks | undefined,
+  expandingTags: Set<string>,
+  logger: Logger
+): HookExpansionResult | undefined {
+  if (!hooks?.expandTag) {
+    return undefined;
+  }
+
+  if (expandingTags.has(tag)) {
+    logger.error(`Tag hook expansion for "${tag}" is cyclic`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
+    logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
+  let expanded: TemplateElement | TemplateElement[] | undefined;
+  try {
+    expanded = hooks.expandTag(hookArgs);
+  } catch (err) {
+    logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+  if (expanded === undefined) {
+    return undefined;
+  }
+
+  return { handled: true, expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
 }
 
 /**
