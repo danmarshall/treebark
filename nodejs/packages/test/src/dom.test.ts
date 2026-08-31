@@ -282,6 +282,13 @@ describe('DOM Renderer', () => {
             expect(div.getAttribute('data-test')).toBe('value');
             expect(div.getAttribute('aria-label')).toBe('Test');
             break;
+          case 'allows tabindex and role attributes': {
+            const container25 = fragment.firstChild as HTMLElement;
+            const el = container25.firstChild as HTMLElement;
+            expect(el.getAttribute('role')).toBe('button');
+            expect(el.getAttribute('tabindex')).toBe('0');
+            break;
+          }
         }
       });
     });

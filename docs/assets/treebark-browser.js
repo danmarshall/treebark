@@ -1,5 +1,5 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = {}));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Treebark = global.Treebark || {}));
 })(this, (function(exports2) {
   "use strict";
   const CONTAINER_TAGS = /* @__PURE__ */ new Set([
@@ -43,7 +43,7 @@
     "hr"
   ]);
   const ALLOWED_TAGS = /* @__PURE__ */ new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
-  const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "data-", "aria-"]);
+  const GLOBAL_ATTRS = /* @__PURE__ */ new Set(["id", "class", "style", "title", "role", "tabindex", "data-", "aria-"]);
   const TAG_SPECIFIC_ATTRS = {
     "a": /* @__PURE__ */ new Set(["href", "target", "rel"]),
     "img": /* @__PURE__ */ new Set(["src", "alt", "width", "height"]),
@@ -136,8 +136,8 @@
       return val == null ? "" : escapeHtml ? escape(String(val)) : String(val);
     });
   }
-  function styleObjectToString(styleObj, logger) {
-    const cssDeclarations = [];
+  function getValidatedStyleDeclarations(styleObj, logger) {
+    const declarations = [];
     for (const [prop, value] of Object.entries(styleObj)) {
       const cssProp = prop;
       if (!/^[a-z]([a-z0-9-]*[a-z0-9])?$/.test(cssProp)) {
@@ -168,37 +168,47 @@
         logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
         continue;
       }
-      cssDeclarations.push(`${cssProp}: ${cssValue}`);
+      declarations.push([cssProp, cssValue]);
     }
-    return cssDeclarations.join("; ").trim();
+    return declarations;
   }
-  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
+  function styleObjectToString(styleObj, logger) {
+    return getValidatedStyleDeclarations(styleObj, logger).map(([prop, value]) => `${prop}: ${value}`).join("; ").trim();
+  }
+  function resolveStyleValue(value, data, parents, logger, getOuterProperty) {
     if (value !== null && typeof value === "object" && !Array.isArray(value) && "$check" in value && typeof value.$check === "string") {
       const conditional = value;
       if (!validatePathExpression(conditional.$check, "$check", logger)) {
-        return "";
+        return null;
       }
       const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
       const condition = evaluateCondition(checkValue, conditional);
       const resultValue = condition ? conditional.$then : conditional.$else;
       if (resultValue === void 0) {
-        return "";
+        return null;
       }
       if (typeof resultValue === "object" && resultValue !== null && !Array.isArray(resultValue)) {
-        return styleObjectToString(resultValue, logger);
+        return resultValue;
       }
-      return "";
+      return null;
     }
     if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-      return styleObjectToString(value, logger);
+      return value;
     }
     logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
-    return "";
+    return null;
   }
-  function validateAttributeName(key, tag, logger) {
+  function processStyleAttribute(value, data, parents, logger, getOuterProperty) {
+    const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+    if (!resolved) {
+      return "";
+    }
+    return styleObjectToString(resolved, logger);
+  }
+  function validateAttributeName(key, tag, logger, extraAllowedAttrs) {
     const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some((p) => p.endsWith("-") && key.startsWith(p));
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-    const isTagSpecific = tagAttrs && tagAttrs.has(key);
+    const isTagSpecific = tagAttrs && tagAttrs.has(key) || extraAllowedAttrs !== void 0 && extraAllowedAttrs.has(key);
     if (!isGlobal && !isTagSpecific) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
@@ -229,6 +239,54 @@
       return validateUrlProtocol(attrName, value, logger);
     }
     return value;
+  }
+  function createTagHookArgs(tag, attrs, children, data, parents, logger) {
+    return {
+      tag,
+      attrs,
+      children,
+      data,
+      parents,
+      logger,
+      validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(
+        key,
+        tag,
+        logger,
+        extraAllowedAttrs ? new Set(extraAllowedAttrs) : void 0
+      ),
+      filterAttrs: (extraAllowedAttrs) => {
+        const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : void 0;
+        return Object.fromEntries(
+          Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowed))
+        );
+      }
+    };
+  }
+  const MAX_HOOK_EXPANSION_DEPTH = 10;
+  function expandHookedTag(tag, attrs, children, data, parents, hooks, expandingTags, logger) {
+    if (!hooks?.expandTag) {
+      return void 0;
+    }
+    if (expandingTags.has(tag)) {
+      logger.error(`Tag hook expansion for "${tag}" is cyclic`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
+      logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
+    let expanded;
+    try {
+      expanded = hooks.expandTag(hookArgs);
+    } catch (err) {
+      logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+      return { handled: true, expanded: "", nextExpandingTags: expandingTags };
+    }
+    if (expanded === void 0) {
+      return void 0;
+    }
+    return { handled: true, expanded, nextExpandingTags: /* @__PURE__ */ new Set([...expandingTags, tag]) };
   }
   function hasBinding(rest) {
     return rest !== null && typeof rest === "object" && !Array.isArray(rest) && "$bind" in rest;
@@ -371,12 +429,14 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
+    const hooks = options.hooks;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
       logger,
-      getOuterProperty
-    } : { logger, getOuterProperty };
+      getOuterProperty,
+      hooks
+    } : { logger, getOuterProperty, hooks };
     return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
@@ -405,6 +465,10 @@
     }
     const { tag, rest, children, attrs } = parsed;
     if (!ALLOWED_TAGS.has(tag)) {
+      const result = expandHookedTag(tag, attrs, children, data, parents, context.hooks, context.expandingTags || /* @__PURE__ */ new Set(), logger);
+      if (result?.handled) {
+        return render(result.expanded, data, { ...context, expandingTags: result.nextExpandingTags });
+      }
       logger.error(`Tag "${tag}" is not allowed`);
       return "";
     }

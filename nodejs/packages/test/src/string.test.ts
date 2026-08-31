@@ -202,6 +202,9 @@ describe('String Renderer', () => {
           case 'allows data- and aria- attributes':
             expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div data-test="value" aria-label="Test">Content</div></div>');
             break;
+          case 'allows tabindex and role attributes':
+            expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div role="button" tabindex="0">Click me</div></div>');
+            break;
         }
       });
     });

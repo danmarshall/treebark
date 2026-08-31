@@ -1,6 +1,6 @@
 # Treebark  
 
-> Safe HTML tree structures for Markdown and content-driven apps.
+> Safe HTML and UI tree structures for AI-generated, Markdown, and content-driven apps.
 
 ### Hello World
 
@@ -29,11 +29,13 @@ Output:
   - [Allowed Tags](#allowed-tags)
   - [Allowed Attributes](#allowed-attributes)
   - [Special Keys](#special-keys)
+  - [Custom Tag Hooks](#custom-tag-hooks)
 - [Examples](#examples)
   - [Nested Elements](#nested-elements)
   - [Attributes](#attributes)
   - [Styling with Style Objects](#styling-with-style-objects)
   - [Mixed Content](#mixed-content)
+  - [Root-Level Fragments](#root-level-fragments)
   - [With Data Binding](#with-data-binding)
   - [Binding with $bind](#binding-with-bind)
   - [Parent Property Access](#parent-property-access)
@@ -49,26 +51,27 @@ Output:
   - [Prototype Chain Protection](#prototype-chain-protection)
 - [Format Notes](#format-notes)
 - [Available Libraries](#available-libraries)
-  - [Implementations](#implementations)
+  - [Node.js / Browser](#nodejs--browser)
+  - [Other Languages](#other-languages)
 - [Name Origin](#name-origin)
 
 ## Problem  
-You want to use HTML structures embedded in user-generated content, such as a blog post in Markdown.
+You want to store and render structured UI from untrusted sources, such as user-authored Markdown and LLM-generated layouts.
 
-Markdown was originally designed as a **superset of HTML** — you could drop raw `<div>`s, `<table>`s, or even `<script>`s straight into your content.  
+LLM output is useful, but it is often generated at runtime and then stored in a database, CMS, or workflow system for later rendering. Raw HTML in that pipeline is risky and inconsistent across environments.
 
-But for **safety and consistency**, many Markdown parsers (especially in CMSs, wikis, and chat apps) **disallow raw HTML**. That means:  
+Markdown adds the same challenge. It was originally designed as a **superset of HTML**, but for **safety and consistency**, many parsers disallow raw HTML. That means:  
 
-- Authors can’t use existing site CSS components (headers, footers, grids).  
-- Structured layouts like tables or cards are awkward or impossible.  
+- Generated UI is hard to store safely in a portable format.
+- Structured layouts like tables, cards, and component blocks become awkward or brittle.
 - Allowing raw HTML invites XSS and security issues.  
 
 ## Solution  
 
-**Treebark** brings back safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
+**Treebark** provides safe structured markup by replacing raw HTML with **tree schemas** (JSON or YAML).  
 
 - Safe by default: only whitelisted tags/attributes are allowed.  
-- Fits naturally into Markdown fenced code blocks.  
+- Fits naturally into Markdown fenced code blocks and LLM output pipelines.
 - Flexible enough for both **static content** and **data-bound apps**.  
 
 #### Key Insight  
@@ -101,7 +104,7 @@ This means the implementation is featherweight.
 
 | Tag(s)         | Allowed Attributes                          |
 |----------------|---------------------------------------------|
-| All            | `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role` |
+| All            | `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*` |
 | `a`            | `href`, `target`, `rel`                     |
 | `img`          | `src`, `alt`, `width`, `height`             |
 | `table`        | `summary`                                   |
@@ -126,6 +129,56 @@ This means the implementation is featherweight.
 - `$in`: Array membership check.
 - `$not`: Boolean. Inverts the entire condition result.
 - `$join`: "AND" | "OR". Combines multiple operators (default: "AND").
+
+### Custom Tag Hooks
+
+Treebark keeps the core tag whitelist closed, but render options can provide hooks that let applications recognize their own tag names before Treebark rejects them. This supports userland custom tag implementations without adding a built-in custom tag registry.
+
+**Tier 1 — template expansion**, supported by the string, DOM, and React renderers:
+
+```js
+const customTags = {
+  'person-pill': {
+    attrs: ['data-person-id'],
+    expand: (attrs, children) => ({
+      span: { class: 'person-pill', ...attrs, $children: children }
+    })
+  }
+};
+
+const hooks = {
+  expandTag: ({ tag, children, filterAttrs }) => {
+    const definition = customTags[tag];
+    if (!definition) return undefined;
+    return definition.expand(filterAttrs(definition.attrs), children);
+  }
+};
+
+const html = render({ template }, { hooks });
+```
+
+`expandTag` returns a normal Treebark template, so the expanded output still goes through Treebark's existing interpolation, escaping, attribute validation, and renderer-specific output.
+Pass the same `hooks` option to `renderToString`, `renderToDOM`, or `renderToReact` when using those renderer-specific entry points.
+Use `filterAttrs()` to pass through only the custom tag attributes your application recognizes; do not spread raw `attrs`, which may include Treebark control keys such as `$bind`.
+
+**Tier 2 — React render hook**, only available from `treebark/react`:
+
+```js
+const hooks = {
+  renderTag: (args) => {
+    if (args.tag !== 'person-pill') return undefined;
+    const props = args.buildProps(args.filterAttrs(['data-person-id']));
+    return React.createElement(PersonPill, props, ...args.renderChildren());
+  }
+};
+
+const node = renderToReact({ template }, { hooks });
+// or: <Treebark template={template} hooks={hooks} />
+```
+
+`renderTag` can return a React node directly. If it returns `undefined`, React falls back to `expandTag`, then finally to the normal unknown-tag rejection. Hook expansion is scoped to the render call, protects against cyclic/deep expansion chains, and leaves unknown tags rejected unless the application hook explicitly handles them.
+When using `buildProps`, pass the intended validation tag as the second argument if attributes should be validated against a built-in tag other than the custom tag name.
+`renderChildren()` renders only the original children for the current tag. If `renderTag` throws, Treebark logs the error and continues to `expandTag` or normal unknown-tag rejection; errors thrown later by custom React components still require a React error boundary.
 
 ## Examples  
 
@@ -330,6 +383,28 @@ Output:
 ```html
 <div>Hello <span>World</span>!</div>
 ```
+
+### Root-Level Fragments
+
+Templates can be root-level arrays, allowing multiple sibling elements and text without a wrapper element:
+
+```yaml
+- "Treebark is "
+- strong: safe
+- " and "
+- em: flexible
+- "."
+```
+
+Output:
+
+```html
+Treebark is <strong>safe</strong> and <em>flexible</em>.
+```
+
+Spaces in quoted text fragments are preserved.
+
+String rendering concatenates the root nodes. DOM rendering returns a `DocumentFragment`, and React rendering returns a React fragment.
 
 ### With Data Binding
 
@@ -1169,13 +1244,15 @@ div:
 
 ## Available Libraries
 
-### Implementations
+### Node.js / Browser
 
-- [Node.js/Browser](nodejs/packages/treebark/)
-  - [Core library](nodejs/packages/treebark) with `renderToString` and `renderToDOM` renderers
-  - `renderToDOM` supports block container mode for security (prevents positioning attacks on page elements)
-  - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
-- **Other Languages** - Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new)
+- [Core library](nodejs/packages/treebark) - Full documentation for `renderToString`, `renderToDOM`, and `renderToReact`
+- `renderToDOM` uses block container mode by default for security (prevents positioning attacks on page elements)
+- [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
+
+### Other Languages
+
+Not yet available. If you need treebark support for your language, please [file a feature request](https://github.com/danmarshall/treebark/issues/new).
 
 ## Name Origin
 

@@ -17,6 +17,7 @@ Rendering functions also accept optional `RenderOptions`:
 interface RenderOptions {
   indent?: string | number | boolean;  // Indentation for string renderer
   logger?: Logger;       // Custom logger for error/warning messages
+  hooks?: RenderHooks;    // Scoped custom tag render hooks
 }
 
 interface Logger {
@@ -164,7 +165,7 @@ div:
 - Attributes are plain key/value pairs.  
 - Values may contain interpolations.  
 - Allowed:  
-  - Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`  
+  - Global: `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*`  
   - `a`: `href`, `target`, `rel`  
   - `img`: `src`, `alt`, `width`, `height`  
   - `table`: `summary`  
@@ -345,6 +346,38 @@ Blocked tags:
 `form`, `input`, `button`, `select`,  
 `video`, `audio`,  
 `style`, `link`, `meta`, `base`
+
+---
+
+## 11a. Custom Tag Hooks
+
+Unknown tags remain blocked by default. Before an unknown tag is rejected, a renderer may call application-provided hooks from the render options. Hooks are scoped to the current render call and are not global.
+
+Hooks are passed through the renderer entry point:
+
+```javascript
+render({ template }, { hooks });
+renderToString({ template }, { hooks });
+renderToDOM({ template }, { hooks });
+renderToReact({ template }, { hooks });
+```
+
+**Tier 1 — template expansion:**
+- `hooks.expandTag(args)` receives the unknown tag name, raw attributes, raw children, data context, parent contexts, logger, and helper functions.
+- It returns `undefined` to leave the tag unhandled, or returns a Treebark template/tree to render through the normal pipeline.
+- Expanded templates are still subject to the built-in tag whitelist, interpolation, escaping, attribute validation, and URL/style protections.
+- Recursive hook expansions are guarded with cycle and depth checks.
+- Hook implementations should use `filterAttrs()` to allow only recognized custom-tag attributes before passing attributes into expanded templates. Do not spread raw `attrs`, which may include Treebark control keys such as `$bind`.
+
+**Tier 2 — React render hook:**
+- `hooks.renderTag(args)` is available only in the React renderer.
+- It can return a React node directly for an unknown tag.
+- It receives helpers for safely rendering the original child templates and building React props from Treebark attributes.
+- Its prop-building helper may validate attributes against a specified built-in target tag when the custom tag renders as a known HTML element.
+- If it throws, Treebark logs the hook error and falls back to Tier 1 expansion or normal unknown-tag rejection. This does not catch errors thrown later by custom React components.
+- If it returns `undefined`, React falls back to Tier 1 expansion and then to normal unknown-tag rejection.
+
+Reference implementations should keep their own allowlist of custom tag names and attributes, use the provided attribute filtering helpers, and return `undefined` for tags they do not recognize.
 
 ---
 
@@ -958,7 +991,7 @@ Only safe attributes are permitted per tag. Event handlers are blocked:
 - Case variations: `onClick`, `ONCLICK`, etc. are also blocked
 
 **Allowed attributes per tag:**
-- Global: `id`, `class`, `style`, `title`, `aria-*`, `data-*`, `role`
+- Global: `id`, `class`, `style`, `title`, `role`, `tabindex`, `aria-*`, `data-*`
 - `a`: `href`, `target`, `rel`
 - `img`: `src`, `alt`, `width`, `height`
 - `table`: `summary`
@@ -1075,4 +1108,3 @@ Treebark implements multiple overlapping security layers:
 7. **Prototype chain blocking** - Prevents access to internal object properties
 
 This defense-in-depth approach ensures that even if one layer is bypassed, others remain to protect against attacks.
-

@@ -16,6 +16,9 @@ import type {
   OuterPropertyResolver,
   BindPath,
   InterpolatedString,
+  RenderHooks,
+  TagHookArgs,
+  HookExpansionResult,
 } from './types.js';
 
 // Container tags that can have children and require closing tags
@@ -43,7 +46,7 @@ export const VOID_TAGS = new Set([
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
 
 // Global attributes allowed on all tags
-export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'data-', 'aria-']);
+export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
 // Tag-specific attributes
 export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
@@ -206,8 +209,8 @@ export function interpolate(
  * Uses generic property validation - allows any kebab-case CSS property
  * but validates values for dangerous patterns
  */
-export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
-  const cssDeclarations: string[] = [];
+function getValidatedStyleDeclarations(styleObj: Record<string, unknown>, logger: Logger): Array<[string, string]> {
+  const declarations: Array<[string, string]> = [];
   
   for (const [prop, value] of Object.entries(styleObj)) {
     // Property names should be in kebab-case format
@@ -261,10 +264,87 @@ export function styleObjectToString(styleObj: Record<string, unknown>, logger: L
       continue;
     }
     
-    cssDeclarations.push(`${cssProp}: ${cssValue}`);
+    declarations.push([cssProp, cssValue]);
   }
   
-  return cssDeclarations.join('; ').trim();
+  return declarations;
+}
+
+/**
+ * Convert a style object to a CSS string
+ * Uses generic property validation - allows any kebab-case CSS property
+ * but validates values for dangerous patterns
+ */
+export function styleObjectToString(styleObj: Record<string, unknown>, logger: Logger): string {
+  return getValidatedStyleDeclarations(styleObj, logger)
+    .map(([prop, value]) => `${prop}: ${value}`)
+    .join('; ')
+    .trim();
+}
+
+/**
+ * Convert a kebab-case CSS property name to the camelCase form React expects
+ * for inline style objects (e.g. "font-size" -> "fontSize").
+ */
+function kebabToCamel(prop: string): string {
+  return prop.replace(/-([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+}
+
+/**
+ * Convert a style object to a React inline-style object with camelCase keys.
+ * Applies the exact same security validation as styleObjectToString.
+ */
+export function styleObjectToProperties(styleObj: Record<string, unknown>, logger: Logger): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [prop, value] of getValidatedStyleDeclarations(styleObj, logger)) {
+    result[kebabToCamel(prop)] = value;
+  }
+  return result;
+}
+
+/**
+ * Resolve a style attribute value (object or conditional) to a plain CSSProperties
+ * object, or null when invalid. Shared by the string and React style formatters so the
+ * conditional/security logic lives in one place.
+ */
+function resolveStyleValue(
+  value: unknown,
+  data: Data,
+  parents: Data[],
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): Record<string, unknown> | null {
+  // Handle conditional style values - check for $check property to detect conditionals
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    '$check' in value &&
+    typeof (value as any).$check === 'string'
+  ) {
+    const conditional = value as ConditionalBase<CSSProperties>;
+    if (!validatePathExpression(conditional.$check, '$check', logger)) {
+      return null;
+    }
+    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
+    const condition = evaluateCondition(checkValue, conditional);
+    
+    const resultValue = condition ? conditional.$then : conditional.$else;
+    if (resultValue === undefined) {
+      return null;
+    }
+    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
+      return resultValue as Record<string, unknown>;
+    }
+    return null;
+  }
+  
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  
+  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
+  return null;
 }
 
 /**
@@ -278,37 +358,29 @@ export function processStyleAttribute(
   logger: Logger,
   getOuterProperty?: OuterPropertyResolver
 ): string {
-  // Handle conditional style values - check for $check property to detect conditionals
-  if (
-    value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value) &&
-    '$check' in value &&
-    typeof (value as any).$check === 'string'
-  ) {
-    const conditional = value as ConditionalBase<CSSProperties>;
-    if (!validatePathExpression(conditional.$check, '$check', logger)) {
-      return '';
-    }
-    const checkValue = getProperty(data, conditional.$check, parents, logger, getOuterProperty);
-    const condition = evaluateCondition(checkValue, conditional);
-    
-    const resultValue = condition ? conditional.$then : conditional.$else;
-    if (resultValue === undefined) {
-      return '';
-    }
-    if (typeof resultValue === 'object' && resultValue !== null && !Array.isArray(resultValue)) {
-      return styleObjectToString(resultValue as Record<string, unknown>, logger);
-    }
+  const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+  if (!resolved) {
     return '';
   }
-  
-  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-    return styleObjectToString(value as Record<string, unknown>, logger);
+  return styleObjectToString(resolved, logger);
+}
+
+/**
+ * Process style attribute value into a React inline-style object (camelCase keys).
+ * Returns null if invalid. Applies the same security validation as processStyleAttribute.
+ */
+export function processStyleAttributeToProperties(
+  value: unknown,
+  data: Data,
+  parents: Data[],
+  logger: Logger,
+  getOuterProperty?: OuterPropertyResolver
+): Record<string, string> | null {
+  const resolved = resolveStyleValue(value, data, parents, logger, getOuterProperty);
+  if (!resolved) {
+    return null;
   }
-  
-  logger.error(`Style attribute must be an object with CSS properties, not ${typeof value}. Example: style: { "color": "red", "font-size": "14px" }`);
-  return '';
+  return styleObjectToProperties(resolved, logger);
 }
 
 /**
@@ -319,13 +391,13 @@ export function processStyleAttribute(
  * Validate that an attribute name is allowed for the given tag
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
-export function validateAttributeName(key: string, tag: string, logger: Logger): boolean {
+export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
   // Check tag-specific attributes
   const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-  const isTagSpecific = tagAttrs && tagAttrs.has(key);
+  const isTagSpecific = (tagAttrs && tagAttrs.has(key)) || (extraAllowedAttrs !== undefined && extraAllowedAttrs.has(key));
 
   if (!isGlobal && !isTagSpecific) {
     logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
@@ -399,6 +471,77 @@ export function validateAttribute(key: string, tag: string, value: string, logge
   
   // Then validate the attribute value
   return validateAttributeValue(key, value, logger);
+}
+
+export function createTagHookArgs(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  logger: Logger
+): TagHookArgs {
+  return {
+    tag,
+    attrs,
+    children,
+    data,
+    parents,
+    logger,
+    validateAttributeName: (key, extraAllowedAttrs) => validateAttributeName(
+      key,
+      tag,
+      logger,
+      extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined
+    ),
+    filterAttrs: (extraAllowedAttrs) => {
+      const extraAllowed = extraAllowedAttrs ? new Set(extraAllowedAttrs) : undefined;
+      return Object.fromEntries(
+        Object.entries(attrs).filter(([key]) => validateAttributeName(key, tag, logger, extraAllowed))
+      );
+    }
+  };
+}
+
+const MAX_HOOK_EXPANSION_DEPTH = 10;
+
+export function expandHookedTag(
+  tag: string,
+  attrs: Record<string, unknown>,
+  children: (InterpolatedString | TemplateObject)[],
+  data: Data,
+  parents: Data[],
+  hooks: RenderHooks | undefined,
+  expandingTags: Set<string>,
+  logger: Logger
+): HookExpansionResult | undefined {
+  if (!hooks?.expandTag) {
+    return undefined;
+  }
+
+  if (expandingTags.has(tag)) {
+    logger.error(`Tag hook expansion for "${tag}" is cyclic`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  if (expandingTags.size >= MAX_HOOK_EXPANSION_DEPTH) {
+    logger.error(`Tag hook expansion for "${tag}" exceeded maximum depth of ${MAX_HOOK_EXPANSION_DEPTH}`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+
+  const hookArgs = createTagHookArgs(tag, attrs, children, data, parents, logger);
+  let expanded: TemplateElement | TemplateElement[] | undefined;
+  try {
+    expanded = hooks.expandTag(hookArgs);
+  } catch (err) {
+    logger.error(`Tag hook expansion for "${tag}" threw an error: ${err instanceof Error ? err.message : String(err)}`);
+    return { handled: true, expanded: '', nextExpandingTags: expandingTags };
+  }
+  if (expanded === undefined) {
+    return undefined;
+  }
+
+  return { handled: true, expanded, nextExpandingTags: new Set([...expandingTags, tag]) };
 }
 
 /**

@@ -77,6 +77,7 @@ type GlobalAttrs = {
   style?: StyleValue;
   title?: AttributeValue;
   role?: AttributeValue;
+  tabindex?: AttributeValue;
   [key: `data-${string}`]: AttributeValue;
   [key: `aria-${string}`]: AttributeValue;
 };
@@ -158,10 +159,32 @@ export interface Logger {
 // Outer property resolver type for getProperty - called when a property is not found in local context
 export type OuterPropertyResolver = (path: BindPath, data: Data, parents: Data[]) => unknown;
 
+export interface TagHookArgs {
+  tag: string;
+  attrs: Record<string, unknown>;
+  children: (InterpolatedString | TemplateObject)[];
+  data: Data;
+  parents: Data[];
+  logger: Logger;
+  validateAttributeName(key: string, extraAllowedAttrs?: Iterable<string>): boolean;
+  filterAttrs(extraAllowedAttrs?: Iterable<string>): Record<string, unknown>;
+}
+
+export interface RenderHooks {
+  expandTag?(args: TagHookArgs): TemplateElement | TemplateElement[] | undefined;
+}
+
+export interface HookExpansionResult {
+  handled: true;
+  expanded: TemplateElement | TemplateElement[];
+  nextExpandingTags: Set<string>;
+}
+
 // Options interface for render functions
 export interface RenderOptions {
   indent?: string | number | boolean;
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
+  hooks?: RenderHooks;
   useBlockContainer?: boolean;  // When true (default), wraps content in a block container with CSS containment for security
 }

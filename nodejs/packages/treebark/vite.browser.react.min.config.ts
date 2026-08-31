@@ -5,16 +5,19 @@ export default defineConfig({
     outDir: 'browser',
     emptyOutDir: false, // Don't clear the directory, as we're adding to it
     lib: {
-      entry: 'src/string.ts',
+      entry: 'src/react.browser.ts',
       name: 'Treebark',
       formats: ['umd'],
-      fileName: () => 'treebark-browser.min.js'
+      fileName: () => 'treebark-react-browser.min.js'
     },
     rollupOptions: {
-      external: [],
+      // React is a peer dependency and is expected to be loaded separately
+      external: ['react'],
       output: {
         extend: true,
-        globals: {}
+        globals: {
+          react: 'React'
+        }
       }
     },
     sourcemap: true,

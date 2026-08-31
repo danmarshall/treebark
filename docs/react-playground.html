@@ -1,0 +1,120 @@
+---
+layout: default
+title: React Playground
+description: Try Treebark's React renderer in the browser using the hosted UMD bundle
+---
+
+<h1>React Playground</h1>
+
+<p>
+    This page loads the hosted <code>treebark-react-browser</code> UMD bundle (the same file
+    served at <code>/assets/</code>) alongside React and ReactDOM, then renders a Treebark
+    template through <code>Treebark.renderToReact</code> into a live React root. Edit the
+    template or data and the React tree re-renders.
+</p>
+
+<div class="control-group">
+    <label for="example-select">Load Example:</label>
+    <select id="example-select" onchange="loadReactExample()">
+    </select>
+</div>
+
+<div class="control-group">
+    <strong>Bundle status:</strong> <span id="bundle-status">checking…</span>
+</div>
+
+<div class="error-display" id="error-display"></div>
+
+<div class="playground-container">
+    <div class="editor-panel">
+        <div class="editor-header">Template Editor (JSON)</div>
+        <textarea id="template-editor" class="editor-textarea" spellcheck="false"></textarea>
+    </div>
+
+    <div class="editor-panel">
+        <div class="editor-header">Data Editor (JSON)</div>
+        <textarea id="data-editor" class="editor-textarea" spellcheck="false"></textarea>
+    </div>
+
+    <div class="output-panel">
+        <div class="output-header">
+            <span>Rendered React output</span>
+        </div>
+        <div class="output-content" id="react-root">
+            <!-- React renders here -->
+        </div>
+    </div>
+</div>
+
+<!-- React is a peer dependency and must be loaded before the treebark React bundle -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="{{ '/assets/treebark-react-browser.js' | relative_url }}"></script>
+<script src="{{ '/js/react-playground.js' | relative_url }}"></script>
+
+<script>
+(function () {
+    var statusEl = document.getElementById('bundle-status');
+    var errorEl = document.getElementById('error-display');
+    var templateEl = document.getElementById('template-editor');
+    var dataEl = document.getElementById('data-editor');
+    var rootEl = document.getElementById('react-root');
+
+    // Confirm the bundle loaded and extended the shared Treebark global.
+    if (!window.Treebark || typeof window.Treebark.renderToReact !== 'function') {
+        statusEl.textContent = 'FAILED to load treebark-react bundle';
+        statusEl.style.color = '#c5221f';
+        return;
+    }
+    statusEl.textContent = 'loaded — Treebark.renderToReact is available';
+    statusEl.style.color = '#137333';
+
+    var root = ReactDOM.createRoot(rootEl);
+
+    function showError(message) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    }
+    function clearError() {
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+    }
+
+    function render() {
+        var template, data;
+        try {
+            template = JSON.parse(templateEl.value);
+        } catch (e) {
+            showError('Template JSON error: ' + e.message);
+            return;
+        }
+        try {
+            data = dataEl.value.trim() ? JSON.parse(dataEl.value) : undefined;
+        } catch (e) {
+            showError('Data JSON error: ' + e.message);
+            return;
+        }
+        try {
+            clearError();
+            root.render(window.Treebark.renderToReact({ template: template, data: data }));
+        } catch (e) {
+            showError('Render error: ' + e.message);
+        }
+    }
+
+    templateEl.addEventListener('input', render);
+    dataEl.addEventListener('input', render);
+    render();
+
+    window.loadReactExample = function () {
+        var select = document.getElementById('example-select');
+        var examples = window.TreebarkExamples;
+        if (!select || !examples) return;
+        var ex = examples[select.value];
+        if (!ex) return;
+        templateEl.value = JSON.stringify(ex.template, null, 2);
+        dataEl.value = JSON.stringify(ex.data, null, 2);
+        render();
+    };
+})();
+</script>
