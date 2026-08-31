@@ -430,6 +430,7 @@
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
     const hooks = options.hooks;
+    const useBlockContainer = options.useBlockContainer !== false;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
@@ -437,7 +438,12 @@
       getOuterProperty,
       hooks
     } : { logger, getOuterProperty, hooks };
-    return render(input.template, data, context);
+    const content = render(input.template, data, context);
+    if (useBlockContainer) {
+      const containerStyle = "contain: content; isolation: isolate;";
+      return `<div style="${containerStyle}" data-treebark-container="true">${content}</div>`;
+    }
+    return content;
   }
   function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);

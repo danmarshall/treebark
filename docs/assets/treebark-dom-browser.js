@@ -414,10 +414,24 @@
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
     const hooks = options.hooks;
+    const useBlockContainer = options.useBlockContainer !== false;
     const fragment = document.createDocumentFragment();
     const result = render(input.template, data, { logger, getOuterProperty, hooks });
-    if (Array.isArray(result)) result.forEach((n) => fragment.appendChild(n));
-    else fragment.appendChild(result);
+    let target;
+    if (useBlockContainer) {
+      const container = document.createElement("div");
+      container.style.cssText = "contain: content; isolation: isolate;";
+      container.setAttribute("data-treebark-container", "true");
+      target = container;
+      fragment.appendChild(container);
+    } else {
+      target = fragment;
+    }
+    if (Array.isArray(result)) {
+      result.forEach((n) => target.appendChild(n));
+    } else {
+      target.appendChild(result);
+    }
     return fragment;
   }
   function render(template, data, context) {
