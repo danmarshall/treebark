@@ -371,19 +371,13 @@
     const data = input.data;
     const logger = options.logger || console;
     const getOuterProperty = options.propertyFallback;
-    const useBlockContainer = options.useBlockContainer !== false;
     const context = options.indent ? {
       indentStr: typeof options.indent === "number" ? " ".repeat(options.indent) : typeof options.indent === "string" ? options.indent : "  ",
       level: 0,
       logger,
       getOuterProperty
     } : { logger, getOuterProperty };
-    const content = render(input.template, data, context);
-    if (useBlockContainer) {
-      const containerStyle = "contain: content; isolation: isolate;";
-      return `<div style="${containerStyle}" data-treebark-container="true">${content}</div>`;
-    }
-    return content;
+    return render(input.template, data, context);
   }
   function renderTag(tag, attrs, data, childrenOutput, logger, indentStr, level, parents = [], getOuterProperty) {
     const formattedContent = flattenOutput(childrenOutput, indentStr);
@@ -507,14 +501,14 @@
     return pairs ? " " + pairs : "";
   }
   function treebarkPlugin(md, options = {}) {
-    const { data = {}, yaml, indent, logger, useBlockContainer } = options;
+    const { data = {}, yaml, indent, logger } = options;
     const originalFence = md.renderer.rules.fence;
     md.renderer.rules.fence = function(tokens, idx, options2, env, renderer) {
       const token = tokens[idx];
       const info = token.info ? token.info.trim() : "";
       if (info === "treebark" || info.startsWith("treebark ")) {
         try {
-          return renderTreebarkBlock(token.content, data, yaml, indent, logger, useBlockContainer) + "\n";
+          return renderTreebarkBlock(token.content, data, yaml, indent, logger) + "\n";
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : "Unknown error";
           return `<div class="treebark-error"><strong>Treebark Error:</strong> ${escapeHtml(errorMsg)}</div>
@@ -524,7 +518,7 @@
       return originalFence ? originalFence(tokens, idx, options2, env, renderer) : "";
     };
   }
-  function renderTreebarkBlock(content, defaultData, yaml, indent, logger, useBlockContainer) {
+  function renderTreebarkBlock(content, defaultData, yaml, indent, logger) {
     let template;
     let yamlError = null;
     if (!content.trim()) {
@@ -551,7 +545,7 @@
     if (!template) {
       throw new Error("Empty or invalid template");
     }
-    const renderOptions = { indent, logger, useBlockContainer };
+    const renderOptions = { indent, logger };
     if (template && typeof template === "object" && "template" in template) {
       const mergedData = { ...defaultData, ...template.data };
       return renderToString({ template: template.template, data: mergedData }, renderOptions);
