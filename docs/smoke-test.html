@@ -50,7 +50,7 @@
       data: { name: 'World' }
     });
     document.getElementById('string-out').textContent = html;
-    var stringOk = html === '<div class="greeting">Hello World!</div>';
+    var stringOk = html === '<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="greeting">Hello World!</div></div>';
     report(document.getElementById('string-status'), stringOk,
       stringOk ? 'renderToString produced expected HTML' : 'unexpected output');
   } catch (e) {
