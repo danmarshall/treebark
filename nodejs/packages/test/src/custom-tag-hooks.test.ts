@@ -41,7 +41,7 @@ describe('Custom tag hooks (Tier 1 reference)', () => {
       }
     } as any, { hooks: createTier1CustomTagHooks() });
 
-    expect(result).toBe('<span class="person-pill" data-person-id="person-123">Alex</span>');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><span class="person-pill" data-person-id="person-123">Alex</span></div>');
   });
 
   test('lets hook implementations strip attributes outside their allowlist', () => {
@@ -57,7 +57,7 @@ describe('Custom tag hooks (Tier 1 reference)', () => {
     } as any, { logger, hooks: createTier1CustomTagHooks() });
 
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Attribute "onclick" is not allowed'));
-    expect(result).toBe('<span class="person-pill" data-person-id="person-123">Alex</span>');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><span class="person-pill" data-person-id="person-123">Alex</span></div>');
   });
 
   test('keeps unknown tags rejected when hooks do not expand them', () => {
@@ -67,7 +67,7 @@ describe('Custom tag hooks (Tier 1 reference)', () => {
       template: { 'unknown-tag': 'Nope' }
     } as any, { logger, hooks: createTier1CustomTagHooks() });
 
-    expect(result).toBe('');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
     expect(logger.error).toHaveBeenCalledWith('Tag "unknown-tag" is not allowed');
   });
 
@@ -83,7 +83,7 @@ describe('Custom tag hooks (Tier 1 reference)', () => {
       }
     });
 
-    expect(result).toBe('');
+    expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Tag hook expansion for "loop-tag" is cyclic'));
   });
 });

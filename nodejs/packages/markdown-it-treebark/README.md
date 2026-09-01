@@ -98,9 +98,15 @@ md.use(treebarkPlugin, {
     error: (msg) => console.error('Treebark Error:', msg),
     warn: (msg) => console.warn('Treebark Warning:', msg),
     log: (msg) => console.log('Treebark:', msg)
-  }
+  },
+
+  // Block container for security (default: true)
+  useBlockContainer: true   // Enabled by default, set to false to opt-out
+  // useBlockContainer: false  // Only for trusted templates
 });
 ```
+
+**Security Note:** Block container is **enabled by default** to prevent positioning attacks. User-generated templates in Markdown are automatically wrapped in a secure container. Set `useBlockContainer: false` only for trusted templates.
 
 ### Bundle Size Optimization
 

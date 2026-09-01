@@ -256,7 +256,7 @@ script: "alert('xss')"
       // With no-throw policy, invalid tags are logged to console and render as empty
       // The error is not thrown, so no error div is shown
       const result = md.render(markdown);
-      expect(result).toBe('\n');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>\n');
     });
 
     it('should handle empty content', () => {
@@ -380,7 +380,7 @@ script: "alert('xss')"
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
-      expect(result).toBe('\n');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>\n');
     });
 
     it('should pass logger through to treebark renderer for invalid attributes', () => {
@@ -427,7 +427,7 @@ script: "alert('xss')"
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
-      expect(result).toBe('\n');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>\n');
 
       consoleErrorSpy.mockRestore();
     });

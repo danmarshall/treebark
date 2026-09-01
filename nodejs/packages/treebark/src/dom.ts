@@ -26,12 +26,35 @@ export function renderToDOM(
   const logger = options.logger || console;
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
+  // Default to true for security - defaults to true unless explicitly set to false
+  const useBlockContainer = options.useBlockContainer !== false;
   
   const fragment = document.createDocumentFragment();
   
   const result = render(input.template, data, { logger, getOuterProperty, hooks });
-  if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
-  else fragment.appendChild(result);
+  
+  // Determine the target for appending rendered nodes
+  let target: Node;
+  if (useBlockContainer) {
+    // Create a block container with CSS containment and stacking context isolation
+    // This prevents positioned elements from overlaying page elements
+    const container = document.createElement('div');
+    container.style.cssText = 'contain: content; isolation: isolate;';
+    container.setAttribute('data-treebark-container', 'true');
+    target = container;
+    fragment.appendChild(container);
+  } else {
+    // Standard rendering without containment (opt-out for trusted templates)
+    target = fragment;
+  }
+  
+  // Append rendered content to target
+  if (Array.isArray(result)) {
+    result.forEach(n => target.appendChild(n));
+  } else {
+    target.appendChild(result);
+  }
+  
   return fragment;
 }
 

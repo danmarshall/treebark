@@ -1247,6 +1247,7 @@ div:
 ### Node.js / Browser
 
 - [Core library](nodejs/packages/treebark) - Full documentation for `renderToString`, `renderToDOM`, and `renderToReact`
+- `renderToDOM` uses block container mode by default for security (prevents positioning attacks on page elements)
 - [markdown-it plugin](nodejs/packages/markdown-it-treebark/) - Render treebark templates in Markdown
 
 ### Other Languages

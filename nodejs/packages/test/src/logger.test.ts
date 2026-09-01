@@ -16,7 +16,7 @@ describe('Logger Functionality', () => {
       const template = { script: 'alert("xss")' } as any;
       const result = renderToString({ template }, { logger: mockLogger });
 
-      expect(result).toBe('');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Tag "script" is not allowed')
       );
@@ -28,7 +28,7 @@ describe('Logger Functionality', () => {
       const template = { script: 'alert("xss")' } as any;
       const result = renderToString({ template });
 
-      expect(result).toBe('');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"></div>');
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Tag "script" is not allowed'));
 
       consoleErrorSpy.mockRestore();
@@ -61,7 +61,7 @@ describe('Logger Functionality', () => {
       );
 
       // Should still render the element with valid attributes
-      expect(result).toContain('<div class="valid">');
+      expect(result).toContain('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div class="valid">');
       expect(result).toContain('content');
       expect(result).not.toContain('invalidAttr');
       expect(result).not.toContain('anotherBadAttr');
@@ -92,7 +92,7 @@ describe('Logger Functionality', () => {
       );
 
       // Should render valid children
-      expect(result).toContain('<div>');
+      expect(result).toContain('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div>');
       expect(result).toContain('<p>Valid paragraph</p>');
       expect(result).toContain('<span>Valid span</span>');
       expect(result).not.toContain('script');
@@ -118,7 +118,7 @@ describe('Logger Functionality', () => {
         expect.stringMatching(/\$if.*\$children/)
       );
       // Should render $then, ignoring $children
-      expect(result).toBe('<p>Yes</p>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><p>Yes</p></div>');
     });
 
     it('should log $bind validation errors and render parent element', () => {
@@ -146,7 +146,7 @@ describe('Logger Functionality', () => {
       );
 
       // Parent div should still render
-      expect(result).toBe('<div></div>');
+      expect(result).toBe('<div style="contain: content; isolation: isolate;" data-treebark-container="true"><div></div></div>');
     });
   });
 
@@ -159,7 +159,7 @@ describe('Logger Functionality', () => {
       };
 
       const template = { script: 'alert("xss")' } as any;
-      const fragment = renderToDOM({ template }, { logger: mockLogger });
+      const fragment = renderToDOM({ template }, { logger: mockLogger, useBlockContainer: false });
 
       expect(fragment.childNodes.length).toBe(0);
       expect(mockLogger.error).toHaveBeenCalledWith(
@@ -171,7 +171,7 @@ describe('Logger Functionality', () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const template = { script: 'alert("xss")' } as any;
-      const fragment = renderToDOM({ template });
+      const fragment = renderToDOM({ template }, { useBlockContainer: false });
 
       expect(fragment.childNodes.length).toBe(0);
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Tag "script" is not allowed'));
@@ -193,7 +193,7 @@ describe('Logger Functionality', () => {
           $children: ['content']
         }
       };
-      const fragment = renderToDOM({ template }, { logger: mockLogger });
+      const fragment = renderToDOM({ template }, { logger: mockLogger, useBlockContainer: false });
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('invalidAttr')

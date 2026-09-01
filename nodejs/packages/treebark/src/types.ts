@@ -186,4 +186,5 @@ export interface RenderOptions {
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
   hooks?: RenderHooks;
+  useBlockContainer?: boolean;  // When true (default), wraps content in a block container with CSS containment for security
 }
