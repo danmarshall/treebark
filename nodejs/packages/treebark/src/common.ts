@@ -79,6 +79,17 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
 };
 export const SVG_TAGS = new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath']);
 
+export function createValidationLogger(options: { logger?: Logger; validation?: 'strict' }): Logger & { errors: string[] } {
+  const base = options.logger || console;
+  const errors: string[] = [];
+  return {
+    errors,
+    error: message => { errors.push(message); base.error(message); },
+    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
+    log: message => base.log(message)
+  };
+}
+
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
 export const CONDITIONALKEYS = new Set(['$check', '$then', '$else', '$not', '$join', ...OPERATORS]);
@@ -415,7 +426,7 @@ export function processStyleAttributeToProperties(
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   if (SVG_TAGS.has(tag)) {
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
-    const isSvgGlobal = key === 'id' || key === 'role' || key.startsWith('aria-');
+    const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
     if (!isSvgGlobal && !tagAttrs.has(key)) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;

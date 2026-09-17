@@ -113,7 +113,7 @@ This means the implementation is featherweight.
 
 ### Static SVG Profile
 
-Treebark supports static SVG elements: `svg`, `g`, `defs`, `symbol`, `use`, `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `text`, `tspan`, `linearGradient`, `radialGradient`, `stop`, and `clipPath`. SVG accepts only its documented geometry, paint, text, gradient, and accessibility attributes; it does not accept `style`, event handlers, or namespace attributes. `href` and `clip-path` references must be internal fragments such as `#icon` and `url(#clip)`.
+Treebark supports static SVG elements: `svg`, `g`, `defs`, `symbol`, `use`, `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `text`, `tspan`, `linearGradient`, `radialGradient`, `stop`, and `clipPath`. SVG accepts only its documented geometry, paint, text, gradient, accessibility attributes, and Treebark's structured style object; raw style strings, event handlers, and namespace attributes are rejected. `href` and `clip-path` references must be internal fragments such as `#icon` and `url(#clip)`.
 
 Deferred SVG features include animation, `image`, `foreignObject`, filters, masks, patterns, markers, scripts, and styles.
 

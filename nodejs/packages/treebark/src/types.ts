@@ -99,6 +99,7 @@ type BaseVoidAttrs = GlobalAttrs & {
 type SvgAttrs = {
   id?: AttributeValue;
   role?: AttributeValue;
+  style?: StyleValue;
   [key: `aria-${string}`]: AttributeValue;
 };
 type SvgContainerAttrs = SvgAttrs & {

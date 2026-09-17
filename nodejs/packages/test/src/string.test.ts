@@ -35,11 +35,11 @@ import {
 describe('String Renderer', () => {
   describe('Static SVG profile', () => {
     it('renders allowed SVG content and internal references', () => {
-      expect(renderToString({ template: { svg: { viewBox: '0 0 10 10', $children: [
+      expect(renderToString({ template: { svg: { viewBox: '0 0 10 10', style: { color: 'blue' }, $children: [
         { defs: { $children: [{ linearGradient: { id: 'paint', $children: [{ stop: { offset: '0', 'stop-color': 'red' } }] } }, { clipPath: { id: 'clip', $children: [{ rect: { width: '10', height: '10' } }] } }] } },
         { use: { href: '#shape', 'clip-path': 'url(#clip)' } },
         { text: { x: '1', y: '8', $children: [{ tspan: 'safe < text' }] } }
-      ] } } })).toBe('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="paint"><stop offset="0" stop-color="red"></stop></linearGradient><clipPath id="clip"><rect width="10" height="10"></rect></clipPath></defs><use href="#shape" clip-path="url(#clip)"></use><text x="1" y="8"><tspan>safe &lt; text</tspan></text></svg>');
+      ] } } })).toBe('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" style="color: blue"><defs><linearGradient id="paint"><stop offset="0" stop-color="red"></stop></linearGradient><clipPath id="clip"><rect width="10" height="10"></rect></clipPath></defs><use href="#shape" clip-path="url(#clip)"></use><text x="1" y="8"><tspan>safe &lt; text</tspan></text></svg>');
     });
 
     it('rejects deferred SVG features, styles, event handlers, and external references', () => {

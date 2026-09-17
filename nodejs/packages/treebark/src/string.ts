@@ -14,7 +14,8 @@ import {
   evaluateConditionalValue,
   parseTemplateObject,
   processConditional,
-  expandHookedTag
+  expandHookedTag,
+  createValidationLogger
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -51,7 +52,7 @@ export function renderToString(
   const data = input.data;
 
   // Set logger to console if not provided
-  const logger = strictLogger(options);
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
 
@@ -252,15 +253,4 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
     .filter(pair => pair !== null)
     .join(" ");
   return pairs ? " " + pairs : "";
-}
-
-function strictLogger(options: RenderOptions): Logger & { errors: string[] } {
-  const base = options.logger || console;
-  const errors: string[] = [];
-  return {
-    errors,
-    error: message => { errors.push(message); base.error(message); },
-    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
-    log: message => base.log(message)
-  };
 }

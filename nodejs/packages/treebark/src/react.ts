@@ -16,7 +16,8 @@ import {
   parseTemplateObject,
   processConditional,
   expandHookedTag,
-  createTagHookArgs
+  createTagHookArgs,
+  createValidationLogger
 } from './common.js';
 
 // Map treebark's HTML attribute names to the React prop names that React's
@@ -28,8 +29,8 @@ const REACT_PROP_NAMES: Record<string, string> = {
   for: 'htmlFor',
   colspan: 'colSpan',
   rowspan: 'rowSpan',
-  tabindex: 'tabIndex'
-  , 'stroke-width': 'strokeWidth', 'fill-rule': 'fillRule', 'clip-rule': 'clipRule',
+  tabindex: 'tabIndex',
+  'stroke-width': 'strokeWidth', 'fill-rule': 'fillRule', 'clip-rule': 'clipRule',
   'fill-opacity': 'fillOpacity', 'stroke-opacity': 'strokeOpacity', 'stroke-linecap': 'strokeLinecap',
   'stroke-linejoin': 'strokeLinejoin', 'clip-path': 'clipPath', 'text-anchor': 'textAnchor',
   'font-size': 'fontSize', 'font-family': 'fontFamily', 'stop-color': 'stopColor', 'stop-opacity': 'stopOpacity'
@@ -63,7 +64,7 @@ export function renderToReact(
   const data = input.data;
 
   // Set logger to console if not provided
-  const logger = strictLogger(options);
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
 
@@ -308,20 +309,9 @@ function buildProps(
       return;
     }
 
-        const propName = REACT_PROP_NAMES[key] || key;
+    const propName = REACT_PROP_NAMES[key] || key;
     props[propName] = validatedValue;
   });
 
   return props;
-}
-
-function strictLogger(options: RenderOptions): Logger & { errors: string[] } {
-  const base = options.logger || console;
-  const errors: string[] = [];
-  return {
-    errors,
-    error: message => { errors.push(message); base.error(message); },
-    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
-    log: message => base.log(message)
-  };
 }

@@ -13,7 +13,8 @@ import {
   evaluateConditionalValue,
   parseTemplateObject,
   processConditional,
-  expandHookedTag
+  expandHookedTag,
+  createValidationLogger
 } from './common.js';
 
 export function renderToDOM(
@@ -23,7 +24,7 @@ export function renderToDOM(
   const data = input.data;
   
   // Set logger to console if not provided
-  const logger = strictLogger(options);
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
   
@@ -224,15 +225,4 @@ function setAttrs(element: Element, attrs: Record<string, unknown>, data: Data, 
 
         element.setAttribute(key, validatedValue);
   });
-}
-
-function strictLogger(options: RenderOptions): Logger & { errors: string[] } {
-  const base = options.logger || console;
-  const errors: string[] = [];
-  return {
-    errors,
-    error: message => { errors.push(message); base.error(message); },
-    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
-    log: message => base.log(message)
-  };
 }
