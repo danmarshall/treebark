@@ -434,7 +434,7 @@ export function processStyleAttributeToProperties(
  */
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   if (SVG_TAGS.has(tag)) {
-    const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
+    const tagAttrs = TAG_SPECIFIC_ATTRS[tag] ?? new Set<string>();
     const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
     if (!isSvgGlobal && !tagAttrs.has(key) && !(extraAllowedAttrs?.has(key))) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);

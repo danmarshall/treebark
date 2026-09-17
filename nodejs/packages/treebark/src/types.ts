@@ -96,34 +96,19 @@ type BaseVoidAttrs = GlobalAttrs & {
   $bind?: BindPath;
 };
 
-type SvgAttrs = {
+type SvgGlobalAttrs = {
   id?: AttributeValue;
   role?: AttributeValue;
   style?: StyleValue;
   [key: `aria-${string}`]: AttributeValue;
 };
-type SvgContainerAttrs = SvgAttrs & {
+type SvgElementAttrs<Attrs> = SvgGlobalAttrs & Attrs & {
   $bind?: BindPath;
   $children?: (InterpolatedString | TemplateObject)[];
-  viewBox?: AttributeValue;
-  preserveAspectRatio?: AttributeValue;
-  x?: AttributeValue;
-  y?: AttributeValue;
-  width?: AttributeValue;
-  height?: AttributeValue;
-  cx?: AttributeValue;
-  cy?: AttributeValue;
-  r?: AttributeValue;
-  rx?: AttributeValue;
-  ry?: AttributeValue;
-  x1?: AttributeValue;
-  y1?: AttributeValue;
-  x2?: AttributeValue;
-  y2?: AttributeValue;
-  fx?: AttributeValue;
-  fy?: AttributeValue;
-  points?: AttributeValue;
-  d?: AttributeValue;
+};
+
+type SvgPresentationAttrs = {
+  transform?: AttributeValue;
   fill?: AttributeValue;
   stroke?: AttributeValue;
   'stroke-width'?: AttributeValue;
@@ -134,21 +119,71 @@ type SvgContainerAttrs = SvgAttrs & {
   'stroke-opacity'?: AttributeValue;
   'stroke-linecap'?: AttributeValue;
   'stroke-linejoin'?: AttributeValue;
+  'clip-path'?: AttributeValue;
+};
+
+type SvgAttrs = {
+  viewBox?: AttributeValue;
+  preserveAspectRatio?: AttributeValue;
+  x?: AttributeValue;
+  y?: AttributeValue;
+  width?: AttributeValue;
+  height?: AttributeValue;
+};
+
+type UseAttrs = {
+  href?: AttributeValue;
+  x?: AttributeValue;
+  y?: AttributeValue;
+  width?: AttributeValue;
+  height?: AttributeValue;
   transform?: AttributeValue;
   'clip-path'?: AttributeValue;
-  href?: AttributeValue;
+};
+
+type PathAttrs = SvgPresentationAttrs & { d?: AttributeValue };
+type RectAttrs = SvgPresentationAttrs & {
+  x?: AttributeValue;
+  y?: AttributeValue;
+  width?: AttributeValue;
+  height?: AttributeValue;
+  rx?: AttributeValue;
+  ry?: AttributeValue;
+};
+type CircleAttrs = SvgPresentationAttrs & { cx?: AttributeValue; cy?: AttributeValue; r?: AttributeValue };
+type EllipseAttrs = SvgPresentationAttrs & { cx?: AttributeValue; cy?: AttributeValue; rx?: AttributeValue; ry?: AttributeValue };
+type LineAttrs = SvgPresentationAttrs & { x1?: AttributeValue; y1?: AttributeValue; x2?: AttributeValue; y2?: AttributeValue };
+type PointsAttrs = SvgPresentationAttrs & { points?: AttributeValue };
+type TextAttrs = SvgPresentationAttrs & {
+  x?: AttributeValue;
+  y?: AttributeValue;
   dx?: AttributeValue;
   dy?: AttributeValue;
   'text-anchor'?: AttributeValue;
   'font-size'?: AttributeValue;
   'font-family'?: AttributeValue;
+};
+type LinearGradientAttrs = {
+  x1?: AttributeValue;
+  y1?: AttributeValue;
+  x2?: AttributeValue;
+  y2?: AttributeValue;
   gradientUnits?: AttributeValue;
   gradientTransform?: AttributeValue;
-  clipPathUnits?: AttributeValue;
-  offset?: AttributeValue;
-  'stop-color'?: AttributeValue;
-  'stop-opacity'?: AttributeValue;
+  href?: AttributeValue;
 };
+type RadialGradientAttrs = {
+  cx?: AttributeValue;
+  cy?: AttributeValue;
+  r?: AttributeValue;
+  fx?: AttributeValue;
+  fy?: AttributeValue;
+  gradientUnits?: AttributeValue;
+  gradientTransform?: AttributeValue;
+  href?: AttributeValue;
+};
+type StopAttrs = { offset?: AttributeValue; 'stop-color'?: AttributeValue; 'stop-opacity'?: AttributeValue };
+type ClipPathAttrs = { transform?: AttributeValue; clipPathUnits?: AttributeValue };
 
 // Tag-specific types with attributes included
 export type DivTag = { div: TagContent<BaseContainerAttrs> };
@@ -186,24 +221,24 @@ export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
 export type ImgTag = { img: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
 export type BrTag = { br: TagContent<BaseVoidAttrs> };
 export type HrTag = { hr: TagContent<BaseVoidAttrs> };
-export type SvgTagElement = { svg: TagContent<SvgContainerAttrs> };
-export type GTag = { g: TagContent<SvgContainerAttrs> };
-export type DefsTag = { defs: TagContent<SvgContainerAttrs> };
-export type SymbolTag = { symbol: TagContent<SvgContainerAttrs> };
-export type UseTag = { use: TagContent<SvgContainerAttrs> };
-export type PathTag = { path: TagContent<SvgContainerAttrs> };
-export type RectTag = { rect: TagContent<SvgContainerAttrs> };
-export type CircleTag = { circle: TagContent<SvgContainerAttrs> };
-export type EllipseTag = { ellipse: TagContent<SvgContainerAttrs> };
-export type LineTag = { line: TagContent<SvgContainerAttrs> };
-export type PolylineTag = { polyline: TagContent<SvgContainerAttrs> };
-export type PolygonTag = { polygon: TagContent<SvgContainerAttrs> };
-export type TextTag = { text: TagContent<SvgContainerAttrs> };
-export type TspanTag = { tspan: TagContent<SvgContainerAttrs> };
-export type LinearGradientTag = { linearGradient: TagContent<SvgContainerAttrs> };
-export type RadialGradientTag = { radialGradient: TagContent<SvgContainerAttrs> };
-export type StopTag = { stop: TagContent<SvgContainerAttrs> };
-export type ClipPathTag = { clipPath: TagContent<SvgContainerAttrs> };
+export type SvgTagElement = { svg: TagContent<SvgElementAttrs<SvgAttrs>> };
+export type GTag = { g: TagContent<SvgElementAttrs<SvgPresentationAttrs>> };
+export type DefsTag = { defs: TagContent<SvgElementAttrs<{}>> };
+export type SymbolTag = { symbol: TagContent<SvgElementAttrs<Pick<SvgAttrs, 'viewBox' | 'preserveAspectRatio'>>> };
+export type UseTag = { use: TagContent<SvgElementAttrs<UseAttrs>> };
+export type PathTag = { path: TagContent<SvgElementAttrs<PathAttrs>> };
+export type RectTag = { rect: TagContent<SvgElementAttrs<RectAttrs>> };
+export type CircleTag = { circle: TagContent<SvgElementAttrs<CircleAttrs>> };
+export type EllipseTag = { ellipse: TagContent<SvgElementAttrs<EllipseAttrs>> };
+export type LineTag = { line: TagContent<SvgElementAttrs<LineAttrs>> };
+export type PolylineTag = { polyline: TagContent<SvgElementAttrs<PointsAttrs>> };
+export type PolygonTag = { polygon: TagContent<SvgElementAttrs<PointsAttrs>> };
+export type TextTag = { text: TagContent<SvgElementAttrs<TextAttrs>> };
+export type TspanTag = { tspan: TagContent<SvgElementAttrs<TextAttrs>> };
+export type LinearGradientTag = { linearGradient: TagContent<SvgElementAttrs<LinearGradientAttrs>> };
+export type RadialGradientTag = { radialGradient: TagContent<SvgElementAttrs<RadialGradientAttrs>> };
+export type StopTag = { stop: TagContent<SvgElementAttrs<StopAttrs>> };
+export type ClipPathTag = { clipPath: TagContent<SvgElementAttrs<ClipPathAttrs>> };
 
 // $if tag type
 export type IfTag = { $if: ConditionalValueOrTemplate };
