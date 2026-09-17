@@ -63,6 +63,17 @@ describe('React Renderer', () => {
     });
   });
 
+  describe('HTML containment', () => {
+    it('renders declared parents and rejects other placements', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderMarkup({ template: [
+        { table: { $children: [{ tbody: { $children: [{ tr: { $children: [{ td: 'valid' }] } }] } }] } },
+        { div: { $children: [{ tbody: {} } as any] } }
+      ] }, { logger })).toBe('<table><tbody><tr><td>valid</td></tr></tbody></table><div></div>');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" is not allowed inside "div"');
+    });
+  });
+
   describe('Basic Rendering', () => {
     const expected: Record<string, string> = {
       'renders simple text': 'Hello world',

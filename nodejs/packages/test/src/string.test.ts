@@ -60,6 +60,28 @@ describe('String Renderer', () => {
       expect(logger.error).toHaveBeenCalledWith('SVG tag "stop" is not allowed inside "svg"');
       expect(logger.error).toHaveBeenCalledWith('Tag "div" is not allowed inside SVG tag "svg"');
     });
+
+    it('allows self-parenting SVG elements only within their declared hierarchy', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderToString({ template: { svg: { $children: [
+        { text: { $children: [{ tspan: { $children: [{ tspan: 'nested' }] } }] } },
+        { tspan: 'invalid' } as any
+      ] } } }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><text><tspan><tspan>nested</tspan></tspan></text></svg>');
+      expect(logger.error).toHaveBeenCalledWith('SVG tag "tspan" is not allowed inside "svg"');
+    });
+  });
+
+  describe('HTML containment', () => {
+    it('only allows tbody directly inside table', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderToString({ template: [
+        { table: { $children: [{ tbody: { $children: [{ tr: { $children: [{ td: 'valid' }] } }] } }] } },
+        { tbody: {} } as any,
+        { div: { $children: [{ tbody: {} } as any] } }
+      ] }, { logger })).toBe('<table><tbody><tr><td>valid</td></tr></tbody></table><div></div>');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" must be contained by one of: "table"');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" is not allowed inside "div"');
+    });
   });
 
   // Basic rendering tests

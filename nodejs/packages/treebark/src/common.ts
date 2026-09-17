@@ -20,70 +20,32 @@ import type {
   TagHookArgs,
   HookExpansionResult,
 } from './types.js';
+import {
+  TAG_SCHEMA,
+  SVG_TAG_NAMES,
+  SVG_TAGS,
+  getTagDefinition,
+  getTagName,
+  isAllowedParent,
+} from './tags.js';
 
-const SVG_PRESENTATION_ATTRS = [
-  'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule',
-  'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path'
-] as const;
+export { SVG_TAG_NAMES, SVG_TAGS } from './tags.js';
 
-const TAG_PROFILE = {
-  roots: {
-    html: ['div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
-      'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a'],
-    svg: ['svg']
-  },
-  containers: {
-    html: ['div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
-      'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a'],
-    svg: ['g', 'defs', 'symbol', 'clipPath']
-  },
-  voids: ['img', 'br', 'hr'],
-  svg: {
-    use: ['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path'],
-    path: ['d', ...SVG_PRESENTATION_ATTRS],
-    rect: ['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS],
-    circle: ['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS],
-    ellipse: ['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS],
-    line: ['x1', 'y1', 'x2', 'y2', ...SVG_PRESENTATION_ATTRS],
-    polyline: ['points', ...SVG_PRESENTATION_ATTRS],
-    polygon: ['points', ...SVG_PRESENTATION_ATTRS],
-    text: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'],
-    tspan: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'],
-    linearGradient: ['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href'],
-    radialGradient: ['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href'],
-    stop: ['offset', 'stop-color', 'stop-opacity']
-  }
-} as const;
-
-const SVG_PROFILE = {
-  svg: ['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height'],
-  g: SVG_PRESENTATION_ATTRS,
-  defs: [],
-  symbol: ['viewBox', 'preserveAspectRatio'],
-  clipPath: ['transform', 'clipPathUnits'],
-  ...TAG_PROFILE.svg
-} as const;
-export const SVG_TAG_NAMES = Object.keys(SVG_PROFILE);
+const tagEntries = Object.entries(TAG_SCHEMA);
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS: Set<string> = new Set([
-  ...TAG_PROFILE.containers.html,
-  ...TAG_PROFILE.roots.svg,
-  ...TAG_PROFILE.containers.svg,
-  ...Object.keys(TAG_PROFILE.svg)
+  ...tagEntries.filter(([, schema]) => !schema.void && !schema.special).map(([tag]) => tag)
 ]);
 
 // Special tags that have unique behavior
 export const SPECIAL_TAGS = new Set([
-  '$comment',
-  '$if'
+  ...tagEntries.filter(([, schema]) => schema.special).map(([tag]) => tag)
 ]);
 
 // Void tags that cannot have children and are self-closing
 export const VOID_TAGS: Set<string> = new Set([
-  ...TAG_PROFILE.voids
+  ...tagEntries.filter(([, schema]) => schema.void).map(([tag]) => tag)
 ]);
 
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
@@ -91,37 +53,43 @@ export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID
 // Global attributes allowed on all tags
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
-export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
-  'a': new Set(['href', 'target', 'rel']),
-  'img': new Set(['src', 'alt', 'width', 'height']),
-  'table': new Set(['summary']),
-  'th': new Set(['scope', 'colspan', 'rowspan']),
-  'td': new Set(['scope', 'colspan', 'rowspan']),
-  'blockquote': new Set(['cite'])
-};
-export const SVG_TAGS = new Set(SVG_TAG_NAMES);
+export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = Object.fromEntries(
+  tagEntries
+    .filter(([tag, schema]) => !SVG_TAGS.has(tag) && schema.attrs)
+    .map(([tag, schema]) => [tag, new Set(schema.attrs)])
+);
 
 export function validateTagContainment(tag: string, parentTag: string | undefined, logger: Logger): boolean {
-  const isSvg = SVG_TAGS.has(tag);
-  if (!isSvg) {
+  const schema = getTagDefinition(tag);
+  if (!SVG_TAGS.has(tag)) {
     if (parentTag && SVG_TAGS.has(parentTag)) {
       logger.error(`Tag "${tag}" is not allowed inside SVG tag "${parentTag}"`);
+      return false;
+    }
+    if (schema?.parents && !parentTag) {
+      const parentNames = schema.parents.map(parent => getTagName(parent)).filter((name): name is string => name !== undefined);
+      logger.error(`Tag "${tag}" must be contained by one of: ${parentNames.map(parent => `"${parent}"`).join(', ')}`);
+      return false;
+    }
+    const parentSchema = parentTag ? getTagDefinition(parentTag) : undefined;
+    if (schema?.parents && parentTag && (!parentSchema || !isAllowedParent(schema, parentSchema))) {
+      logger.error(`Tag "${tag}" is not allowed inside "${parentTag}"`);
       return false;
     }
     return true;
   }
 
   if (!parentTag) {
-    if (tag === 'svg') return true;
+    if (schema && 'root' in schema && schema.root) return true;
     logger.error(`SVG tag "${tag}" must be contained by an SVG element`);
     return false;
   }
 
-  const allowed = tag === 'tspan'
-    ? parentTag === 'text' || parentTag === 'tspan'
-    : tag === 'stop'
-      ? parentTag === 'linearGradient' || parentTag === 'radialGradient'
-      : tag !== 'svg' && ['svg', ...TAG_PROFILE.containers.svg].includes(parentTag as never);
+  const parentSchema = getTagDefinition(parentTag);
+  const isRoot = schema && 'root' in schema && schema.root === true;
+  const allowed = schema && parentSchema && !isRoot && (schema.parents
+    ? isAllowedParent(schema, parentSchema)
+    : SVG_TAGS.has(parentTag) && 'svgChildren' in parentSchema && parentSchema.svgChildren === true);
   if (!allowed) {
     logger.error(`SVG tag "${tag}" is not allowed inside "${parentTag}"`);
     return false;
@@ -475,7 +443,7 @@ export function processStyleAttributeToProperties(
  */
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   if (SVG_TAGS.has(tag)) {
-    const tagAttrs = SVG_PROFILE[tag as keyof typeof SVG_PROFILE];
+    const tagAttrs = TAG_SCHEMA[tag]?.attrs || [];
     const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
     if (!isSvgGlobal && !tagAttrs.includes(key as never) && !(extraAllowedAttrs?.has(key))) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);

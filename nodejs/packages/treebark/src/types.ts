@@ -1,6 +1,9 @@
 // Type definitions for treebark templates
 // This file contains only type definitions, no executable code
 
+import type { HTML_TAG_SCHEMA } from './html-tags.js';
+import type { SVG_TAG_SCHEMA } from './svg-tags.js';
+
 // Data type for template rendering - accepts any value
 export type Data = unknown;
 
@@ -54,19 +57,16 @@ export type AttributeValue = InterpolatedString | ConditionalValue;
 // Style value can be a CSSProperties object or a conditional that returns CSSProperties
 export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
 
-// Type-safe tag names - union of all allowed tags
-export type SvgTag = 'svg' | 'g' | 'defs' | 'symbol' | 'use' | 'path' | 'rect' | 'circle' | 'ellipse' |
-  'line' | 'polyline' | 'polygon' | 'text' | 'tspan' | 'linearGradient' | 'radialGradient' | 'stop' | 'clipPath';
+type HtmlTag = keyof typeof HTML_TAG_SCHEMA;
+export type SvgTag = keyof typeof SVG_TAG_SCHEMA;
 
-export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
-  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
-  'ul' | 'ol' | 'li' |
-  'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
-  'a' | SvgTag;
+type TagsWith<Schema, Property extends PropertyKey> = {
+  [Tag in keyof Schema]: Property extends keyof Schema[Tag] ? Tag : never
+}[keyof Schema];
 
-export type VoidTag = 'img' | 'br' | 'hr';
-
-export type SpecialTag = '$comment' | '$if';
+export type VoidTag = TagsWith<typeof HTML_TAG_SCHEMA, 'void'>;
+export type SpecialTag = TagsWith<typeof HTML_TAG_SCHEMA, 'special'>;
+export type ContainerTag = Exclude<HtmlTag, VoidTag | SpecialTag> | SvgTag;
 
 export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
 
@@ -107,150 +107,81 @@ type SvgElementAttrs<Attrs> = SvgGlobalAttrs & Attrs & {
   $children?: (InterpolatedString | TemplateObject)[];
 };
 
-type SvgPresentationAttrs = {
-  transform?: AttributeValue;
-  fill?: AttributeValue;
-  stroke?: AttributeValue;
-  'stroke-width'?: AttributeValue;
-  'fill-rule'?: AttributeValue;
-  'clip-rule'?: AttributeValue;
-  opacity?: AttributeValue;
-  'fill-opacity'?: AttributeValue;
-  'stroke-opacity'?: AttributeValue;
-  'stroke-linecap'?: AttributeValue;
-  'stroke-linejoin'?: AttributeValue;
-  'clip-path'?: AttributeValue;
-};
+type DeclaredAttrs<Definition, Value> = Definition extends { attrs: readonly string[] }
+  ? { [Key in Definition['attrs'][number]]?: Value }
+  : {};
 
-type SvgAttrs = {
-  viewBox?: AttributeValue;
-  preserveAspectRatio?: AttributeValue;
-  x?: AttributeValue;
-  y?: AttributeValue;
-  width?: AttributeValue;
-  height?: AttributeValue;
-};
+type HtmlTagElement<Tag extends HtmlTag> = Tag extends HtmlTag ? {
+  [Key in Tag]: TagContent<
+    ((typeof HTML_TAG_SCHEMA)[Tag] extends { void: true } ? BaseVoidAttrs : BaseContainerAttrs)
+    & DeclaredAttrs<(typeof HTML_TAG_SCHEMA)[Tag], string>
+  >
+} : never;
 
-type UseAttrs = {
-  href?: AttributeValue;
-  x?: AttributeValue;
-  y?: AttributeValue;
-  width?: AttributeValue;
-  height?: AttributeValue;
-  transform?: AttributeValue;
-  'clip-path'?: AttributeValue;
-};
-
-type PathAttrs = SvgPresentationAttrs & { d?: AttributeValue };
-type RectAttrs = SvgPresentationAttrs & {
-  x?: AttributeValue;
-  y?: AttributeValue;
-  width?: AttributeValue;
-  height?: AttributeValue;
-  rx?: AttributeValue;
-  ry?: AttributeValue;
-};
-type CircleAttrs = SvgPresentationAttrs & { cx?: AttributeValue; cy?: AttributeValue; r?: AttributeValue };
-type EllipseAttrs = SvgPresentationAttrs & { cx?: AttributeValue; cy?: AttributeValue; rx?: AttributeValue; ry?: AttributeValue };
-type LineAttrs = SvgPresentationAttrs & { x1?: AttributeValue; y1?: AttributeValue; x2?: AttributeValue; y2?: AttributeValue };
-type PointsAttrs = SvgPresentationAttrs & { points?: AttributeValue };
-type TextAttrs = SvgPresentationAttrs & {
-  x?: AttributeValue;
-  y?: AttributeValue;
-  dx?: AttributeValue;
-  dy?: AttributeValue;
-  'text-anchor'?: AttributeValue;
-  'font-size'?: AttributeValue;
-  'font-family'?: AttributeValue;
-};
-type LinearGradientAttrs = {
-  x1?: AttributeValue;
-  y1?: AttributeValue;
-  x2?: AttributeValue;
-  y2?: AttributeValue;
-  gradientUnits?: AttributeValue;
-  gradientTransform?: AttributeValue;
-  href?: AttributeValue;
-};
-type RadialGradientAttrs = {
-  cx?: AttributeValue;
-  cy?: AttributeValue;
-  r?: AttributeValue;
-  fx?: AttributeValue;
-  fy?: AttributeValue;
-  gradientUnits?: AttributeValue;
-  gradientTransform?: AttributeValue;
-  href?: AttributeValue;
-};
-type StopAttrs = { offset?: AttributeValue; 'stop-color'?: AttributeValue; 'stop-opacity'?: AttributeValue };
-type ClipPathAttrs = { transform?: AttributeValue; clipPathUnits?: AttributeValue };
+type SvgElement<Tag extends SvgTag> = Tag extends SvgTag ? {
+  [Key in Tag]: TagContent<SvgElementAttrs<DeclaredAttrs<(typeof SVG_TAG_SCHEMA)[Tag], AttributeValue>>>
+} : never;
 
 // Tag-specific types with attributes included
-export type DivTag = { div: TagContent<BaseContainerAttrs> };
-export type SpanTag = { span: TagContent<BaseContainerAttrs> };
-export type PTag = { p: TagContent<BaseContainerAttrs> };
-export type HeaderTag = { header: TagContent<BaseContainerAttrs> };
-export type FooterTag = { footer: TagContent<BaseContainerAttrs> };
-export type MainTag = { main: TagContent<BaseContainerAttrs> };
-export type SectionTag = { section: TagContent<BaseContainerAttrs> };
-export type ArticleTag = { article: TagContent<BaseContainerAttrs> };
-export type H1Tag = { h1: TagContent<BaseContainerAttrs> };
-export type H2Tag = { h2: TagContent<BaseContainerAttrs> };
-export type H3Tag = { h3: TagContent<BaseContainerAttrs> };
-export type H4Tag = { h4: TagContent<BaseContainerAttrs> };
-export type H5Tag = { h5: TagContent<BaseContainerAttrs> };
-export type H6Tag = { h6: TagContent<BaseContainerAttrs> };
-export type StrongTag = { strong: TagContent<BaseContainerAttrs> };
-export type EmTag = { em: TagContent<BaseContainerAttrs> };
-export type BlockquoteTag = { blockquote: TagContent<BaseContainerAttrs & { cite?: string }> };
-export type CodeTag = { code: TagContent<BaseContainerAttrs> };
-export type PreTag = { pre: TagContent<BaseContainerAttrs> };
-export type UlTag = { ul: TagContent<BaseContainerAttrs> };
-export type OlTag = { ol: TagContent<BaseContainerAttrs> };
-export type LiTag = { li: TagContent<BaseContainerAttrs> };
-export type TableTag = { table: TagContent<BaseContainerAttrs & { summary?: string }> };
-export type TheadTag = { thead: TagContent<BaseContainerAttrs> };
-export type TbodyTag = { tbody: TagContent<BaseContainerAttrs> };
-export type TrTag = { tr: TagContent<BaseContainerAttrs> };
-export type ThTag = { th: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type TdTag = { td: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type ATag = { a: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
-export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
+export type DivTag = HtmlTagElement<'div'>;
+export type SpanTag = HtmlTagElement<'span'>;
+export type PTag = HtmlTagElement<'p'>;
+export type HeaderTag = HtmlTagElement<'header'>;
+export type FooterTag = HtmlTagElement<'footer'>;
+export type MainTag = HtmlTagElement<'main'>;
+export type SectionTag = HtmlTagElement<'section'>;
+export type ArticleTag = HtmlTagElement<'article'>;
+export type H1Tag = HtmlTagElement<'h1'>;
+export type H2Tag = HtmlTagElement<'h2'>;
+export type H3Tag = HtmlTagElement<'h3'>;
+export type H4Tag = HtmlTagElement<'h4'>;
+export type H5Tag = HtmlTagElement<'h5'>;
+export type H6Tag = HtmlTagElement<'h6'>;
+export type StrongTag = HtmlTagElement<'strong'>;
+export type EmTag = HtmlTagElement<'em'>;
+export type BlockquoteTag = HtmlTagElement<'blockquote'>;
+export type CodeTag = HtmlTagElement<'code'>;
+export type PreTag = HtmlTagElement<'pre'>;
+export type UlTag = HtmlTagElement<'ul'>;
+export type OlTag = HtmlTagElement<'ol'>;
+export type LiTag = HtmlTagElement<'li'>;
+export type TableTag = HtmlTagElement<'table'>;
+export type TheadTag = HtmlTagElement<'thead'>;
+export type TbodyTag = HtmlTagElement<'tbody'>;
+export type TrTag = HtmlTagElement<'tr'>;
+export type ThTag = HtmlTagElement<'th'>;
+export type TdTag = HtmlTagElement<'td'>;
+export type ATag = HtmlTagElement<'a'>;
+export type CommentTag = HtmlTagElement<'$comment'>;
 
 // Void tag types
-export type ImgTag = { img: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
-export type BrTag = { br: TagContent<BaseVoidAttrs> };
-export type HrTag = { hr: TagContent<BaseVoidAttrs> };
-export type SvgTagElement = { svg: TagContent<SvgElementAttrs<SvgAttrs>> };
-export type GTag = { g: TagContent<SvgElementAttrs<SvgPresentationAttrs>> };
-export type DefsTag = { defs: TagContent<SvgElementAttrs<{}>> };
-export type SymbolTag = { symbol: TagContent<SvgElementAttrs<Pick<SvgAttrs, 'viewBox' | 'preserveAspectRatio'>>> };
-export type UseTag = { use: TagContent<SvgElementAttrs<UseAttrs>> };
-export type PathTag = { path: TagContent<SvgElementAttrs<PathAttrs>> };
-export type RectTag = { rect: TagContent<SvgElementAttrs<RectAttrs>> };
-export type CircleTag = { circle: TagContent<SvgElementAttrs<CircleAttrs>> };
-export type EllipseTag = { ellipse: TagContent<SvgElementAttrs<EllipseAttrs>> };
-export type LineTag = { line: TagContent<SvgElementAttrs<LineAttrs>> };
-export type PolylineTag = { polyline: TagContent<SvgElementAttrs<PointsAttrs>> };
-export type PolygonTag = { polygon: TagContent<SvgElementAttrs<PointsAttrs>> };
-export type TextTag = { text: TagContent<SvgElementAttrs<TextAttrs>> };
-export type TspanTag = { tspan: TagContent<SvgElementAttrs<TextAttrs>> };
-export type LinearGradientTag = { linearGradient: TagContent<SvgElementAttrs<LinearGradientAttrs>> };
-export type RadialGradientTag = { radialGradient: TagContent<SvgElementAttrs<RadialGradientAttrs>> };
-export type StopTag = { stop: TagContent<SvgElementAttrs<StopAttrs>> };
-export type ClipPathTag = { clipPath: TagContent<SvgElementAttrs<ClipPathAttrs>> };
+export type ImgTag = HtmlTagElement<'img'>;
+export type BrTag = HtmlTagElement<'br'>;
+export type HrTag = HtmlTagElement<'hr'>;
+export type SvgTagElement = SvgElement<'svg'>;
+export type GTag = SvgElement<'g'>;
+export type DefsTag = SvgElement<'defs'>;
+export type SymbolTag = SvgElement<'symbol'>;
+export type UseTag = SvgElement<'use'>;
+export type PathTag = SvgElement<'path'>;
+export type RectTag = SvgElement<'rect'>;
+export type CircleTag = SvgElement<'circle'>;
+export type EllipseTag = SvgElement<'ellipse'>;
+export type LineTag = SvgElement<'line'>;
+export type PolylineTag = SvgElement<'polyline'>;
+export type PolygonTag = SvgElement<'polygon'>;
+export type TextTag = SvgElement<'text'>;
+export type TspanTag = SvgElement<'tspan'>;
+export type LinearGradientTag = SvgElement<'linearGradient'>;
+export type RadialGradientTag = SvgElement<'radialGradient'>;
+export type StopTag = SvgElement<'stop'>;
+export type ClipPathTag = SvgElement<'clipPath'>;
 
 // $if tag type
 export type IfTag = { $if: ConditionalValueOrTemplate };
 
 // Union of all regular tag types
-export type RegularTags = 
-  | DivTag | SpanTag | PTag | HeaderTag | FooterTag | MainTag | SectionTag | ArticleTag
-  | H1Tag | H2Tag | H3Tag | H4Tag | H5Tag | H6Tag | StrongTag | EmTag | BlockquoteTag
-  | CodeTag | PreTag | UlTag | OlTag | LiTag | TableTag | TheadTag | TbodyTag | TrTag
-  | ThTag | TdTag | ATag | ImgTag | BrTag | HrTag | CommentTag
-  | SvgTagElement | GTag | DefsTag | SymbolTag | UseTag | PathTag | RectTag | CircleTag | EllipseTag
-  | LineTag | PolylineTag | PolygonTag | TextTag | TspanTag | LinearGradientTag | RadialGradientTag | StopTag | ClipPathTag;
+export type RegularTags = HtmlTagElement<Exclude<HtmlTag, '$if'>> | SvgElement<SvgTag>;
 
 // Generic template attributes (for backwards compatibility with runtime code)
 export type TemplateAttributes = BaseContainerAttrs;

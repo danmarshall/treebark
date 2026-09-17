@@ -55,6 +55,20 @@ describe('DOM Renderer', () => {
     });
   });
 
+  describe('HTML containment', () => {
+    it('renders declared parents and rejects other placements', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const fragment = renderToDOM({ template: [
+        { table: { $children: [{ tbody: { $children: [{ tr: { $children: [{ td: 'valid' }] } }] } }] } },
+        { div: { $children: [{ tbody: {} } as any] } }
+      ] }, { logger });
+      const host = document.createElement('div');
+      host.append(fragment);
+      expect(host.innerHTML).toBe('<table><tbody><tr><td>valid</td></tr></tbody></table><div></div>');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" is not allowed inside "div"');
+    });
+  });
+
   // Basic rendering tests
   describe('Basic Rendering', () => {
     basicRenderingTests.forEach(testCase => {
