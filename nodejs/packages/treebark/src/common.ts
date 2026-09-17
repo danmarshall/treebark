@@ -491,11 +491,11 @@ function validateUrlProtocol(attrName: string, value: string, logger: Logger): s
  */
 export function validateAttributeValue(attrName: string, value: string, logger: Logger, tag?: string): string | null {
   if (SVG_TAGS.has(tag || '')) {
-    if (attrName === 'href' && !value.trim().startsWith('#')) {
+    if (attrName === 'href' && !/^#[A-Za-z0-9_-]+$/.test(value.trim())) {
       logger.warn(`Attribute "${attrName}" on tag "${tag}" must be an internal fragment reference`);
       return null;
     }
-    if (attrName === 'clip-path' && !/^url\(\s*#[^)]+\s*\)$/.test(value.trim())) {
+    if (attrName === 'clip-path' && !/^url\(#[A-Za-z0-9_-]+\)$/.test(value.trim())) {
       logger.warn(`Attribute "clip-path" on tag "${tag}" must be an internal fragment reference`);
       return null;
     }

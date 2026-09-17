@@ -44,7 +44,7 @@ describe('String Renderer', () => {
 
     it('rejects deferred SVG features, styles, event handlers, and external references', () => {
       const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
-      expect(renderToString({ template: { svg: { style: 'color:red', onload: 'alert(1)', $children: [{ image: { href: 'https://example.test/x' } }, { use: { href: 'https://example.test/x' } }] } } as any }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><use></use></svg>');
+      expect(renderToString({ template: { svg: { style: 'color:red', onload: 'alert(1)', $children: [{ image: { href: 'https://example.test/x' } }, { use: { href: 'https://example.test/x', 'clip-path': 'url(#bad id)' } }] } } as any }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><use></use></svg>');
       expect(logger.warn).toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledWith('Tag "image" is not allowed');
     });
