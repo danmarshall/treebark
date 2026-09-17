@@ -27,7 +27,9 @@ export const CONTAINER_TAGS = new Set([
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a'
+  'a',
+  'svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon',
+  'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath'
 ]);
 
 // Special tags that have unique behavior
@@ -55,8 +57,27 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'table': new Set(['summary']),
   'th': new Set(['scope', 'colspan', 'rowspan']),
   'td': new Set(['scope', 'colspan', 'rowspan']),
-  'blockquote': new Set(['cite'])
+  'blockquote': new Set(['cite']),
+  'svg': new Set(['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height']),
+  'g': new Set(['transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'defs': new Set(),
+  'symbol': new Set(['viewBox', 'preserveAspectRatio']),
+  'use': new Set(['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path']),
+  'path': new Set(['d', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'rect': new Set(['x', 'y', 'width', 'height', 'rx', 'ry', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'circle': new Set(['cx', 'cy', 'r', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'ellipse': new Set(['cx', 'cy', 'rx', 'ry', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'line': new Set(['x1', 'y1', 'x2', 'y2', 'transform', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'stroke-linecap', 'clip-path']),
+  'polyline': new Set(['points', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'polygon': new Set(['points', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'text': new Set(['x', 'y', 'dx', 'dy', 'transform', 'fill', 'stroke', 'stroke-width', 'opacity', 'fill-opacity', 'stroke-opacity', 'text-anchor', 'font-size', 'font-family', 'clip-path']),
+  'tspan': new Set(['x', 'y', 'dx', 'dy', 'transform', 'fill', 'stroke', 'stroke-width', 'opacity', 'fill-opacity', 'stroke-opacity', 'text-anchor', 'font-size', 'font-family']),
+  'linearGradient': new Set(['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href']),
+  'radialGradient': new Set(['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href']),
+  'stop': new Set(['offset', 'stop-color', 'stop-opacity']),
+  'clipPath': new Set(['transform', 'clipPathUnits'])
 };
+export const SVG_TAGS = new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath']);
 
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
@@ -392,6 +413,15 @@ export function processStyleAttributeToProperties(
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
+  if (SVG_TAGS.has(tag)) {
+    const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
+    const isSvgGlobal = key === 'id' || key === 'role' || key.startsWith('aria-');
+    if (!isSvgGlobal && !tagAttrs.has(key)) {
+      logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
+      return false;
+    }
+    return true;
+  }
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
@@ -448,7 +478,17 @@ function validateUrlProtocol(attrName: string, value: string, logger: Logger): s
  * Validate attribute value
  * Returns sanitized value or null if validation fails
  */
-export function validateAttributeValue(attrName: string, value: string, logger: Logger): string | null {
+export function validateAttributeValue(attrName: string, value: string, logger: Logger, tag?: string): string | null {
+  if (SVG_TAGS.has(tag || '')) {
+    if (attrName === 'href' && !value.trim().startsWith('#')) {
+      logger.warn(`Attribute "${attrName}" on tag "${tag}" must be an internal fragment reference`);
+      return null;
+    }
+    if (attrName === 'clip-path' && !/^url\(\s*#[^)]+\s*\)$/.test(value.trim())) {
+      logger.warn(`Attribute "clip-path" on tag "${tag}" must be an internal fragment reference`);
+      return null;
+    }
+  }
   // Check if this is a URL-based attribute that needs protocol validation
   if (URL_ATTRIBUTES.has(attrName)) {
     return validateUrlProtocol(attrName, value, logger);

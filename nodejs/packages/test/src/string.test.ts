@@ -33,6 +33,27 @@ import {
 } from './common-tests';
 
 describe('String Renderer', () => {
+  describe('Static SVG profile', () => {
+    it('renders allowed SVG content and internal references', () => {
+      expect(renderToString({ template: { svg: { viewBox: '0 0 10 10', $children: [
+        { defs: { $children: [{ linearGradient: { id: 'paint', $children: [{ stop: { offset: '0', 'stop-color': 'red' } }] } }, { clipPath: { id: 'clip', $children: [{ rect: { width: '10', height: '10' } }] } }] } },
+        { use: { href: '#shape', 'clip-path': 'url(#clip)' } },
+        { text: { x: '1', y: '8', $children: [{ tspan: 'safe < text' }] } }
+      ] } } })).toBe('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="paint"><stop offset="0" stop-color="red"></stop></linearGradient><clipPath id="clip"><rect width="10" height="10"></rect></clipPath></defs><use href="#shape" clip-path="url(#clip)"></use><text x="1" y="8"><tspan>safe &lt; text</tspan></text></svg>');
+    });
+
+    it('rejects deferred SVG features, styles, event handlers, and external references', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderToString({ template: { svg: { style: 'color:red', onload: 'alert(1)', $children: [{ image: { href: 'https://example.test/x' } }, { use: { href: 'https://example.test/x' } }] } } as any }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><use></use></svg>');
+      expect(logger.warn).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith('Tag "image" is not allowed');
+    });
+
+    it('throws in strict validation mode', () => {
+      expect(() => renderToString({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
+    });
+  });
+
   // Basic rendering tests
   describe('Basic Rendering', () => {
     basicRenderingTests.forEach(testCase => {

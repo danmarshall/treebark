@@ -49,6 +49,12 @@ const expectMarkup = (expected: Record<string, string>) => (result: string, tc: 
 };
 
 describe('React Renderer', () => {
+  describe('Static SVG profile', () => {
+    it('renders SVG attributes using React SVG prop names', () => {
+      expect(renderMarkup({ template: { svg: { viewBox: '0 0 1 1', $children: [{ path: { d: 'M0 0', 'stroke-width': '2', 'clip-path': 'url(#clip)' } }] } } })).toBe('<svg viewBox="0 0 1 1"><path d="M0 0" stroke-width="2" clip-path="url(#clip)"></path></svg>');
+    });
+  });
+
   describe('Basic Rendering', () => {
     const expected: Record<string, string> = {
       'renders simple text': 'Hello world',

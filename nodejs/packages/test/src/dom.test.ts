@@ -37,6 +37,16 @@ import {
 } from './common-tests';
 
 describe('DOM Renderer', () => {
+  describe('Static SVG profile', () => {
+    it('creates SVG nodes in the SVG namespace', () => {
+      const fragment = renderToDOM({ template: { svg: { $children: [{ g: { $children: [{ path: { d: 'M0 0' } }] } }] } } });
+      const svg = fragment.firstChild as SVGSVGElement;
+      expect(svg.namespaceURI).toBe('http://www.w3.org/2000/svg');
+      expect(svg.firstElementChild!.namespaceURI).toBe('http://www.w3.org/2000/svg');
+      expect(svg.querySelector('path')!.getAttribute('d')).toBe('M0 0');
+    });
+  });
+
   // Basic rendering tests
   describe('Basic Rendering', () => {
     basicRenderingTests.forEach(testCase => {

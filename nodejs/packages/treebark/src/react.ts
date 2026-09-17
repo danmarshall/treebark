@@ -29,6 +29,10 @@ const REACT_PROP_NAMES: Record<string, string> = {
   colspan: 'colSpan',
   rowspan: 'rowSpan',
   tabindex: 'tabIndex'
+  , 'stroke-width': 'strokeWidth', 'fill-rule': 'fillRule', 'clip-rule': 'clipRule',
+  'fill-opacity': 'fillOpacity', 'stroke-opacity': 'strokeOpacity', 'stroke-linecap': 'strokeLinecap',
+  'stroke-linejoin': 'strokeLinejoin', 'clip-path': 'clipPath', 'text-anchor': 'textAnchor',
+  'font-size': 'fontSize', 'font-family': 'fontFamily', 'stop-color': 'stopColor', 'stop-opacity': 'stopOpacity'
 };
 
 interface RenderContext {
@@ -59,12 +63,13 @@ export function renderToReact(
   const data = input.data;
 
   // Set logger to console if not provided
-  const logger = options.logger || console;
+  const logger = strictLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
 
   const result = render(input.template, data, { logger, getOuterProperty, hooks });
   const nodes = Array.isArray(result) ? result : [result];
+  if (options.validation === 'strict' && logger.errors.length) throw new Error(`Treebark validation failed: ${logger.errors.join('; ')}`);
   return createElement(Fragment, null, ...withKeys(nodes));
 }
 
@@ -298,14 +303,25 @@ function buildProps(
     }
 
     // Validate attribute value (name already validated above)
-    const validatedValue = validateAttributeValue(key, attrValue, logger);
+    const validatedValue = validateAttributeValue(key, attrValue, logger, tag);
     if (validatedValue == null) {  // Checks both null and undefined
       return;
     }
 
-    const propName = REACT_PROP_NAMES[key] || key;
+        const propName = REACT_PROP_NAMES[key] || key;
     props[propName] = validatedValue;
   });
 
   return props;
+}
+
+function strictLogger(options: RenderOptions): Logger & { errors: string[] } {
+  const base = options.logger || console;
+  const errors: string[] = [];
+  return {
+    errors,
+    error: message => { errors.push(message); base.error(message); },
+    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
+    log: message => base.log(message)
+  };
 }

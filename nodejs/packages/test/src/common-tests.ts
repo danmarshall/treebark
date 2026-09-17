@@ -2344,11 +2344,6 @@ export const jailbreakDefenseTests: ErrorTestCase[] = [
     expectedError: 'Tag "button" is not allowed'
   },
   {
-    name: 'blocks svg tag',
-    input: { template: { svg: { onload: 'alert(1)' } } as any },
-    expectedError: 'Tag "svg" is not allowed'
-  },
-  {
     name: 'blocks math tag',
     input: { template: { math: { onload: 'alert(1)' } } as any },
     expectedError: 'Tag "math" is not allowed'

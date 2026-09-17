@@ -55,11 +55,14 @@ export type AttributeValue = InterpolatedString | ConditionalValue;
 export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
 
 // Type-safe tag names - union of all allowed tags
+export type SvgTag = 'svg' | 'g' | 'defs' | 'symbol' | 'use' | 'path' | 'rect' | 'circle' | 'ellipse' |
+  'line' | 'polyline' | 'polygon' | 'text' | 'tspan' | 'linearGradient' | 'radialGradient' | 'stop' | 'clipPath';
+
 export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
   'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
   'ul' | 'ol' | 'li' |
   'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
-  'a';
+  'a' | SvgTag;
 
 export type VoidTag = 'img' | 'br' | 'hr';
 
@@ -91,6 +94,27 @@ type BaseContainerAttrs = GlobalAttrs & {
 // Base attributes for void tags (no children allowed)
 type BaseVoidAttrs = GlobalAttrs & {
   $bind?: BindPath;
+};
+
+type SvgAttrs = {
+  id?: AttributeValue;
+  role?: AttributeValue;
+  [key: `aria-${string}`]: AttributeValue;
+};
+type SvgContainerAttrs = SvgAttrs & {
+  $bind?: BindPath;
+  $children?: (InterpolatedString | TemplateObject)[];
+  viewBox?: AttributeValue; preserveAspectRatio?: AttributeValue; x?: AttributeValue; y?: AttributeValue;
+  width?: AttributeValue; height?: AttributeValue; cx?: AttributeValue; cy?: AttributeValue; r?: AttributeValue;
+  rx?: AttributeValue; ry?: AttributeValue; x1?: AttributeValue; y1?: AttributeValue; x2?: AttributeValue;
+  y2?: AttributeValue; fx?: AttributeValue; fy?: AttributeValue; points?: AttributeValue; d?: AttributeValue; fill?: AttributeValue; stroke?: AttributeValue;
+  'stroke-width'?: AttributeValue; 'fill-rule'?: AttributeValue; 'clip-rule'?: AttributeValue;
+  opacity?: AttributeValue; 'fill-opacity'?: AttributeValue; 'stroke-opacity'?: AttributeValue;
+  'stroke-linecap'?: AttributeValue; 'stroke-linejoin'?: AttributeValue; transform?: AttributeValue;
+  'clip-path'?: AttributeValue; href?: AttributeValue; dx?: AttributeValue; dy?: AttributeValue;
+  'text-anchor'?: AttributeValue; 'font-size'?: AttributeValue; 'font-family'?: AttributeValue;
+  gradientUnits?: AttributeValue; gradientTransform?: AttributeValue; clipPathUnits?: AttributeValue; offset?: AttributeValue;
+  'stop-color'?: AttributeValue; 'stop-opacity'?: AttributeValue;
 };
 
 // Tag-specific types with attributes included
@@ -129,6 +153,24 @@ export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
 export type ImgTag = { img: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
 export type BrTag = { br: TagContent<BaseVoidAttrs> };
 export type HrTag = { hr: TagContent<BaseVoidAttrs> };
+export type SvgTagElement = { svg: TagContent<SvgContainerAttrs> };
+export type GTag = { g: TagContent<SvgContainerAttrs> };
+export type DefsTag = { defs: TagContent<SvgContainerAttrs> };
+export type SymbolTag = { symbol: TagContent<SvgContainerAttrs> };
+export type UseTag = { use: TagContent<SvgContainerAttrs> };
+export type PathTag = { path: TagContent<SvgContainerAttrs> };
+export type RectTag = { rect: TagContent<SvgContainerAttrs> };
+export type CircleTag = { circle: TagContent<SvgContainerAttrs> };
+export type EllipseTag = { ellipse: TagContent<SvgContainerAttrs> };
+export type LineTag = { line: TagContent<SvgContainerAttrs> };
+export type PolylineTag = { polyline: TagContent<SvgContainerAttrs> };
+export type PolygonTag = { polygon: TagContent<SvgContainerAttrs> };
+export type TextTag = { text: TagContent<SvgContainerAttrs> };
+export type TspanTag = { tspan: TagContent<SvgContainerAttrs> };
+export type LinearGradientTag = { linearGradient: TagContent<SvgContainerAttrs> };
+export type RadialGradientTag = { radialGradient: TagContent<SvgContainerAttrs> };
+export type StopTag = { stop: TagContent<SvgContainerAttrs> };
+export type ClipPathTag = { clipPath: TagContent<SvgContainerAttrs> };
 
 // $if tag type
 export type IfTag = { $if: ConditionalValueOrTemplate };
@@ -138,7 +180,9 @@ export type RegularTags =
   | DivTag | SpanTag | PTag | HeaderTag | FooterTag | MainTag | SectionTag | ArticleTag
   | H1Tag | H2Tag | H3Tag | H4Tag | H5Tag | H6Tag | StrongTag | EmTag | BlockquoteTag
   | CodeTag | PreTag | UlTag | OlTag | LiTag | TableTag | TheadTag | TbodyTag | TrTag
-  | ThTag | TdTag | ATag | ImgTag | BrTag | HrTag | CommentTag;
+  | ThTag | TdTag | ATag | ImgTag | BrTag | HrTag | CommentTag
+  | SvgTagElement | GTag | DefsTag | SymbolTag | UseTag | PathTag | RectTag | CircleTag | EllipseTag
+  | LineTag | PolylineTag | PolygonTag | TextTag | TspanTag | LinearGradientTag | RadialGradientTag | StopTag | ClipPathTag;
 
 // Generic template attributes (for backwards compatibility with runtime code)
 export type TemplateAttributes = BaseContainerAttrs;
@@ -186,4 +230,5 @@ export interface RenderOptions {
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
   hooks?: RenderHooks;
+  validation?: 'strict';
 }
