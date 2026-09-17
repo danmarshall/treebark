@@ -21,6 +21,11 @@ import type {
   HookExpansionResult,
 } from './types.js';
 
+export const SVG_TAG_NAMES = [
+  'svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse',
+  'line', 'polyline', 'polygon', 'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath'
+];
+
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([
   'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
@@ -28,8 +33,7 @@ export const CONTAINER_TAGS = new Set([
   'ul', 'ol', 'li',
   'table', 'thead', 'tbody', 'tr', 'th', 'td',
   'a',
-  'svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon',
-  'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath'
+  ...SVG_TAG_NAMES
 ]);
 
 // Special tags that have unique behavior
@@ -82,7 +86,7 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'stop': new Set(['offset', 'stop-color', 'stop-opacity']),
   'clipPath': new Set(['transform', 'clipPathUnits'])
 };
-export const SVG_TAGS = new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath']);
+export const SVG_TAGS = new Set(SVG_TAG_NAMES);
 
 export function createValidationLogger(options: { logger?: Logger; validation?: 'strict' }): Logger & { errors: string[] } {
   const base = options.logger || console;
