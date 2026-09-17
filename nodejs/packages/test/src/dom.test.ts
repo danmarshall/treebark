@@ -37,6 +37,38 @@ import {
 } from './common-tests';
 
 describe('DOM Renderer', () => {
+  describe('Static SVG profile', () => {
+    it('creates SVG nodes in the SVG namespace', () => {
+      const fragment = renderToDOM({ template: { svg: { $children: [{ g: { $children: [{ path: { d: 'M0 0' } }] } }] } } });
+      const svg = fragment.firstChild as SVGSVGElement;
+      expect(svg.namespaceURI).toBe('http://www.w3.org/2000/svg');
+      expect(svg.firstElementChild!.namespaceURI).toBe('http://www.w3.org/2000/svg');
+      expect(svg.querySelector('path')!.getAttribute('d')).toBe('M0 0');
+    });
+
+    it('throws for rejected SVG content in strict mode', () => {
+      expect(() => renderToDOM({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
+    });
+
+    it('does not render SVG elements outside SVG roots', () => {
+      expect(renderToDOM({ template: { radialGradient: {} } as any }).childNodes).toHaveLength(0);
+    });
+  });
+
+  describe('HTML containment', () => {
+    it('renders declared parents and rejects other placements', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      const fragment = renderToDOM({ template: [
+        { table: { $children: [{ tbody: { $children: [{ tr: { $children: [{ td: 'valid' }] } }] } }] } },
+        { div: { $children: [{ tbody: {} } as any] } }
+      ] }, { logger });
+      const host = document.createElement('div');
+      host.append(fragment);
+      expect(host.innerHTML).toBe('<table><tbody><tr><td>valid</td></tr></tbody></table><div></div>');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" is not allowed inside "div"');
+    });
+  });
+
   // Basic rendering tests
   describe('Basic Rendering', () => {
     basicRenderingTests.forEach(testCase => {
@@ -934,7 +966,10 @@ describe('DOM Renderer', () => {
             expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
             expect(element.getAttribute('style')).toBe('color: red');
             break;
-          case 'blocks url() in style object values':
+          case 'allows external url() in style object values':
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(element.getAttribute('style')).toContain('background-image: url(https://evil.com/track.gif)');
+            break;
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
             expect(mockLogger.warn).toHaveBeenCalled();
@@ -972,9 +1007,6 @@ describe('DOM Renderer', () => {
 
           // Check specific expectations based on test name
           switch (testCase.name) {
-            case 'blocks url() with spacing variations':
-            case 'blocks URL() with uppercase':
-            case 'blocks uRl() with mixed case':
             case 'blocks @import with url':
             case 'blocks expression() with spacing':
             case 'blocks EXPRESSION() with uppercase':
@@ -1003,6 +1035,15 @@ describe('DOM Renderer', () => {
                 const styleText = el2.getAttribute('style') || '';
                 expect(styleText).toContain('data:image');
               }
+              break;
+
+            case 'allows url() with spacing variations':
+            case 'allows URL() with uppercase':
+            case 'allows uRl() with mixed case':
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              const urlElement = fragment.firstChild as HTMLElement;
+              expect(urlElement).toBeTruthy();
+              expect(urlElement.getAttribute('style')).toMatch(/url\s*\(/i);
               break;
 
             case 'blocks multiple property injection via semicolon':

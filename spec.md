@@ -174,6 +174,14 @@ div:
 - Blocked: event handlers (`on*` attributes like `onclick`, `onload`)
 - See [Security](#14-security) section for comprehensive security details
 
+### 8.1 Static SVG Profile
+
+The SVG allowlist is `svg`, `g`, `defs`, `symbol`, `use`, `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `text`, `tspan`, `linearGradient`, `radialGradient`, `stop`, and `clipPath`. SVG attributes are per-element allowlisted for geometry, paint, text positioning, gradients, and accessibility. The renderer adds the SVG namespace to an SVG root.
+
+SVG `href` and `clip-path` may only reference internal fragments (`#id` and `url(#id)`). Treebark's structured style object is supported, but raw style strings, style elements, event handlers, `xlink:href`, namespace attributes, and external URLs are rejected. Animation, `image`, `foreignObject`, filters, masks, patterns, markers, scripts, and styles are deferred.
+
+All renderers accept `validation: 'strict'`; it throws when validation rejects content.
+
 ---
 
 ## 9. Advanced Array Binding with $bind

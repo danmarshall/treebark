@@ -16,7 +16,9 @@ import {
   parseTemplateObject,
   processConditional,
   expandHookedTag,
-  createTagHookArgs
+  createTagHookArgs,
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 // Map treebark's HTML attribute names to the React prop names that React's
@@ -28,10 +30,15 @@ const REACT_PROP_NAMES: Record<string, string> = {
   for: 'htmlFor',
   colspan: 'colSpan',
   rowspan: 'rowSpan',
-  tabindex: 'tabIndex'
+  tabindex: 'tabIndex',
+  'stroke-width': 'strokeWidth', 'fill-rule': 'fillRule', 'clip-rule': 'clipRule',
+  'fill-opacity': 'fillOpacity', 'stroke-opacity': 'strokeOpacity', 'stroke-linecap': 'strokeLinecap',
+  'stroke-linejoin': 'strokeLinejoin', 'clip-path': 'clipPath', 'text-anchor': 'textAnchor',
+  'font-size': 'fontSize', 'font-family': 'fontFamily', 'stop-color': 'stopColor', 'stop-opacity': 'stopOpacity'
 };
 
 interface RenderContext {
+  parentTag?: string;
   parents?: Data[];
   logger: Logger;
   getOuterProperty?: OuterPropertyResolver;
@@ -59,12 +66,13 @@ export function renderToReact(
   const data = input.data;
 
   // Set logger to console if not provided
-  const logger = options.logger || console;
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
 
   const result = render(input.template, data, { logger, getOuterProperty, hooks });
   const nodes = Array.isArray(result) ? result : [result];
+  if (options.validation === 'strict' && logger.errors.length) throw new Error(`Treebark validation failed: ${logger.errors.join('; ')}`);
   return createElement(Fragment, null, ...withKeys(nodes));
 }
 
@@ -139,6 +147,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return [];
   }
 
+  if (!validateTagContainment(tag, context.parentTag, logger)) return [];
+
   // Special handling for "$if" tag
   if (tag === '$if') {
     const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
@@ -177,7 +187,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
           // For array items, add current data context to parents
           const newParents = [...parents, data];
           for (const c of $children) {
-            const nodes = render(c, item as Data, { ...context, parents: newParents });
+            const nodes = render(c, item as Data, { ...context, parents: newParents, parentTag: tag });
             if (Array.isArray(nodes)) childNodes.push(...nodes);
             else childNodes.push(nodes);
           }
@@ -196,14 +206,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
     // When binding to an object, add current data context to parents for child context
     const newParents = [...parents, data];
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents, parentTag: context.parentTag });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
 
   const childNodes: ReactNode[] = [];
   if (!isVoid) {
     for (const c of children) {
-      const nodes = render(c, data, context);
+      const nodes = render(c, data, { ...context, parentTag: tag });
       if (Array.isArray(nodes)) childNodes.push(...nodes);
       else childNodes.push(nodes);
     }
@@ -298,7 +308,7 @@ function buildProps(
     }
 
     // Validate attribute value (name already validated above)
-    const validatedValue = validateAttributeValue(key, attrValue, logger);
+    const validatedValue = validateAttributeValue(key, attrValue, logger, tag);
     if (validatedValue == null) {  // Checks both null and undefined
       return;
     }

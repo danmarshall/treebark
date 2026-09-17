@@ -106,6 +106,66 @@ This means the implementation is featherweight.
 - `$comment` — Emits HTML comments. Cannot be nested inside another `$comment`.
 - `$if` — Conditional rendering based on data properties with comparison operators. See [Conditional Rendering](#conditional-rendering) below.
 
+#### SVG Tags
+
+Treebark supports static SVG elements: `svg`, `g`, `defs`, `symbol`, `use`, `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`, `text`, `tspan`, `linearGradient`, `radialGradient`, `stop`, and `clipPath`. SVG accepts only its documented geometry, paint, text, gradient, accessibility attributes, and Treebark's structured style object; raw style strings, event handlers, and namespace attributes are rejected. `href` and `clip-path` references must be internal fragments such as `#icon` and `url(#clip)`.
+
+Deferred SVG features include animation, `image`, `foreignObject`, filters, masks, patterns, markers, scripts, and styles.
+
+**Sparkline:**
+
+```json
+{
+  "svg": {
+    "viewBox": "0 0 100 24",
+    "width": "100",
+    "height": "24",
+    "role": "img",
+    "aria-label": "Sales trending upward",
+    "$children": [
+      {
+        "polyline": {
+          "points": "0,20 20,15 40,17 60,8 80,11 100,2",
+          "fill": "none",
+          "stroke": "currentColor",
+          "stroke-width": "2"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Reusable symbol:**
+
+```json
+{
+  "svg": {
+    "viewBox": "0 0 24 24",
+    "$children": [
+      {
+        "defs": {
+          "$children": [
+            {
+              "symbol": {
+                "id": "check",
+                "viewBox": "0 0 24 24",
+                "$children": [
+                  { "path": { "d": "M5 12l4 4L19 6", "fill": "none", "stroke": "currentColor" } }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      { "use": { "href": "#check", "width": "24", "height": "24" } }
+    ]
+  }
+}
+```
+
+SVG elements are also checked for supported placement. For example, `tspan` must be inside `text` or another `tspan`, and `stop` must be inside `linearGradient` or `radialGradient`.
+
 ### Allowed Attributes
 
 | Tag(s)         | Allowed Attributes                          |
@@ -165,6 +225,7 @@ const html = render({ template }, { hooks });
 
 `expandTag` returns a normal Treebark template, so the expanded output still goes through Treebark's existing interpolation, escaping, attribute validation, and renderer-specific output.
 Pass the same `hooks` option to `renderToString`, `renderToDOM`, or `renderToReact` when using those renderer-specific entry points.
+Use `filterAttrs()` to pass through only the custom tag attributes your application recognizes; do not spread raw `attrs`, which may include Treebark control keys such as `$bind`.
 
 **Tier 2 — React render hook**, only available from `treebark/react`:
 
@@ -183,6 +244,7 @@ const node = renderToReact({ template }, { hooks });
 
 `renderTag` can return a React node directly. If it returns `undefined`, React falls back to `expandTag`, then finally to the normal unknown-tag rejection. Hook expansion is scoped to the render call, protects against cyclic/deep expansion chains, and leaves unknown tags rejected unless the application hook explicitly handles them.
 When using `buildProps`, pass the intended validation tag as the second argument if attributes should be validated against a built-in tag other than the custom tag name.
+`renderChildren()` renders only the original children for the current tag. If `renderTag` throws, Treebark logs the error and continues to `expandTag` or normal unknown-tag rejection; errors thrown later by custom React components still require a React error boundary.
 
 ## Examples  
 
@@ -1090,11 +1152,31 @@ The `$if` tag follows JavaScript truthiness when no operators are provided:
 
 ## Error Handling
 
-Treebark follows a **no-throw policy**: instead of throwing exceptions, errors and warnings are sent to a logger. This allows your application to continue rendering even when there are invalid tags, attributes, or other issues.
+Treebark follows a **no-throw policy by default**: it reports validation problems and continues rendering the valid parts of the template. The `logger` option is optional; messages go to `console` when no custom logger is provided. Pass a logger with `error`, `warn`, and `log` methods to integrate these messages with your application's diagnostics:
+
+```js
+const logger = {
+  error: message => reportError(message),
+  warn: message => reportWarning(message),
+  log: message => console.log(message)
+};
+
+const html = render({ template }, { logger });
+```
 
 **Default behavior:** By default, errors and warnings are logged to `console`.
 
-**Custom logger:** You can provide a custom logger by passing it in the `options` parameter.
+**Strict validation:** Pass `{ validation: 'strict' }` to `render`, `renderToString`, `renderToDOM`, or `renderToReact` to throw a single `Treebark validation failed` error after validation. The individual problems are still sent to the logger.
+
+```js
+try {
+  render({ template }, { validation: 'strict', logger });
+} catch (error) {
+  // Reject or quarantine the invalid artifact.
+}
+```
+
+Treebark catches exceptions thrown directly by `expandTag` and React `renderTag` hooks, logs them, and continues with its fallback behavior. It does not catch exceptions thrown later by user React components; handle those with a React error boundary.
 
 **When errors occur:**
 - **Invalid tags** (e.g., `script`): The element is skipped, and an error is logged

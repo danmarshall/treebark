@@ -14,7 +14,9 @@ import {
   evaluateConditionalValue,
   parseTemplateObject,
   processConditional,
-  expandHookedTag
+  expandHookedTag,
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -51,7 +53,7 @@ export function renderToString(
   const data = input.data;
 
   // Set logger to console if not provided
-  const logger = options.logger || console;
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
 
@@ -65,7 +67,9 @@ export function renderToString(
     hooks
   } : { logger, getOuterProperty, hooks };
 
-  return render(input.template, data, context);
+  const output = render(input.template, data, context);
+  if (options.validation === 'strict' && logger.errors.length) throw new Error(`Treebark validation failed: ${logger.errors.join('; ')}`);
+  return output;
 }
 
 // Helper function to render tag, deciding internally whether to close or not
@@ -81,7 +85,8 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
     return `<!--${formattedContent}${parentIndent}-->`;
   }
 
-  const openTag = `<${tag}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
+  const namespace = tag === 'svg' ? ' xmlns="http://www.w3.org/2000/svg"' : '';
+  const openTag = `<${tag}${namespace}${renderAttrs(attrs, data, tag, parents, logger, getOuterProperty)}>`;
 
   // Void tags are never closed, regardless of content
   if (VOID_TAGS.has(tag)) {
@@ -92,12 +97,15 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; escapeText?: boolean; parentTag?: string; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): string {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
   
-  if (typeof template === "string") return interpolate(template, data, true, parents, logger, getOuterProperty);
+  if (typeof template === "string") {
+    const output = interpolate(template, data, !context.escapeText, parents, logger, getOuterProperty);
+    return context.escapeText ? escape(output) : output;
+  }
 
   if (Array.isArray(template)) {
     return template.map(t => render(t, data, context)).join(context.indentStr ? '\n' : '');
@@ -123,6 +131,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return '';
   }
 
+  if (!validateTagContainment(tag, context.parentTag, logger)) return '';
+
   // Special handling for "$if" tag
   if (tag === '$if') {
     const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
@@ -144,6 +154,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   const childContext = {
     ...context,
     insideComment: tag === '$comment' || context.insideComment,
+    escapeText: tag === 'text' || tag === 'tspan' || context.escapeText,
+    parentTag: tag,
     level: (context.level || 0) + 1
   };
 
@@ -235,11 +247,11 @@ function renderAttrs(attrs: Record<string, unknown>, data: Data, tag: string, pa
       }
       
       // Validate attribute value (name already validated by filter above)
-      const validatedValue = validateAttributeValue(k, attrValue, logger);
+      const validatedValue = validateAttributeValue(k, attrValue, logger, tag);
       if (validatedValue == null) {  // Checks both null and undefined
         return null;
       }
-      
+
       return `${k}="${escape(validatedValue)}"`;
     })
     .filter(pair => pair !== null)

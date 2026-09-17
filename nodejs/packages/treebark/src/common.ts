@@ -20,27 +20,32 @@ import type {
   TagHookArgs,
   HookExpansionResult,
 } from './types.js';
+import {
+  TAG_SCHEMA,
+  SVG_TAG_NAMES,
+  SVG_TAGS,
+  getTagDefinition,
+  getTagName,
+  isAllowedParent,
+} from './tags.js';
+
+export { SVG_TAG_NAMES, SVG_TAGS } from './tags.js';
+
+const tagEntries = Object.entries(TAG_SCHEMA);
 
 // Container tags that can have children and require closing tags
-export const CONTAINER_TAGS = new Set([
-  'div', 'span', 'p', 'header', 'footer', 'main', 'section', 'article',
-  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'blockquote', 'code', 'pre',
-  'ul', 'ol', 'li',
-  'table', 'thead', 'tbody', 'tr', 'th', 'td',
-  'a'
+export const CONTAINER_TAGS: Set<string> = new Set([
+  ...tagEntries.filter(([, schema]) => !schema.void && !schema.special).map(([tag]) => tag)
 ]);
 
 // Special tags that have unique behavior
 export const SPECIAL_TAGS = new Set([
-  '$comment',
-  '$if'
+  ...tagEntries.filter(([, schema]) => schema.special).map(([tag]) => tag)
 ]);
 
 // Void tags that cannot have children and are self-closing
-export const VOID_TAGS = new Set([
-  'img',
-  'br',
-  'hr'
+export const VOID_TAGS: Set<string> = new Set([
+  ...tagEntries.filter(([, schema]) => schema.void).map(([tag]) => tag)
 ]);
 
 export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID_TAGS]);
@@ -48,15 +53,60 @@ export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID
 // Global attributes allowed on all tags
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
-// Tag-specific attributes
-export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
-  'a': new Set(['href', 'target', 'rel']),
-  'img': new Set(['src', 'alt', 'width', 'height']),
-  'table': new Set(['summary']),
-  'th': new Set(['scope', 'colspan', 'rowspan']),
-  'td': new Set(['scope', 'colspan', 'rowspan']),
-  'blockquote': new Set(['cite'])
-};
+export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = Object.fromEntries(
+  tagEntries
+    .filter(([tag, schema]) => !SVG_TAGS.has(tag) && schema.attrs)
+    .map(([tag, schema]) => [tag, new Set(schema.attrs)])
+);
+
+export function validateTagContainment(tag: string, parentTag: string | undefined, logger: Logger): boolean {
+  const schema = getTagDefinition(tag);
+  if (!SVG_TAGS.has(tag)) {
+    if (parentTag && SVG_TAGS.has(parentTag)) {
+      logger.error(`Tag "${tag}" is not allowed inside SVG tag "${parentTag}"`);
+      return false;
+    }
+    if (schema?.parents && !parentTag) {
+      const parentNames = schema.parents.map(parent => getTagName(parent)).filter((name): name is string => name !== undefined);
+      logger.error(`Tag "${tag}" must be contained by one of: ${parentNames.map(parent => `"${parent}"`).join(', ')}`);
+      return false;
+    }
+    const parentSchema = parentTag ? getTagDefinition(parentTag) : undefined;
+    if (schema?.parents && parentTag && (!parentSchema || !isAllowedParent(schema, parentSchema))) {
+      logger.error(`Tag "${tag}" is not allowed inside "${parentTag}"`);
+      return false;
+    }
+    return true;
+  }
+
+  if (!parentTag) {
+    if (schema && 'root' in schema && schema.root) return true;
+    logger.error(`SVG tag "${tag}" must be contained by an SVG element`);
+    return false;
+  }
+
+  const parentSchema = getTagDefinition(parentTag);
+  const isRoot = schema && 'root' in schema && schema.root === true;
+  const allowed = schema && parentSchema && !isRoot && (schema.parents
+    ? isAllowedParent(schema, parentSchema)
+    : SVG_TAGS.has(parentTag) && 'svgChildren' in parentSchema && parentSchema.svgChildren === true);
+  if (!allowed) {
+    logger.error(`SVG tag "${tag}" is not allowed inside "${parentTag}"`);
+    return false;
+  }
+  return true;
+}
+
+export function createValidationLogger(options: { logger?: Logger; validation?: 'strict' }): Logger & { errors: string[] } {
+  const base = options.logger || console;
+  const errors: string[] = [];
+  return {
+    errors,
+    error: message => { errors.push(message); base.error(message); },
+    warn: message => { if (options.validation === 'strict') errors.push(message); base.warn(message); },
+    log: message => base.log(message)
+  };
+}
 
 export const OPERATORS = new Set(['$<', '$>', '$<=', '$>=', '$=', '$in']);
 
@@ -252,13 +302,10 @@ function getValidatedStyleDeclarations(styleObj: Record<string, unknown>, logger
     }
     
     // Block dangerous patterns in values
-    // Allow data: URIs but block external URLs
-    const hasUrl = /url\s*\(/i.test(cssValue);
-    const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
-    
-    if ((hasUrl && !hasDataUri) || 
-        /expression\s*\(/i.test(cssValue) ||
+    if (/expression\s*\(/i.test(cssValue) ||
         /javascript:/i.test(cssValue) ||
+      /vbscript:/i.test(cssValue) ||
+      /file:/i.test(cssValue) ||
         /@import/i.test(cssValue)) {
       logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
       continue;
@@ -392,6 +439,15 @@ export function processStyleAttributeToProperties(
  * Returns true if valid, false if invalid (logs warning for invalid)
  */
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
+  if (SVG_TAGS.has(tag)) {
+    const tagAttrs = TAG_SCHEMA[tag]?.attrs || [];
+    const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
+    if (!isSvgGlobal && !tagAttrs.includes(key as never) && !(extraAllowedAttrs?.has(key))) {
+      logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
+      return false;
+    }
+    return true;
+  }
   // Check global attributes first
   const isGlobal = GLOBAL_ATTRS.has(key) || [...GLOBAL_ATTRS].some(p => p.endsWith('-') && key.startsWith(p));
 
@@ -448,7 +504,13 @@ function validateUrlProtocol(attrName: string, value: string, logger: Logger): s
  * Validate attribute value
  * Returns sanitized value or null if validation fails
  */
-export function validateAttributeValue(attrName: string, value: string, logger: Logger): string | null {
+export function validateAttributeValue(attrName: string, value: string, logger: Logger, tag?: string): string | null {
+  if (SVG_TAGS.has(tag || '')) {
+    if (attrName === 'clip-path') {
+      const match = /^url\(\s*(['"]?)(.*?)\1\s*\)$/i.exec(value.trim());
+      if (match && validateUrlProtocol(attrName, match[2], logger) === null) return null;
+    }
+  }
   // Check if this is a URL-based attribute that needs protocol validation
   if (URL_ATTRIBUTES.has(attrName)) {
     return validateUrlProtocol(attrName, value, logger);

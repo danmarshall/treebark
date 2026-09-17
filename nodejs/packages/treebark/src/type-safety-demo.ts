@@ -11,7 +11,7 @@
  */
 
 import { renderToString } from 'treebark';
-import type { TemplateObject } from 'treebark/src/common.js';
+import type { TemplateObject } from 'treebark';
 
 // ===========================
 // VALID EXAMPLES - These compile and work correctly

@@ -13,7 +13,9 @@ import {
   evaluateConditionalValue,
   parseTemplateObject,
   processConditional,
-  expandHookedTag
+  expandHookedTag,
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 export function renderToDOM(
@@ -23,7 +25,7 @@ export function renderToDOM(
   const data = input.data;
   
   // Set logger to console if not provided
-  const logger = options.logger || console;
+  const logger = createValidationLogger(options);
   const getOuterProperty = options.propertyFallback;
   const hooks = options.hooks;
   
@@ -32,10 +34,11 @@ export function renderToDOM(
   const result = render(input.template, data, { logger, getOuterProperty, hooks });
   if (Array.isArray(result)) result.forEach(n => fragment.appendChild(n));
   else fragment.appendChild(result);
+  if (options.validation === 'strict' && logger.errors.length) throw new Error(`Treebark validation failed: ${logger.errors.join('; ')}`);
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; insideSvg?: boolean; parentTag?: string; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -77,6 +80,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     logger.error('Nested comments are not allowed');
     return [];
   }
+
+  if (!validateTagContainment(tag, context.parentTag, logger)) return [];
   
   // Special handling for "$if" tag
   if (tag === '$if') {
@@ -120,7 +125,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return document.createComment(tempContainer.innerHTML);
   }
   
-  const element = document.createElement(tag);
+  const insideSvg = context.insideSvg || tag === 'svg';
+  const element = insideSvg ? document.createElementNS('http://www.w3.org/2000/svg', tag) : document.createElement(tag);
   
   // Handle $bind
   if (hasBinding(rest)) {
@@ -146,7 +152,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
         // Skip children for void tags
         if (!isVoid) {
           for (const c of $children) {
-            const nodes = render(c, item as Data, { ...context, parents: newParents });
+            const nodes = render(c, item as Data, { ...context, parents: newParents, insideSvg, parentTag: tag });
             if (Array.isArray(nodes)) {
               for (const n of nodes) element.appendChild(n);
             } else {
@@ -168,7 +174,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
     // When binding to an object, add current data context to parents for child context
     const newParents = [...parents, data];
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents, insideSvg, parentTag: context.parentTag });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
@@ -176,7 +182,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   // Skip children for void tags
   if (!isVoid) {
     for (const c of children) {
-      const nodes = render(c, data, context);
+      const nodes = render(c, data, { ...context, insideSvg, parentTag: tag });
       if (Array.isArray(nodes)) {
         for (const n of nodes) element.appendChild(n);
       } else {
@@ -188,7 +194,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   return element;
 }
 
-function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): void {
+function setAttrs(element: Element, attrs: Record<string, unknown>, data: Data, tag: string, parents: Data[] = [], logger: Logger, getOuterProperty?: OuterPropertyResolver): void {
   Object.entries(attrs).forEach(([key, value]) => {
     // First check if attribute name is allowed for this tag
     if (!validateAttributeName(key, tag, logger)) {
@@ -215,11 +221,11 @@ function setAttrs(element: HTMLElement, attrs: Record<string, unknown>, data: Da
     }
     
     // Validate attribute value (name already validated above)
-    const validatedValue = validateAttributeValue(key, attrValue, logger);
+    const validatedValue = validateAttributeValue(key, attrValue, logger, tag);
     if (validatedValue == null) {  // Checks both null and undefined
       return;
     }
-    
+
     element.setAttribute(key, validatedValue);
   });
 }

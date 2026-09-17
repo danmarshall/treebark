@@ -49,6 +49,31 @@ const expectMarkup = (expected: Record<string, string>) => (result: string, tc: 
 };
 
 describe('React Renderer', () => {
+  describe('Static SVG profile', () => {
+    it('renders SVG attributes using React SVG prop names', () => {
+      expect(renderMarkup({ template: { svg: { viewBox: '0 0 1 1', $children: [{ path: { d: 'M0 0', 'stroke-width': '2', 'clip-path': 'url(#clip)' } }] } } })).toBe('<svg viewBox="0 0 1 1"><path d="M0 0" stroke-width="2" clip-path="url(#clip)"></path></svg>');
+    });
+
+    it('throws for rejected SVG content in strict mode', () => {
+      expect(() => renderToReact({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
+    });
+
+    it('does not render SVG elements outside SVG roots', () => {
+      expect(renderMarkup({ template: { radialGradient: {} } as any })).toBe('');
+    });
+  });
+
+  describe('HTML containment', () => {
+    it('renders declared parents and rejects other placements', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderMarkup({ template: [
+        { table: { $children: [{ tbody: { $children: [{ tr: { $children: [{ td: 'valid' }] } }] } }] } },
+        { div: { $children: [{ tbody: {} } as any] } }
+      ] }, { logger })).toBe('<table><tbody><tr><td>valid</td></tr></tbody></table><div></div>');
+      expect(logger.error).toHaveBeenCalledWith('Tag "tbody" is not allowed inside "div"');
+    });
+  });
+
   describe('Basic Rendering', () => {
     const expected: Record<string, string> = {
       'renders simple text': 'Hello world',
@@ -297,7 +322,7 @@ describe('React Renderer', () => {
       'blocks -moz-binding property': '<div style="color:red">Blocked property</div>',
       'allows new CSS properties (future-proof)':
         '<div style="color:red;new-css-property:some-value;experimental-feature:enabled">Future CSS</div>',
-      'blocks url() in style object values': '<div>URL blocked</div>',
+      'allows external url() in style object values': '<div style="background-image:url(https://evil.com/track.gif)">URL allowed</div>',
       'blocks expression() in style object values': '<div>Expression blocked</div>',
       'blocks javascript: protocol in style object values': '<div>JavaScript protocol blocked</div>',
       'accepts trailing semicolon in style values': '<div style="color:red">Trailing semicolon accepted</div>',

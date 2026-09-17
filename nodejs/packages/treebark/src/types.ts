@@ -1,6 +1,9 @@
 // Type definitions for treebark templates
 // This file contains only type definitions, no executable code
 
+import type { HTML_TAG_SCHEMA } from './html-tags.js';
+import type { SVG_TAG_SCHEMA } from './svg-tags.js';
+
 // Data type for template rendering - accepts any value
 export type Data = unknown;
 
@@ -54,16 +57,16 @@ export type AttributeValue = InterpolatedString | ConditionalValue;
 // Style value can be a CSSProperties object or a conditional that returns CSSProperties
 export type StyleValue = CSSProperties | ConditionalBase<CSSProperties>;
 
-// Type-safe tag names - union of all allowed tags
-export type ContainerTag = 'div' | 'span' | 'p' | 'header' | 'footer' | 'main' | 'section' | 'article' |
-  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'strong' | 'em' | 'blockquote' | 'code' | 'pre' |
-  'ul' | 'ol' | 'li' |
-  'table' | 'thead' | 'tbody' | 'tr' | 'th' | 'td' |
-  'a';
+type HtmlTag = keyof typeof HTML_TAG_SCHEMA;
+export type SvgTag = keyof typeof SVG_TAG_SCHEMA;
 
-export type VoidTag = 'img' | 'br' | 'hr';
+type TagsWith<Schema, Property extends PropertyKey> = {
+  [Tag in keyof Schema]: Property extends keyof Schema[Tag] ? Tag : never
+}[keyof Schema];
 
-export type SpecialTag = '$comment' | '$if';
+export type VoidTag = TagsWith<typeof HTML_TAG_SCHEMA, 'void'>;
+export type SpecialTag = TagsWith<typeof HTML_TAG_SCHEMA, 'special'>;
+export type ContainerTag = Exclude<HtmlTag, VoidTag | SpecialTag> | SvgTag;
 
 export type AllowedTag = ContainerTag | VoidTag | SpecialTag;
 
@@ -93,52 +96,93 @@ type BaseVoidAttrs = GlobalAttrs & {
   $bind?: BindPath;
 };
 
+type SvgGlobalAttrs = {
+  id?: AttributeValue;
+  role?: AttributeValue;
+  style?: StyleValue;
+  [key: `aria-${string}`]: AttributeValue;
+};
+type SvgElementAttrs<Attrs> = SvgGlobalAttrs & Attrs & {
+  $bind?: BindPath;
+  $children?: (InterpolatedString | TemplateObject)[];
+};
+
+type DeclaredAttrs<Definition, Value> = Definition extends { attrs: readonly string[] }
+  ? { [Key in Definition['attrs'][number]]?: Value }
+  : {};
+
+type HtmlTagElement<Tag extends HtmlTag> = Tag extends HtmlTag ? {
+  [Key in Tag]: TagContent<
+    ((typeof HTML_TAG_SCHEMA)[Tag] extends { void: true } ? BaseVoidAttrs : BaseContainerAttrs)
+    & DeclaredAttrs<(typeof HTML_TAG_SCHEMA)[Tag], string>
+  >
+} : never;
+
+type SvgElement<Tag extends SvgTag> = Tag extends SvgTag ? {
+  [Key in Tag]: TagContent<SvgElementAttrs<DeclaredAttrs<(typeof SVG_TAG_SCHEMA)[Tag], AttributeValue>>>
+} : never;
+
 // Tag-specific types with attributes included
-export type DivTag = { div: TagContent<BaseContainerAttrs> };
-export type SpanTag = { span: TagContent<BaseContainerAttrs> };
-export type PTag = { p: TagContent<BaseContainerAttrs> };
-export type HeaderTag = { header: TagContent<BaseContainerAttrs> };
-export type FooterTag = { footer: TagContent<BaseContainerAttrs> };
-export type MainTag = { main: TagContent<BaseContainerAttrs> };
-export type SectionTag = { section: TagContent<BaseContainerAttrs> };
-export type ArticleTag = { article: TagContent<BaseContainerAttrs> };
-export type H1Tag = { h1: TagContent<BaseContainerAttrs> };
-export type H2Tag = { h2: TagContent<BaseContainerAttrs> };
-export type H3Tag = { h3: TagContent<BaseContainerAttrs> };
-export type H4Tag = { h4: TagContent<BaseContainerAttrs> };
-export type H5Tag = { h5: TagContent<BaseContainerAttrs> };
-export type H6Tag = { h6: TagContent<BaseContainerAttrs> };
-export type StrongTag = { strong: TagContent<BaseContainerAttrs> };
-export type EmTag = { em: TagContent<BaseContainerAttrs> };
-export type BlockquoteTag = { blockquote: TagContent<BaseContainerAttrs & { cite?: string }> };
-export type CodeTag = { code: TagContent<BaseContainerAttrs> };
-export type PreTag = { pre: TagContent<BaseContainerAttrs> };
-export type UlTag = { ul: TagContent<BaseContainerAttrs> };
-export type OlTag = { ol: TagContent<BaseContainerAttrs> };
-export type LiTag = { li: TagContent<BaseContainerAttrs> };
-export type TableTag = { table: TagContent<BaseContainerAttrs & { summary?: string }> };
-export type TheadTag = { thead: TagContent<BaseContainerAttrs> };
-export type TbodyTag = { tbody: TagContent<BaseContainerAttrs> };
-export type TrTag = { tr: TagContent<BaseContainerAttrs> };
-export type ThTag = { th: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type TdTag = { td: TagContent<BaseContainerAttrs & { scope?: string; colspan?: string; rowspan?: string }> };
-export type ATag = { a: TagContent<BaseContainerAttrs & { href?: string; target?: string; rel?: string }> };
-export type CommentTag = { $comment: TagContent<BaseContainerAttrs> };
+export type DivTag = HtmlTagElement<'div'>;
+export type SpanTag = HtmlTagElement<'span'>;
+export type PTag = HtmlTagElement<'p'>;
+export type HeaderTag = HtmlTagElement<'header'>;
+export type FooterTag = HtmlTagElement<'footer'>;
+export type MainTag = HtmlTagElement<'main'>;
+export type SectionTag = HtmlTagElement<'section'>;
+export type ArticleTag = HtmlTagElement<'article'>;
+export type H1Tag = HtmlTagElement<'h1'>;
+export type H2Tag = HtmlTagElement<'h2'>;
+export type H3Tag = HtmlTagElement<'h3'>;
+export type H4Tag = HtmlTagElement<'h4'>;
+export type H5Tag = HtmlTagElement<'h5'>;
+export type H6Tag = HtmlTagElement<'h6'>;
+export type StrongTag = HtmlTagElement<'strong'>;
+export type EmTag = HtmlTagElement<'em'>;
+export type BlockquoteTag = HtmlTagElement<'blockquote'>;
+export type CodeTag = HtmlTagElement<'code'>;
+export type PreTag = HtmlTagElement<'pre'>;
+export type UlTag = HtmlTagElement<'ul'>;
+export type OlTag = HtmlTagElement<'ol'>;
+export type LiTag = HtmlTagElement<'li'>;
+export type TableTag = HtmlTagElement<'table'>;
+export type TheadTag = HtmlTagElement<'thead'>;
+export type TbodyTag = HtmlTagElement<'tbody'>;
+export type TrTag = HtmlTagElement<'tr'>;
+export type ThTag = HtmlTagElement<'th'>;
+export type TdTag = HtmlTagElement<'td'>;
+export type ATag = HtmlTagElement<'a'>;
+export type CommentTag = HtmlTagElement<'$comment'>;
 
 // Void tag types
-export type ImgTag = { img: TagContent<BaseVoidAttrs & { src?: string; alt?: string; width?: string; height?: string }> };
-export type BrTag = { br: TagContent<BaseVoidAttrs> };
-export type HrTag = { hr: TagContent<BaseVoidAttrs> };
+export type ImgTag = HtmlTagElement<'img'>;
+export type BrTag = HtmlTagElement<'br'>;
+export type HrTag = HtmlTagElement<'hr'>;
+export type SvgTagElement = SvgElement<'svg'>;
+export type SvgGTag = SvgElement<'g'>;
+export type SvgDefsTag = SvgElement<'defs'>;
+export type SvgSymbolTag = SvgElement<'symbol'>;
+export type SvgUseTag = SvgElement<'use'>;
+export type SvgImageTag = SvgElement<'image'>;
+export type SvgPathTag = SvgElement<'path'>;
+export type SvgRectTag = SvgElement<'rect'>;
+export type SvgCircleTag = SvgElement<'circle'>;
+export type SvgEllipseTag = SvgElement<'ellipse'>;
+export type SvgLineTag = SvgElement<'line'>;
+export type SvgPolylineTag = SvgElement<'polyline'>;
+export type SvgPolygonTag = SvgElement<'polygon'>;
+export type SvgTextTag = SvgElement<'text'>;
+export type SvgTspanTag = SvgElement<'tspan'>;
+export type SvgLinearGradientTag = SvgElement<'linearGradient'>;
+export type SvgRadialGradientTag = SvgElement<'radialGradient'>;
+export type SvgStopTag = SvgElement<'stop'>;
+export type SvgClipPathTag = SvgElement<'clipPath'>;
 
 // $if tag type
 export type IfTag = { $if: ConditionalValueOrTemplate };
 
 // Union of all regular tag types
-export type RegularTags = 
-  | DivTag | SpanTag | PTag | HeaderTag | FooterTag | MainTag | SectionTag | ArticleTag
-  | H1Tag | H2Tag | H3Tag | H4Tag | H5Tag | H6Tag | StrongTag | EmTag | BlockquoteTag
-  | CodeTag | PreTag | UlTag | OlTag | LiTag | TableTag | TheadTag | TbodyTag | TrTag
-  | ThTag | TdTag | ATag | ImgTag | BrTag | HrTag | CommentTag;
+export type RegularTags = HtmlTagElement<Exclude<HtmlTag, '$if'>> | SvgElement<SvgTag>;
 
 // Generic template attributes (for backwards compatibility with runtime code)
 export type TemplateAttributes = BaseContainerAttrs;
@@ -186,4 +230,5 @@ export interface RenderOptions {
   logger?: Logger;
   propertyFallback?: OuterPropertyResolver;
   hooks?: RenderHooks;
+  validation?: 'strict';
 }
