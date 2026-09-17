@@ -53,6 +53,10 @@ describe('React Renderer', () => {
     it('renders SVG attributes using React SVG prop names', () => {
       expect(renderMarkup({ template: { svg: { viewBox: '0 0 1 1', $children: [{ path: { d: 'M0 0', 'stroke-width': '2', 'clip-path': 'url(#clip)' } }] } } })).toBe('<svg viewBox="0 0 1 1"><path d="M0 0" stroke-width="2" clip-path="url(#clip)"></path></svg>');
     });
+
+    it('throws for rejected SVG content in strict mode', () => {
+      expect(() => renderToReact({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
+    });
   });
 
   describe('Basic Rendering', () => {

@@ -45,6 +45,10 @@ describe('DOM Renderer', () => {
       expect(svg.firstElementChild!.namespaceURI).toBe('http://www.w3.org/2000/svg');
       expect(svg.querySelector('path')!.getAttribute('d')).toBe('M0 0');
     });
+
+    it('throws for rejected SVG content in strict mode', () => {
+      expect(() => renderToDOM({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
+    });
   });
 
   // Basic rendering tests

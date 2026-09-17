@@ -51,6 +51,11 @@ export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
 // Tag-specific attributes
+const SVG_PRESENTATION_ATTRS = [
+  'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule',
+  'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path'
+];
+
 export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'a': new Set(['href', 'target', 'rel']),
   'img': new Set(['src', 'alt', 'width', 'height']),
@@ -59,17 +64,17 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'td': new Set(['scope', 'colspan', 'rowspan']),
   'blockquote': new Set(['cite']),
   'svg': new Set(['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height']),
-  'g': new Set(['transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'g': new Set(SVG_PRESENTATION_ATTRS),
   'defs': new Set(),
   'symbol': new Set(['viewBox', 'preserveAspectRatio']),
   'use': new Set(['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path']),
-  'path': new Set(['d', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
-  'rect': new Set(['x', 'y', 'width', 'height', 'rx', 'ry', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
-  'circle': new Set(['cx', 'cy', 'r', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
-  'ellipse': new Set(['cx', 'cy', 'rx', 'ry', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'path': new Set(['d', ...SVG_PRESENTATION_ATTRS]),
+  'rect': new Set(['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS]),
+  'circle': new Set(['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS]),
+  'ellipse': new Set(['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS]),
   'line': new Set(['x1', 'y1', 'x2', 'y2', 'transform', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'stroke-linecap', 'clip-path']),
-  'polyline': new Set(['points', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
-  'polygon': new Set(['points', 'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule', 'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path']),
+  'polyline': new Set(['points', ...SVG_PRESENTATION_ATTRS]),
+  'polygon': new Set(['points', ...SVG_PRESENTATION_ATTRS]),
   'text': new Set(['x', 'y', 'dx', 'dy', 'transform', 'fill', 'stroke', 'stroke-width', 'opacity', 'fill-opacity', 'stroke-opacity', 'text-anchor', 'font-size', 'font-family', 'clip-path']),
   'tspan': new Set(['x', 'y', 'dx', 'dy', 'transform', 'fill', 'stroke', 'stroke-width', 'opacity', 'fill-opacity', 'stroke-opacity', 'text-anchor', 'font-size', 'font-family']),
   'linearGradient': new Set(['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href']),
