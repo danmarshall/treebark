@@ -223,6 +223,6 @@ function setAttrs(element: Element, attrs: Record<string, unknown>, data: Data, 
       return;
     }
 
-        element.setAttribute(key, validatedValue);
+    element.setAttribute(key, validatedValue);
   });
 }

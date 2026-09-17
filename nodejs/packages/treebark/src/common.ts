@@ -427,7 +427,7 @@ export function validateAttributeName(key: string, tag: string, logger: Logger, 
   if (SVG_TAGS.has(tag)) {
     const tagAttrs = TAG_SPECIFIC_ATTRS[tag];
     const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
-    if (!isSvgGlobal && !tagAttrs.has(key)) {
+    if (!isSvgGlobal && !tagAttrs.has(key) && !(extraAllowedAttrs?.has(key))) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
     }
