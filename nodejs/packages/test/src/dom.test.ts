@@ -966,7 +966,10 @@ describe('DOM Renderer', () => {
             expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
             expect(element.getAttribute('style')).toBe('color: red');
             break;
-          case 'blocks url() in style object values':
+          case 'allows external url() in style object values':
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(element.getAttribute('style')).toContain('background-image: url(https://evil.com/track.gif)');
+            break;
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
             expect(mockLogger.warn).toHaveBeenCalled();
@@ -1004,9 +1007,6 @@ describe('DOM Renderer', () => {
 
           // Check specific expectations based on test name
           switch (testCase.name) {
-            case 'blocks url() with spacing variations':
-            case 'blocks URL() with uppercase':
-            case 'blocks uRl() with mixed case':
             case 'blocks @import with url':
             case 'blocks expression() with spacing':
             case 'blocks EXPRESSION() with uppercase':
@@ -1035,6 +1035,15 @@ describe('DOM Renderer', () => {
                 const styleText = el2.getAttribute('style') || '';
                 expect(styleText).toContain('data:image');
               }
+              break;
+
+            case 'allows url() with spacing variations':
+            case 'allows URL() with uppercase':
+            case 'allows uRl() with mixed case':
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              const urlElement = fragment.firstChild as HTMLElement;
+              expect(urlElement).toBeTruthy();
+              expect(urlElement.getAttribute('style')).toMatch(/url\s*\(/i);
               break;
 
             case 'blocks multiple property injection via semicolon':

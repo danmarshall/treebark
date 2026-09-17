@@ -302,13 +302,10 @@ function getValidatedStyleDeclarations(styleObj: Record<string, unknown>, logger
     }
     
     // Block dangerous patterns in values
-    // Allow data: URIs but block external URLs
-    const hasUrl = /url\s*\(/i.test(cssValue);
-    const hasDataUri = /url\s*\(\s*['"]?data:/i.test(cssValue);
-    
-    if ((hasUrl && !hasDataUri) || 
-        /expression\s*\(/i.test(cssValue) ||
+    if (/expression\s*\(/i.test(cssValue) ||
         /javascript:/i.test(cssValue) ||
+      /vbscript:/i.test(cssValue) ||
+      /file:/i.test(cssValue) ||
         /@import/i.test(cssValue)) {
       logger.warn(`CSS value for "${prop}" contains potentially dangerous pattern: "${cssValue}"`);
       continue;
@@ -509,13 +506,9 @@ function validateUrlProtocol(attrName: string, value: string, logger: Logger): s
  */
 export function validateAttributeValue(attrName: string, value: string, logger: Logger, tag?: string): string | null {
   if (SVG_TAGS.has(tag || '')) {
-    if (attrName === 'href' && !/^#[A-Za-z0-9_-]+$/.test(value.trim())) {
-      logger.warn(`Attribute "${attrName}" on tag "${tag}" must be an internal fragment reference`);
-      return null;
-    }
-    if (attrName === 'clip-path' && !/^url\(#[A-Za-z0-9_-]+\)$/.test(value.trim())) {
-      logger.warn(`Attribute "clip-path" on tag "${tag}" must be an internal fragment reference`);
-      return null;
+    if (attrName === 'clip-path') {
+      const match = /^url\(\s*(['"]?)(.*?)\1\s*\)$/i.exec(value.trim());
+      if (match && validateUrlProtocol(attrName, match[2], logger) === null) return null;
     }
   }
   // Check if this is a URL-based attribute that needs protocol validation

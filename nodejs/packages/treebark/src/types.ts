@@ -163,6 +163,7 @@ export type SvgGTag = SvgElement<'g'>;
 export type SvgDefsTag = SvgElement<'defs'>;
 export type SvgSymbolTag = SvgElement<'symbol'>;
 export type SvgUseTag = SvgElement<'use'>;
+export type SvgImageTag = SvgElement<'image'>;
 export type SvgPathTag = SvgElement<'path'>;
 export type SvgRectTag = SvgElement<'rect'>;
 export type SvgCircleTag = SvgElement<'circle'>;

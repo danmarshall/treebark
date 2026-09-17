@@ -42,11 +42,11 @@ describe('String Renderer', () => {
       ] } } })).toBe('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" style="color: blue"><defs><linearGradient id="paint"><stop offset="0" stop-color="red"></stop></linearGradient><clipPath id="clip"><rect width="10" height="10"></rect></clipPath></defs><use href="#shape" clip-path="url(#clip)"></use><text x="1" y="8"><tspan>safe &lt; text</tspan></text></svg>');
     });
 
-    it('rejects deferred SVG features, styles, event handlers, and external references', () => {
+    it('allows safe SVG resource URLs and rejects unsafe attributes and values', () => {
       const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
-      expect(renderToString({ template: { svg: { style: 'color:red', onload: 'alert(1)', $children: [{ image: { href: 'https://example.test/x' } }, { use: { href: 'https://example.test/x', 'clip-path': 'url(#bad id)' } }] } } as any }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><use></use></svg>');
+      expect(renderToString({ template: { svg: { onload: 'alert(1)', $children: [{ image: { href: 'https://example.test/x.png', width: '10', height: '10' } }, { use: { href: 'https://example.test/icons.svg#shape', 'clip-path': 'url(https://example.test/clips.svg#shape)' } }, { image: { href: 'javascript:alert(1)' } }, { path: { 'clip-path': 'url(javascript:alert(1))' } }] } } as any }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"><image href="https://example.test/x.png" width="10" height="10"></image><use href="https://example.test/icons.svg#shape" clip-path="url(https://example.test/clips.svg#shape)"></use><image></image><path></path></svg>');
       expect(logger.warn).toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith('Tag "image" is not allowed');
+      expect(logger.error).not.toHaveBeenCalled();
     });
 
     it('throws in strict validation mode', () => {
@@ -1102,7 +1102,10 @@ describe('String Renderer', () => {
             expect(mockLogger.warn).toHaveBeenCalled(); // Warns about semicolon
             expect(result).toBe('<div style="color: red">Semicolon sanitized</div>');
             break;
-          case 'blocks url() in style object values':
+          case 'allows external url() in style object values':
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+            expect(result).toContain('background-image: url(https://evil.com/track.gif)');
+            break;
           case 'blocks expression() in style object values':
           case 'blocks javascript: protocol in style object values':
             expect(mockLogger.warn).toHaveBeenCalled();
@@ -1140,9 +1143,6 @@ describe('String Renderer', () => {
 
           // Check specific expectations based on test name
           switch (testCase.name) {
-            case 'blocks url() with spacing variations':
-            case 'blocks URL() with uppercase':
-            case 'blocks uRl() with mixed case':
             case 'blocks @import with url':
             case 'blocks expression() with spacing':
             case 'blocks EXPRESSION() with uppercase':
@@ -1155,6 +1155,13 @@ describe('String Renderer', () => {
               // Don't check for 'expression' text as it might appear in the content itself
               expect(result).not.toContain('javascript:');
               expect(result).not.toContain('@import');
+              break;
+
+            case 'allows url() with spacing variations':
+            case 'allows URL() with uppercase':
+            case 'allows uRl() with mixed case':
+              expect(mockLogger.warn).not.toHaveBeenCalled();
+              expect(result).toMatch(/url\s*\(/i);
               break;
 
             case 'allows data: URIs in url()':

@@ -54,6 +54,7 @@ export const SVG_TAG_SCHEMA = {
   symbol,
   clipPath,
   use: { attrs: ['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path'] },
+  image: { attrs: ['href', 'x', 'y', 'width', 'height', 'preserveAspectRatio', 'transform', 'opacity', 'clip-path'] },
   path: { attrs: ['d', ...PRESENTATION_ATTRS] },
   rect: { attrs: ['x', 'y', 'width', 'height', 'rx', 'ry', ...PRESENTATION_ATTRS] },
   circle: { attrs: ['cx', 'cy', 'r', ...PRESENTATION_ATTRS] },

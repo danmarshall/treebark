@@ -322,7 +322,7 @@ describe('React Renderer', () => {
       'blocks -moz-binding property': '<div style="color:red">Blocked property</div>',
       'allows new CSS properties (future-proof)':
         '<div style="color:red;new-css-property:some-value;experimental-feature:enabled">Future CSS</div>',
-      'blocks url() in style object values': '<div>URL blocked</div>',
+      'allows external url() in style object values': '<div style="background-image:url(https://evil.com/track.gif)">URL allowed</div>',
       'blocks expression() in style object values': '<div>Expression blocked</div>',
       'blocks javascript: protocol in style object values': '<div>JavaScript protocol blocked</div>',
       'accepts trailing semicolon in style values': '<div style="color:red">Trailing semicolon accepted</div>',

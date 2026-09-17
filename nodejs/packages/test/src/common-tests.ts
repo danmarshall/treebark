@@ -526,14 +526,14 @@ export const styleObjectWarningTests: TestCase[] = [
     }
   },
   {
-    name: 'blocks url() in style object values',
+    name: 'allows external url() in style object values',
     input: {
       template: {
         div: {
           style: {
             'background-image': 'url(https://evil.com/track.gif)'
           },
-          $children: ['URL blocked']
+          $children: ['URL allowed']
         }
       }
     }
@@ -2367,9 +2367,9 @@ export const jailbreakDefenseTests: ErrorTestCase[] = [
 
 // Additional jailbreak validation tests (non-error cases that should still be defended)
 export const jailbreakValidationTests: TestCase[] = [
-  // CSS injection attempts - various url() bypass techniques
+  // CSS URL and injection handling
   {
-    name: 'blocks url() with spacing variations',
+    name: 'allows url() with spacing variations',
     input: {
       template: {
         div: {
@@ -2382,7 +2382,7 @@ export const jailbreakValidationTests: TestCase[] = [
     }
   },
   {
-    name: 'blocks URL() with uppercase',
+    name: 'allows URL() with uppercase',
     input: {
       template: {
         div: {
@@ -2395,7 +2395,7 @@ export const jailbreakValidationTests: TestCase[] = [
     }
   },
   {
-    name: 'blocks uRl() with mixed case',
+    name: 'allows uRl() with mixed case',
     input: {
       template: {
         div: {
