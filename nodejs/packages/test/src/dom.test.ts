@@ -49,6 +49,10 @@ describe('DOM Renderer', () => {
     it('throws for rejected SVG content in strict mode', () => {
       expect(() => renderToDOM({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
     });
+
+    it('does not render SVG elements outside SVG roots', () => {
+      expect(renderToDOM({ template: { radialGradient: {} } as any }).childNodes).toHaveLength(0);
+    });
   });
 
   // Basic rendering tests

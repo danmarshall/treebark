@@ -57,6 +57,10 @@ describe('React Renderer', () => {
     it('throws for rejected SVG content in strict mode', () => {
       expect(() => renderToReact({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
     });
+
+    it('does not render SVG elements outside SVG roots', () => {
+      expect(renderMarkup({ template: { radialGradient: {} } as any })).toBe('');
+    });
   });
 
   describe('Basic Rendering', () => {

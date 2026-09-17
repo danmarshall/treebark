@@ -17,7 +17,8 @@ import {
   processConditional,
   expandHookedTag,
   createTagHookArgs,
-  createValidationLogger
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 // Map treebark's HTML attribute names to the React prop names that React's
@@ -37,6 +38,7 @@ const REACT_PROP_NAMES: Record<string, string> = {
 };
 
 interface RenderContext {
+  parentTag?: string;
   parents?: Data[];
   logger: Logger;
   getOuterProperty?: OuterPropertyResolver;
@@ -145,6 +147,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return [];
   }
 
+  if (!validateTagContainment(tag, context.parentTag, logger)) return [];
+
   // Special handling for "$if" tag
   if (tag === '$if') {
     const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
@@ -183,7 +187,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
           // For array items, add current data context to parents
           const newParents = [...parents, data];
           for (const c of $children) {
-            const nodes = render(c, item as Data, { ...context, parents: newParents });
+            const nodes = render(c, item as Data, { ...context, parents: newParents, parentTag: tag });
             if (Array.isArray(nodes)) childNodes.push(...nodes);
             else childNodes.push(nodes);
           }
@@ -202,14 +206,14 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
     // When binding to an object, add current data context to parents for child context
     const newParents = [...parents, data];
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents });
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents, parentTag: context.parentTag });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
 
   const childNodes: ReactNode[] = [];
   if (!isVoid) {
     for (const c of children) {
-      const nodes = render(c, data, context);
+      const nodes = render(c, data, { ...context, parentTag: tag });
       if (Array.isArray(nodes)) childNodes.push(...nodes);
       else childNodes.push(nodes);
     }

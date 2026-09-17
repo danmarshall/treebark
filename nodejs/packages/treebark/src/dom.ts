@@ -14,7 +14,8 @@ import {
   parseTemplateObject,
   processConditional,
   expandHookedTag,
-  createValidationLogger
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 export function renderToDOM(
@@ -37,7 +38,7 @@ export function renderToDOM(
   return fragment;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; insideSvg?: boolean; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): Node | Node[] {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; insideSvg?: boolean; parentTag?: string; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): Node | Node[] {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -79,6 +80,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     logger.error('Nested comments are not allowed');
     return [];
   }
+
+  if (!validateTagContainment(tag, context.parentTag, logger)) return [];
   
   // Special handling for "$if" tag
   if (tag === '$if') {
@@ -149,7 +152,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
         // Skip children for void tags
         if (!isVoid) {
           for (const c of $children) {
-            const nodes = render(c, item as Data, { ...context, parents: newParents, insideSvg });
+            const nodes = render(c, item as Data, { ...context, parents: newParents, insideSvg, parentTag: tag });
             if (Array.isArray(nodes)) {
               for (const n of nodes) element.appendChild(n);
             } else {
@@ -171,7 +174,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     const boundData = bound && typeof bound === 'object' && bound !== null ? bound as Data : {};
     // When binding to an object, add current data context to parents for child context
     const newParents = [...parents, data];
-    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents, insideSvg });
+    const childNodes = render({ [tag]: { ...bindAttrs, $children } } as TemplateObject, boundData, { ...context, parents: newParents, insideSvg, parentTag: context.parentTag });
     return Array.isArray(childNodes) ? childNodes : [childNodes];
   }
   
@@ -179,7 +182,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
   // Skip children for void tags
   if (!isVoid) {
     for (const c of children) {
-      const nodes = render(c, data, { ...context, insideSvg });
+      const nodes = render(c, data, { ...context, insideSvg, parentTag: tag });
       if (Array.isArray(nodes)) {
         for (const n of nodes) element.appendChild(n);
       } else {

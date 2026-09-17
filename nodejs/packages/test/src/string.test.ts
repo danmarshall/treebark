@@ -52,6 +52,14 @@ describe('String Renderer', () => {
     it('throws in strict validation mode', () => {
       expect(() => renderToString({ template: { svg: { onload: 'alert(1)' } } as any }, { validation: 'strict', logger: { error: jest.fn(), warn: jest.fn(), log: jest.fn() } })).toThrow('Treebark validation failed');
     });
+
+    it('rejects SVG elements outside SVG roots and invalid SVG children', () => {
+      const logger = { error: jest.fn(), warn: jest.fn(), log: jest.fn() };
+      expect(renderToString({ template: [{ radialGradient: {} } as any, { svg: { $children: [{ stop: {} } as any, { div: 'unsafe' } as any] } }] }, { logger })).toBe('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+      expect(logger.error).toHaveBeenCalledWith('SVG tag "radialGradient" must be contained by an SVG element');
+      expect(logger.error).toHaveBeenCalledWith('SVG tag "stop" is not allowed inside "svg"');
+      expect(logger.error).toHaveBeenCalledWith('Tag "div" is not allowed inside SVG tag "svg"');
+    });
   });
 
   // Basic rendering tests

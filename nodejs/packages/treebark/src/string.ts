@@ -15,7 +15,8 @@ import {
   parseTemplateObject,
   processConditional,
   expandHookedTag,
-  createValidationLogger
+  createValidationLogger,
+  validateTagContainment
 } from './common.js';
 
 // Type for indented output: [indentLevel, htmlContent]
@@ -96,7 +97,7 @@ function renderTag(tag: string, attrs: Record<string, unknown>, data: Data, chil
   return `${openTag}${formattedContent}${parentIndent}</${tag}>`;
 }
 
-function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; escapeText?: boolean; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): string {
+function render(template: TemplateElement | TemplateElement[], data: Data, context: { insideComment?: boolean; escapeText?: boolean; parentTag?: string; indentStr?: string; level?: number; parents?: Data[]; logger: Logger; getOuterProperty?: OuterPropertyResolver; hooks?: RenderHooks; expandingTags?: Set<string> }): string {
   const parents = context.parents || [];
   const logger = context.logger;
   const getOuterProperty = context.getOuterProperty;
@@ -130,6 +131,8 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     return '';
   }
 
+  if (!validateTagContainment(tag, context.parentTag, logger)) return '';
+
   // Special handling for "$if" tag
   if (tag === '$if') {
     const { valueToRender } = processConditional(rest, data, parents, logger, getOuterProperty);
@@ -152,6 +155,7 @@ function render(template: TemplateElement | TemplateElement[], data: Data, conte
     ...context,
     insideComment: tag === '$comment' || context.insideComment,
     escapeText: tag === 'text' || tag === 'tspan' || context.escapeText,
+    parentTag: tag,
     level: (context.level || 0) + 1
   };
 

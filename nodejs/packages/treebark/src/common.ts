@@ -87,6 +87,39 @@ export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'clipPath': new Set(['transform', 'clipPathUnits'])
 };
 export const SVG_TAGS = new Set(SVG_TAG_NAMES);
+const SVG_CHILDREN: Record<string, ReadonlySet<string>> = {
+  svg: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
+  g: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
+  defs: new Set(['g', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
+  symbol: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
+  text: new Set(['tspan']),
+  tspan: new Set(['tspan']),
+  linearGradient: new Set(['stop']),
+  radialGradient: new Set(['stop']),
+  clipPath: new Set(['g', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text'])
+};
+
+export function validateTagContainment(tag: string, parentTag: string | undefined, logger: Logger): boolean {
+  if (!SVG_TAGS.has(tag)) {
+    if (parentTag && SVG_TAGS.has(parentTag)) {
+      logger.error(`Tag "${tag}" is not allowed inside SVG tag "${parentTag}"`);
+      return false;
+    }
+    return true;
+  }
+
+  if (!parentTag) {
+    if (tag === 'svg') return true;
+    logger.error(`SVG tag "${tag}" must be contained by an SVG element`);
+    return false;
+  }
+
+  if (!SVG_TAGS.has(parentTag) || !SVG_CHILDREN[parentTag]?.has(tag)) {
+    logger.error(`SVG tag "${tag}" is not allowed inside "${parentTag}"`);
+    return false;
+  }
+  return true;
+}
 
 export function createValidationLogger(options: { logger?: Logger; validation?: 'strict' }): Logger & { errors: string[] } {
   const base = options.logger || console;
