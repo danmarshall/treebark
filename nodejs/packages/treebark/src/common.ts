@@ -27,24 +27,24 @@ const SVG_PRESENTATION_ATTRS = [
 ] as const;
 
 const SVG_PROFILE = {
-  svg: { attrs: ['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height'], parents: [] },
-  g: { attrs: SVG_PRESENTATION_ATTRS, parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  defs: { attrs: [], parents: ['svg', 'g', 'symbol'] },
-  symbol: { attrs: ['viewBox', 'preserveAspectRatio'], parents: ['svg', 'defs'] },
-  use: { attrs: ['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path'], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  path: { attrs: ['d', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  rect: { attrs: ['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  circle: { attrs: ['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  ellipse: { attrs: ['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  line: { attrs: ['x1', 'y1', 'x2', 'y2', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  polyline: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  polygon: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  text: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
-  tspan: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], parents: ['text', 'tspan'] },
-  linearGradient: { attrs: ['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href'], parents: ['svg', 'g', 'defs', 'symbol'] },
-  radialGradient: { attrs: ['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href'], parents: ['svg', 'g', 'defs', 'symbol'] },
-  stop: { attrs: ['offset', 'stop-color', 'stop-opacity'], parents: ['linearGradient', 'radialGradient'] },
-  clipPath: { attrs: ['transform', 'clipPathUnits'], parents: ['svg', 'g', 'defs', 'symbol'] }
+  svg: { attrs: ['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height'], role: 'root' },
+  g: { attrs: SVG_PRESENTATION_ATTRS, role: 'container' },
+  defs: { attrs: [], role: 'container' },
+  symbol: { attrs: ['viewBox', 'preserveAspectRatio'], role: 'container' },
+  use: { attrs: ['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path'], role: 'content' },
+  path: { attrs: ['d', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  rect: { attrs: ['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  circle: { attrs: ['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  ellipse: { attrs: ['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  line: { attrs: ['x1', 'y1', 'x2', 'y2', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  polyline: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  polygon: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], role: 'content' },
+  text: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], role: 'text' },
+  tspan: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], role: 'span' },
+  linearGradient: { attrs: ['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href'], role: 'gradient' },
+  radialGradient: { attrs: ['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href'], role: 'gradient' },
+  stop: { attrs: ['offset', 'stop-color', 'stop-opacity'], role: 'stop' },
+  clipPath: { attrs: ['transform', 'clipPathUnits'], role: 'container' }
 } as const;
 
 export const SVG_TAG_NAMES = Object.keys(SVG_PROFILE);
@@ -98,12 +98,18 @@ export function validateTagContainment(tag: string, parentTag: string | undefine
   }
 
   if (!parentTag) {
-    if (profile.parents.length === 0) return true;
+    if (profile.role === 'root') return true;
     logger.error(`SVG tag "${tag}" must be contained by an SVG element`);
     return false;
   }
 
-  if (!profile.parents.includes(parentTag as never)) {
+  const parentRole = SVG_PROFILE[parentTag as keyof typeof SVG_PROFILE]?.role;
+  const allowed = profile.role === 'span'
+    ? parentRole === 'text' || parentRole === 'span'
+    : profile.role === 'stop'
+      ? parentRole === 'gradient'
+      : profile.role !== 'root' && (parentRole === 'root' || parentRole === 'container');
+  if (!allowed) {
     logger.error(`SVG tag "${tag}" is not allowed inside "${parentTag}"`);
     return false;
   }
