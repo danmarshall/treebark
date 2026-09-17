@@ -21,10 +21,33 @@ import type {
   HookExpansionResult,
 } from './types.js';
 
-export const SVG_TAG_NAMES = [
-  'svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse',
-  'line', 'polyline', 'polygon', 'text', 'tspan', 'linearGradient', 'radialGradient', 'stop', 'clipPath'
-];
+const SVG_PRESENTATION_ATTRS = [
+  'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule',
+  'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path'
+] as const;
+
+const SVG_PROFILE = {
+  svg: { attrs: ['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height'], parents: [] },
+  g: { attrs: SVG_PRESENTATION_ATTRS, parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  defs: { attrs: [], parents: ['svg', 'g', 'symbol'] },
+  symbol: { attrs: ['viewBox', 'preserveAspectRatio'], parents: ['svg', 'defs'] },
+  use: { attrs: ['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path'], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  path: { attrs: ['d', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  rect: { attrs: ['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  circle: { attrs: ['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  ellipse: { attrs: ['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  line: { attrs: ['x1', 'y1', 'x2', 'y2', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  polyline: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  polygon: { attrs: ['points', ...SVG_PRESENTATION_ATTRS], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  text: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], parents: ['svg', 'g', 'defs', 'symbol', 'clipPath'] },
+  tspan: { attrs: ['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family'], parents: ['text', 'tspan'] },
+  linearGradient: { attrs: ['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href'], parents: ['svg', 'g', 'defs', 'symbol'] },
+  radialGradient: { attrs: ['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href'], parents: ['svg', 'g', 'defs', 'symbol'] },
+  stop: { attrs: ['offset', 'stop-color', 'stop-opacity'], parents: ['linearGradient', 'radialGradient'] },
+  clipPath: { attrs: ['transform', 'clipPathUnits'], parents: ['svg', 'g', 'defs', 'symbol'] }
+} as const;
+
+export const SVG_TAG_NAMES = Object.keys(SVG_PROFILE);
 
 // Container tags that can have children and require closing tags
 export const CONTAINER_TAGS = new Set([
@@ -54,53 +77,19 @@ export const ALLOWED_TAGS = new Set([...CONTAINER_TAGS, ...SPECIAL_TAGS, ...VOID
 // Global attributes allowed on all tags
 export const GLOBAL_ATTRS = new Set(['id', 'class', 'style', 'title', 'role', 'tabindex', 'data-', 'aria-']);
 
-// Tag-specific attributes
-const SVG_PRESENTATION_ATTRS = [
-  'transform', 'fill', 'stroke', 'stroke-width', 'fill-rule', 'clip-rule',
-  'opacity', 'fill-opacity', 'stroke-opacity', 'stroke-linecap', 'stroke-linejoin', 'clip-path'
-];
-
 export const TAG_SPECIFIC_ATTRS: Record<string, Set<string>> = {
   'a': new Set(['href', 'target', 'rel']),
   'img': new Set(['src', 'alt', 'width', 'height']),
   'table': new Set(['summary']),
   'th': new Set(['scope', 'colspan', 'rowspan']),
   'td': new Set(['scope', 'colspan', 'rowspan']),
-  'blockquote': new Set(['cite']),
-  'svg': new Set(['viewBox', 'preserveAspectRatio', 'x', 'y', 'width', 'height']),
-  'g': new Set(SVG_PRESENTATION_ATTRS),
-  'defs': new Set(),
-  'symbol': new Set(['viewBox', 'preserveAspectRatio']),
-  'use': new Set(['href', 'x', 'y', 'width', 'height', 'transform', 'clip-path']),
-  'path': new Set(['d', ...SVG_PRESENTATION_ATTRS]),
-  'rect': new Set(['x', 'y', 'width', 'height', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS]),
-  'circle': new Set(['cx', 'cy', 'r', ...SVG_PRESENTATION_ATTRS]),
-  'ellipse': new Set(['cx', 'cy', 'rx', 'ry', ...SVG_PRESENTATION_ATTRS]),
-  'line': new Set(['x1', 'y1', 'x2', 'y2', ...SVG_PRESENTATION_ATTRS]),
-  'polyline': new Set(['points', ...SVG_PRESENTATION_ATTRS]),
-  'polygon': new Set(['points', ...SVG_PRESENTATION_ATTRS]),
-  'text': new Set(['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family']),
-  'tspan': new Set(['x', 'y', 'dx', 'dy', ...SVG_PRESENTATION_ATTRS, 'text-anchor', 'font-size', 'font-family']),
-  'linearGradient': new Set(['x1', 'y1', 'x2', 'y2', 'gradientUnits', 'gradientTransform', 'href']),
-  'radialGradient': new Set(['cx', 'cy', 'r', 'fx', 'fy', 'gradientUnits', 'gradientTransform', 'href']),
-  'stop': new Set(['offset', 'stop-color', 'stop-opacity']),
-  'clipPath': new Set(['transform', 'clipPathUnits'])
+  'blockquote': new Set(['cite'])
 };
 export const SVG_TAGS = new Set(SVG_TAG_NAMES);
-const SVG_CHILDREN: Record<string, ReadonlySet<string>> = {
-  svg: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
-  g: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
-  defs: new Set(['g', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
-  symbol: new Set(['svg', 'g', 'defs', 'symbol', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text', 'linearGradient', 'radialGradient', 'clipPath']),
-  text: new Set(['tspan']),
-  tspan: new Set(['tspan']),
-  linearGradient: new Set(['stop']),
-  radialGradient: new Set(['stop']),
-  clipPath: new Set(['g', 'use', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'text'])
-};
 
 export function validateTagContainment(tag: string, parentTag: string | undefined, logger: Logger): boolean {
-  if (!SVG_TAGS.has(tag)) {
+  const profile = SVG_PROFILE[tag as keyof typeof SVG_PROFILE];
+  if (!profile) {
     if (parentTag && SVG_TAGS.has(parentTag)) {
       logger.error(`Tag "${tag}" is not allowed inside SVG tag "${parentTag}"`);
       return false;
@@ -109,12 +98,12 @@ export function validateTagContainment(tag: string, parentTag: string | undefine
   }
 
   if (!parentTag) {
-    if (tag === 'svg') return true;
+    if (profile.parents.length === 0) return true;
     logger.error(`SVG tag "${tag}" must be contained by an SVG element`);
     return false;
   }
 
-  if (!SVG_TAGS.has(parentTag) || !SVG_CHILDREN[parentTag]?.has(tag)) {
+  if (!profile.parents.includes(parentTag as never)) {
     logger.error(`SVG tag "${tag}" is not allowed inside "${parentTag}"`);
     return false;
   }
@@ -467,9 +456,9 @@ export function processStyleAttributeToProperties(
  */
 export function validateAttributeName(key: string, tag: string, logger: Logger, extraAllowedAttrs?: ReadonlySet<string>): boolean {
   if (SVG_TAGS.has(tag)) {
-    const tagAttrs = TAG_SPECIFIC_ATTRS[tag] ?? new Set<string>();
+    const tagAttrs = SVG_PROFILE[tag as keyof typeof SVG_PROFILE].attrs;
     const isSvgGlobal = key === 'id' || key === 'role' || key === 'style' || key.startsWith('aria-');
-    if (!isSvgGlobal && !tagAttrs.has(key) && !(extraAllowedAttrs?.has(key))) {
+    if (!isSvgGlobal && !tagAttrs.includes(key as never) && !(extraAllowedAttrs?.has(key))) {
       logger.warn(`Attribute "${key}" is not allowed on tag "${tag}"`);
       return false;
     }
